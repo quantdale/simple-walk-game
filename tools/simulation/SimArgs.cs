@@ -20,13 +20,14 @@ internal sealed class SimArgs
     private const string Start = "--start";
     private const string StepsPerDay = "--steps-per-day";
     private const string Selftest = "--selftest";
+    private const string Replay = "--replay";
 
     private static readonly HashSet<string> KnownFlags = new(StringComparer.Ordinal)
     {
-        Save, Seed, At, Vitality, Id, Reason, To, Days, Start, StepsPerDay, Selftest,
+        Save, Seed, At, Vitality, Id, Reason, To, Days, Start, StepsPerDay, Selftest, Replay,
     };
 
-    private static readonly HashSet<string> BooleanFlags = new(StringComparer.Ordinal) { Selftest };
+    private static readonly HashSet<string> BooleanFlags = new(StringComparer.Ordinal) { Selftest, Replay };
 
     private readonly Dictionary<string, string> _values = new(StringComparer.Ordinal);
 

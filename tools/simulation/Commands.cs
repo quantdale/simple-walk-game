@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using WalkGame.Application;
 using WalkGame.Application.Content;
+using WalkGame.Application.Development;
 using WalkGame.Application.Persistence;
 using WalkGame.Application.ReadModels;
 using WalkGame.Domain;
@@ -143,6 +144,93 @@ internal static class Cli
         return 0;
     }
 
+    /// <summary>
+    /// M3 acceptance path: normalized synthetic walking records flow through the real
+    /// IngestActivityBatch trust pipeline (never direct credit), with the game session
+    /// recreated from disk between activity windows so persistence/boot logic is
+    /// exercised exactly like an app-closed period.
+    /// </summary>
+    public static int Walk(string[] tokens)
+    {
+        var a = new SimArgs(tokens);
+        long days = a.RequireLong("--days");
+        if (days is < 0 or > 3650)
+            throw new CliUsageException("--days must be between 0 and 3650");
+        long stepsPerDay = a.Has("--steps-per-day") ? a.Long("--steps-per-day") : 12000L;
+        if (stepsPerDay <= 0)
+            throw new CliUsageException("--steps-per-day must be positive");
+
+        DateTimeOffset endInstant = a.Has("--at") ? a.Iso("--at") : TruncateToHour(DateTimeOffset.UtcNow);
+        DateTimeOffset startInstant = endInstant.AddDays(-days);
+        bool replay = a.Has("--replay");
+        if (replay && !a.Has("--at"))
+            throw new CliUsageException("--replay requires --at so the original window can be repeated");
+
+        long totalCredited = 0L;
+        int duplicateRecords = 0;
+        var catalogOrder = Region1Catalog.Create().Projects.Select(p => p.Id.Value).ToList();
+
+        for (long day = 1; day <= days; day++)
+        {
+            DateTimeOffset windowStart = startInstant.AddDays(day - 1);
+            DateTimeOffset windowEnd = startInstant.AddDays(day);
+
+            // Fresh session from disk every window: app-closed between activity periods.
+            var session = CreateSession(new ManualClock(windowEnd), a.SaveDir);
+            var boot = Boot(session, allowFreshStart: !replay, freshSeed: DefaultSeed);
+            if (boot.ExitCode != 0)
+                return boot.ExitCode;
+
+            var source = new SyntheticWalkingSource(stepsPerDay);
+            var ingest = session.IngestFromSource(source, windowStart, windowEnd);
+            totalCredited += Math.Max(0L, ingest.VitalityCredited);
+            duplicateRecords += ingest.DuplicatesIgnored;
+
+            Console.WriteLine(
+                $"[walk] day={day} accepted={ingest.Accepted} rejected={ingest.Rejected}"
+                + $" duplicates={ingest.DuplicatesIgnored} vitality=+{ingest.VitalityCredited}");
+            foreach (string line in ingest.SummaryLines)
+                Console.WriteLine("  " + line);
+
+            AutoQueueIfIdle(session, catalogOrder);
+        }
+
+        Console.WriteLine(replay ? "--- replay proof ---" : "--- walk complete ---");
+        Console.WriteLine($"windows: {days}  vitality credited: {totalCredited}  duplicate records ignored: {duplicateRecords}");
+        if (replay && totalCredited != 0L)
+        {
+            Console.Error.WriteLine("ERROR: replay credited new vitality — exactly-once violation.");
+            return 2;
+        }
+        return 0;
+    }
+
+    /// <summary>Acknowledges (dismisses) the pending return summary; idempotent.</summary>
+    public static int Ack(string[] tokens)
+    {
+        var a = new SimArgs(tokens);
+        var session = CreateSession(NewSystemClock(), a.SaveDir);
+        var boot = Boot(session, allowFreshStart: false, freshSeed: 0);
+        if (boot.ExitCode != 0)
+            return boot.ExitCode;
+
+        var pending = session.GetPendingReturnSummary();
+        if (pending == null)
+        {
+            Console.WriteLine("ack: nothing pending (already a no-op).");
+            return 0;
+        }
+
+        var result = session.AcknowledgeReturnSummary();
+        if (!result.IsSuccess)
+        {
+            Console.Error.WriteLine("ERROR: " + result.Error!.Message);
+            return 2;
+        }
+        Console.WriteLine($"ack: dismissed {pending.Items.Count} item(s).");
+        return 0;
+    }
+
     public static int Dump(string[] tokens)
     {
         var a = new SimArgs(tokens);
@@ -228,11 +316,17 @@ internal static class Cli
               new       --save <dir> [--seed N] [--at ISO8601]
                   create a fresh save; clock pinned at --at (default wall clock), seed default 42
               credit    --save <dir> --vitality N [--id GUID] [--reason text] [--at ISO8601]
-                  load the save and apply one activity reward; id auto-generated when omitted
+                  LOW-LEVEL dev diagnostic: apply one raw reward, bypassing ingestion
               advance   --save <dir> (--to ISO8601 | --days N)
                   load the save and advance offline systems to the target instant
               simulate  --save <dir> --days N [--start ISO8601] [--steps-per-day N] [--seed N]
-                  deterministic daily credit loop with automatic queueing (steps default 6000, seed 42)
+                  LOW-LEVEL dev loop with direct daily credits and automatic queueing
+              walk      --save <dir> --days N [--at ISO8601] [--steps-per-day N] [--replay]
+                  M3 ACCEPTANCE PATH: normalized synthetic records through the real
+                  IngestActivityBatch pipeline; session recreated from disk every window;
+                  --replay repeats the same window (--at required) and must credit nothing
+              ack       --save <dir>
+                  acknowledge (dismiss) the pending return summary; idempotent
               dump      --save <dir>
                   print aligned internals decoded straight from the save file
               validate  --save <dir> [--selftest]
