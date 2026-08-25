@@ -348,7 +348,7 @@ commands in `.github/workflows/ci.yml`):
 ```bash
 dotnet --version                                   # toolchain visible (9.x today)
 dotnet build SimpleWalkGame.sln                    # clean, zero errors
-dotnet test SimpleWalkGame.sln                     # all suites green (131 as of D-031)
+dotnet test SimpleWalkGame.sln                     # all suites green (156 as of M3)
 scripts/assert-repo-identity.sh                    # exit 0 = right repository
 scripts/install-git-hooks.sh                       # core.hooksPath=.githooks, idempotent
 tests/guards/run-guard-tests.sh                    # guard proof suite, 25 assertions
@@ -358,6 +358,14 @@ SAVES=$(mktemp -d)
 dotnet run --project tools/simulation -- new      --save "$SAVES" --seed 7 --at 2026-08-20T08:00:00Z
 dotnet run --project tools/simulation -- simulate --save "$SAVES" --days 5 --start 2026-08-20T08:00:00Z
 dotnet run --project tools/simulation -- validate --save "$SAVES" --selftest
+rm -rf "$SAVES"
+
+# M3 acceptance harness (normalized records through the trust pipeline,
+# session recreated from disk every window) + replay exactly-once proof:
+SAVES=$(mktemp -d)
+dotnet run --project tools/simulation -- walk    --save "$SAVES" --days 16 --at 2026-08-20T08:00:00Z --steps-per-day 20000
+dotnet run --project tools/simulation -- walk    --save "$SAVES" --days 16 --at 2026-08-20T08:00:00Z --steps-per-day 20000 --replay   # must credit zero
+dotnet run --project tools/simulation -- validate --save "$SAVES" --selftest                                                        # schema v2, 0 violations
 rm -rf "$SAVES"
 ```
 

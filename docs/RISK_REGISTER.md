@@ -131,7 +131,7 @@ Interrupted writes, schema changes, bugs, or storage failures make a mature worl
 
 **Impact:** Critical  
 **Likelihood:** Medium  
-**Status:** Open
+**Status:** Open *(mitigation machinery exercised by first real migration)*
 
 ### Failure mode
 
@@ -146,13 +146,15 @@ A schema migration alters ledger identity, conversion semantics, or checkpoints 
 - update-in-place qualification;
 - post-migration duplicate reconciliation test.
 
+**Evidence so far (automated verified):** schema v2 shipped behind registered `MigrationV1ToV2` with representative hand-built v1 envelope fixtures decoding through the real chain (`MigrationV1ToV2Tests`), value-promotion semantics documented in D-032, and post-migration replay still exactly-once (acceptance suite). Device/update-in-place qualification remains open for release.
+
 ---
 
 ## R-007 — Inactivity mechanics create a quitting spiral
 
 **Impact:** High  
 **Likelihood:** Medium  
-**Status:** Open
+**Status:** Open *(core anti-punishment mechanics now implemented and tested)*
 
 ### Failure mode
 
@@ -166,6 +168,8 @@ Streak loss, overflowing producers, expiring rewards, or world decay makes retur
 - no irreversible missed-day core rewards;
 - welcoming return summary;
 - seven-/thirty-day return acceptance scenarios.
+
+**Evidence so far (automated verified):** unallocated Vitality banks indefinitely while queues are empty or automation is off; producer overflow is no-waste bounded parking (D-032); the return summary is durable, welcoming, priority-ordered and survives restarts without nagging (D-033). Long-absence (10/30-day) production bounds are explicitly tested. Seven-/thirty-day UX scenarios remain open until presentation exists.
 
 ---
 

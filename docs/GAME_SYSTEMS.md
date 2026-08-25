@@ -159,6 +159,8 @@ Offline simulation must be deterministic:
 
 `produced = min(capacityRemaining, rate × eligibleElapsedTime)`
 
+`capacityRemaining` is the free room in that producer's own bounded pending-output store (`CapacityUnits`, D-032): output mints into the store first, surplus time beyond it creates no waste, whole units auto-deliver into canonical balances (no claiming), and units a downstream resource cap refuses stay parked in the store until space frees. Producer checkpoints are monotonic under backward clocks at every public path.
+
 Any modifiers must be versioned inputs to the simulation.
 
 ### Anti-busywork rule

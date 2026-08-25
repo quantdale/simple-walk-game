@@ -8,7 +8,7 @@ The core premise is deliberately simple:
 
 **move in real life → generate progress → restore a persistent world → make short meaningful decisions → optionally visit and interact with that world**
 
-This repository is currently in a **documentation-first / pre-implementation phase**. The documentation defines the product contract, architecture, gameplay systems, quality gates, and implementation roadmap before production code is introduced.
+This repository implements the product contract defined by its documentation: a deterministic, offline-first game core with an exactly-once activity trust pipeline, now proving its ambient progression loop end-to-end (M3).
 
 ---
 
@@ -152,14 +152,14 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 ## Current repository state
 
-**Status: M1 (deterministic core and durable state) and M2 (activity trust pipeline) implemented and automated-verified; Unity presentation not started.**
+**Status: M1 (deterministic core and durable state) and M2 (activity trust pipeline) implemented and automated-verified; M3 (ambient progression vertical slice) implemented and automated-verified headless. Unity presentation not started (no editor in this environment; runtime gates recorded UNVERIFIED).**
 
 The repository now contains a headless .NET implementation of the deterministic game core:
 
 - `src/WalkGame.Domain` — pure domain (`netstandard2.1`, C# 9, zero engine/platform dependencies): stable IDs, resource accounting, reward ledger with exactly-once semantics, project state machine and queue with auto-rollover, region/landmark/producer model, deterministic offline advancement with backward-clock defense, injected clock, persisted-seed RNG, content/state validators.
 - `src/WalkGame.Application` — use-case orchestration (`GameSession`): boot/load/recover/migrate/advance/save flow, activity crediting, queue management, return summaries, read models. Dev content seed in `Content/Region1Catalog`.
 - `src/WalkGame.Infrastructure` — versioned JSON save envelope with SHA-256 payload integrity, sequential migration pipeline, atomic snapshot store with one-generation backup recovery.
-- `tests/` — 131 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness).
+- `tests/` — 156 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, end-to-end M3 acceptance).
 - `tools/simulation` — headless CLI: `new / credit / advance / simulate / dump / validate` for deterministic multi-day simulation and save validation.
 
 **M2 activity trust pipeline (automated verified):**
@@ -176,13 +176,21 @@ The repository now contains a headless .NET implementation of the deterministic 
 
 Verification evidence (automated verified per `docs/AGENT_EXECUTION_GUIDE.md` §17):
 
-- `dotnet build SimpleWalkGame.sln` — clean, zero warnings/errors;
-- `dotnet test` — Domain.Tests 85 passed, Infrastructure.Tests 19 passed, Application.Tests 27 passed;
-- CLI smoke run — fresh save → credit → 10-day simulation → project completion + queue rollover + landmark stage change → validate (0 violations, integrity self-test PASS);
-- guard proof suite — `tests/guards/run-guard-tests.sh`, 25/25 assertions green;
+- `dotnet build SimpleWalkGame.sln` — clean, zero errors;
+- `dotnet test` — Domain.Tests 89 passed, Infrastructure.Tests 23 passed, Application.Tests 44 passed;
+- M3 acceptance path (`tools/simulation walk`) — 16 app-closed days of normalized synthetic records through `IngestActivityBatch`: 3200 Vitality credited exactly once, three project completions, landmark stage changes, producer unlock + bounded offline production, durable return summaries surviving restarts, replay of the identical window crediting zero (16 duplicates ignored), save validates at schema v2 with integrity self-test PASS;
+- guard proof suite — `tests/guards/run-guard-tests.sh`, all assertions green;
 - **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
 
-Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-031.
+**M3 ambient progression vertical slice (automated verified, headless):**
+
+- Producer offline production enforces the documented capacity contract (`min(storeRoom, rate × elapsed)`, D-032): bounded pending-output store, no-waste overflow, auto-delivery, parked-flush when resource caps free space; monotonic checkpoints at every public path including backward-clock defense on direct `TickProducers` calls.
+- Save schema v2 with registered sequential migration (`m1-to-v2-producer-stored-milli-units`) and representative v1 fixture tests.
+- Durable typed return summaries (D-033): committed-before-presented crash safety, priority-ordered bounded items, single primary next action, idempotent acknowledgement that never alters progression.
+- Complete queue contract: persisted auto-advance toggle, manual start when automation is off, validated reorder, Projects/Region/Home read models.
+- Platform-neutral activity-source seam (D-034): `IngestFromSource` drives the unchanged M2 trust pipeline; dev-only synthetic injector isolated in `WalkGame.Application.Development`; `tools/simulation walk --replay` is the reproducible acceptance harness.
+
+Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-035.
 
 ### Repository safety rails (agent isolation)
 
@@ -202,6 +210,6 @@ After two concurrent autonomous executor sessions damaged overlapping work (comm
   inherit the preflight. See also `scripts/new-agent-worktree.sh` for isolated
   concurrent sessions (`one writer = one worktree = one branch`).
 
-The immediate next campaign is M3 (ambient progression vertical slice with minimal UI), per [`docs/ROADMAP.md`](docs/ROADMAP.md).
+The immediate next campaign is the Unity presentation shell + runtime verification of the already-implemented M3 boundaries (requires an installed Unity 6 LTS editor), per [`docs/ROADMAP.md`](docs/ROADMAP.md) and D-035.
 
 The project should resist premature feature expansion. A small, deeply integrated, polished ambient-fitness loop is more valuable than a large collection of disconnected game systems.

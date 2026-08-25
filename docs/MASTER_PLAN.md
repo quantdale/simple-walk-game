@@ -355,7 +355,7 @@ Implement fixtures, platform abstractions, deduplication, reconciliation, correc
 ### M3 — Ambient gameplay vertical loop
 Implement Vitality, project queue, restoration stages, producers, offline advancement, and return summary.
 
-**Exit:** a player can progress an end-to-end world state by feeding activity fixtures.
+**Exit:** a player can progress an end-to-end world state by feeding activity fixtures. *(Met headless and automated-verified: acceptance scenario runs the complete loop through the trust pipeline with exactly-once crediting, durable summaries, and byte-identical determinism; Unity runtime verification deferred per D-035.)*
 
 ### M4 — First region content
 Author one complete region, content schema, landmark chains, discoveries, expedition hooks, and world state mapping.
@@ -451,7 +451,7 @@ The MVP is strategically successful when all of the following are true:
 
 ## 20. Immediate next campaign
 
-**Status update (2026-08-25): M1 and the M2 trust pipeline are implemented and automated-verified on `main`; see ROADMAP exit criteria and README for evidence. The objective below is history — it is kept because it explains why the core looks the way it does. The immediate next milestone is M3 (ambient progression vertical slice with minimal UI).**
+**Status update (2026-08-26): M1, the M2 trust pipeline, and the M3 ambient progression vertical slice are implemented and automated-verified headless on `main` (156 tests; see ROADMAP exit criteria and README for evidence). The Unity presentation shell + editor/runtime verification of the already-implemented M3 boundaries is the immediate next campaign (D-035): it requires an installed Unity 6 LTS editor and must start at those runtime gates, not at domain/application rework.**
 
 The foundation campaign proved that the game can:
 
@@ -464,6 +464,8 @@ The foundation campaign proved that the game can:
 7. survive duplicate/reordered/replayed/corrected/deleted inputs;
 8. expose a simple diagnostic representation of the resulting world.
 
-Once M3 makes progression visible, every later visual and gameplay feature can build on it safely.
+The M3 campaign then proved the full ambient loop end-to-end through the trust pipeline: queued restoration work advances across completion boundaries while the app is closed, landmark stages change, producers unlock and produce within documented bounds over elapsed time, return summaries are durable/bounded/explainable after crashes, players choose/reorder/start work through application use cases, replaying history credits nothing twice, and identical inputs produce byte-identical saves.
+
+Once the M3 runtime gates make that loop visible in Unity, every later visual and gameplay feature can build on it safely.
 
 Do not begin new campaigns without the `AGENTS.md` preflight (repository identity guard, single-writer lease); concurrent uncoordinated sessions previously damaged this repository.

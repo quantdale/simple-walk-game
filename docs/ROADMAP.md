@@ -184,11 +184,13 @@ A test profile should be able to:
 
 ## Exit criteria
 
-- [ ] end-to-end loop works without platform health API;
-- [ ] app may remain closed between synthetic activity periods;
-- [ ] no progress is lost because the queue crosses a completion boundary;
-- [ ] return summary stays concise;
-- [ ] no UI owns canonical progression state.
+- [x] end-to-end loop works without platform health API; *(M3AmbientProgressionAcceptanceTests: normalized synthetic records through IngestActivityBatch, exactly-once crediting, completion boundaries, landmark stages, producer unlock + bounded production, byte-identical deterministic rerun; `tools/simulation walk` CLI harness)*
+- [x] app may remain closed between synthetic activity periods; *(fresh GameSession recreated from disk between every activity window in acceptance test and walk CLI; boot/recovery exercised each time)*
+- [x] no progress is lost because the queue crosses a completion boundary; *(QueueAllocationTests rollover, acceptance banked-surplus assertions, unallocated Vitality persists while queue empty/auto-advance off)*
+- [x] return summary stays concise; *(ReturnSummaryComposer hard 12-item bound with priority ordering and dedupe; durable pending summary survives commit-before-presentation restarts — ReturnSummaryDurabilityTests)*
+- [x] no UI owns canonical progression state. *(presentation consumes HomeReadModel/ProjectsReadModel/RegionReadModel/ReturnSummaryReadModel plus use cases only; Domain/Application carry zero Unity references — D-035)*
+
+**M3 status: implemented and automated verified headless (156 tests).** Runtime-only deliverables — the minimal Unity 6 LTS shell (Home/Projects/Region scenes), EditMode/PlayMode coverage and editor/device verification — are explicitly deferred to a runtime-enabled session (D-035): no Unity editor exists in the environment where this campaign ran, and unverifiable editor artifacts must not be committed as evidence.
 
 ---
 

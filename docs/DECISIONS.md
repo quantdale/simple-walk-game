@@ -523,3 +523,60 @@ Resolve these through new decision entries with rationale and consequences; do n
 - stale locks require explicit human recovery — never silent theft;
 - force-push / hard-reset / clean remain forbidden conflict shortcuts without operator authorization;
 - the guard tooling is under change-control like any invariant: modifying it to make it "stop complaining" is prohibited.
+
+---
+
+## D-032 — Producer capacity is a bounded pending-output store (schema v2)
+
+**Status:** Accepted *(implemented and automated verified: ProducerSimulationTests, GameStateValidationTests, MigrationV1ToV2Tests)*
+
+**Decision:** `ProducerDefinition.CapacityUnits` is the size of that producer's bounded pending-output store, in whole units. Offline production mints `min(remainingStoreRoom, rate × elapsed)` into the store (`ProducerRuntimeState.StoredMilliUnits`, integer milli-units); surplus time beyond the room creates no waste and no value. Whole units auto-deliver into canonical resource balances every tick (never claimed manually). When a downstream resource-level cap refuses delivery, undelivered units stay parked in the producer's store up to its capacity and flush automatically on any later tick call, including zero-elapsed ones. Because minting happens before delivery within a tick, one tick can never produce more than the store's free room regardless of elapsed time; combined with `OfflineAdvancer.MaxProducerInterval` this bounds long absences explicitly. Producer checkpoints are monotonic at every callable boundary: the public `TickProducers` path refuses backward clocks (emitting ClockSkewIgnored) instead of backdating `LastTickUtc`, and unlock stamps the checkpoint at the completion instant so no retroactive production exists.
+
+**Rationale:** GAME_SYSTEMS §5 specifies `produced = min(capacityRemaining, rate × eligibleElapsedTime)`; the previous implementation ignored `CapacityUnits` entirely and tests simulated caps via resource limits. A per-producer parking store keeps the anti-busywork rule (no claiming), gives multi-producer same-resource behavior an unambiguous rule (independent stores; the resource cap arbitrates delivery), and makes "capacity reached" mean one thing everywhere including diagnostics.
+
+**Consequences:**
+- Save schema bumped to v2; registered sequential migration `m1-to-v2-producer-stored-milli-units` promotes v1 `carryMilliUnits` (always < 1000) into `storedMilliUnits`. Representative v1 fixtures decode through the real chain; re-encode/re-decode is stable.
+- With no resource cap set, delivery always succeeds and the store only ever holds sub-unit remainders — capacity binds when content defines resource caps or sinks (M4 concern).
+- Validator enforces `0 <= StoredMilliUnits <= CapacityUnits × 1000`, locked producers hold nothing, and content validator rejects capacities unrepresentable in checked milli-unit math.
+
+---
+
+## D-033 — Return summaries are durable, typed, bounded re-entry state
+
+**Status:** Accepted *(implemented and automated verified: ReturnSummaryDurabilityTests, M3AmbientProgressionAcceptanceTests)*
+
+**Decision:** Canonical `GameState.PendingReturnSummary` (new additive field, schema v2 payload; absent on old payloads decodes to null which is exactly "nothing pending") stores the committed-but-not-yet-acknowledged summary. Every committing mutation composes its simulation events INTO the pending summary BEFORE persisting, via `ReturnSummaryComposer`: deterministic priority (transformation → actionable decision → production/notice → aggregate), text-level dedupe across merges, and a hard 12-item cap inside the glance budget. Items carry typed kinds (`SummaryItemKind`). A single derived `PrimaryNextAction` ("Queue the next restoration project." when actionable items exist; otherwise null = nothing needs attention). `AcknowledgeReturnSummary()` clears it idempotently and may never alter earned progression. Boot-time advancement summaries regenerate deterministically from checkpoints, so a crash before presentation loses nothing either way; ingestion/credit summaries rely on the durable copy.
+
+**Rationale:** UX_DESIGN §4 makes the summary the central re-entry mechanism; the previous implementation aggregated events into ephemeral strings built AFTER the save, so a crash between commit and display lost the explanation of progress the player had already earned.
+
+**Consequences:**
+- Presentation renders read models (`ReturnSummaryReadModel`, Home/Projects/Region snapshots); no UI owns canonical state.
+- The item cap evicts lowest-priority entries when new meaningful events arrive while stale ones are still unacknowledged; replayed activity adds notices at most, never fabricated progress claims (acceptance-tested).
+
+---
+
+## D-034 — One platform-neutral activity-source seam; development injector isolated behind it
+
+**Status:** Accepted *(implemented and automated verified: IngestFromSourceTests, walk CLI replay proof)*
+
+**Decision:** `Application.Activity.IActivityRecordSource` is the single seam for activity provenance (fixtures today; Health Connect/HealthKit adapters in M7 behind the same interface). `GameSession.IngestFromSource(source, windowStart, windowEnd)` fetches normalized records and pushes them through the unchanged `IngestActivityBatch` trust pipeline — there is no separate M3 crediting path. The deterministic `SyntheticWalkingSource` lives in `WalkGame.Application.Development`, namespaces all records `dev.synthetic-walking`, derives stable per-day source IDs (replay-safe), and enters production builds only if a composition root explicitly constructs it — which the documented roots never do. `tools/simulation walk --replay` re-feeds an identical window through fresh sessions and fails loudly if anything credits twice.
+
+**Rationale:** Campaign gap: the simulator's multi-day loop bypassed validation/dedup/identity by calling CreditActivity directly. Keeping `credit`/`simulate` as labeled low-level diagnostics while making `walk` the acceptance harness preserves both developer convenience and trust-pipeline honesty.
+
+**Consequences:**
+- Retry/replay after restart is safe by construction (durable processed-record ledger), proven by tests rather than asserted.
+- Production adapter work (M7) must implement the same narrow port; sources without durable record IDs cannot express corrections (unchanged D-029 requirement).
+
+---
+
+## D-035 — M3 presentation boundary delivered headless; Unity project deferred to a runtime-enabled session
+
+**Status:** Accepted *(implementation reality of this campaign)*
+
+**Decision:** This campaign delivers the complete presentation CONTRACT — Home/Projects/Region read models, queue/auto-advance/manual-start operations, durable summary acknowledgement, and the bootstrap-relevant seams (save store, clock, activity source, session) wired exactly as a Unity composition root will wire them — and proves the full player story through those application boundaries with automated acceptance tests. Creating `src/WalkGame.Unity` is deferred: no Unity 6 LTS editor exists in this execution environment, so a committed Unity project could not be opened, imported, compiled, or PlayMode-tested here, and shipping unverifiable editor YAML would violate the evidence rules (D-018).
+
+**Rationale:** "Never fabricate editor/device evidence" (campaign §3, AGENTS.md honesty gates). Headless-verifiable M3 scope is complete; runtime-only gates are recorded UNVERIFIED, not silently omitted.
+
+**Consequences:**
+- The exact Unity 6 LTS version remains unresolved decision #1; the next campaign with an installed editor starts at the Unity shell + EditMode/PlayMode gates, not at domain/application rework.
+- Any future presentation technology must consume the same read-model/use-case boundary; nothing in Domain/Application references Unity.

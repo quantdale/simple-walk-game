@@ -97,6 +97,10 @@ The return summary is the central re-entry mechanism.
 - never require reviewing every reward individually;
 - do not block access to the app behind long animations.
 
+### Durability and acknowledgement (implemented M3, D-033)
+
+The summary is durable canonical state (`GameState.PendingReturnSummary`), composed before progress is persisted: a crash between committing progress and displaying it cannot lose the explanation of what was earned. Items are typed (transformation / actionable decision / production / notice / aggregate), deduplicated across merges, hard-bounded to 12 entries, ordered transformation-first, with a single derived primary next action or an explicit nothing-needs-attention state. Dismissing it (`AcknowledgeReturnSummary`) is idempotent and never alters earned progression; replayed activity cannot fabricate new "progress" items.
+
 ### Priority order
 
 1. landmark/region transformation;

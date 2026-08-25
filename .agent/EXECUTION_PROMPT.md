@@ -1,6 +1,6 @@
 # Active Execution Campaign — M3 Ambient Progression Vertical Slice
 
-**Status:** ACTIVE  
+**Status:** BLOCKED — RUNTIME VERIFICATION PENDING (headless M3 implementation complete and automated verified; Unity editor unavailable in execution environment, see §14)
 **Planned-From:** `4419b17760881a4ac9833105b67641d975f39cb7`  
 **Target branch:** `main`  
 **Campaign class:** IMPLEMENTATION  
@@ -437,3 +437,38 @@ Before final integration/push:
 Do not finish by printing another giant prompt for the operator to paste. The durable repository state is the handoff. The next invocation should be able to resume from `.agent/EXECUTION_PROMPT.md` and the repository itself.
 
 If M3 genuinely satisfies every applicable completion gate, stop after the final pushed verification. Do not automatically begin M4 in the same campaign.
+
+---
+
+# 14. Execution outcome (2026-08-26)
+
+**Status: headless M3 implementation COMPLETE and automated verified; runtime-only gates BLOCKED by environment.** This is a terminal status for this campaign session — `/goal continue` must not treat the sections above as an active work list; resume at §14.3 only.
+
+## 14.1 Delivered (automated verified unless noted)
+
+- Producer capacity contract resolved and enforced (D-032): bounded pending-output store, `min(storeRoom, rate × elapsed)` minting, no-waste overflow, auto-delivery, parked-flush behind resource caps, monotonic checkpoints at every public path (backward-clock regression on direct `TickProducers` fixed along with its codifying test), unlock-time stamping, long-absence bounds.
+- Save schema v2 + registered sequential migration `m1-to-v2-producer-stored-milli-units` with representative v1 envelope fixtures and re-encode stability tests.
+- Durable typed return summaries (D-033): composed before persistence, priority/dedupe/12-item bound, primary next action, idempotent acknowledgement, crash-before-presentation survival.
+- Complete queue contract: persisted auto-advance toggle (`SetAutoAdvance`), manual start when automation is off (`ActivateQueuedProject`), validated reorder/enqueue/dequeue, Projects/Region/Home read models with producer store state.
+- Platform-neutral reconcile path (D-034): `IActivityRecordSource` port + `GameSession.IngestFromSource` over the unchanged M2 trust pipeline; dev-only `SyntheticWalkingSource` isolated in `WalkGame.Application.Development`.
+- Simulation CLI acceptance harness: `walk` (+ `--replay` exactly-once proof) and `ack`; `credit`/`simulate` documented as low-level diagnostics.
+- Named acceptance scenario `M3AmbientProgressionAcceptanceTests`: full 12-step story incl. session recreation between every window, landmark stage changes, producer unlock + bounded offline production (parked half-unit preserved), summary crash-safety, choose/reorder/start next project, whole-history replay no-op with zero fabricated claims, byte-identical deterministic rerun, validator-clean final state.
+
+## 14.2 Verification evidence
+
+- `dotnet build SimpleWalkGame.sln` — clean, zero errors.
+- `dotnet test SimpleWalkGame.sln` — 156 passed / 0 failed (Domain 89, Infrastructure 23, Application 44).
+- CLI walk smoke: 16 days × 20000 steps → 3200 Vitality exactly once; replay of identical window → 0 credited, 16 duplicates ignored; `validate --selftest` PASS at schema v2.
+- Guard suite + repository identity preflight green (see final handoff commit message for exact rerun results).
+
+## 14.3 Remaining gates (BLOCKED — exact blocker)
+
+- **Blocker:** no Unity 6 LTS editor exists in this execution environment; committing editor-generated project files that cannot be opened/imported/compiled/tested here would violate the evidence rules (D-018) — decision D-035 records this honestly.
+- Deferred to a runtime-enabled session: create `src/WalkGame.Unity` shell (Home/Projects/Region consuming the existing read models/use cases), EditMode/PlayMode coverage, bootstrap/composition root in Unity, runtime verification of the same acceptance story, then device work per M5–M7.
+- Everything needed for that session already exists and is tested: read models, use cases, save store/clock/activity-source seams, migration chain, acceptance harness.
+
+## 14.4 Intentional deferrals
+
+- M4 Region 1 content volume/balance; real resource sinks/caps that make producer stores bind in ordinary play (content-level concern).
+- Health Connect/HealthKit providers behind `IActivityRecordSource` (M7).
+- Discoveries/expeditions/ecology systems (not required for the M3 view contracts).
