@@ -7,18 +7,6 @@ using WalkGame.Domain.Common;
 
 namespace WalkGame.Infrastructure.Persistence
 {
-    internal sealed class SaveEnvelopeDto
-    {
-        public int SchemaVersion { get; set; }
-
-        public DateTimeOffset SavedAtUtc { get; set; }
-
-        public string PayloadSha256Base64 { get; set; } = string.Empty;
-
-        /// <summary>Payload is opaque base64 so envelope framing stays stable across payload schema changes.</summary>
-        public string PayloadBase64 { get; set; } = string.Empty;
-    }
-
     internal static class SaveJson
     {
         public static JsonSerializerOptions Options { get; } = CreateOptions();

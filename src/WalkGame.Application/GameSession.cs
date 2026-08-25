@@ -624,14 +624,14 @@ namespace WalkGame.Application
         public DomainResult ReorderQueue(IReadOnlyList<string> orderedProjectIds)
         {
             var game = RequireState();
-            var current = new List<string>(game.Queue.QueuedProjectIds);
-            if (orderedProjectIds.Count != current.Count)
+            var currentIds = new HashSet<string>(game.Queue.QueuedProjectIds, StringComparer.Ordinal);
+            if (orderedProjectIds.Count != currentIds.Count)
                 return DomainResult.Fail(ErrorCodes.InvalidQueueOrder, "Reorder must contain every queued project exactly once.");
 
             var seen = new HashSet<string>(StringComparer.Ordinal);
             foreach (var id in orderedProjectIds)
             {
-                if (!current.Contains(id) || !seen.Add(id))
+                if (!currentIds.Contains(id) || !seen.Add(id))
                     return DomainResult.Fail(ErrorCodes.InvalidQueueOrder, "Reorder must contain every queued project exactly once.");
             }
 
@@ -723,7 +723,7 @@ namespace WalkGame.Application
                     definition.VitalityCost,
                     runtime.VitalityInvested,
                     runtime.Status,
-                    queuedPositions.ContainsKey(definition.Id.Value) ? position : (int?)null,
+                    queuedPositions.Remove(definition.Id.Value) ? position : (int?)null,
                     prerequisites));
             }
 

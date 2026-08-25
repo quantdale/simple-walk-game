@@ -11,6 +11,7 @@ using WalkGame.Application.Development;
 using WalkGame.Application.Persistence;
 using WalkGame.Application.ReadModels;
 using WalkGame.Domain;
+using WalkGame.Domain.Activity;
 using WalkGame.Domain.Time;
 using WalkGame.Domain.Validation;
 using WalkGame.Infrastructure.Persistence;
@@ -300,6 +301,155 @@ internal static class Cli
         return violations.Count > 0 || !selftestOk ? 2 : 0;
     }
 
+    // ------------------------------------------------------------ bench
+
+    /// <summary>
+    /// Deterministic micro-benchmarks for the hot paths (trust-pipeline ingestion,
+    /// codec roundtrip, durable commit). Development evidence tool only; never mutates
+    /// canonical semantics. Ingestion runs against an in-memory store so numbers reflect
+    /// CPU work; the durable-commit sample uses the real AtomicFileSaveStore.
+    /// </summary>
+    public static int Bench(string[] tokens)
+    {
+        var a = new SimArgs(tokens);
+        int records = a.Has("--records") ? a.Int("--records") : 2000;
+        int iterations = a.Has("--iterations") ? a.Int("--iterations") : 5;
+        if (records <= 0 || iterations <= 0)
+            throw new CliUsageException("--records and --iterations must be positive");
+        DateTimeOffset at = a.Has("--at") ? a.Iso("--at") : TruncateToHour(DateTimeOffset.UtcNow);
+        Directory.CreateDirectory(a.SaveDir);
+
+        Console.WriteLine($"[bench] records={records} iterations={iterations} at={Format(at)}");
+
+        double[] ingestMs = new double[iterations];
+        long vitalityTotal = 0L;
+        byte[]? envelope = null;
+
+        for (int iteration = 0; iteration < iterations; iteration++)
+        {
+            var store = new MemorySaveStore();
+            var session = CreateSession(new ManualClock(at), store);
+            session.StartNewGame(DefaultSeed);
+
+            var batch = MakeBenchBatch(records, at, iteration);
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var result = session.IngestActivityBatch(batch);
+            sw.Stop();
+
+            if (result.Rejected > 0)
+            {
+                Console.Error.WriteLine("ERROR: bench batch produced rejections: " + result.Rejected);
+                return 2;
+            }
+            ingestMs[iteration] = sw.Elapsed.TotalMilliseconds;
+            vitalityTotal += result.VitalityCredited;
+            envelope = store.LastEnvelope;
+        }
+
+        Console.WriteLine($"bench-ingest-ms-median: {Median(ingestMs):F3}");
+        Console.WriteLine($"bench-ingest-ms-min: {Min(ingestMs):F3}");
+        Console.WriteLine($"bench-ingest-recs-per-sec: {(long)(records / (Median(ingestMs) / 1000.0))}");
+        Console.WriteLine($"bench-ingest-vitality-total: {vitalityTotal}");
+
+        if (envelope != null)
+        {
+            var codec = NewCodec();
+            var state = codec.Decode(envelope).State!;
+            const int codecSamples = 20;
+            double[] encodeMs = new double[codecSamples];
+            double[] decodeMs = new double[codecSamples];
+            for (int sample = 0; sample < codecSamples; sample++)
+            {
+                var sw1 = System.Diagnostics.Stopwatch.StartNew();
+                byte[] encoded = codec.Encode(state, at);
+                sw1.Stop();
+                encodeMs[sample] = sw1.Elapsed.TotalMilliseconds;
+
+                var sw2 = System.Diagnostics.Stopwatch.StartNew();
+                var decoded = codec.Decode(encoded);
+                sw2.Stop();
+                decodeMs[sample] = sw2.Elapsed.TotalMilliseconds;
+                if (decoded.Status != CodecStatus.Ok)
+                {
+                    Console.Error.WriteLine("ERROR: bench roundtrip failed: " + decoded.Status);
+                    return 2;
+                }
+            }
+            Console.WriteLine($"bench-encode-ms-median: {Median(encodeMs):F3}");
+            Console.WriteLine($"bench-encode-ms-min: {Min(encodeMs):F3}");
+            Console.WriteLine($"bench-decode-ms-median: {Median(decodeMs):F3}");
+            Console.WriteLine($"bench-decode-ms-min: {Min(decodeMs):F3}");
+            Console.WriteLine($"bench-envelope-bytes: {envelope.Length}");
+
+            var fileStore = new AtomicFileSaveStore(a.SaveDir, "benchslot");
+            double[] writeMs = new double[iterations];
+            for (int sample = 0; sample < iterations; sample++)
+            {
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                fileStore.WriteAtomic(envelope);
+                sw.Stop();
+                writeMs[sample] = sw.Elapsed.TotalMilliseconds;
+            }
+            Console.WriteLine($"bench-durable-write-ms-median: {Median(writeMs):F3}");
+            Console.WriteLine($"bench-durable-write-ms-min: {Min(writeMs):F3}");
+        }
+
+        return 0;
+    }
+
+    private static List<NormalizedActivityRecord> MakeBenchBatch(int count, DateTimeOffset atUtc, int iteration)
+    {
+        var list = new List<NormalizedActivityRecord>(count);
+        for (int i = 0; i < count; i++)
+        {
+            DateTimeOffset end = atUtc.AddHours(-1).AddSeconds(-i);
+            list.Add(new NormalizedActivityRecord(
+                "bench.synthetic",
+                $"bench.{iteration}.{i}",
+                ActivityCategory.Walking,
+                ActivityUnits.Steps,
+                1000L + (i % 5000),
+                end.AddMinutes(-30),
+                end));
+        }
+        return list;
+    }
+
+    private static GameSession CreateSession(IClock clock, ISaveStore store) =>
+        new(store, NewCodec(), clock, Region1Catalog.Create());
+
+    private static double Median(double[] samples)
+    {
+        var sorted = (double[])samples.Clone();
+        Array.Sort(sorted);
+        return sorted[sorted.Length / 2];
+    }
+
+    private static double Min(double[] samples)
+    {
+        double min = double.MaxValue;
+        foreach (double sample in samples)
+            if (sample < min)
+                min = sample;
+        return min;
+    }
+
+    /// <summary>In-memory ISaveStore for CPU-only benchmarks; keeps the latest envelope.</summary>
+    private sealed class MemorySaveStore : ISaveStore
+    {
+        public byte[]? LastEnvelope { get; private set; }
+
+        public SaveReadResult ReadPrimary() =>
+            LastEnvelope == null
+                ? SaveReadResult.Fail(SaveReadOutcome.NotFound, "no envelope written yet.")
+                : SaveReadResult.Ok(LastEnvelope);
+
+        public SaveReadResult ReadBackup() =>
+            SaveReadResult.Fail(SaveReadOutcome.NotFound, "memory store has no backup.");
+
+        public void WriteAtomic(byte[] envelopeBytes) => LastEnvelope = envelopeBytes;
+    }
+
     // ------------------------------------------------------------- usage
 
     public static int Usage(string? error)
@@ -332,6 +482,8 @@ internal static class Cli
               validate  --save <dir> [--selftest]
                   decode + validate state against Region1Catalog; --selftest tampers an in-memory
                   copy of the payload and requires ChecksumMismatch
+              bench     --save <dir> [--records N] [--iterations K] [--at ISO8601]
+                  deterministic hot-path micro-benchmarks (ingestion, codec, durable commit)
 
             exit codes: 0 ok | 1 usage | 2 domain/validation failure | 3 save missing/unreadable | 4 unexpected error
             """);

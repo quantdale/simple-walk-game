@@ -57,14 +57,19 @@ namespace WalkGame.Infrastructure.Persistence
         }
 
         /// <summary>
-        /// netstandard2.1 lacks File.Move(overwrite). Delete+Move keeps the safety contract:
+        /// Atomic destination replacement. On .NET 6+ File.Move(overwrite) is a single
+        /// atomic rename; the delete+move fallback keeps the netstandard2.1 safety contract:
         /// a crash between the two steps leaves the previous generation in backup.
         /// </summary>
         private static void ReplaceFile(string sourcePath, string destinationPath)
         {
+#if NET6_0_OR_GREATER
+            File.Move(sourcePath, destinationPath, overwrite: true);
+#else
             if (File.Exists(destinationPath))
                 File.Delete(destinationPath);
             File.Move(sourcePath, destinationPath);
+#endif
         }
 
         private static SaveReadResult ReadFile(string path)
@@ -85,12 +90,18 @@ namespace WalkGame.Infrastructure.Persistence
             }
         }
 
-        /// <summary>Write + FlushToDisk semantics; WriteThrough bypasses the OS cache.</summary>
+        /// <summary>
+        /// Write + FlushToDisk semantics. Flush(flushToDisk: true) pushes buffered data AND
+        /// metadata to the device before close, which is what makes the commit durable.
+        /// FILE_FLAG_WRITE_THROUGH is intentionally NOT set: with a managed 4 KiB buffer the
+        /// bytes are not in the OS cache until the explicit flush anyway, so write-through
+        /// only added per-write syscall cost without adding crash safety.
+        /// </summary>
         private static void WriteDurable(string path, byte[] bytes)
         {
             using (var stream = new FileStream(
                 path, FileMode.Create, FileAccess.Write, FileShare.None,
-                bufferSize: 4096, FileOptions.WriteThrough))
+                bufferSize: 4096))
             {
                 stream.Write(bytes, 0, bytes.Length);
                 stream.Flush(flushToDisk: true);

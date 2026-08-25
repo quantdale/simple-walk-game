@@ -58,11 +58,6 @@ namespace WalkGame.Domain.Validation
 
                 if (runtime.Status == ProjectStatus.Completed && runtime.CompletedAtUtc == null)
                     violations.Add($"Completed project '{definition.Id}' has no completion timestamp.");
-
-                if (knownProjectIds.Count > 0 && runtime.Status == ProjectStatus.Active && definition.Prerequisites.Count > 0)
-                {
-                    // Prerequisite satisfaction for non-entry projects is validated below via statuses.
-                }
             }
 
             foreach (var pair in state.Region.Projects)

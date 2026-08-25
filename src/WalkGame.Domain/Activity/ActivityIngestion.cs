@@ -101,6 +101,23 @@ namespace WalkGame.Domain.Activity
     }
 
     /// <summary>
+    /// Shared SHA-256 over UTF-8 text for stable identity derivation. Uses the static
+    /// allocation-free HashData path on .NET 5+; identical digest bytes on every target.
+    /// </summary>
+    internal static class ActivityHashing
+    {
+        public static byte[] Sha256Utf8(string value)
+        {
+#if NET5_0_OR_GREATER
+            return System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value));
+#else
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            return sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(value));
+#endif
+        }
+    }
+
+    /// <summary>
     /// Versioned stable identity for logical activity records (ACTIVITY_PIPELINE.md §6).
     /// Preferred: platform source record ID inside a provider namespace.
     /// Fallback: deterministic fingerprint over normalized stable fields.
@@ -138,9 +155,7 @@ namespace WalkGame.Domain.Activity
                 record.EndUtc.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture),
                 record.Quantity.ToString(CultureInfo.InvariantCulture));
 
-            byte[] hash;
-            using (var sha = SHA256.Create())
-                hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(canonical));
+            byte[] hash = ActivityHashing.Sha256Utf8(canonical);
             return ToHex(hash);
         }
 
@@ -151,13 +166,14 @@ namespace WalkGame.Domain.Activity
 
         private static string ToHex(byte[] bytes)
         {
-#if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
+#if NET5_0_OR_GREATER
+            // Identical lowercase hex output as the manual builder below, one allocation.
+            return Convert.ToHexString(bytes).ToLowerInvariant();
+#else
             var builder = new System.Text.StringBuilder(bytes.Length * 2);
             foreach (byte b in bytes)
                 builder.Append(b.ToString("x2", CultureInfo.InvariantCulture));
             return builder.ToString();
-#else
-            return Convert.ToHexString(bytes).ToLowerInvariant();
 #endif
         }
     }
@@ -284,9 +300,7 @@ namespace WalkGame.Domain.Activity
 
         private static Guid Derive(string canonical)
         {
-            byte[] hash;
-            using (var sha = SHA256.Create())
-                hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(canonical));
+            byte[] hash = ActivityHashing.Sha256Utf8(canonical);
 
             var guidBytes = new byte[16];
             Array.Copy(hash, guidBytes, 16);

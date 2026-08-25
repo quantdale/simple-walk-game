@@ -15,6 +15,7 @@ try
         "ack" => Cli.Ack(args[1..]),
         "dump" => Cli.Dump(args[1..]),
         "validate" => Cli.Validate(args[1..]),
+        "bench" => Cli.Bench(args[1..]),
         _ => Cli.Usage($"unknown verb '{args[0]}'"),
     };
 }

@@ -104,6 +104,11 @@ namespace WalkGame.Domain.Regions
         public IReadOnlyList<LandmarkDefinition> Landmarks { get; }
         public IReadOnlyList<ProducerDefinition> Producers { get; }
 
+        // Lazy O(1) lookup indexes over immutable content (built once on first query).
+        private Dictionary<string, ProjectDefinition>? _projectsById;
+        private Dictionary<string, ProducerDefinition>? _producersById;
+        private Dictionary<string, LandmarkDefinition>? _landmarksById;
+
         public RegionDefinition(RegionId id, string titleKey,
             IEnumerable<ProjectDefinition> projects,
             IEnumerable<LandmarkDefinition> landmarks,
@@ -123,26 +128,29 @@ namespace WalkGame.Domain.Regions
 
         public ProjectDefinition? FindProject(string projectId)
         {
-            foreach (var project in Projects)
-                if (project.Id.Value == projectId)
-                    return project;
-            return null;
+            var index = _projectsById ??= IndexBy(Projects, project => project.Id.Value);
+            return index.TryGetValue(projectId, out var project) ? project : null;
         }
 
         public ProducerDefinition? FindProducer(string producerId)
         {
-            foreach (var producer in Producers)
-                if (producer.Id.Value == producerId)
-                    return producer;
-            return null;
+            var index = _producersById ??= IndexBy(Producers, producer => producer.Id.Value);
+            return index.TryGetValue(producerId, out var producer) ? producer : null;
         }
 
         public LandmarkDefinition? FindLandmark(string landmarkId)
         {
-            foreach (var landmark in Landmarks)
-                if (landmark.Id.Value == landmarkId)
-                    return landmark;
-            return null;
+            var index = _landmarksById ??= IndexBy(Landmarks, landmark => landmark.Id.Value);
+            return index.TryGetValue(landmarkId, out var landmark) ? landmark : null;
+        }
+
+        private static Dictionary<string, T> IndexBy<T>(IEnumerable<T> definitions, Func<T, string> keyOf)
+            where T : class
+        {
+            var index = new Dictionary<string, T>(StringComparer.Ordinal);
+            foreach (var definition in definitions)
+                index[keyOf(definition)] = definition;
+            return index;
         }
     }
 
