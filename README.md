@@ -179,9 +179,28 @@ Verification evidence (automated verified per `docs/AGENT_EXECUTION_GUIDE.md` §
 - `dotnet build SimpleWalkGame.sln` — clean, zero warnings/errors;
 - `dotnet test` — Domain.Tests 85 passed, Infrastructure.Tests 19 passed, Application.Tests 27 passed;
 - CLI smoke run — fresh save → credit → 10-day simulation → project completion + queue rollover + landmark stage change → validate (0 violations, integrity self-test PASS);
+- guard proof suite — `tests/guards/run-guard-tests.sh`, 25/25 assertions green;
 - **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
 
-Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-030.
+Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-031.
+
+### Repository safety rails (agent isolation)
+
+After two concurrent autonomous executor sessions damaged overlapping work (commits
+`b12f52c`/`67368e3`), the repo enforces fail-safe rails for ANY coding agent:
+
+- **Identity:** `.repo-identity.json` + `scripts/assert-repo-identity.{sh,ps1}` prove this
+  checkout is `quantdale/simple-walk-game` (exit 86 otherwise) — sibling-repository
+  execution fails closed.
+- **Single writer:** `scripts/writer-lease.{sh,ps1}` grants one atomic per-worktree lease
+  (exit 87 when busy); stale leases require an explicit human override, never auto-theft.
+- **Lost-update protection:** `.githooks/pre-push` refuses pushes that would discard
+  remote commits (exit 88); reconcile via fetch + deliberate merge/rebase instead.
+- **CI:** `.github/workflows/ci.yml` re-checks identity under GitHub's own
+  `GITHUB_REPOSITORY`, builds/tests, runs the simulation smoke and the guard proof suite.
+- **Contract:** root [`AGENTS.md`](AGENTS.md) binds every harness; all `/goal` adapters
+  inherit the preflight. See also `scripts/new-agent-worktree.sh` for isolated
+  concurrent sessions (`one writer = one worktree = one branch`).
 
 The immediate next campaign is M3 (ambient progression vertical slice with minimal UI), per [`docs/ROADMAP.md`](docs/ROADMAP.md).
 

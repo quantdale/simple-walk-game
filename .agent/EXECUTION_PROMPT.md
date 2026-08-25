@@ -1,6 +1,11 @@
 # Active Execution Campaign — M1 Deterministic Trust Kernel + Minimum M2 Ingestion Slice
 
-**Status:** ACTIVE  
+**Status:** SUPERSEDED — DO NOT EXECUTE. M1 and the M2 trust pipeline landed on `main`
+after this prompt was written (see README "Repository state" and ROADMAP exit criteria).
+Retained as a historical record; a new campaign requires a fresh planner audit and a
+new prompt. Any session resuming from this file MUST still pass the `AGENTS.md`
+preflight (identity guard + writer lease) before touching anything.  
+**Planned-From:** `1c9a7ee1aae8aa83426162f0f5c491f875508692`  
 **Planned-From:** `1c9a7ee1aae8aa83426162f0f5c491f875508692`  
 **Target branch:** `main`  
 **Campaign class:** IMPLEMENTATION  

@@ -395,3 +395,42 @@ A strong session does not mean “many files changed.” It means:
 - the next agent can understand the resulting state quickly;
 - verification claims are precise;
 - the repository ends buildable and reviewable.
+
+---
+
+## 23. Incident prevention — wrong repositories and concurrent writers
+
+This repository has actually suffered both failure classes; the mechanisms below are
+mandatory, not advisory. The binding contract lives in root `AGENTS.md`; this section
+explains why.
+
+**Wrong-repository execution.** An agent intended for the sibling repository
+`quantdale/walk-game` (a different product with its own history and campaigns) once had
+no mechanical barrier against operating here. Folder names are not identity.
+*Prevention:* `scripts/assert-repo-identity.{sh,ps1}` must print OK before any write
+(exit 86 otherwise); CI re-checks under GitHub's own `GITHUB_REPOSITORY`. If you discover
+mid-session that identity fails: stop writing, change nothing, report to the operator.
+
+**Same-worktree concurrent writers.** Two executor sessions once wrote this tree
+simultaneously and interleaved/deleted each other's lineage (see commits `b12f52c`,
+`67368e3`). *Prevention:* acquire `scripts/writer-lease.{sh,ps1}` before your first write;
+if it reports busy (exit 87), STOP or move to your own worktree via
+`scripts/new-agent-worktree.sh` (one writer = one worktree = one branch). Stale locks are
+recovered only by an explicit human override — never silently.
+
+**Stale prompts.** An execution prompt marked ACTIVE describes intended state, not
+current state. Always reconcile its claims against README/ROADMAP/tests before resuming,
+and planners must mark superseded prompts SUPERSEDED (see `.agent/EXECUTION_PROMPT.md`).
+
+**Remote races / lost updates.** Another session may push while you work. Before any
+integration: `git fetch origin`, compare against your recorded starting SHA, inspect
+incoming commits for overlap, reconcile deliberately, re-run full verification. The
+pre-push hook mechanically refuses pushes that would discard remote commits (exit 88).
+Force-push, hard reset to remote state, and `git clean -fdx` are forbidden conflict
+shortcuts without explicit operator authorization.
+
+**Safe recovery after damage.** Preserve evidence first (`git log`, diffs against the
+last known-good SHA); snapshot unions of conflicting lineages in dedicated WIP commits
+like `b12f52c`/`67368e3` did; reconcile in a deliberate, reviewed commit; add regression
+coverage for whatever allowed the incident. Prevention knowledge belongs in these docs,
+not in anyone's memory.

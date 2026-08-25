@@ -342,6 +342,30 @@ Required:
 - platform-specific setup is documented;
 - generated local state is not accidentally required.
 
+Executable headless verification (run from the repository root; CI executes the same
+commands in `.github/workflows/ci.yml`):
+
+```bash
+dotnet --version                                   # toolchain visible (9.x today)
+dotnet build SimpleWalkGame.sln                    # clean, zero errors
+dotnet test SimpleWalkGame.sln                     # all suites green (131 as of D-031)
+scripts/assert-repo-identity.sh                    # exit 0 = right repository
+scripts/install-git-hooks.sh                       # core.hooksPath=.githooks, idempotent
+tests/guards/run-guard-tests.sh                    # guard proof suite, 25 assertions
+
+# deterministic simulation smoke + tamper selftest:
+SAVES=$(mktemp -d)
+dotnet run --project tools/simulation -- new      --save "$SAVES" --seed 7 --at 2026-08-20T08:00:00Z
+dotnet run --project tools/simulation -- simulate --save "$SAVES" --days 5 --start 2026-08-20T08:00:00Z
+dotnet run --project tools/simulation -- validate --save "$SAVES" --selftest
+rm -rf "$SAVES"
+```
+
+Windows users without Git Bash may run the PowerShell twins
+(`scripts\assert-repo-identity.ps1`, `scripts\writer-lease.ps1`,
+`scripts\install-git-hooks.ps1`); the proof suite itself requires a POSIX shell
+(Git Bash on Windows).
+
 ---
 
 ## 15. Severity model

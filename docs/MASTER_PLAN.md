@@ -451,11 +451,9 @@ The MVP is strategically successful when all of the following are true:
 
 ## 20. Immediate next campaign
 
-After this documentation foundation, implementation should begin with **M1 + the minimum slice of M2 required to prove the trust model**.
+**Status update (2026-08-25): M1 and the M2 trust pipeline are implemented and automated-verified on `main`; see ROADMAP exit criteria and README for evidence. The objective below is history — it is kept because it explains why the core looks the way it does. The immediate next milestone is M3 (ambient progression vertical slice with minimal UI).**
 
-Do not begin by building a beautiful scene.
-
-The first engineering objective is to prove that the game can:
+The foundation campaign proved that the game can:
 
 1. receive normalized activity fixtures;
 2. deduplicate them;
@@ -463,7 +461,9 @@ The first engineering objective is to prove that the game can:
 4. advance deterministic project/world state;
 5. save atomically;
 6. reload and reproduce the same state;
-7. survive duplicate/reordered/replayed inputs;
+7. survive duplicate/reordered/replayed/corrected/deleted inputs;
 8. expose a simple diagnostic representation of the resulting world.
 
-Once that foundation is trustworthy, every later visual and gameplay feature can build on it safely.
+Once M3 makes progression visible, every later visual and gameplay feature can build on it safely.
+
+Do not begin new campaigns without the `AGENTS.md` preflight (repository identity guard, single-writer lease); concurrent uncoordinated sessions previously damaged this repository.

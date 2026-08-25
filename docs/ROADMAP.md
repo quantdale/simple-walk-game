@@ -36,12 +36,12 @@ Establish the specification that future implementation must satisfy.
 
 ## Exit criteria
 
-- [ ] docs are internally consistent;
-- [ ] MVP scope and exclusions are explicit;
-- [ ] implementation architecture is defined;
-- [ ] activity exactly-once requirements are defined;
-- [ ] release qualification is evidence-based;
-- [ ] first engineering campaign is obvious from the docs.
+- [x] docs are internally consistent;
+- [x] MVP scope and exclusions are explicit;
+- [x] implementation architecture is defined;
+- [x] activity exactly-once requirements are defined;
+- [x] release qualification is evidence-based;
+- [x] first engineering campaign is obvious from the docs.
 
 **Repository state after this documentation overhaul: M0 substantially established.**
 
@@ -101,7 +101,7 @@ Create a headless, deterministic game core that can simulate progression safely 
 - [x] duplicate reward transaction is a no-op; *(RewardLedgerTests + SessionCreditFlowTests across restarts)*
 - [x] save/reload preserves canonical state; *(SaveCodecRoundtripTests — incl. get-only-collection Populate regression, D-027)*
 - [x] interrupted/corrupt primary save has a tested recovery path; *(AtomicFileSaveStoreTests + SessionBootTests backup recovery)*
-- [x] clean clone runs the headless tests. *(91 tests green: Domain 60 / Infrastructure 19 / Application 12; headless CLI in `tools/simulation`)*
+- [x] clean clone runs the headless tests. *(at M1 exit: 91 tests green; current suite has grown to 131 — Domain 85 / Infrastructure 19 / Application 27; headless CLI in `tools/simulation`)*
 
 ---
 

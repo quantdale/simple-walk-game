@@ -474,6 +474,52 @@ Raw health records, routes, or unrelated metrics are retained/uploaded because i
 
 ---
 
+## R-023 — Autonomous agent operates on the wrong repository
+
+**Impact:** High  
+**Likelihood:** Low  
+**Status:** Mitigating
+
+### Failure mode
+
+An agent session intended for the sibling repository `quantdale/walk-game` (or launched from a stale prompt) reads, modifies, commits, or pushes in this checkout by mistake. Both products involve walking/Vitality/restoration vocabulary, so prompt-level confusion is realistic.
+
+### Mitigation
+
+- `.repo-identity.json` manifest + `scripts/assert-repo-identity.{sh,ps1}` fail closed (exit 86) on any slug/sentinel/CI mismatch (D-031);
+- root `AGENTS.md` contract binds every harness; all `/goal` adapters inherit the preflight;
+- CI re-runs the guard under GitHub's own `GITHUB_REPOSITORY`;
+- guard behaviors proven by `tests/guards/run-guard-tests.sh`.
+
+### Evidence required to close/reduce
+
+Guard suite green in CI over time; zero wrong-repo incidents after adoption.
+
+---
+
+## R-024 — Concurrent agent writers corrupt shared work-tree state
+
+**Impact:** High  
+**Likelihood:** Medium  
+**Status:** Mitigating
+
+### Failure mode
+
+Two sessions write the same working tree simultaneously; interleaved edits and reconciliation deletes another lineage's implementations (occurred: commits `b12f52c`, `67368e3`), or a push discards another session's landed commits.
+
+### Mitigation
+
+- single-writer lease per worktree (`scripts/writer-lease.{sh,ps1}`, exit 87 when busy; explicit human override for stale locks);
+- worktree isolation helper (`scripts/new-agent-worktree.sh`: one writer = one worktree = one branch);
+- pre-push lost-update refusal (exit 88) plus fetch/reconcile procedure in `AGENTS.md`;
+- force-push/hard-reset forbidden conflict shortcuts without operator authorization.
+
+### Evidence required to close/reduce
+
+Proof-suite lease/race scenarios stay green; no recurrence of interleaved-lineage incidents.
+
+---
+
 ## Risk-review cadence
 
 Review this file:

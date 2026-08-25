@@ -150,7 +150,7 @@ Use the format:
 
 ## D-009 — Unity 6 LTS is the baseline presentation/runtime direction
 
-**Status:** Proposed
+**Status:** Accepted *(ratified by implementation: domain targets netstandard2.1 with zero engine references, ready for Unity 6 LTS hosting)*
 
 **Decision:** Use Unity 6 LTS + C# for mobile runtime and optional 3D Visit World presentation, while keeping the domain independent.
 
@@ -199,7 +199,7 @@ Use the format:
 
 ## D-012 — Vitality is the primary activity-derived resource
 
-**Status:** Proposed
+**Status:** Accepted *(implemented: `ResourceType.Vitality` is canonical; 100 steps → 1 Vitality via conversion rule v1)*
 
 **Decision:** Use a primary resource tentatively called `Vitality` to represent validated restorative activity.
 
@@ -507,3 +507,19 @@ Resolve these through new decision entries with rationale and consequences; do n
 **Consequences:**
 - genuinely older backfills need an explicit, separately-designed import path;
 - the horizon constants live in domain policy and are covered by validation tests.
+
+---
+
+## D-031 — Fail-closed repository identity and single-writer isolation for agents
+
+**Status:** Accepted
+
+**Decision:** Every autonomous coding session must pass a fail-closed repository identity preflight and hold a single-writer lease before writing. Concretely: `.repo-identity.json` + `scripts/assert-repo-identity.{sh,ps1}` prove origin/CI identity equals `quantdale/simple-walk-game` (exit 86 otherwise); `scripts/writer-lease.{sh,ps1}` grants one atomic per-worktree lease (exit 87 when busy; override requires BOTH `--force` and an explicit operator env acknowledgement); `.githooks/pre-push` refuses any push whose remote tip is not contained in the pushed history (exit 88); CI re-runs the identity guard plus a proof suite over all guard behaviors; root `AGENTS.md` binds every harness and all `/goal` adapters inherit the preflight. Concurrent sessions use dedicated worktrees (`scripts/new-agent-worktree.sh`: one writer = one worktree = one branch).
+
+**Rationale:** Two concurrent executor sessions once wrote this same work tree and interleaved/deleted each other's lineage (commits `b12f52c`, `67368e3`). Identity alone cannot prevent same-tree collisions, hooks alone can be bypassed, and nothing previously stopped an agent intended for the sibling repository `quantdale/walk-game` from operating here. The mechanisms cover each other's gaps: manifest identity (wrong repo), lease (same-tree writers), pre-push (remote races), CI (local bypass), AGENTS.md + adapters (harness-independent propagation).
+
+**Consequences:**
+- agents acquire/release the lease around write phases; second writers stop instead of racing;
+- stale locks require explicit human recovery — never silent theft;
+- force-push / hard-reset / clean remain forbidden conflict shortcuts without operator authorization;
+- the guard tooling is under change-control like any invariant: modifying it to make it "stop complaining" is prohibited.
