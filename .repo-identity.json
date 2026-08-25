@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "repository": "quantdale/simple-walk-game",
+  "project": "Simple Walk Game",
+  "sentinels": [
+    "SimpleWalkGame.sln",
+    "src/WalkGame.Domain",
+    "src/WalkGame.Application",
+    "src/WalkGame.Infrastructure",
+    "tests",
+    "tools/simulation"
+  ]
+}

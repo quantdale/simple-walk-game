@@ -1,0 +1,10 @@
+# Shell scripts and git hooks MUST stay LF even on Windows checkouts — CRLF breaks
+# POSIX sh parsing (shebang lines, string comparisons). PowerShell tolerates either.
+*.sh   text eol=lf
+*.ps1  text eol=lf
+.githooks/** text eol=lf
+
+# Deterministic text formats: keep byte-stable across platforms.
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
