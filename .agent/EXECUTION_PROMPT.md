@@ -1,6 +1,6 @@
 # Active Execution Campaign — M3-R Unity Presentation + Runtime Qualification
 
-**Status:** ACTIVE  
+**Status:** BLOCKED  
 **Planned-From:** `7aeae185134df4578373ba2114510df1a6fe6877`  
 **Target branch:** `main`  
 **Campaign class:** IMPLEMENTATION + RUNTIME VERIFICATION  
@@ -338,4 +338,44 @@ If M3-R genuinely satisfies every applicable gate, stop after final pushed verif
 
 ## 13. Execution outcome
 
-**Not yet executed.** Replace this section with concise delivered behavior, exact commands/results, runtime/editor version, CI evidence, remaining blockers, and intentional deferrals before terminalizing the campaign.
+**BLOCKED at Gate A1 (runtime/toolchain qualification) — 2026-08-26.**
+
+### What ran
+
+- Mandatory preflight completed: repository identity guard printed OK
+  (`quantdale/simple-walk-game`), starting SHA recorded (`7aeae185`, then fast-forward
+  pulled to `3517eda` = this campaign's planning commit), single-writer lease acquired.
+- Gate A1 executed against the real machine before any project generation.
+
+### Blocker evidence (Windows host, 2026-08-26)
+
+No Unity editor of any version is installed; Unity Hub is installed but has never been
+configured/run:
+
+- `C:\Program Files\Unity\Hub\Editor\` — MISSING (standard Hub editor root)
+- `C:\Program Files\Unity\` — MISSING (non-Hub editor location)
+- `C:\Program Files\Unity Hub\Unity Hub.exe` — PRESENT, but `%APPDATA%\UnityHub\`
+  does not exist (no `editors-v2.json`, no `secondaryInstallPath.json`) → Hub never run,
+  zero editors ever installed through it
+- Registry `HKLM:\SOFTWARE\Unity Technologies*` — no entries
+- No `Unity*` directories on `D:\` or `E:\`; `where.exe Unity.exe` — not found on PATH
+
+Per campaign §3-A1 and §11: no compatible editor ⇒ do **not** hand-author unverifiable
+Unity YAML/project files merely to appear productive. Nothing was generated; headless
+code, tests, tooling, and docs are untouched by this session.
+
+### Exact resumable state
+
+- **First resumable gate:** A1/A2 — requires an installed Unity 6 LTS editor.
+- **Operator action needed:** install a Unity 6 LTS editor via Unity Hub (requires
+  interactive licensing/sign-in) on this machine, then re-activate this campaign. All
+  downstream gates (A2 bootstrap → B composition → C presentation → D injector → E
+  runtime tests) remain pending behind it and were not started.
+- This repeats the environmental fact already recorded in D-035 and README; the campaign
+  cannot convert it into completion without falsifying evidence (D-018).
+
+### Verification performed
+
+- `dotnet build SimpleWalkGame.sln` — PASS on final tree (docs-only change).
+- `dotnet test SimpleWalkGame.sln` — PASS, all suites green (docs-only change; headless
+  evidence base unchanged).
