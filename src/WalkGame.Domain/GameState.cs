@@ -5,6 +5,7 @@ using WalkGame.Domain.Economy;
 using WalkGame.Domain.Projects;
 using WalkGame.Domain.Randomness;
 using WalkGame.Domain.Regions;
+using WalkGame.Domain.Summaries;
 using WalkGame.Domain.Time;
 
 namespace WalkGame.Domain
@@ -12,7 +13,7 @@ namespace WalkGame.Domain
     public static class SchemaVersions
     {
         /// <summary>Current canonical save schema version. Bump requires a registered migration.</summary>
-        public const int Current = 1;
+        public const int Current = 2;
 
         public const int MinimumSupported = 1;
     }
@@ -51,6 +52,15 @@ namespace WalkGame.Domain
         public RegionState Region { get; set; } = new RegionState();
 
         public ProjectQueueState Queue { get; set; } = new ProjectQueueState();
+
+        /// <summary>
+        /// Durable return summary of already-committed progress, awaiting presentation/
+        /// acknowledgement. Null means nothing is pending; older payloads decode to null,
+        /// which is exactly the correct "nothing pending" semantics (no migration needed
+        /// for the field itself). Survives crash-before-presentation; acknowledgement is
+        /// idempotent and never alters earned progression.
+        /// </summary>
+        public PendingReturnSummaryState? PendingReturnSummary { get; set; }
 
         public RngState Rng { get; set; }
     }
@@ -92,7 +102,7 @@ namespace WalkGame.Domain
                 {
                     ProducerId = producer.Id.Value,
                     Unlocked = false,
-                    CarryMilliUnits = 0L,
+                    StoredMilliUnits = 0L,
                     TotalProducedMilliUnits = 0L,
                     LastTickUtc = nowUtc,
                 });

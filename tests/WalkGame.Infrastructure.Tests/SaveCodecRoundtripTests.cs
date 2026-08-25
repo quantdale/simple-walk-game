@@ -39,7 +39,7 @@ public sealed class SaveCodecRoundtripTests
 
         Assert.Equal(CodecStatus.Ok, result.Status);
         Assert.NotNull(result.State);
-        Assert.Equal(1, result.SourceSchemaVersion);
+        Assert.Equal(2, result.SourceSchemaVersion);
         Assert.Empty(result.AppliedMigrations);
         AssertEquivalentState(expected, result.State!);
     }
@@ -62,7 +62,7 @@ public sealed class SaveCodecRoundtripTests
 
         Assert.Equal(CodecStatus.ChecksumMismatch, result.Status);
         Assert.Null(result.State);
-        Assert.Equal(1, result.SourceSchemaVersion);
+        Assert.Equal(2, result.SourceSchemaVersion);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public sealed class SaveCodecRoundtripTests
     }
 
     private static SaveCodec NewCodec() =>
-        new(new MigrationRunner(Array.Empty<ISaveMigration>()));
+        new(new MigrationRunner(DefaultMigrations.All));
 
     private static RegionDefinition BuildRegion()
     {
@@ -161,9 +161,25 @@ public sealed class SaveCodecRoundtripTests
 
         var producer = state.Region.FindProducer("prd.workshop-salvage")!;
         producer.Unlocked = true;
-        producer.CarryMilliUnits = 1234L;
+        producer.StoredMilliUnits = 1234L;
         producer.TotalProducedMilliUnits = 5678L;
         producer.LastTickUtc = T0.AddHours(1);
+
+        state.PendingReturnSummary = new WalkGame.Domain.Summaries.PendingReturnSummaryState
+        {
+            PrimaryNextAction = "Queue the next restoration project.",
+            GeneratedAtUtc = T0.AddMinutes(45),
+        };
+        state.PendingReturnSummary.Items.Add(new WalkGame.Domain.Summaries.PendingSummaryItemState
+        {
+            Kind = WalkGame.Domain.Summaries.SummaryItemKind.Transformation,
+            Text = "Old Trailhead has reached Stabilized.",
+        });
+        state.PendingReturnSummary.Items.Add(new WalkGame.Domain.Summaries.PendingSummaryItemState
+        {
+            Kind = WalkGame.Domain.Summaries.SummaryItemKind.Aggregate,
+            Text = "Vitality credited: 200.",
+        });
 
         return state;
     }
@@ -238,9 +254,26 @@ public sealed class SaveCodecRoundtripTests
             var a = actual.Region.Producers[i];
             Assert.Equal(e.ProducerId, a.ProducerId);
             Assert.Equal(e.Unlocked, a.Unlocked);
-            Assert.Equal(e.CarryMilliUnits, a.CarryMilliUnits);
+            Assert.Equal(e.StoredMilliUnits, a.StoredMilliUnits);
             Assert.Equal(e.TotalProducedMilliUnits, a.TotalProducedMilliUnits);
             Assert.Equal(e.LastTickUtc, a.LastTickUtc);
+        }
+
+        if (expected.PendingReturnSummary == null)
+        {
+            Assert.Null(actual.PendingReturnSummary);
+        }
+        else
+        {
+            Assert.NotNull(actual.PendingReturnSummary);
+            Assert.Equal(expected.PendingReturnSummary.PrimaryNextAction, actual.PendingReturnSummary!.PrimaryNextAction);
+            Assert.Equal(expected.PendingReturnSummary.GeneratedAtUtc, actual.PendingReturnSummary.GeneratedAtUtc);
+            Assert.Equal(expected.PendingReturnSummary.Items.Count, actual.PendingReturnSummary.Items.Count);
+            for (int i = 0; i < expected.PendingReturnSummary.Items.Count; i++)
+            {
+                Assert.Equal(expected.PendingReturnSummary.Items[i].Kind, actual.PendingReturnSummary.Items[i].Kind);
+                Assert.Equal(expected.PendingReturnSummary.Items[i].Text, actual.PendingReturnSummary.Items[i].Text);
+            }
         }
     }
 

@@ -96,7 +96,7 @@ public class OfflineAdvancerDeterminismTests
             var a = actual.Region.Producers[i];
             Assert.Equal(e.ProducerId, a.ProducerId);
             Assert.Equal(e.Unlocked, a.Unlocked);
-            Assert.Equal(e.CarryMilliUnits, a.CarryMilliUnits);
+            Assert.Equal(e.StoredMilliUnits, a.StoredMilliUnits);
             Assert.Equal(e.TotalProducedMilliUnits, a.TotalProducedMilliUnits);
             Assert.Equal(e.LastTickUtc, a.LastTickUtc);
         }
@@ -147,7 +147,7 @@ public class OfflineAdvancerDeterminismTests
         Assert.True(gainedMilli > 0);
         Assert.Equal(gainedMilli, mill.TotalProducedMilliUnits);
         Assert.Equal(gainedMilli / 1000L, first.Resources.Get(ResourceType.Materials));
-        Assert.Equal(0L, mill.CarryMilliUnits);
+        Assert.Equal(0L, mill.StoredMilliUnits);
 
         Assert.Equal(3, first.Ledger.Records.Count);
         Assert.Equal(800L, first.Ledger.TotalVitalityCredited);

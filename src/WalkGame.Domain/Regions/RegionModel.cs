@@ -147,14 +147,24 @@ namespace WalkGame.Domain.Regions
     }
 
     /// <summary>Runtime producer state owned by the region.</summary>
+    /// <remarks>
+    /// Schema v2: the v1 sub-unit carry field was promoted to the bounded pending-output
+    /// store (<see cref="StoredMilliUnits"/>); migration m1-to-v2 maps v1 carries across.
+    /// </remarks>
     public sealed class ProducerRuntimeState
     {
         public string ProducerId { get; set; } = string.Empty;
 
         public bool Unlocked { get; set; }
 
-        /// <summary>Sub-unit remainder kept so partial ticks accumulate deterministically.</summary>
-        public long CarryMilliUnits { get; set; }
+        /// <summary>
+        /// Bounded pending output in milli-units (fractional remainders plus whole units
+        /// parked while a downstream resource cap refuses delivery). Never exceeds the
+        /// definition's CapacityUnits × 1000; surplus time beyond it produces nothing and
+        /// creates no waste. Whole units auto-deliver into canonical balances — claiming
+        /// is never required.
+        /// </summary>
+        public long StoredMilliUnits { get; set; }
 
         public long TotalProducedMilliUnits { get; set; }
 

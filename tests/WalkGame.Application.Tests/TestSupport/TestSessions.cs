@@ -32,6 +32,6 @@ namespace WalkGame.Application.Tests.TestSupport
                 content);
 
         public static SaveCodec NewCodec() =>
-            new SaveCodec(new MigrationRunner(Array.Empty<ISaveMigration>()));
+            new SaveCodec(new MigrationRunner(DefaultMigrations.All));
     }
 }

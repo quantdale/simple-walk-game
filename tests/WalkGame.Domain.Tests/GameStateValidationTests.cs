@@ -114,27 +114,29 @@ public class GameStateValidationTests
     }
 
     [Fact]
-    public void CarryOutsideHalfOpenMilliRange_IsFlagged()
+    public void PendingStoreAboveCapacity_IsFlagged()
     {
         var game = NewTamperedGame(out var content);
-        game.Region.FindProducer("prod.mill")!.CarryMilliUnits = 1000L;
+        var definition = content.FindProducer("prod.mill")!;
+        game.Region.FindProducer("prod.mill")!.StoredMilliUnits =
+            definition.CapacityUnits * ProducerDefinition.MilliUnitsPerUnit + 1L;
 
         var violations = GameStateValidator.Validate(game, content);
 
         Assert.NotEmpty(violations);
-        Assert.Contains(violations, v => v.Contains("carry out of range"));
+        Assert.Contains(violations, v => v.Contains("pending store out of bounds"));
     }
 
     [Fact]
-    public void NegativeCarry_IsFlagged()
+    public void NegativePendingStore_IsFlagged()
     {
         var game = NewTamperedGame(out var content);
-        game.Region.FindProducer("prod.mill")!.CarryMilliUnits = -5L;
+        game.Region.FindProducer("prod.mill")!.StoredMilliUnits = -5L;
 
         var violations = GameStateValidator.Validate(game, content);
 
         Assert.NotEmpty(violations);
-        Assert.Contains(violations, v => v.Contains("carry out of range"));
+        Assert.Contains(violations, v => v.Contains("pending store out of bounds"));
     }
 
     [Fact]

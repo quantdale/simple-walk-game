@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using WalkGame.Application.Activity;
 using WalkGame.Application.Persistence;
 using WalkGame.Application.ReadModels;
 using WalkGame.Application.Summaries;
@@ -11,6 +12,7 @@ using WalkGame.Domain.Economy;
 using WalkGame.Domain.Projects;
 using WalkGame.Domain.Regions;
 using WalkGame.Domain.Simulation;
+using WalkGame.Domain.Summaries;
 using WalkGame.Domain.Time;
 using WalkGame.Domain.Validation;
 using RewardTransactionId = WalkGame.Domain.Common.Id<WalkGame.Domain.Common.RewardTransactionIdKind>;
@@ -31,12 +33,18 @@ namespace WalkGame.Application
     {
         public StartStatus Status { get; }
         public IReadOnlyList<string> SummaryLines { get; }
+
+        /// <summary>Typed durable summary snapshot (same content as SummaryLines).</summary>
+        public ReturnSummaryReadModel? Summary { get; }
+
         public string? Detail { get; }
 
-        internal StartResult(StartStatus status, IReadOnlyList<string>? summaryLines = null, string? detail = null)
+        internal StartResult(StartStatus status, IReadOnlyList<string>? summaryLines = null,
+            ReturnSummaryReadModel? summary = null, string? detail = null)
         {
             Status = status;
             SummaryLines = summaryLines ?? Array.Empty<string>();
+            Summary = summary;
             Detail = detail;
         }
     }
@@ -46,12 +54,15 @@ namespace WalkGame.Application
         public bool DuplicateIgnored { get; }
         public bool Saved { get; }
         public IReadOnlyList<string> SummaryLines { get; }
+        public ReturnSummaryReadModel? Summary { get; }
 
-        internal CreditResult(bool duplicateIgnored, bool saved, IReadOnlyList<string> summaryLines)
+        internal CreditResult(bool duplicateIgnored, bool saved, IReadOnlyList<string> summaryLines,
+            ReturnSummaryReadModel? summary)
         {
             DuplicateIgnored = duplicateIgnored;
             Saved = saved;
             SummaryLines = summaryLines;
+            Summary = summary;
         }
     }
 
@@ -86,13 +97,16 @@ namespace WalkGame.Application
         public IReadOnlyDictionary<string, int> RejectionCounts { get; }
         public IReadOnlyList<string> SummaryLines { get; }
 
+        /// <summary>Typed durable summary snapshot reflecting this batch's committed changes.</summary>
+        public ReturnSummaryReadModel? Summary { get; }
+
         internal IngestResult(
             int totalReceived, int accepted, int rejected, int duplicatesIgnored,
             int correctionsApplied, int deletionsApplied, int deletionsIgnored,
             int staleRevisionsIgnored, int quantityClamped, int duplicateTransactionsIgnored,
             long vitalityCredited, long unappliedReversalVitality,
             bool saved, IReadOnlyDictionary<string, int> rejectionCounts,
-            IReadOnlyList<string> summaryLines)
+            IReadOnlyList<string> summaryLines, ReturnSummaryReadModel? summary)
         {
             TotalReceived = totalReceived;
             Accepted = accepted;
@@ -109,6 +123,7 @@ namespace WalkGame.Application
             Saved = saved;
             RejectionCounts = rejectionCounts;
             SummaryLines = summaryLines;
+            Summary = summary;
         }
     }
 
@@ -204,6 +219,7 @@ namespace WalkGame.Application
         /// <summary>
         /// Applies an activity-derived reward transaction with exactly-once semantics:
         /// durable transaction identity makes replays, retries and crash recovery no-ops.
+        /// Low-level diagnostic primitive — the M3 acceptance path uses IngestActivityBatch.
         /// </summary>
         public CreditResult CreditActivity(Guid transactionId, DateTimeOffset occurredAtUtc, long vitalityAmount, string reason)
         {
@@ -219,9 +235,11 @@ namespace WalkGame.Application
                 : new ActivityCredited(_clock.UtcNow, transaction.TransactionId.Value, vitalityAmount));
 
             OfflineAdvancer.AllocateVitality(game, _content, _clock.UtcNow, events);
+            ComposePendingSummary(game, events);
 
             bool saved = PersistOrThrow();
-            return new CreditResult(duplicate, saved, ReturnSummaryBuilder.Build(events, _content));
+            return new CreditResult(duplicate, saved,
+                FormatSummaryLines(game.PendingReturnSummary), SnapshotSummary(game));
         }
 
         /// <summary>
@@ -330,6 +348,7 @@ namespace WalkGame.Application
             game.IngestionCheckpointUtc = maxTrustedEndUtc;
 
             OfflineAdvancer.AllocateVitality(game, _content, nowUtc, events);
+            ComposePendingSummary(game, events);
 
             bool saved = PersistOrThrow();
             return new IngestResult(
@@ -338,7 +357,22 @@ namespace WalkGame.Application
                 clamped, dupTransactions, vitalityTotal,
                 game.ProcessedRecords.UnappliedReversalVitality,
                 saved, rejectionCounts,
-                ReturnSummaryBuilder.Build(events, _content));
+                FormatSummaryLines(game.PendingReturnSummary), SnapshotSummary(game));
+        }
+
+        /// <summary>
+        /// Platform-neutral reconcile path (M3): pulls normalized records from any
+        /// IActivityRecordSource for the requested window and pushes them through the SAME
+        /// IngestActivityBatch trust pipeline production adapters will use. Retry/replay
+        /// after restart is safe by exactly-once construction — no separate code path.
+        /// </summary>
+        public IngestResult IngestFromSource(IActivityRecordSource source, DateTimeOffset windowStartUtc, DateTimeOffset windowEndUtc)
+        {
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            RequireState();
+
+            var records = source.FetchRecords(windowStartUtc, windowEndUtc);
+            return IngestActivityBatch(records);
         }
 
         /// <summary>
@@ -520,6 +554,7 @@ namespace WalkGame.Application
 
             var events = new List<SimulationEvent>();
             OfflineAdvancer.AllocateVitality(game, _content, _clock.UtcNow, events);
+            ComposePendingSummary(game, events);
             PersistOrThrow();
             return DomainResult.Ok();
         }
@@ -534,6 +569,53 @@ namespace WalkGame.Application
             if (runtime != null && runtime.Status == ProjectStatus.Queued)
                 runtime.Status = ProjectStatus.Available;
 
+            PersistOrThrow();
+            return DomainResult.Ok();
+        }
+
+        /// <summary>Persists the automation switch. Enabling it immediately activates the
+        /// head of the queue when the active slot is free, without waiting for new activity.</summary>
+        public DomainResult SetAutoAdvance(bool enabled)
+        {
+            var game = RequireState();
+            game.Queue.AutoAdvance = enabled;
+
+            var events = new List<SimulationEvent>();
+            OfflineAdvancer.AllocateVitality(game, _content, _clock.UtcNow, events);
+            ComposePendingSummary(game, events);
+            PersistOrThrow();
+            return DomainResult.Ok();
+        }
+
+        /// <summary>
+        /// Manual start: promotes one queued project into the single active slot. This is
+        /// how work continues when auto-advance is disabled; it also lets a player promote
+        /// a specific queued project while automation is on. Banked Vitality flows into
+        /// the activated project immediately.
+        /// </summary>
+        public DomainResult ActivateQueuedProject(string projectId)
+        {
+            var game = RequireState();
+            if (game.Queue.ActiveProjectId != null)
+                return DomainResult.Fail(ErrorCodes.ProjectAlreadyActive,
+                    $"'{game.Queue.ActiveProjectId}' is already active; only one project can be active.");
+
+            var runtime = game.Region.FindProject(projectId);
+            if (runtime == null || runtime.Status != ProjectStatus.Queued)
+                return DomainResult.Fail(ErrorCodes.NotQueued, $"Project '{projectId}' is not queued.");
+
+            if (!game.Queue.QueuedProjectIds.Remove(projectId))
+                return DomainResult.Fail(ErrorCodes.NotQueued, $"Project '{projectId}' is not queued.");
+
+            runtime.Status = ProjectStatus.Active;
+            game.Queue.ActiveProjectId = projectId;
+
+            var events = new List<SimulationEvent>
+            {
+                new ProjectBecameActive(_clock.UtcNow, projectId),
+            };
+            OfflineAdvancer.AllocateVitality(game, _content, _clock.UtcNow, events);
+            ComposePendingSummary(game, events);
             PersistOrThrow();
             return DomainResult.Ok();
         }
@@ -608,7 +690,112 @@ namespace WalkGame.Application
                 activeId, activeTitle, invested, cost,
                 queuedRows,
                 completed, _content.Projects.Count,
-                landmarkRows);
+                landmarkRows,
+                game.Queue.AutoAdvance,
+                game.PendingReturnSummary != null,
+                game.PendingReturnSummary?.PrimaryNextAction);
+        }
+
+        /// <summary>Complete Projects management snapshot for presentation.</summary>
+        public ProjectsReadModel GetProjects()
+        {
+            var game = RequireState();
+
+            var queuedPositions = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (int i = 0; i < game.Queue.QueuedProjectIds.Count; i++)
+                queuedPositions[game.Queue.QueuedProjectIds[i]] = i;
+
+            var rows = new List<ProjectsReadModel.ProjectRow>();
+            foreach (var definition in _content.Projects)
+            {
+                var runtime = game.Region.FindProject(definition.Id.Value);
+                if (runtime == null)
+                    continue;
+
+                var prerequisites = new List<string>();
+                foreach (var prerequisite in definition.Prerequisites)
+                    prerequisites.Add(prerequisite.Value);
+
+                queuedPositions.TryGetValue(definition.Id.Value, out int position);
+                rows.Add(new ProjectsReadModel.ProjectRow(
+                    definition.Id.Value,
+                    definition.TitleKey,
+                    definition.VitalityCost,
+                    runtime.VitalityInvested,
+                    runtime.Status,
+                    queuedPositions.ContainsKey(definition.Id.Value) ? position : (int?)null,
+                    prerequisites));
+            }
+
+            return new ProjectsReadModel(game.Queue.AutoAdvance, game.Queue.ActiveProjectId, rows);
+        }
+
+        /// <summary>Lightweight region status snapshot for presentation.</summary>
+        public RegionReadModel GetRegion()
+        {
+            var game = RequireState();
+
+            var landmarks = new List<RegionReadModel.LandmarkRow>();
+            foreach (var landmark in _content.Landmarks)
+            {
+                var stage = game.Region.LandmarkStages.TryGetValue(landmark.Id.Value, out var s)
+                    ? s
+                    : RestorationStage.Ruined;
+                landmarks.Add(new RegionReadModel.LandmarkRow(landmark.Id.Value, landmark.TitleKey, stage));
+            }
+
+            var producers = new List<RegionReadModel.ProducerRow>();
+            foreach (var definition in _content.Producers)
+            {
+                var runtime = game.Region.FindProducer(definition.Id.Value);
+                producers.Add(new RegionReadModel.ProducerRow(
+                    definition.Id.Value,
+                    definition.TitleKey,
+                    definition.Output,
+                    definition.MilliUnitsPerDay,
+                    definition.CapacityUnits,
+                    runtime?.Unlocked ?? false,
+                    runtime?.StoredMilliUnits ?? 0L,
+                    runtime?.TotalProducedMilliUnits ?? 0L));
+            }
+
+            int completed = 0;
+            foreach (var pair in game.Region.Projects)
+                if (pair.Value.Status == ProjectStatus.Completed)
+                    completed++;
+
+            return new RegionReadModel(
+                _content.TitleKey,
+                landmarks,
+                producers,
+                completed,
+                _content.Projects.Count,
+                game.Queue.ActiveProjectId);
+        }
+
+        /// <summary>
+        /// The pending return summary of already-committed progress, or null when nothing
+        /// is awaiting presentation. Survives restart; acknowledgement is a separate op.
+        /// </summary>
+        public ReturnSummaryReadModel? GetPendingReturnSummary()
+        {
+            var game = RequireState();
+            return SnapshotSummary(game);
+        }
+
+        /// <summary>
+        /// Idempotently acknowledges the pending summary. Dismissing it never alters the
+        /// underlying earned progression; when nothing is pending this is a no-op.
+        /// </summary>
+        public DomainResult AcknowledgeReturnSummary()
+        {
+            var game = RequireState();
+            if (game.PendingReturnSummary == null)
+                return DomainResult.Ok();
+
+            game.PendingReturnSummary = null;
+            PersistOrThrow();
+            return DomainResult.Ok();
         }
 
         private StartResult FinishBoot(GameState state, bool recoveredFromBackup)
@@ -618,6 +805,14 @@ namespace WalkGame.Application
             var events = new List<SimulationEvent>();
             OfflineAdvancer.Advance(state, _content, _clock.UtcNow, events);
 
+            // Compose BEFORE persisting: a crash after commit but before presentation
+            // still finds the summary on disk at next boot.
+            ComposePendingSummary(state, events);
+            if (recoveredFromBackup)
+                state.PendingReturnSummary = ReturnSummaryComposer.WithNotice(
+                    state.PendingReturnSummary, _clock.UtcNow,
+                    "Your latest save was damaged; the most recent healthy backup was restored.");
+
             string? saveWarning = null;
             try
             {
@@ -625,18 +820,46 @@ namespace WalkGame.Application
             }
             catch (IOException ex)
             {
+                // Presentation-only warning: the durable pending summary already reflects
+                // everything committed before this failed write.
                 saveWarning = "Progress advanced but could not be persisted: " + ex.Message;
             }
 
-            var lines = ReturnSummaryBuilder.Build(events, _content);
-            if (recoveredFromBackup)
-                lines.Insert(0, "Your latest save was damaged; the most recent healthy backup was restored.");
+            var lines = new List<string>(FormatSummaryLines(state.PendingReturnSummary));
             if (saveWarning != null)
                 lines.Add(saveWarning);
 
             return new StartResult(
                 recoveredFromBackup ? StartStatus.RecoveredFromBackup : StartStatus.Loaded,
-                lines);
+                lines,
+                SnapshotSummary(state));
+        }
+
+        /// <summary>Merges committed events into the durable pending summary. Skipped when
+        /// nothing happened, so an idle operation never touches the existing summary.</summary>
+        private void ComposePendingSummary(GameState game, List<SimulationEvent> events)
+        {
+            if (events == null || events.Count == 0)
+                return;
+            game.PendingReturnSummary = ReturnSummaryComposer.Compose(
+                events, _content, game.PendingReturnSummary, _clock.UtcNow);
+        }
+
+        private static ReturnSummaryReadModel? SnapshotSummary(GameState game) =>
+            game.PendingReturnSummary == null
+                ? null
+                : ReturnSummaryReadModel.FromState(game.PendingReturnSummary);
+
+        private static List<string> FormatSummaryLines(PendingReturnSummaryState? summary)
+        {
+            var lines = new List<string>();
+            if (summary == null)
+                return lines;
+            foreach (var item in summary.Items)
+                lines.Add(item.Text);
+            if (!string.IsNullOrEmpty(summary.PrimaryNextAction))
+                lines.Add("→ " + summary.PrimaryNextAction);
+            return lines;
         }
 
         private DecodeAndValidateOutcome DecodeAndValidate(byte[] envelopeBytes)

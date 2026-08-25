@@ -23,9 +23,16 @@ namespace WalkGame.Application.ReadModels
         public IReadOnlyList<QueuedRow> Queued { get; }
 
         public int CompletedProjects { get; }
+
         public int TotalProjects { get; }
 
         public IReadOnlyList<LandmarkRow> Landmarks { get; }
+
+        public bool AutoAdvance { get; }
+
+        public bool HasPendingSummary { get; }
+
+        public string? PrimaryNextAction { get; }
 
         public HomeReadModel(
             string regionTitleKey,
@@ -34,7 +41,10 @@ namespace WalkGame.Application.ReadModels
             long activeProjectInvested, long activeProjectCost,
             IReadOnlyList<QueuedRow> queued,
             int completedProjects, int totalProjects,
-            IReadOnlyList<LandmarkRow> landmarks)
+            IReadOnlyList<LandmarkRow> landmarks,
+            bool autoAdvance = true,
+            bool hasPendingSummary = false,
+            string? primaryNextAction = null)
         {
             RegionTitleKey = regionTitleKey;
             Vitality = vitality;
@@ -48,6 +58,9 @@ namespace WalkGame.Application.ReadModels
             CompletedProjects = completedProjects;
             TotalProjects = totalProjects;
             Landmarks = landmarks;
+            AutoAdvance = autoAdvance;
+            HasPendingSummary = hasPendingSummary;
+            PrimaryNextAction = primaryNextAction;
         }
 
         public sealed class QueuedRow

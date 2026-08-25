@@ -9,6 +9,7 @@ namespace WalkGame.Domain.Common
         public const string NotQueued = "project.not-queued";
         public const string AlreadyCompleted = "project.already-completed";
         public const string NotAvailable = "project.not-available";
+        public const string ProjectAlreadyActive = "project.already-active";
         public const string QueueEmpty = "queue.empty";
         public const string InvalidQueueOrder = "queue.invalid-order";
         public const string InvalidArgument = "domain.invalid-argument";

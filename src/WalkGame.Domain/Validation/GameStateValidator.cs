@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using WalkGame.Domain.Activity;
 using WalkGame.Domain.Projects;
 using WalkGame.Domain.Regions;
+using WalkGame.Domain.Summaries;
 
 namespace WalkGame.Domain.Validation
 {
@@ -115,8 +116,9 @@ namespace WalkGame.Domain.Validation
                     violations.Add($"Producer runtime '{producer.ProducerId}' is unknown to content definitions.");
                     continue;
                 }
-                if (producer.CarryMilliUnits < 0L || producer.CarryMilliUnits >= ProducerDefinition.MilliUnitsPerUnit)
-                    violations.Add($"Producer '{producer.ProducerId}' carry out of range: {producer.CarryMilliUnits}.");
+                long storeCapacityMilliUnits = definition.CapacityUnits * ProducerDefinition.MilliUnitsPerUnit;
+                if (producer.StoredMilliUnits < 0L || producer.StoredMilliUnits > storeCapacityMilliUnits)
+                    violations.Add($"Producer '{producer.ProducerId}' pending store out of bounds: {producer.StoredMilliUnits}/{storeCapacityMilliUnits}.");
                 if (producer.TotalProducedMilliUnits < 0L)
                     violations.Add($"Producer '{producer.ProducerId}' total produced is negative.");
                 if (producer.Unlocked)
@@ -125,8 +127,26 @@ namespace WalkGame.Domain.Validation
                     if (unlocker == null || unlocker.Status != ProjectStatus.Completed)
                         violations.Add($"Producer '{producer.ProducerId}' is unlocked but its unlock project is not completed.");
                 }
-                if (!producer.Unlocked && producer.TotalProducedMilliUnits > 0L)
+                if (!producer.Unlocked && (producer.TotalProducedMilliUnits > 0L || producer.StoredMilliUnits != 0L))
                     violations.Add($"Locked producer '{producer.ProducerId}' has produced output.");
+            }
+
+            // Durable pending return summary.
+            var pendingSummary = state.PendingReturnSummary;
+            if (pendingSummary != null)
+            {
+                if (pendingSummary.Items == null)
+                    violations.Add("Pending return summary has a null item list.");
+                else
+                {
+                    if (pendingSummary.Items.Count > PendingReturnSummaryState.MaxItems)
+                        violations.Add($"Pending return summary exceeds the hard item bound ({pendingSummary.Items.Count}).");
+                    foreach (var item in pendingSummary.Items)
+                        if (item == null || string.IsNullOrWhiteSpace(item.Text))
+                            violations.Add("Pending return summary contains an empty item.");
+                }
+                if (pendingSummary.GeneratedAtUtc == default)
+                    violations.Add("Pending return summary has no generation timestamp.");
             }
 
             // Activity ingestion trust invariants.

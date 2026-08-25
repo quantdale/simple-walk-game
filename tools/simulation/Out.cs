@@ -66,7 +66,10 @@ internal static class Out
                 $"  {producer.ProducerId.PadRight(24)}"
                 + $" unlocked={producer.Unlocked}"
                 + $" totalMilli={producer.TotalProducedMilliUnits}"
-                + $" carry={producer.CarryMilliUnits}");
+                + $" storedMilli={producer.StoredMilliUnits}");
+
+        Console.WriteLine(
+            $"pending-summary: {(state.PendingReturnSummary == null ? "none" : state.PendingReturnSummary.Items.Count + " item(s)")}");
 
         Console.WriteLine(
             $"rng: S0={state.Rng.S0:X16} S1={state.Rng.S1:X16} S2={state.Rng.S2:X16} S3={state.Rng.S3:X16}");

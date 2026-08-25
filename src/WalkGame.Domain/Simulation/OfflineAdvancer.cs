@@ -37,10 +37,13 @@ namespace WalkGame.Domain.Simulation
         }
 
         /// <summary>
-        /// Integer-only deterministic production. Output flows directly into canonical
-        /// resource balances (no manual claiming), with a milli-unit carry preserving the
-        /// sub-unit remainder so repeated short ticks sum identically to one long tick.
-        /// Resource-level caps are enforced by <see cref="ResourceBalances"/>.
+        /// Integer-only deterministic production. Output mints into the producer's
+        /// bounded pending store (<c>min(capacityRemaining, rate × elapsed)</c>; surplus
+        /// time beyond the store creates no waste), then whole units auto-deliver into
+        /// canonical resource balances (no manual claiming), clamped by any resource-level
+        /// cap; blocked units stay parked in the store and flush on a later tick.
+        /// Checkpoints are monotonic: a backward clock never regresses LastTickUtc, so no
+        /// callable path can backdate a producer into future overproduction.
         /// </summary>
         public static void TickProducers(GameState game, RegionDefinition content, DateTimeOffset nowUtc, List<SimulationEvent> events)
         {
@@ -51,24 +54,71 @@ namespace WalkGame.Domain.Simulation
                     continue;
 
                 long elapsedTicks = nowUtc.UtcTicks - runtime.LastTickUtc.UtcTicks;
-                runtime.LastTickUtc = nowUtc;
-                if (elapsedTicks <= 0L)
+                if (elapsedTicks < 0L)
+                {
+                    // Backward clock at this callable boundary: refuse both production and
+                    // checkpoint regression so misuse cannot create later overproduction.
+                    events.Add(new ClockSkewIgnored(nowUtc, TimeSpan.FromTicks(-elapsedTicks)));
                     continue;
+                }
 
-                long cappedTicks = Math.Min(elapsedTicks, MaxProducerInterval.Ticks);
-                long producedMilliUnits = (cappedTicks / TimeSpan.TicksPerDay) * definition.MilliUnitsPerDay
-                                          + (cappedTicks % TimeSpan.TicksPerDay) * definition.MilliUnitsPerDay / TimeSpan.TicksPerDay;
+                bool hitStoreCapacity = false;
+                if (elapsedTicks > 0L)
+                {
+                    runtime.LastTickUtc = nowUtc;
 
-                long totalMilliUnits = runtime.CarryMilliUnits + producedMilliUnits;
-                long wholeUnits = totalMilliUnits / ProducerDefinition.MilliUnitsPerUnit;
-                runtime.CarryMilliUnits = totalMilliUnits % ProducerDefinition.MilliUnitsPerUnit;
-                if (wholeUnits <= 0L)
-                    continue;
+                    long cappedTicks = Math.Min(elapsedTicks, MaxProducerInterval.Ticks);
+                    long earnedMilliUnits = (cappedTicks / TimeSpan.TicksPerDay) * definition.MilliUnitsPerDay
+                                              + (cappedTicks % TimeSpan.TicksPerDay) * definition.MilliUnitsPerDay / TimeSpan.TicksPerDay;
 
-                long appliedUnits = game.Resources.Add(definition.Output, wholeUnits);
+                    long storeCapacityMilliUnits = definition.CapacityUnits * ProducerDefinition.MilliUnitsPerUnit;
+                    long roomInStore = storeCapacityMilliUnits - runtime.StoredMilliUnits;
+                    if (roomInStore > 0L)
+                    {
+                        long mintedMilliUnits = Math.Min(earnedMilliUnits, roomInStore);
+                        runtime.StoredMilliUnits += mintedMilliUnits;
+                        hitStoreCapacity = mintedMilliUnits < earnedMilliUnits;
+                    }
+                    else if (earnedMilliUnits > 0L)
+                    {
+                        hitStoreCapacity = true;
+                    }
+                }
+
+                DeliverStoredOutput(runtime, definition, game.Resources, nowUtc, events, hitStoreCapacity);
+            }
+        }
+
+        /// <summary>
+        /// Moves whole stored units downstream. Delivery is attempted on every tick call
+        /// (even zero-elapsed ones) so units parked behind a full resource cap flush as
+        /// soon as space frees, without requiring new production.
+        /// </summary>
+        private static void DeliverStoredOutput(
+            ProducerRuntimeState runtime,
+            ProducerDefinition definition,
+            Economy.ResourceBalances balances,
+            DateTimeOffset nowUtc,
+            List<SimulationEvent> events,
+            bool hitStoreCapacity)
+        {
+            long deliverableWholeUnits = runtime.StoredMilliUnits / ProducerDefinition.MilliUnitsPerUnit;
+            long deliveredMilliUnits = 0L;
+            bool hitResourceCap = false;
+
+            if (deliverableWholeUnits > 0L)
+            {
+                long appliedUnits = balances.Add(definition.Output, deliverableWholeUnits);
+                runtime.StoredMilliUnits -= appliedUnits * ProducerDefinition.MilliUnitsPerUnit;
                 runtime.TotalProducedMilliUnits += appliedUnits * ProducerDefinition.MilliUnitsPerUnit;
-                bool hitCapacity = appliedUnits < wholeUnits;
-                events.Add(new ProducerProduced(nowUtc, runtime.ProducerId, appliedUnits * ProducerDefinition.MilliUnitsPerUnit, hitCapacity));
+                deliveredMilliUnits = appliedUnits * ProducerDefinition.MilliUnitsPerUnit;
+                hitResourceCap = appliedUnits < deliverableWholeUnits;
+            }
+
+            if (deliveredMilliUnits > 0L || hitStoreCapacity)
+            {
+                events.Add(new ProducerProduced(nowUtc, runtime.ProducerId, deliveredMilliUnits,
+                    hitStoreCapacity || hitResourceCap));
             }
         }
 

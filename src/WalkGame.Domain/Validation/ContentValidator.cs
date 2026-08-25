@@ -56,6 +56,8 @@ namespace WalkGame.Domain.Validation
                     violations.Add($"Duplicate producer ID '{producer.Id}'.");
                 if (!projectIds.Contains(producer.UnlockedByProjectId))
                     violations.Add($"Producer '{producer.Id}' references missing unlock project '{producer.UnlockedByProjectId}'.");
+                if (producer.CapacityUnits > long.MaxValue / ProducerDefinition.MilliUnitsPerUnit)
+                    violations.Add($"Producer '{producer.Id}' capacity is too large to represent safely.");
             }
 
             bool hasReachableEntry = false;

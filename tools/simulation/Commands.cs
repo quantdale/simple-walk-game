@@ -250,7 +250,7 @@ internal static class Cli
 
     private static SystemClock NewSystemClock() => new();
 
-    private static ISaveCodec NewCodec() => new SaveCodec(new MigrationRunner(Array.Empty<ISaveMigration>()));
+    private static ISaveCodec NewCodec() => new SaveCodec(new MigrationRunner(DefaultMigrations.All));
 
     private static GameSession CreateSession(IClock clock, string saveDir) =>
         new(
