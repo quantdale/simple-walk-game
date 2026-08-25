@@ -1,663 +1,439 @@
-# Active Execution Campaign — M1 Deterministic Trust Kernel + Minimum M2 Ingestion Slice
+# Active Execution Campaign — M3 Ambient Progression Vertical Slice
 
-**Status:** SUPERSEDED — DO NOT EXECUTE. M1 and the M2 trust pipeline landed on `main`
-after this prompt was written (see README "Repository state" and ROADMAP exit criteria).
-Retained as a historical record; a new campaign requires a fresh planner audit and a
-new prompt. Any session resuming from this file MUST still pass the `AGENTS.md`
-preflight (identity guard + writer lease) before touching anything.  
-**Planned-From:** `1c9a7ee1aae8aa83426162f0f5c491f875508692`  
-**Planned-From:** `1c9a7ee1aae8aa83426162f0f5c491f875508692`  
+**Status:** ACTIVE  
+**Planned-From:** `4419b17760881a4ac9833105b67641d975f39cb7`  
 **Target branch:** `main`  
 **Campaign class:** IMPLEMENTATION  
-**Target size:** one substantial long/overnight development campaign, roughly 8–12 hours of autonomous work if the environment and remaining work justify it; this is a sizing target, not a reason to pad work or stop early.  
-**Primary roadmap target:** M1 — Deterministic core and durable state  
-**Secondary slice:** only the minimum platform-neutral portion of M2 needed to prove the trust model with synthetic activity fixtures.  
+**Primary roadmap target:** M3 — Ambient progression vertical slice  
+**Target size:** one substantial integrated autonomous campaign. Continue while coherent M3 work remains; do not pad the session, split the milestone into artificial micro-campaigns, or advance into M4 merely to keep working.
 
 ---
 
 ## 0. Operating mandate
 
-Continue from the repository's actual current state. Do not assume this prompt is more authoritative than code or repository state that changed after `Planned-From`.
+Continue from the repository's **actual current state**, not from assumptions in this prompt.
 
-Before editing:
+Before any write, execute the mandatory `AGENTS.md` repository-identity / fetch / starting-SHA / writer-lease preflight exactly as written there. This campaign inherits that contract; it does not replace or weaken it. If the preflight fails, stop and report rather than modifying anything.
 
-1. Read `README.md`, `.agent/PLANNER_HANDOFF.md`, `docs/AGENT_EXECUTION_GUIDE.md`, `docs/MASTER_PLAN.md`, `docs/ROADMAP.md`, `docs/TECHNICAL_ARCHITECTURE.md`, `docs/ACTIVITY_PIPELINE.md`, `docs/GAME_SYSTEMS.md`, `docs/TESTING_AND_RELEASE.md`, `docs/DECISIONS.md`, and `docs/RISK_REGISTER.md`.
-2. Inspect current `main`, recent commits, all implementation/test/tooling files now present, and any new issues/PRs or native agent state.
-3. Reconcile current HEAD against `Planned-From`. If work from this campaign already landed, resume at the first genuinely incomplete requirement instead of recreating it.
-4. Keep all work on `main`. Do not create a long-lived feature branch for this campaign unless a repository-enforced mechanism makes direct `main` work impossible. If a temporary local branch is unavoidable, integrate it back into `main` before campaign completion.
-5. Preserve unrelated user work. Never discard or overwrite unrelated changes to make the tree convenient.
+Then:
 
-This is an **implementation campaign**, not a broad final-hardening campaign. Build the foundation deeply, add the targeted tests required to trust what you implement, and fix Critical/High regressions you introduce or expose. Do **not** consume the session on exhaustive release qualification, physical-device testing, broad UX polish, or speculative performance optimization that belongs to later milestones.
+1. Read `AGENTS.md`, `docs/AGENT_EXECUTION_GUIDE.md`, `.agent/PLANNER_HANDOFF.md`, this campaign, `README.md`, `docs/MASTER_PLAN.md`, `docs/ROADMAP.md`, `docs/PRODUCT_SPEC.md`, `docs/GAME_SYSTEMS.md`, `docs/TECHNICAL_ARCHITECTURE.md`, `docs/UX_DESIGN.md`, `docs/ACTIVITY_PIPELINE.md`, `docs/TESTING_AND_RELEASE.md`, `docs/PERFORMANCE_BUDGETS.md`, `docs/DECISIONS.md`, and `docs/RISK_REGISTER.md` before making architectural changes.
+2. Inspect the complete implementation/test/tooling tree, recent commits since `Planned-From`, open issues/PRs, CI state, and native agent state. Do not review only recently changed files: reason about the effect of every M3 change across domain, application, persistence, tooling, presentation, tests, and docs.
+3. If `main` advanced after `Planned-From`, reconcile those commits first. If parts of this campaign already landed, resume at the first genuinely incomplete requirement instead of recreating them.
+4. Preserve unrelated user work. Never reset, clean away, overwrite, or force-push other work to make integration convenient.
+5. Keep the repository buildable at meaningful checkpoints. If isolated campaign branches/worktrees are required by `AGENTS.md`, integrate all completed work back into `main` before campaign completion.
+6. Fix any Critical/High regression introduced or exposed by this work before completion. For lower-severity findings outside M3, record them precisely and defer rather than expanding scope without limit.
 
-Do not stop because scaffolding compiles or because one subsystem works. Continue through the coherent workstreams below while meaningful implementation-ready work remains and the repository can be left better without violating the project contract.
+This is an **M3 implementation campaign**, not M4 content production, M5 full mobile UX polish, M6 Visit World, M7 platform-health integration, M8 broad hardening, or M9 release qualification.
 
 ---
 
-# 1. Current repository truth
+# 1. Repository truth at planning time
 
-At planning time the repository is documentation-first and contains no production `src/`, `tests/`, Unity project, persistence implementation, simulation tool, or CI-backed game core. M0 is substantially specified but implementation has not begun.
+The planner audited the complete repository tree at `4419b17760881a4ac9833105b67641d975f39cb7`, the recent history, current milestone docs, source/test/tooling files, and open GitHub work.
 
-The documentation converges on the same immediate dependency bottleneck:
+## Landed foundation
 
-- deterministic pure-C# canonical state outside Unity;
-- stable IDs and explicit invariants;
-- injected time and deterministic randomness;
-- idempotent activity/reward transactions;
-- a durable versioned save envelope with migration/recovery;
-- fixture-driven activity ingestion that can be replayed safely;
-- a headless simulator/validator capable of proving state determinism;
-- clean-clone automated tests.
+- M1 deterministic core and durable state is recorded as implemented and automated-verified.
+- M2 activity trust pipeline is recorded as implemented and automated-verified.
+- The repository records 131 headless tests at the current milestone boundary (Domain 85 / Infrastructure 19 / Application 27), plus simulation and guard proof tooling. Treat these as historical evidence only: rerun the applicable gates yourself before relying on them.
+- The M2 implementation includes normalized activity records, validation/bounding, stable source/fingerprint identities, durable dedup rows, versioned step conversion, exactly-once reward transactions, correction/deletion handling, checkpoint sequencing, fixtures, persistence recovery, and diagnostics.
+- No open issue or pull request was visible at planning time. Re-check this at execution start.
+- The six commits after the M2 completion commit are repository/agent-safety and documentation work; no gameplay source files changed after M2. The recent wrong-repository/concurrent-writer incident has already been addressed by the tracked identity guard, writer lease, hooks, CI checks, and `AGENTS.md` contract. Do not redesign those mechanisms during this campaign unless a new bypass is actually discovered.
 
-The master plan explicitly calls for **M1 plus the minimum M2 slice needed to prove the trust model** before visual/UI work.
+## M3 primitives already present — extend, do not rebuild blindly
 
-No Unity presentation, Health Connect/HealthKit adapter, Region 1 content production, Visit World scene, backend, account system, multiplayer, or social infrastructure is required in this campaign.
+The tree already contains meaningful portions of M3:
+
+- `GameState` owns canonical resources, region state, project queue, producer runtimes, activity/dedup state, timestamps, and RNG.
+- `ProjectModel` already defines `Locked → Available → Queued → Active → Completed`, ordered queued IDs, active project, and `AutoAdvance`.
+- `OfflineAdvancer` already allocates banked Vitality, rolls completion surplus into queued work, updates project availability, advances landmark stages, unlocks producers, and performs deterministic producer ticking.
+- `Region1Catalog` is a **development M3 seed**, not final M4 Region 1 content: five restoration projects, three landmarks, and one producer are enough to prove the vertical loop.
+- `GameSession` already exposes boot/recovery, activity ingestion, enqueue/dequeue/reorder, persistence sequencing, and a Home read model.
+- `HomeReadModel` and `ReturnSummaryBuilder` already establish the intended presentation boundary.
+- Tests already cover queue rollover, producer determinism, persistence/recovery, ingestion replay/corrections/deletions, and some return-summary behavior.
+- `tools/simulation` can create, credit, advance, simulate, dump, and validate saves.
+
+The campaign is therefore an **integration/completion campaign**, not a greenfield M3 rewrite.
+
+## Concrete integration gaps found during planning
+
+Treat these as starting hypotheses to verify against current HEAD, then fix at the appropriate layer:
+
+1. **No presentation/runtime project exists.** The repository has no `WalkGame.Unity` (or equivalent) project, no Home/Projects/Region runtime UI, no composition root, and no UI-level acceptance path. D-009 already chooses Unity 6 LTS as the baseline presentation direction, while the exact Unity version remains an implementation-time decision.
+2. **The simulator's multi-day acceptance path bypasses M2.** `tools/simulation simulate` currently calculates daily Vitality and calls `CreditActivity` directly. That is useful as a low-level developer operation, but it cannot be the M3 proof because it skips normalized records, validation, stable identity, dedup/replay, and `IngestActivityBatch`.
+3. **Producer capacity semantics are incomplete.** `ProducerDefinition.CapacityUnits` exists and `GAME_SYSTEMS.md` specifies `produced = min(capacityRemaining, rate × eligibleElapsedTime)`, but current production applies directly to `ResourceBalances` and does not use the producer definition's capacity. Existing cap tests manually set a resource cap instead. Reconcile the model, implementation, copy, diagnostics, and tests so “capacity” means one explicit thing and is actually enforced.
+4. **Direct producer ticking can regress its checkpoint under a backward clock.** Top-level `OfflineAdvancer.Advance` correctly defends `LastAdvancedUtc`, but the public `TickProducers` path currently writes `LastTickUtc = nowUtc` before returning on negative elapsed time, and a test codifies that regression. Make checkpoint behavior defensively monotonic at every callable boundary or narrow the API so misuse cannot silently create future overproduction.
+5. **Return summaries are ephemeral strings, not a robust re-entry state.** `ReturnSummaryBuilder` aggregates events into a mutable `List<string>` with no hard output bound, no durable “committed but not yet presented/acknowledged” state, and no first-class primary next action. A crash after committing progress but before presentation can therefore lose the intended re-entry explanation. M3 should make return summary behavior concise, deterministic, replay-safe, and presentation-friendly without turning the UI into canonical state.
+6. **Queue management is only partially surfaced.** Application operations exist for enqueue/dequeue/reorder, but there is no explicit application operation for toggling auto-advance, no complete Projects read model, no lightweight Region read model, and no user-facing accessible queue controls/empty-state behavior.
+7. **There is no M3 development activity-source/injector flow.** Fixture parsing exists, but no lightweight presentation-facing test injector/coordinator proves “app closed → synthetic activity accumulates → reopen → reconcile through the production trust pipeline → advance world → show one summary”.
+8. **Documentation has minor evidence drift.** The README's early prose still calls the repository “documentation-first / pre-implementation” even though its later repository-state section correctly describes landed M1/M2 code. Reconcile stale status copy while updating M3 evidence.
+
+Do not assume this list is exhaustive. The executor must re-audit adjacent code and tests before changing behavior.
 
 ---
 
 # 2. Campaign objective
 
-Create the first real production-grade engineering foundation for Simple Walk Game: a headless deterministic kernel that can ingest normalized synthetic walking activity, convert it to a bounded/versioned reward exactly once, advance minimal canonical restoration/project state, persist atomically, recover from damaged/interrupted persistence, reload deterministically, and expose the result through tests and a CLI diagnostic/simulation surface.
+Deliver the first **player-visible, end-to-end ambient progression loop** on top of the already-trusted M1/M2 foundation.
 
-By the end of this campaign, a clean clone should be able to run a deterministic scenario such as:
+By the end of M3, a deterministic development profile must be able to follow this exact story through production boundaries:
 
-`new state → ingest fixture activity → deduplicate → create stable reward transaction → credit Vitality → advance queued project/state → atomically save → reload → replay duplicate/reordered input → verify identical canonical result → dump readable diagnostics`
+`fresh durable state → choose/queue restoration work → remain closed while several days of synthetic normalized activity accumulate → reopen/reconcile those records through the same M2 trust pipeline used by future platform adapters → exactly-once Vitality is credited → queued projects advance across completion boundaries → landmark stages change → a producer unlocks and creates bounded secondary production over elapsed time → all resulting canonical state is committed → one concise return summary explains the important changes and next action → player chooses/reorders the next project in the lightweight UI → process is killed/reloaded → replaying the same source records produces no duplicate reward or world change`
 
-This is the first trustworthy vertical engineering slice. It is intentionally headless.
-
----
-
-# 3. Workstream A — Repository/toolchain bootstrap
-
-Create a maintainable solution structure aligned with `docs/TECHNICAL_ARCHITECTURE.md`, adapting only where the actual toolchain requires it.
-
-Expected shape, unless a better evidence-backed layout is required:
-
-```text
-src/
-  WalkGame.Domain/
-  WalkGame.Application/
-  WalkGame.Infrastructure/
-tests/
-  WalkGame.Domain.Tests/
-  WalkGame.Application.Tests/
-  WalkGame.Infrastructure.Tests/
-  fixtures/
-tools/
-  WalkGame.Sim/
-```
-
-Deliver:
-
-- solution/project files;
-- central build settings where useful (`Directory.Build.props`, analyzers/style settings, nullable settings, warnings policy, deterministic builds, etc.);
-- a target framework strategy compatible with the future Unity boundary; the pure domain/application code must not acquire a Unity dependency;
-- package/version choices kept minimal and documented;
-- `.gitignore` and repository hygiene required for the chosen C# toolchain;
-- a clean-clone command sequence documented in the README or developer docs;
-- CI that restores/builds/tests the headless solution on a clean checkout and runs the CLI smoke/validation path where practical.
-
-Do not introduce a heavy DI framework, backend, database server, generalized event-sourcing framework, or architecture framework merely to make the project look enterprise-grade.
-
-If choosing exact .NET SDK/test/serializer packages or locking an implementation-time runtime decision, record it in `docs/DECISIONS.md` with rationale and consequences.
+The resulting slice must demonstrate the product thesis with **minimal foreground attention**. It does not need final art, a complete Region 1, health-platform APIs, or Visit World.
 
 ---
 
-# 4. Workstream B — Deterministic domain foundation
+# 3. Workstream A — Baseline verification and M3 architecture reconciliation
 
-Implement a pure C# domain with explicit state ownership and invariants.
+Before feature implementation:
 
-At minimum provide:
+- run the current clean headless build/tests, simulation smoke, content validation, and guard proof suite applicable to the environment;
+- inspect all M3-adjacent domain/application/infrastructure files and their callers/tests, not just files named in this prompt;
+- verify the current save schema and migration assumptions before adding persisted M3 state;
+- map the intended M3 dependency flow (`Presentation → Application → Domain`, infrastructure behind ports) and identify any existing shortcuts that would let presentation mutate canonical state;
+- resolve the exact Unity 6 LTS editor/runtime version used for the new presentation project and record it in `docs/DECISIONS.md` if Unity is introduced in this campaign;
+- prefer the smallest compatible Unity/package surface. Do not add a heavy DI/state-management framework merely to create three screens.
 
-### Identity and common primitives
-
-- durable strongly-typed or otherwise type-safe stable IDs for region, landmark/project, activity record/fingerprint, reward transaction, and content identities needed by this slice;
-- value objects for authoritative quantities using integer/fixed-point semantics where precision matters;
-- a domain result/error model that avoids exception-driven expected control flow;
-- invariant validation facilities that can report precise failures.
-
-### Time
-
-- injected clock abstraction;
-- explicit UTC timestamps/checkpoints in canonical state;
-- no uncontrolled `DateTime.Now`/`DateTime.UtcNow` calls in domain logic;
-- deterministic handling for zero elapsed time and backward time where this slice uses time.
-
-### Randomness
-
-- deterministic RNG abstraction/state suitable for future canonical randomness;
-- known-seed deterministic behavior and persistence-ready RNG state;
-- no canonical use of UI/runtime randomness.
-
-### Canonical state skeleton
-
-Create a small but real aggregate/state model containing the minimum meaningful pieces required to prove the architecture, such as:
-
-- save metadata/schema version;
-- player/resource state with Vitality;
-- activity ledger state;
-- reward transaction state/history/compact identity set;
-- minimal region state;
-- project definitions/runtime state;
-- deterministic project queue state;
-- processing/reconciliation checkpoint state.
-
-Do not build all future systems now. Expeditions, discoveries, producers, full ecology, full Region 1 content, and presentation bindings remain later work unless a tiny type is strictly required to keep the current design coherent.
+If a required runtime/editor is unavailable in the execution environment, continue with everything that can be implemented and automated honestly, but mark runtime-only gates **UNVERIFIED**. Never fabricate editor/device evidence.
 
 ---
 
-# 5. Workstream C — Minimal project/restoration progression slice
+# 4. Workstream B — Finish ambient progression semantics before binding UI
 
-Implement enough project progression to prove that credited activity changes world state rather than merely increments a number.
+Strengthen the existing M3 domain/application primitives instead of replacing them.
 
-Required capabilities:
+## Project queue and continuity
 
-- explicit project state machine consistent with the documented contract;
-- deterministic prerequisites/availability for a tiny synthetic content set;
-- active project + queue ordering;
-- application of Vitality/progress to the active project;
-- deterministic completion;
-- remaining progress rolling into the next queued project where configured;
-- duplicate completion/application is harmless;
-- completed project mutates a canonical region/landmark stage or equivalent minimal restoration state;
-- no UI or scene object owns this state.
+Provide a complete, deterministic application-facing queue contract:
 
-Use a **small synthetic content fixture**, not Region 1 production content. The objective is to prove state transitions and architecture, not author the game world.
+- enqueue an available project;
+- remove a queued project without corrupting status;
+- reorder queued work using a validated permutation;
+- toggle auto-advance through an application use case and persist it atomically;
+- define a valid way to start/continue work when auto-advance is disabled, if the current model otherwise leaves the player unable to activate work;
+- preserve all unallocated Vitality when the queue is empty or automation is disabled;
+- cross one or several completion boundaries without losing or double-consuming Vitality;
+- make malformed/duplicate/stale queue entries fail validation or recover explicitly rather than being silently discarded in a way that hides corruption;
+- ensure completion effects (availability, landmark stages, producer unlocks) are idempotent.
 
-Test edge cases including:
+Do not add a complex scheduler or generalized workflow engine.
 
-- exact completion boundary;
-- overage crossing one completion;
-- overage crossing multiple queued projects if supported in this slice;
-- empty queue/fallback behavior chosen for the slice;
-- invalid prerequisite/start;
-- repeated completion/application;
-- zero input.
+## Producer capacity and time correctness
 
----
+Resolve the currently incomplete producer-capacity contract with an explicit decision:
 
-# 6. Workstream D — Activity normalization, validation, deduplication, and reward identity
+- define what `ProducerDefinition.CapacityUnits` means in the canonical model;
+- enforce that meaning in deterministic simulation;
+- make resource/producer capacity interactions unambiguous when more than one producer outputs the same resource;
+- ensure a producer that reaches capacity cannot mint value beyond the documented bound;
+- preserve fractional milli-unit carry deterministically;
+- make every simulation checkpoint monotonic under backward clock movement; direct callable paths may not backdate a producer checkpoint and later overproduce;
+- ensure unlock timestamps prevent retroactive production before a producer existed;
+- keep long-absence bounding explicit and tested;
+- make summary/diagnostic wording match the actual capacity that was hit.
 
-Implement the minimum platform-neutral M2 path required by the master plan. Do not implement Health Connect or HealthKit yet.
+If this requires changing persisted producer/runtime shape, bump the save schema and add a sequential migration plus representative migration fixture/tests. Do not silently mutate schema-v1 meaning.
 
-Create a normalized activity representation supporting the narrow initial category: walking/step-derived activity.
+## Canonical state validation
 
-Include only the minimum fields needed for correctness and provenance, such as:
+Extend content/state validators for every new invariant, especially:
 
-- provider/source namespace;
-- source record ID when available;
-- deterministic fallback fingerprint when it is not;
-- activity category;
-- start/end UTC timestamps;
-- integer quantity/unit;
-- source revision/version metadata where needed by the chosen correction model;
-- normalized schema/fingerprint version.
-
-Implement:
-
-- validation for malformed timestamps, unsupported categories/units, zero/negative quantities, future/suspicious values as appropriate;
-- bounded conversion input so pathological source values cannot create unbounded rewards;
-- stable record identity/fingerprinting with an explicit version;
-- durable dedup ledger semantics;
-- deterministic activity-to-Vitality conversion rule **version 1** with explicit rounding/units and rule version stored on credited transactions;
-- deterministic reward transaction IDs derived from stable underlying identity plus conversion rule version;
-- idempotent reward application: the same transaction ID applied twice must produce no second reward;
-- diagnostics sufficient to count accepted/rejected/duplicate/credited items without retaining wholesale raw health payloads.
-
-Keep correction/deletion handling deliberately bounded for this campaign. If a fully correct correction policy would materially expand M2, define the data model/hooks and implement only the minimum deterministic policy required by existing docs, then document remaining M2 work honestly. Do not pretend the full platform trust pipeline is complete.
+- queue consistency and active/queued status agreement;
+- producer capacity/checkpoint invariants;
+- restoration stage monotonicity as applicable;
+- any persisted return-summary/checkpoint state introduced later in this campaign.
 
 ---
 
-# 7. Workstream E — Application orchestration and transaction sequencing
+# 5. Workstream C — One platform-neutral resume/reconcile path
 
-Implement explicit use cases/services rather than allowing infrastructure or future UI to mutate domain state directly.
+M3 must prove the ambient loop through the **real M2 downstream trust path**, not through direct Vitality injection.
 
-At minimum provide an application flow equivalent to:
+Introduce the smallest application-level abstraction/coordinator necessary for a development activity source to provide normalized records to the existing ingestion pipeline. Keep future Health Connect/HealthKit behind the same narrow seam without implementing those providers now.
 
-1. load canonical state;
-2. accept a normalized synthetic activity batch;
-3. validate/normalize identity;
-4. detect duplicates/revisions according to the implemented policy;
-5. calculate eligible net activity;
-6. produce stable reward transaction(s);
-7. apply reward to canonical resource/project progression;
-8. update ledger and processing checkpoint in the same durable state transition;
-9. persist resulting canonical state;
-10. only after successful persistence, emit/return a summary/diagnostic result.
+Required behavior:
 
-The key invariant is non-negotiable:
+1. load/recover canonical state;
+2. obtain deterministic synthetic/fixture activity records for the requested interval;
+3. call the same `IngestActivityBatch` trust pipeline used by production adapters;
+4. advance applicable offline systems in a clearly defined order;
+5. commit the resulting canonical state before presentation treats progress as complete;
+6. return typed diagnostics/read models suitable for the lightweight UI;
+7. retry/replay after restart without double-crediting.
 
-> **The source/reconciliation checkpoint must never be durably advanced beyond the reward/ledger/game state that it represents.**
+Reconcile this flow with the architecture's conceptual boot order instead of adding a parallel “special M3” path.
 
-Design the API so a caller can retry safely after interruption.
+## Upgrade the developer tooling
 
-Do not make synthetic fixture ingestion a separate toy code path. After the platform boundary, fixtures must traverse the same application/domain processing path intended for future real adapters.
+Keep `CreditActivity`/`credit` only if it remains useful as an explicitly low-level diagnostic primitive. The M3 acceptance tooling must not depend on it.
 
----
+Enhance `tools/simulation` so a deterministic multi-day scenario can:
 
-# 8. Workstream F — Durable persistence, integrity, migration, and recovery
+- generate or ingest normalized step records with stable provider/source IDs and timestamps;
+- process them through `IngestActivityBatch`;
+- replay the same source window and prove a no-op;
+- optionally consume checked-in fixture files through the same path;
+- close/recreate `GameSession` instances between days/windows so persistence and boot logic are actually exercised;
+- emit useful summary/diagnostic evidence without exposing or storing raw health payloads.
 
-Resolve the initial persistence implementation during this campaign and record the choice in `docs/DECISIONS.md`.
-
-Prefer the smallest design that can actually satisfy the contracts. A versioned snapshot with atomic replace/backup and explicit migration is acceptable if implemented and tested rigorously; use a journal or another local strategy only if it provides a concrete correctness benefit for this slice.
-
-Required behaviors:
-
-- versioned save envelope;
-- explicit current schema version;
-- serializer that round-trips canonical state deterministically;
-- integrity metadata/check/checksum sufficient to distinguish obviously invalid/truncated state;
-- atomic/recoverable write strategy using temp/replace/backup semantics appropriate to the host filesystem;
-- last-known-good recovery path;
-- clear load result categories: no save, valid primary, recovered backup, corrupt/unrecoverable, unsupported future version, migration failure, etc.;
-- sequential migration registry/pipeline even if only schema v1 exists initially;
-- at least one synthetic prior-version fixture/migration test if practical so the migration mechanism is proved rather than merely abstracted;
-- state invariant validation after deserialize/migration and before committing migrated state;
-- never destroy the final recoverable copy before a migrated/repaired replacement is validated;
-- test seams/failure injection around critical save boundaries.
-
-Keep persistence behind ports/interfaces. Domain code must remain unaware of file paths, JSON, SQLite, Unity `PlayerPrefs`, or OS APIs.
+The simulator should become a reproducible M3 acceptance harness, not merely a balance shortcut.
 
 ---
 
-# 9. Workstream G — Fixture corpus and adversarial deterministic tests
+# 6. Workstream D — Durable, bounded return-summary system
 
-Create a representative fixture corpus and fast automated test suite concentrated on the trust invariants introduced here.
+Turn the return summary into a first-class M3 re-entry contract while keeping canonical progression independent of presentation.
 
-At minimum cover:
+Implement a typed summary/read model (names are implementation choices) that can represent at least:
 
-### Determinism
+- major project/landmark transformation;
+- newly available or blocked actionable project decision;
+- eligible activity/Vitality aggregate;
+- meaningful producer output/cap state;
+- save recovery/clock-protection notice where applicable;
+- a single primary next action or explicit “nothing needs attention” state.
 
-- same initial state + same inputs + same seed => same final canonical state;
-- save/load does not alter deterministic outcome;
-- input ordering of independent records does not change credited total/final state.
+Requirements:
 
-### Exactly-once / replay
+- deterministic priority: transformation → actionable decision → meaningful production/notice → concise aggregates;
+- hard bounded output suitable for the 5–15 second glance target; do not dump every simulation event;
+- no duplicate lines/cards for repeated/replayed activity;
+- no hidden dependence on scene/UI state;
+- progress must already be durable before the summary claims it happened;
+- if the process dies after committing progress but before the summary is displayed/acknowledged, the important summary must still be available after restart;
+- acknowledging/dismissing a summary is idempotent and may not alter the underlying earned progression;
+- “no meaningful changes” is a valid empty state.
 
-- same record repeated in one batch;
-- same record repeated in later batch;
-- overlapping batch windows;
-- same reward transaction applied twice;
-- save/restart then replay;
-- repeated application after project completion.
+Choose the smallest persistence strategy that satisfies the crash/re-entry contract. If persisted shape changes, perform the schema/migration work rather than stuffing durable truth into presentation preferences.
 
-### Validation / bounds
+Add focused tests for:
 
-- zero quantity;
-- negative quantity;
-- malformed timestamps;
-- unsupported unit/category;
-- future/suspicious timestamp policy;
-- huge/pathological quantity;
-- deterministic rounding boundaries.
-
-### Persistence / recovery
-
-- save/load round trip;
-- truncated/corrupted primary with valid backup;
-- corrupt primary and corrupt/no backup;
-- unsupported future schema;
-- migration success;
-- migration failure preserves recoverable source;
-- injected write interruption/failure leaves either old valid state or new valid state, never a half-trusted canonical state;
-- checkpoint cannot outrun durable reward/ledger state.
-
-### Project progression
-
-- queue progression and carry-over;
-- invalid project transition consumes nothing;
-- duplicate completion is a no-op;
-- canonical region/landmark state survives reload.
-
-Property-style or generative tests are encouraged for idempotency/order invariants if they remain maintainable and deterministic, but do not add a large framework solely for novelty.
-
-Target tests should be numerous enough to establish confidence in this foundation, not merely one test per class.
+- one-day return;
+- seven-day return;
+- multiple project/landmark transitions in one absence;
+- queue becomes empty;
+- producer reaches capacity;
+- no-change return;
+- crash/restart before summary acknowledgement;
+- repeated acknowledgement;
+- replayed activity does not regenerate a false “new progress” summary;
+- summary remains within the chosen item/line bound.
 
 ---
 
-# 10. Workstream H — Headless simulator, validator, and diagnostics
+# 7. Workstream E — Read models and minimal Unity shell
 
-Create a CLI/tooling surface under `tools/` that makes the domain inspectable without Unity.
+Create the minimum Unity 6 LTS presentation needed to prove M3. Follow the repository's documented `src/WalkGame.Unity` direction unless the actual Unity project layout requires an evidence-backed adaptation.
 
-Useful commands/subcommands should include equivalents of:
+## Composition boundary
 
-- initialize/create a clean synthetic save;
-- run one or more named fixture scenarios;
-- ingest/replay a fixture batch;
-- simulate a simple multi-day synthetic activity profile;
-- dump canonical state in stable human-readable form;
-- validate save/state invariants;
-- print compact ledger/activity diagnostics;
-- compare/replay determinism where practical.
+Create one explicit bootstrap/composition root that wires:
 
-The tool should be scriptable and return meaningful exit codes for CI.
+- durable save implementation;
+- clock;
+- development activity source/injector;
+- application session/coordinator;
+- lightweight presentation.
 
-Provide at least one deterministic end-to-end demo fixture that proves:
+Do not use arbitrary `MonoBehaviour` service location. Do not let UI callbacks edit `GameState`, resource dictionaries, project states, save JSON, or scene-owned shadow state directly.
 
-1. a clean state is created;
-2. several activity records are processed;
-3. Vitality is credited exactly once;
-4. a queued project advances/completes;
-5. canonical restoration state changes;
-6. state is saved/reloaded;
-7. replay/duplicate input causes no extra reward;
-8. a stable diagnostic/state dump can be inspected.
+## Home
 
-Avoid elaborate terminal UI. This is engineering tooling, not the game UI.
+A glanceable Home screen should expose, through immutable read models/application operations:
 
----
+- the pending/most-relevant return summary;
+- current project and progress;
+- recent eligible activity impact where meaningful;
+- one primary next action;
+- compact region/restoration status;
+- clear queue-empty / nothing-needs-attention states.
 
-# 11. Workstream I — CI and architectural fitness checks
+## Projects
 
-Add a pragmatic CI workflow for the headless foundation.
+Provide the smallest usable management surface for:
 
-At minimum CI should perform:
+- locked/available/queued/active/completed status;
+- effort/cost and prerequisite explanation;
+- enqueue/remove;
+- ordered queue;
+- reorder using both a direct manipulation path if chosen **and an accessible non-drag equivalent**;
+- auto-advance on/off;
+- empty queue and invalid-action feedback.
 
-- restore;
-- build with warnings policy appropriate to the repository;
-- run domain/application/infrastructure tests;
-- run the key CLI validation/smoke scenario;
-- detect obvious forbidden dependency drift where feasible, especially a Unity dependency entering `WalkGame.Domain`;
-- run from a clean checkout with no generated local state required.
+## Region
 
-Do not block this campaign on Unity licensing/editor CI because no Unity implementation is required yet.
+Provide a lightweight, non-3D Region status view showing at least:
 
-If CI cannot be executed remotely from the current environment, validate the commands locally, commit the workflow, and report the unverified remote status precisely.
+- landmarks and canonical restoration stages;
+- active project context;
+- damaged/restored distinction without relying on color alone;
+- producer unlock/output/cap status where useful;
+- overall progress derived from canonical/read-model data.
 
----
+This is not Visit World. Do not build character control, camera exploration, terrain streaming, 3D landmark art production, or M6 systems.
 
-# 12. Workstream J — Documentation and decision reconciliation
+## Development activity injector
 
-Update documentation in the same campaign so it reflects implementation evidence rather than aspiration.
+Expose a clearly development-only way to feed deterministic synthetic activity/absence scenarios through the same platform-neutral source/reconcile path. It must be impossible to mistake this for a production health provider, and production builds must be able to exclude/disable it cleanly.
 
-At minimum update:
+## M3 UX minimums
 
-- `README.md` current repository state, build/test/simulation commands, and what is actually implemented;
-- `docs/ROADMAP.md` M0/M1 checklist/status based on evidence, without claiming future milestones complete;
-- `docs/DECISIONS.md` with the exact toolchain/persistence/serialization/fingerprint/conversion choices that became concrete;
-- `docs/TECHNICAL_ARCHITECTURE.md` if actual structure or persistence details differ from the proposal;
-- `docs/ACTIVITY_PIPELINE.md` to distinguish the implemented fixture-based slice from still-unimplemented real platform reconciliation/correction behavior;
-- `docs/TESTING_AND_RELEASE.md` only where new commands/evidence need recording;
-- `docs/RISK_REGISTER.md` to reduce/annotate only risks for which this campaign produced concrete evidence; do not close device/platform risks based on host tests.
+Full M5 polish is not required, but the M3 shell must already respect the architecture and basic usability contract:
 
-Use the repository evidence vocabulary precisely: SPECIFIED, IMPLEMENTED, AUTOMATED VERIFIED, RUNTIME VERIFIED, DEVICE VERIFIED, RELEASE QUALIFIED.
-
-M1 should only be marked complete if its documented exit criteria genuinely pass. M2 must remain partial unless all of its actual exit criteria are met.
+- Home always reachable;
+- loading/empty/error states for the implemented flows;
+- semantic labels and logical focus where supported;
+- readable text scaling/layout within the chosen minimal shell;
+- no color-only critical state;
+- reduced-motion-safe behavior (avoid introducing mandatory motion-heavy transitions);
+- progression remains fully operable without precise drag gestures.
 
 ---
 
-# 13. Required acceptance scenario
+# 8. Workstream F — End-to-end M3 acceptance proof
 
-Before declaring the campaign complete, prove a deterministic headless scenario from a clean state that exercises the integrated stack:
+Add one named, reproducible automated acceptance scenario that exercises the complete headless vertical loop. It should be runnable on a clean clone without platform health APIs.
 
-1. create/load a clean canonical state;
-2. use a deterministic clock and seed;
-3. enqueue at least two tiny synthetic restoration projects;
-4. ingest a synthetic walking activity batch;
-5. reject/diagnose at least one invalid record;
-6. deduplicate at least one duplicate record;
-7. create stable reward transaction identity;
-8. credit bounded Vitality exactly once;
-9. advance project progress and cross at least one completion boundary;
-10. mutate minimal region/landmark restoration state;
-11. atomically persist the state;
-12. reload from disk;
-13. replay the same/overlapping activity;
-14. verify no second reward or completion occurs;
-15. process one genuinely new valid record and prove only its expected delta is added;
-16. dump/validate the final state;
-17. demonstrate corruption/recovery behavior through an automated test or deterministic tooling scenario.
+At minimum prove:
 
-The acceptance scenario must use the production application/domain/persistence path, not a test-only fake implementation that bypasses the real logic.
+1. fresh state starts valid and persists;
+2. player queues the first project through an application use case;
+3. several days of deterministic normalized synthetic step records are produced;
+4. those records enter `IngestActivityBatch` rather than direct Vitality credit;
+5. project progress crosses at least one completion boundary and remaining Vitality is preserved/rolled correctly;
+6. at least one landmark stage changes;
+7. a producer unlocks and later produces bounded secondary resources from elapsed time;
+8. the process/session is recreated from disk between activity windows;
+9. return summary is concise and survives a commit-before-presentation restart;
+10. player queues/reorders/selects the next project through application use cases;
+11. the same activity window is replayed after restart and produces no additional Vitality, project completion, producer unlock, or false return-summary change;
+12. final state validates and is deterministic from the same starting seed/inputs.
 
----
+Also add targeted tests for boundary cases the acceptance scenario does not isolate cleanly:
 
-# 14. Validation strategy for this implementation campaign
+- exact project completion boundary;
+- surplus spanning multiple queued projects;
+- queue empty while activity continues;
+- auto-advance disabled;
+- invalid queue reorder/duplicate IDs;
+- producer capacity boundary and long absence;
+- backward time at all public simulation boundaries;
+- save/load roundtrip of every new M3 field;
+- migration from retained prior schema if schema changes;
+- recovery from backup with pending M3 summary state;
+- presentation/read-model tests proving callers receive snapshots rather than mutable canonical collections.
 
-Run the validation necessary to trust the new code, but keep the campaign implementation-first.
-
-Required before completion:
-
-- clean restore/build;
-- all new headless automated tests;
-- CLI end-to-end acceptance/smoke scenario;
-- persistence corruption/recovery tests;
-- replay/idempotency tests;
-- migration tests;
-- no obvious forbidden domain dependency;
-- documentation command examples actually work;
-- repository remains buildable from a clean checkout or the exact environmental blocker is recorded.
-
-Do **not** spend the session on:
-
-- physical Android/iOS verification;
-- real Health Connect/HealthKit permission flows;
-- Unity PlayMode/EditMode/device validation;
-- large-scale performance/battery profiling;
-- exhaustive security/release certification;
-- Region 1 balance/content QA;
-- broad accessibility/UI QA.
-
-Those belong to later implementation/hardening milestones.
+Where Unity is available, add appropriate EditMode/PlayMode coverage for bootstrap and the core Home → Projects → Region → Home flow, including restart/test persistence. Do not claim device verification; physical platform integration belongs later.
 
 ---
 
-# 15. Explicit non-goals
+# 9. Workstream G — Documentation and evidence reconciliation
 
-Do not implement as part of this campaign unless a tiny stub/port is strictly necessary for dependency direction:
+Before completion, update durable repository truth to match what actually landed.
 
-- Unity scenes, prefabs, menu UI, or Visit World;
-- final art/audio;
-- Region 1 production content;
-- Android Health Connect integration;
-- iOS HealthKit integration;
-- notifications;
-- backend/cloud sync/accounts;
-- analytics/telemetry backend;
-- multiplayer/social/leaderboards;
-- monetization, ads, premium currency, gacha;
-- broad expedition/discovery/producer systems;
-- speculative ECS/event sourcing/microservices;
-- final activity correction/deletion parity across real platforms;
-- full release qualification.
+At minimum reconcile:
 
-Do not let attractive unrelated work displace the trust kernel.
+- `README.md` — remove stale “pre-implementation” wording, describe the M3 state and exact evidence level;
+- `docs/ROADMAP.md` — mark each M3 exit criterion complete **only** when supported by named evidence; leave genuinely unverified items unchecked;
+- `docs/MASTER_PLAN.md` — update immediate-next-campaign status after M3 only if M3 truly exits;
+- `docs/DECISIONS.md` — record the exact Unity version/tooling choice, producer-capacity semantics, durable return-summary semantics, and any other implementation-time decision that materially constrains later work;
+- `docs/GAME_SYSTEMS.md`, `docs/TECHNICAL_ARCHITECTURE.md`, `docs/UX_DESIGN.md` — reconcile any contract that changed during implementation;
+- `docs/TESTING_AND_RELEASE.md` — add executable M3 clean-clone/runtime verification commands where practical;
+- `docs/RISK_REGISTER.md` — update risks exposed/mitigated by the vertical slice;
+- `.agent/EXECUTION_PROMPT.md` — when and only when every campaign completion gate is satisfied, change this prompt's status from `ACTIVE` to `COMPLETED` (or an equally unambiguous terminal status) and append concise evidence/blocker notes so `/goal continue` can never mistake stale work for an active campaign.
+
+Do not mark M4/M5/M6/M7 work complete merely because a stub exists.
 
 ---
 
-# 16. Severity and repair policy
+# 10. Scope boundaries
 
-During this campaign:
+Do **not** spend this campaign on:
 
-- immediately fix any Critical/High regression caused or exposed by the work when actionable;
-- data corruption, duplicated rewards, silently lost durable state, migration destroying the recoverable source, or domain architecture collapsing into engine/infrastructure coupling are blockers;
-- Medium/Low issues may be documented for the next campaign when they do not invalidate the current acceptance criteria;
-- do not hide failing tests by deleting, skipping, weakening, or marking them flaky without a documented and defensible reason.
+- final Region 1 content volume/balance (M4);
+- discoveries/expeditions/ecology as full systems unless a tiny non-authoritative placeholder is strictly necessary for a view contract;
+- full onboarding/settings/notifications/accessibility qualification (M5);
+- 3D Visit World, character controller, camera, exploration, art production, shaders, or quality tiers (M6);
+- Health Connect, HealthKit, permissions, background platform queries, or device provider work (M7);
+- cloud sync, backend, accounts, social features, multiplayer, leaderboards, monetization, ads, or live-service systems;
+- broad release hardening/performance/device qualification unrelated to proving M3;
+- speculative abstractions/frameworks not demanded by the vertical slice.
 
----
-
-# 17. Autonomous execution rules
-
-1. Work broadly across the coherent campaign. Do not stop after project scaffolding, the first passing test, the first save file, or the first successful fixture ingestion.
-2. Prefer several coherent checkpoint commits over a giant opaque dump, but do not fragment work into meaningless micro-commits.
-3. If one optional subtask becomes blocked, continue other independent in-scope work rather than ending the session immediately.
-4. Do not invent device/runtime verification. Report host-only evidence as host/automated evidence.
-5. Do not silently weaken the documented product invariants to get tests green.
-6. Keep the dependency flow explicit: Presentation (future) → Application → Domain; Infrastructure implements ports and may depend inward, never the reverse.
-7. Keep raw activity/health payload retention minimal. Fixtures may contain synthetic values, but production state structures should retain only what the game needs for identity, provenance, reconciliation, and auditability.
-8. Do not switch to a broad hardening campaign while this large implementation campaign remains meaningfully incomplete. The `next-campaign` planner will select a hardening campaign later when implementation-ready work is exhausted or the roadmap reaches the appropriate gate.
+Preserve the M1/M2 trust invariants above all: deterministic canonical state, exactly-once activity crediting, integer economy math, atomic durability, dedup state never outrunning reward state, and conservative correction behavior.
 
 ---
 
-# 18. Git and `main` requirements — hard rules
+# 11. Required validation
 
-This repository must end the session with all campaign work visible to the planner on GitHub.
+Run the strongest applicable gates in the execution environment and record exact commands/results.
 
-### At start
+Minimum headless bar:
 
-- operate from `main`;
-- fetch/reconcile `origin/main`;
-- record the starting SHA;
-- do not discard unrelated local work.
+- repository identity/guard preflight and guard proof suite;
+- `dotnet build SimpleWalkGame.sln`;
+- full `dotnet test SimpleWalkGame.sln` (or the repository-equivalent full solution command);
+- content/state validation;
+- existing deterministic simulation smoke;
+- new M3 normalized-activity end-to-end acceptance scenario;
+- replay of the same M3 source records after restart;
+- migration/recovery tests if persisted shape changes.
 
-### During work
+Unity bar when the editor/runtime is available:
 
-- commit coherent checkpoints to `main`;
-- push completed checkpoints when practical so progress is durable remotely;
-- never leave the only copy of substantial completed work unpushed at the end of the session.
+- project opens/imports cleanly using the exact recorded Unity 6 LTS version;
+- compilation has zero unresolved errors;
+- relevant EditMode tests pass;
+- relevant PlayMode/bootstrap/UI tests pass;
+- lightweight Home/Projects/Region flow is runtime-verified;
+- presentation does not retain authoritative state across a scene/reload boundary.
 
-### At final campaign boundary
-
-These are mandatory unless GitHub credentials or remote availability make them technically impossible:
-
-1. all intended campaign changes are committed;
-2. all intended campaign commits are on local `main`;
-3. push `main` to `origin/main`;
-4. fetch/reconcile once more;
-5. verify local `HEAD` equals `origin/main`;
-6. verify the working tree is clean;
-7. report exact final SHA and push status.
-
-Do not finish with completed campaign work only on another branch. Do not leave a PR as the final state when you have permission to integrate the campaign to `main`. Do not force-push shared history merely to satisfy synchronization.
-
-The final campaign commit should have a **detailed commit message body** that serves as a durable session-level summary: major delivered capabilities, important correctness guarantees/fixes, tests/validation run, documentation/state changes, and material known gaps. The subject may remain concise; the body should be sufficiently detailed that a later planner can understand the campaign outcome from Git history without reconstructing the whole session.
-
-If push is impossible, do not falsely claim success. Leave the repository safe and committed locally, report the exact blocker, and give the exact command/state needed to complete synchronization.
+If CI exists for the pushed SHA, inspect the exact workflow result. Fix locally actionable failures introduced by the campaign. Environment-only or unavailable gates must be reported as `UNVERIFIED`, not silently omitted or called green.
 
 ---
 
-# 19. Completion gates
+# 12. M3 completion gates
 
-Do not mark this execution prompt COMPLETE until all applicable gates below are genuinely satisfied or an explicit environment blocker makes further progress impossible.
+Do not declare this campaign complete until all of the following are true or a genuine external blocker is recorded explicitly:
 
-## Repository/build
+- [ ] M3 acceptance uses normalized synthetic activity through the M2 trust pipeline, not direct-credit shortcuts.
+- [ ] app/session can be absent between synthetic activity windows and resume from durable state.
+- [ ] queued progress crosses completion boundaries without loss, double-spend, or manual timing requirements.
+- [ ] queue management supports the minimal player decisions required by M3, including persisted auto-advance control.
+- [ ] landmark restoration stages visibly/readably derive from canonical state.
+- [ ] producer unlock/offline production works deterministically and the documented capacity is actually enforced.
+- [ ] backward-clock handling cannot regress canonical simulation checkpoints through any supported public path.
+- [ ] return summary is typed/presentation-friendly, bounded, deterministic, and survives commit-before-presentation restart.
+- [ ] Home, Projects, and lightweight Region presentation exist and consume application/read-model boundaries rather than owning canonical state.
+- [ ] development activity injection is clearly isolated from future production providers and exercises the real downstream pipeline.
+- [ ] restart/recovery/replay cannot duplicate Vitality, project/world completion, producer effects, or return-summary “new” events.
+- [ ] every new persisted field has roundtrip + migration implications handled explicitly.
+- [ ] full applicable automated suite is green with no unresolved Critical/High regression.
+- [ ] docs accurately distinguish automated-verified, runtime-verified, device-verified, and unverified behavior.
+- [ ] no M4+ scope was used to hide an incomplete M3 integration.
 
-- [ ] production C# solution/project structure exists;
-- [ ] clean restore/build succeeds;
-- [ ] domain compiles with no Unity dependency;
-- [ ] CI workflow for headless build/test/validation exists.
-
-## Deterministic domain
-
-- [ ] stable IDs/value objects/result model exist;
-- [ ] injected clock exists and is used by canonical time-sensitive logic;
-- [ ] deterministic RNG abstraction/state exists;
-- [ ] minimal canonical resource/activity/project/region state exists;
-- [ ] invariants are explicit and validated.
-
-## Progression
-
-- [ ] minimal project state machine/queue works;
-- [ ] progress carry-over/completion boundaries are deterministic;
-- [ ] completion changes canonical restoration state;
-- [ ] repeated completion/reward paths are safe.
-
-## Activity/reward trust slice
-
-- [ ] normalized synthetic walking records exist;
-- [ ] validation/bounds exist;
-- [ ] stable identity/fingerprint strategy is versioned;
-- [ ] conversion rule v1 is deterministic/versioned;
-- [ ] reward transaction IDs are stable;
-- [ ] replay/duplicate processing cannot double-credit;
-- [ ] diagnostics report accepted/rejected/duplicate/credited totals.
-
-## Persistence/recovery
-
-- [ ] versioned save envelope exists;
-- [ ] durable implementation exists behind a port;
-- [ ] atomic/recoverable commit path exists;
-- [ ] integrity validation exists;
-- [ ] backup/recovery behavior exists and is tested;
-- [ ] migration pipeline exists and is tested;
-- [ ] checkpoint and reward/ledger state cannot become durably inconsistent under tested failure paths.
-
-## Tooling/tests
-
-- [ ] fixture corpus exists;
-- [ ] deterministic/idempotency/order tests pass;
-- [ ] save/load/corruption/migration tests pass;
-- [ ] project progression tests pass;
-- [ ] CLI simulator/validator works;
-- [ ] integrated acceptance scenario passes.
-
-## Documentation/evidence
-
-- [ ] README reflects real implementation and commands;
-- [ ] decisions are recorded;
-- [ ] roadmap status is evidence-based;
-- [ ] docs distinguish implemented fixture slice from future platform work;
-- [ ] no host-only behavior is mislabeled as device verified.
-
-## Git
-
-- [ ] all intended work committed to `main`;
-- [ ] all intended work pushed to `origin/main`;
-- [ ] `HEAD == origin/main` after final fetch/reconcile;
-- [ ] working tree clean;
-- [ ] final SHA recorded.
+If all substantive M3 implementation is complete but a runtime-only gate is impossible because the required editor/toolchain is genuinely unavailable, do **not** falsify completion. Record the exact blocker/evidence state in the campaign and roadmap so the next session can resume at that runtime gate rather than recreating implementation.
 
 ---
 
-# 20. End-of-campaign state update
+# 13. Git, handoff, and finish protocol
 
-Before the final push/report:
+Follow `AGENTS.md` and `docs/AGENT_EXECUTION_GUIDE.md` exactly.
 
-- change this file's `Status` from `ACTIVE` to `COMPLETE` only if the completion gates are actually satisfied;
-- if the campaign is blocked before completion, keep `Status: ACTIVE` and add a concise blocker/progress section identifying the first incomplete requirement and what remains;
-- update any native agent state/checkpoint files used by the environment so a later `/goal continue` can resume without redoing landed work.
+Before final integration/push:
 
-Do not delete this prompt merely because the campaign completes; it is useful durable history unless repository policy explicitly archives/replaces it.
+1. inspect `git status`, staged/unstaged diff, recent log, and generated/untracked files;
+2. exclude unrelated, generated, local-machine, secret, and sensitive files;
+3. rerun the applicable completion gates on the final integrated tree;
+4. fetch/reconcile `origin/main` deliberately; never force-push or discard a remote advance;
+5. ensure all completed implementation, tests, migrations, Unity project/config, tooling, and docs are committed;
+6. use detailed logical commit messages. The final handoff/integration commit message must summarize the campaign's delivered behavior, root causes/gaps fixed, schema/decision changes, exact validation evidence, remaining unverified runtime/device gates, and intentional deferrals;
+7. push the completed work to `origin/main`;
+8. verify local `HEAD` equals `origin/main` and the working tree is clean;
+9. inspect CI/workflow status for that exact pushed SHA where available and fix actionable failures;
+10. release the writer lease on normal completion.
 
----
+Do not finish by printing another giant prompt for the operator to paste. The durable repository state is the handoff. The next invocation should be able to resume from `.agent/EXECUTION_PROMPT.md` and the repository itself.
 
-# 21. Final report format
-
-End the session with a detailed factual report containing:
-
-### Repository state
-
-- starting SHA;
-- final SHA;
-- branch (`main` expected);
-- push result;
-- confirmation whether `HEAD == origin/main`;
-- working-tree cleanliness.
-
-### Delivered
-
-- domain foundation;
-- activity/reward trust slice;
-- project/restoration slice;
-- persistence/migrations/recovery;
-- CLI/tooling;
-- CI;
-- documentation/decision updates.
-
-### Verification
-
-List the exact commands/suites run and their outcomes. Distinguish automated host verification from anything unverified.
-
-### Correctness evidence
-
-Explicitly state evidence for:
-
-- duplicate/replay safety;
-- deterministic state evolution;
-- save/reload equivalence;
-- corruption/recovery behavior;
-- checkpoint/reward durability ordering;
-- migration behavior.
-
-### Known gaps
-
-List real remaining Medium/Low defects, unverified runtime/device behavior, and intentionally deferred M2+ work. Do not pad this section with roadmap items unrelated to the current boundary.
-
-### Recommended next campaign
-
-Recommend exactly one substantial next campaign based on the **new** repository state. Expect M2 Activity Trust Pipeline completion to be a likely candidate if M1 is genuinely qualified, but re-audit rather than assuming it.
-
----
-
-## Success condition
-
-A strong outcome is not “the repo now has C# files.” A strong outcome is that the repository has crossed from specification-only into a **trustworthy deterministic executable core** whose most dangerous invariants—replay, duplicate reward, persistence corruption, migration, and deterministic progression—are demonstrably protected by code, fixtures, recovery logic, and tests, with everything synchronized to `main` for the next planner review.
+If M3 genuinely satisfies every applicable completion gate, stop after the final pushed verification. Do not automatically begin M4 in the same campaign.
