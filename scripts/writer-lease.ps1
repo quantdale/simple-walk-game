@@ -157,7 +157,7 @@ if ($Release) {
         exit 0
     }
     if ($Force) {
-        Write-Host "WARNING: releasing a lease owned by another session ($($Lock.sessionId))." 
+        Write-Host "WARNING: releasing a lease owned by another session ($($Lock.sessionId))."
         Show-Lock $Lock
         Remove-Item -LiteralPath $LockPath -Force
         Write-Host "WRITER LEASE: FORCE-RELEASED"

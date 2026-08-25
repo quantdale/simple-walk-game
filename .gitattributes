@@ -5,6 +5,7 @@
 .githooks/** text eol=lf
 
 # Deterministic text formats: keep byte-stable across platforms.
+*.md   text eol=lf
 *.json text eol=lf
 *.yml  text eol=lf
 *.yaml text eol=lf
