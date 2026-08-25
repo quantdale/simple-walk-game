@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  push:
+    branches: ["main", "agent/simple-walk-game/**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  identity-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Repository identity guard (GITHUB_REPOSITORY must equal the declared slug)
+        run: scripts/assert-repo-identity.sh
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Build (clean, warnings visible)
+        run: dotnet build SimpleWalkGame.sln
+
+      - name: Test
+        run: dotnet test SimpleWalkGame.sln --no-build
+
+      - name: Simulation smoke (deterministic loop + tamper selftest)
+        run: |
+          SAVES=$(mktemp -d)
+          dotnet run --project tools/simulation --no-build -- new --save "$SAVES" --seed 7 --at 2026-08-20T08:00:00Z
+          dotnet run --project tools/simulation --no-build -- simulate --save "$SAVES" --days 5 --start 2026-08-20T08:00:00Z > /dev/null
+          dotnet run --project tools/simulation --no-build -- validate --save "$SAVES" --selftest
+          rm -rf "$SAVES"
+
+      - name: Hook installer is idempotent
+        run: |
+          scripts/install-git-hooks.sh
+          test "$(git config core.hooksPath)" = ".githooks"
+          scripts/install-git-hooks.sh
+
+      - name: Guard proof suite (identity / lease / pre-push race)
+        run: tests/guards/run-guard-tests.sh

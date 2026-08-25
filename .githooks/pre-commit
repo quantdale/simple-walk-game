@@ -1,0 +1,11 @@
+#!/bin/sh
+# pre-commit: fail closed unless this checkout IS quantdale/simple-walk-game.
+# Hooks are enforced locally but can be bypassed; CI (.github/workflows/ci.yml)
+# re-runs the same guard server-side. Install via scripts/install-git-hooks.sh.
+zero_exit_identity=86
+root="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$root" ]; then
+    echo "pre-commit: not inside a Git work tree." >&2
+    exit "$zero_exit_identity"
+fi
+sh "$root/scripts/assert-repo-identity.sh" "$root" || exit $?
