@@ -1,0 +1,63 @@
+[
+  {
+    "providerNamespace": "fixture",
+    "sourceRecordId": "rec-001",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 6400,
+    "startUtc": "2026-03-10T07:00:00Z",
+    "endUtc": "2026-03-10T07:45:00Z"
+  },
+  {
+    "providerNamespace": "fixture",
+    "sourceRecordId": "rec-001",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 6400,
+    "startUtc": "2026-03-10T07:00:00Z",
+    "endUtc": "2026-03-10T07:45:00Z"
+  },
+  {
+    "providerNamespace": "fixture",
+    "sourceRecordId": "bad-zero-quantity",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 0,
+    "startUtc": "2026-03-10T06:50:00Z",
+    "endUtc": "2026-03-10T07:20:00Z"
+  },
+  {
+    "providerNamespace": "fixture",
+    "sourceRecordId": "bad-reversed-window",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 3000,
+    "startUtc": "2026-03-10T07:40:00Z",
+    "endUtc": "2026-03-10T07:30:00Z"
+  },
+  {
+    "providerNamespace": "fixture",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 12345,
+    "startUtc": "2026-03-10T06:30:00Z",
+    "endUtc": "2026-03-10T07:20:00Z"
+  },
+  {
+    "providerNamespace": "fixture",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 900000,
+    "startUtc": "2026-03-10T07:00:00Z",
+    "endUtc": "2026-03-10T07:50:00Z"
+  },
+  {
+    "providerNamespace": "fixture",
+    "sourceRecordId": "future-dated",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 5000,
+    "startUtc": "2026-03-10T09:00:00Z",
+    "endUtc": "2026-03-10T09:30:00Z"
+  }
+]

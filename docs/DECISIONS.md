@@ -404,3 +404,76 @@ The following should be resolved at the relevant milestone rather than guessed p
 10. Whether cloud backup/sync enters post-MVP scope.
 
 Resolve these through new decision entries with rationale and consequences; do not silently bake them into implementation.
+
+---
+
+## D-024 — M1 implementation stack: standalone .NET, netstandard2.1 + C# 9 domain
+
+**Status:** Accepted
+
+**Decision:** The deterministic core is implemented as a plain .NET solution (`SimpleWalkGame.sln`) independent of Unity: `src/WalkGame.Domain` and `src/WalkGame.Application` target `netstandard2.1` with `<LangVersion>9.0</LangVersion>`; `src/WalkGame.Infrastructure` targets the same profile with a `System.Text.Json` 8.x package reference; test projects and the headless CLI target `net9.0`.
+
+**Rationale:** ROADMAP M1 requires a headless, Unity-free domain that a clean clone can build and test with the SDK alone. netstandard2.1 + C# 9 keeps the Domain/Application sources consumable by Unity 6 either as compiled assemblies or source.
+
+**Consequences:**
+- no C# 10+ syntax in Domain/Application (no record structs, no file-scoped namespaces there);
+- Infrastructure may be replaced/adapted for Unity if its JSON stack differs;
+- tests/CLI are dev-time only and never ship to device.
+
+---
+
+## D-025 — Save envelope: versioned JSON frame with SHA-256 payload integrity
+
+**Status:** Accepted
+
+**Decision:** Save files are `{ schemaVersion, savedAtUtc, payloadSha256Base64, payloadBase64 }`. The payload is opaque base64 UTF-8 JSON of the canonical state graph. Integrity is verified before any migration or deserialization; schema version gates run before migration; migrations transform a cloned payload so failure preserves the original node.
+
+**Rationale:** Opaque framing decouples envelope stability from payload evolution; checksum-first ordering means corrupt data is rejected before it can be misinterpreted; clone-based migration satisfies the "never overwrite the recoverable copy" guardrail.
+
+**Consequences:**
+- payload inspection requires base64 decoding (acceptable for tooling);
+- every persisted-shape change bumps `SchemaVersions.Current` and adds a registered sequential `ISaveMigration`;
+- at schema v1 the migration chain is intentionally empty; the pipeline is proven by dedicated tests.
+
+---
+
+## D-026 — Atomic snapshot store with one-generation backup
+
+**Status:** Accepted
+
+**Decision:** `AtomicFileSaveStore` writes to a temp file with write-through + flush-to-disk, rotates the previous primary into `save.backup.json`, then replaces the primary. Load order is primary → backup; recovery policy lives in the application layer, file semantics in infrastructure.
+
+**Rationale:** Snapshot+backup is the simplest durable pattern that satisfies M1's tested-recovery exit criterion without journal complexity; crash windows leave at most one stale generation behind, which reads ignore.
+
+**Consequences:**
+- backup depth is one generation (older history is not retained);
+- storage cost is ~2× save size;
+- netstandard2.1 lacks atomic-overwrite `File.Move`, so replace is delete+move with the backup guaranteeing recovery across the window.
+
+---
+
+## D-027 — Canonical state serializes directly via STJ contract modifiers
+
+**Status:** Accepted
+
+**Decision:** Domain state classes keep get-only collection properties (invariant-enforcing). The Infrastructure serializer options set `IncludeFields = true` (for `RngState`) and force `JsonObjectCreationHandling.Populate` on collection-typed properties via a `DefaultJsonTypeInfoResolver` modifier. No serializer attributes leak into Domain.
+
+**Rationale:** Default STJ handling *replaces* get-only collections on load, silently dropping all projects/balances/ledger entries — discovered by roundtrip tests during M1. Populate keeps deserialization additive while preserving the domain's encapsulation.
+
+**Consequences:**
+- adding new collection-typed canonical state requires verifying the modifier still applies (covered by roundtrip regression tests);
+- RngState must remain field-based or gain properties deliberately.
+
+---
+
+## D-028 — Exactly-once crediting keyed by caller-supplied transaction identity
+
+**Status:** Accepted
+
+**Decision:** Reward transactions carry a durable, caller-supplied stable ID (GUID in M1 tooling; platform-fingerprint-derived later in M2). The ledger rejects re-application by ID; balances only move inside `Apply`.
+
+**Rationale:** Replay/crash/retry safety requires identity that survives restarts and cannot be regenerated differently; deriving IDs from activity-source fingerprints arrives with the M2 trust pipeline.
+
+**Consequences:**
+- callers who mint fresh GUIDs per retry defeat dedup — adapters must derive IDs deterministically from source records;
+- ledger growth is unbounded (years of daily transactions remain small); bounded retention would weaken exactly-once guarantees and needs explicit design first.

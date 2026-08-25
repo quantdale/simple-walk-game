@@ -96,12 +96,12 @@ Create a headless, deterministic game core that can simulate progression safely 
 
 ## Exit criteria
 
-- [ ] domain has no Unity dependency;
-- [ ] same initial state + inputs yields same final state;
-- [ ] duplicate reward transaction is a no-op;
-- [ ] save/reload preserves canonical state;
-- [ ] interrupted/corrupt primary save has a tested recovery path;
-- [ ] clean clone runs the headless tests.
+- [x] domain has no Unity dependency; *(netstandard2.1, C# 9, no engine references — D-024)*
+- [x] same initial state + inputs yields same final state; *(OfflineAdvancerDeterminismTests)*
+- [x] duplicate reward transaction is a no-op; *(RewardLedgerTests + SessionCreditFlowTests across restarts)*
+- [x] save/reload preserves canonical state; *(SaveCodecRoundtripTests — incl. get-only-collection Populate regression, D-027)*
+- [x] interrupted/corrupt primary save has a tested recovery path; *(AtomicFileSaveStoreTests + SessionBootTests backup recovery)*
+- [x] clean clone runs the headless tests. *(91 tests green: Domain 60 / Infrastructure 19 / Application 12; headless CLI in `tools/simulation`)*
 
 ---
 

@@ -1,0 +1,19 @@
+[
+  {
+    "providerNamespace": "fixture",
+    "sourceRecordId": "fix-clean-1",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 2000,
+    "startUtc": "2026-03-10T07:00:00Z",
+    "endUtc": "2026-03-10T07:30:00Z"
+  },
+  {
+    "providerNamespace": "fixture",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 99,
+    "startUtc": "2026-03-10T07:10:00Z",
+    "endUtc": "2026-03-10T07:15:00Z"
+  }
+]

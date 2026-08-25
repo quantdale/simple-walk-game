@@ -152,8 +152,25 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 ## Current repository state
 
-**Status: documentation foundation.**
+**Status: M1 (deterministic core and durable state) implemented and automated-verified; Unity presentation not started.**
 
-No production implementation should be assumed to exist yet. The immediate objective is to use these documents as the contract for the first engineering campaign, then update each document with evidence as implementation progresses.
+The repository now contains a headless .NET implementation of the deterministic game core:
+
+- `src/WalkGame.Domain` — pure domain (`netstandard2.1`, C# 9, zero engine/platform dependencies): stable IDs, resource accounting, reward ledger with exactly-once semantics, project state machine and queue with auto-rollover, region/landmark/producer model, deterministic offline advancement with backward-clock defense, injected clock, persisted-seed RNG, content/state validators.
+- `src/WalkGame.Application` — use-case orchestration (`GameSession`): boot/load/recover/migrate/advance/save flow, activity crediting, queue management, return summaries, read models. Dev content seed in `Content/Region1Catalog`.
+- `src/WalkGame.Infrastructure` — versioned JSON save envelope with SHA-256 payload integrity, sequential migration pipeline, atomic snapshot store with one-generation backup recovery.
+- `tests/` — 91 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness).
+- `tools/simulation` — headless CLI: `new / credit / advance / simulate / dump / validate` for deterministic multi-day simulation and save validation.
+
+Verification evidence (automated verified per `docs/AGENT_EXECUTION_GUIDE.md` §17):
+
+- `dotnet build SimpleWalkGame.sln` — clean, zero warnings/errors;
+- `dotnet test` — Domain.Tests 60 passed, Infrastructure.Tests 19 passed, Application.Tests 12 passed;
+- CLI smoke run — fresh save → credit → 10-day simulation → project completion + queue rollover + landmark stage change → validate (0 violations, integrity self-test PASS);
+- **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
+
+Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-028.
+
+The immediate next campaign is M2 (activity trust pipeline) or M3 (ambient progression vertical slice with minimal UI), per [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 The project should resist premature feature expansion. A small, deeply integrated, polished ambient-fitness loop is more valuable than a large collection of disconnected game systems.

@@ -1,0 +1,19 @@
+# .NET build artifacts
+bin/
+obj/
+artifacts/
+*.user
+*.suo
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# Test / tooling outputs
+TestResults/
+*.trx
+
+# Local save slots used during development smoke runs
+saves/
