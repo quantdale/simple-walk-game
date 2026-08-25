@@ -580,3 +580,31 @@ Resolve these through new decision entries with rationale and consequences; do n
 **Consequences:**
 - The exact Unity 6 LTS version remains unresolved decision #1; the next campaign with an installed editor starts at the Unity shell + EditMode/PlayMode gates, not at domain/application rework.
 - Any future presentation technology must consume the same read-model/use-case boundary; nothing in Domain/Application references Unity.
+
+---
+
+## D-036 - Performance campaign: dual-target builds, streaming save envelope, O(1) content lookups
+
+**Status:** Accepted *(implemented and automated verified; measured interleaved A/B evidence below)*
+
+**Decision:** Three hot-path optimizations with zero semantic change to canonical state:
+
+1. Domain/Application/Infrastructure multi-target `netstandard2.1;net9.0`. The ns2.1 target remains the Unity-compatibility contract; the net9.0 target lets tests, tools and future consumers use the modern fast APIs (`SHA256.HashData`, `Convert.ToHexString`, atomic `File.Move(overwrite:true)`). Digests, hex strings and transaction IDs are byte-identical across targets (`#if`-guarded with ns2.1 fallbacks).
+2. The save envelope frame is streamed (`Utf8JsonWriter.WriteBase64String`; `Utf8JsonReader` + `Base64.DecodeFromUtf8`) so multi-hundred-KB payloads never round-trip through managed base64 strings, and current-version payloads deserialize directly instead of taking the JsonNode detour that exists solely for migrations. Envelope field names stay exactly camelCase (the previous STJ binding was case-sensitive), malformed-frame outcome categories and check ordering are preserved, the checksum remains a fixed-time comparison, and older saves still migrate on a cloned node with failure preserving the original.
+3. `RegionDefinition` gains lazily-built O(1) lookup indexes over immutable content (projects/producers/landmarks); durable writes drop redundant `FILE_FLAG_WRITE_THROUGH` because a 4 KiB buffered stream never reaches the OS before the explicit `Flush(flushToDisk: true)` call, which remains the durability primitive. `File.Move(overwrite:true)` also closes the non-atomic delete-then-move window on modern targets.
+
+**Measured evidence** (same host/session, interleaved A/B against the starting SHA f80127e, min-of-11 x 5 runs via `tools/simulation bench --records 2000`; `walk` e2e = 2 full runs each):
+
+- trust-pipeline ingestion (2000-record batch): ~8.5 ms -> ~6.8 ms (~25% faster, ~295k records/s peak);
+- envelope encode: ~3.9 ms -> ~3.2 ms; boot-path decode: ~18.5 ms -> ~7.0 ms (-62%);
+- durable commit (atomic write incl. backup refresh): ~6.0 ms -> ~4.9 ms;
+- end-to-end 365 app-closed days (`walk`): 6.66/6.70 s -> 5.46/6.01 s;
+- envelope byte length and credited vitality identical pre/post (996,700 bytes; 273,000 Vitality).
+
+**Rationale:** Decode is paid on every launch (PERFORMANCE_BUDGETS section 3 launch budget) and ingestion is the reconciliation hot path (section 14); the previous replace-on-write sequence carried a real crash window between delete and move, so the file-store change is a reliability fix as much as a speedup.
+
+**Consequences:**
+
+- Building the solution compiles each src project twice (build time up roughly 40%); test and tool projects bind net9.0 automatically.
+- Unity continues consuming the ns2.1 output; C# 9 remains the language level everywhere.
+- Deliberately deferred: reward-ledger / processed-record compaction (save grows ~500 B per activity record; ~197 KB after 365 synthetic days) requires a schema v3 migration plus retention policy under the persistence guardrails; source-generated JSON serialization offers only a small further boot win versus added tooling complexity today.

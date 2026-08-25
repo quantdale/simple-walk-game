@@ -156,11 +156,11 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 The repository now contains a headless .NET implementation of the deterministic game core:
 
-- `src/WalkGame.Domain` — pure domain (`netstandard2.1`, C# 9, zero engine/platform dependencies): stable IDs, resource accounting, reward ledger with exactly-once semantics, project state machine and queue with auto-rollover, region/landmark/producer model, deterministic offline advancement with backward-clock defense, injected clock, persisted-seed RNG, content/state validators.
+- `src/WalkGame.Domain` — pure domain (`netstandard2.1;net9.0`, C# 9, zero engine/platform dependencies): stable IDs, resource accounting, reward ledger with exactly-once semantics, project state machine and queue with auto-rollover, region/landmark/producer model, deterministic offline advancement with backward-clock defense, injected clock, persisted-seed RNG, content/state validators.
 - `src/WalkGame.Application` — use-case orchestration (`GameSession`): boot/load/recover/migrate/advance/save flow, activity crediting, queue management, return summaries, read models. Dev content seed in `Content/Region1Catalog`.
 - `src/WalkGame.Infrastructure` — versioned JSON save envelope with SHA-256 payload integrity, sequential migration pipeline, atomic snapshot store with one-generation backup recovery.
 - `tests/` — 156 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, end-to-end M3 acceptance).
-- `tools/simulation` — headless CLI: `new / credit / advance / simulate / dump / validate` for deterministic multi-day simulation and save validation.
+- `tools/simulation` — headless CLI: `new / credit / advance / simulate / dump / validate / bench` for deterministic multi-day simulation, save validation and hot-path micro-benchmarks.
 
 **M2 activity trust pipeline (automated verified):**
 
@@ -190,7 +190,9 @@ Verification evidence (automated verified per `docs/AGENT_EXECUTION_GUIDE.md` §
 - Complete queue contract: persisted auto-advance toggle, manual start when automation is off, validated reorder, Projects/Region/Home read models.
 - Platform-neutral activity-source seam (D-034): `IngestFromSource` drives the unchanged M2 trust pipeline; dev-only synthetic injector isolated in `WalkGame.Application.Development`; `tools/simulation walk --replay` is the reproducible acceptance harness.
 
-Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-035.
+Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-036.
+
+Performance evidence (D-036, measured A/B on the same host): trust-pipeline ingestion of a 2,000-record batch ~8.5 → ~6.8 ms; boot-path save decode ~18.5 → ~7.0 ms; durable commit ~6.0 → ~4.9 ms; 365 app-closed days via `walk` 6.7 s → ~5.5–6.0 s — envelope bytes and credited vitality identical pre/post (reproduce with `tools/simulation bench`).
 
 ### Repository safety rails (agent isolation)
 

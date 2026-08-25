@@ -255,6 +255,12 @@ Targets:
 
 CI simulation should report save-size growth across long-running synthetic profiles.
 
+Measured evidence (2026-08-26, desktop .NET 9, `tools/simulation`): ordinary durable save
+commit ≈ 5 ms (`bench-durable-write-ms-min`, atomic write including backup refresh); save size
+grows ≈ 500 B per ingested daily activity record (≈ 197 KB after 365 synthetic days). Growth is
+bounded by trusted-record count, not elapsed time; ledger/processed-record compaction is
+deliberately deferred to a schema v3 campaign (see DECISIONS.md D-036).
+
 ---
 
 ## 16. Storage budgets
