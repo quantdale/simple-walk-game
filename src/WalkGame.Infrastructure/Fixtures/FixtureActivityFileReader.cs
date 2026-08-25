@@ -66,7 +66,9 @@ namespace WalkGame.Infrastructure.Fixtures
                     string.IsNullOrWhiteSpace(dto.Unit) ? ActivityUnits.Steps : dto.Unit!.Trim(),
                     dto.Quantity.Value,
                     ParseTimestamp(dto.StartUtc, "startUtc"),
-                    ParseTimestamp(dto.EndUtc, "endUtc")));
+                    ParseTimestamp(dto.EndUtc, "endUtc"),
+                    dto.Revision ?? 1,
+                    dto.IsDeletion));
             }
 
             return records;
@@ -114,6 +116,12 @@ namespace WalkGame.Infrastructure.Fixtures
 
             [JsonPropertyName("endUtc")]
             public string? EndUtc { get; set; }
+
+            [JsonPropertyName("revision")]
+            public int? Revision { get; set; }
+
+            [JsonPropertyName("isDeletion")]
+            public bool IsDeletion { get; set; }
         }
     }
 }

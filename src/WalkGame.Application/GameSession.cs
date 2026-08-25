@@ -62,16 +62,35 @@ namespace WalkGame.Application
         public int Accepted { get; }
         public int Rejected { get; }
         public int DuplicatesIgnored { get; }
+
+        /// <summary>Higher-revision redeliveries applied as value adjustments.</summary>
+        public int CorrectionsApplied { get; }
+
+        /// <summary>Deletion markers that removed remaining credited value.</summary>
+        public int DeletionsApplied { get; }
+
+        /// <summary>Deletions for logical records this pipeline never credited.</summary>
+        public int DeletionsIgnored { get; }
+
+        /// <summary>Redeliveries carrying a revision already processed or older.</summary>
+        public int StaleRevisionsIgnored { get; }
+
         public int QuantityClamped { get; }
         public int DuplicateTransactionsIgnored { get; }
         public long VitalityCredited { get; }
+
+        /// <summary>Cumulative reversals policy refused because the balance was too low.</summary>
+        public long UnappliedReversalVitality { get; }
+
         public bool Saved { get; }
         public IReadOnlyDictionary<string, int> RejectionCounts { get; }
         public IReadOnlyList<string> SummaryLines { get; }
 
         internal IngestResult(
             int totalReceived, int accepted, int rejected, int duplicatesIgnored,
-            int quantityClamped, int duplicateTransactionsIgnored, long vitalityCredited,
+            int correctionsApplied, int deletionsApplied, int deletionsIgnored,
+            int staleRevisionsIgnored, int quantityClamped, int duplicateTransactionsIgnored,
+            long vitalityCredited, long unappliedReversalVitality,
             bool saved, IReadOnlyDictionary<string, int> rejectionCounts,
             IReadOnlyList<string> summaryLines)
         {
@@ -79,9 +98,14 @@ namespace WalkGame.Application
             Accepted = accepted;
             Rejected = rejected;
             DuplicatesIgnored = duplicatesIgnored;
+            CorrectionsApplied = correctionsApplied;
+            DeletionsApplied = deletionsApplied;
+            DeletionsIgnored = deletionsIgnored;
+            StaleRevisionsIgnored = staleRevisionsIgnored;
             QuantityClamped = quantityClamped;
             DuplicateTransactionsIgnored = duplicateTransactionsIgnored;
             VitalityCredited = vitalityCredited;
+            UnappliedReversalVitality = unappliedReversalVitality;
             Saved = saved;
             RejectionCounts = rejectionCounts;
             SummaryLines = summaryLines;
@@ -201,15 +225,16 @@ namespace WalkGame.Application
         }
 
         /// <summary>
-        /// Trust-pipeline ingestion (minimum M2 slice): normalized synthetic activity in,
-        /// validated/bounded/deduplicated exactly-once rewards out.
+        /// Trust-pipeline ingestion (M2): normalized synthetic activity in, validated/
+        /// bounded/deduplicated exactly-once rewards out.
         ///
         /// Per record: validate → dedup against the durable processed-record ledger →
-        /// clamp → convert with rule v1 → derive stable reward-transaction ID → apply
-        /// idempotently. The processed-record ledger and ingestion checkpoint advance in
-        /// the same state transition as the rewards they describe, persisted atomically
-        /// once at the end, so a crash can never leave a checkpoint that outruns credited
-        /// rewards.
+        /// higher-revision correction policy (up: credit delta; down: conservative clawback
+        /// bounded by the unspent balance) → convert with rule v1 → derive stable reward-
+        /// transaction ID → apply idempotently. The processed-record ledger and ingestion
+        /// checkpoint advance in the same state transition as the rewards they describe,
+        /// persisted atomically once at the end, so a crash can never leave a checkpoint
+        /// that outruns credited rewards.
         /// </summary>
         public IngestResult IngestActivityBatch(IReadOnlyList<NormalizedActivityRecord> records)
         {
@@ -222,11 +247,20 @@ namespace WalkGame.Application
 
             int total = records.Count;
             int accepted = 0, rejected = 0, duplicates = 0, clamped = 0, dupTransactions = 0;
+            int corrections = 0, deletionsApplied = 0, deletionsIgnored = 0, staleRevisions = 0;
             long vitalityTotal = 0L;
             DateTimeOffset maxTrustedEndUtc = game.IngestionCheckpointUtc;
 
             foreach (var record in records)
             {
+                if (record.IsDeletion)
+                {
+                    ProcessDeletion(game, record, nowUtc, events,
+                        ref deletionsApplied, ref deletionsIgnored, ref staleRevisions,
+                        ref dupTransactions, ref vitalityTotal, ref maxTrustedEndUtc);
+                    continue;
+                }
+
                 var status = ActivityValidationPolicy.Validate(record, nowUtc);
                 if (status != ActivityValidationStatus.Valid)
                 {
@@ -237,9 +271,20 @@ namespace WalkGame.Application
                 }
 
                 string identityKey = ActivityIdentity.Compute(record);
-                if (game.ProcessedRecords.HasProcessed(identityKey))
+                DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
+
+                if (game.ProcessedRecords.TryGet(identityKey, out var existing))
                 {
-                    duplicates++;
+                    if (record.Revision <= existing!.LastRevision)
+                    {
+                        // Replay of an already-trusted revision — exactly-once means ignore.
+                        duplicates++;
+                        continue;
+                    }
+
+                    ApplyCorrectionDelta(game, identityKey, existing, record, nowUtc, events,
+                        ref corrections, ref clamped, ref dupTransactions, ref vitalityTotal,
+                        ref maxTrustedEndUtc);
                     continue;
                 }
 
@@ -274,9 +319,9 @@ namespace WalkGame.Application
                     StepConversionRuleV1.RuleVersion,
                     eligibleSteps,
                     vitality,
-                    nowUtc));
+                    nowUtc,
+                    Math.Max(1, record.Revision)));
 
-                DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
                 if (endUtc > maxTrustedEndUtc)
                     maxTrustedEndUtc = endUtc;
                 accepted++;
@@ -288,9 +333,166 @@ namespace WalkGame.Application
 
             bool saved = PersistOrThrow();
             return new IngestResult(
-                total, accepted, rejected, duplicates, clamped, dupTransactions,
-                vitalityTotal, saved, rejectionCounts,
+                total, accepted, rejected, duplicates,
+                corrections, deletionsApplied, deletionsIgnored, staleRevisions,
+                clamped, dupTransactions, vitalityTotal,
+                game.ProcessedRecords.UnappliedReversalVitality,
+                saved, rejectionCounts,
                 ReturnSummaryBuilder.Build(events, _content));
+        }
+
+        /// <summary>
+        /// Correction policy (ACTIVITY_PIPELINE §11): positive late corrections add net
+        /// eligible credit; negative corrections claw back only what the unspent balance
+        /// allows — completed world content is never destroyed by a source correction.
+        /// The unclamped remainder is durably counted for diagnostics.
+        /// </summary>
+        private void ApplyCorrectionDelta(
+            GameState game,
+            string identityKey,
+            ProcessedRecordEntry existing,
+            NormalizedActivityRecord record,
+            DateTimeOffset nowUtc,
+            List<SimulationEvent> events,
+            ref int corrections, ref int clamped, ref int dupTransactions, ref long vitalityTotal,
+            ref DateTimeOffset maxTrustedEndUtc)
+        {
+            int revision = Math.Max(1, record.Revision);
+            long eligibleSteps = ActivityValidationPolicy.ClampQuantity(record.Category, record.Quantity);
+            if (eligibleSteps != record.Quantity)
+                clamped++;
+
+            long targetVitality = StepConversionRuleV1.ConvertSteps(eligibleSteps);
+            long delta = targetVitality - existing.VitalityCredited;
+
+            long appliedAmount = 0L;
+            if (delta != 0L)
+            {
+                appliedAmount = delta;
+                if (delta < 0L)
+                {
+                    long balance = game.Resources.Get(ResourceType.Vitality);
+                    appliedAmount = Math.Max(delta, -balance);
+                    if (appliedAmount > delta)
+                        game.ProcessedRecords.UnappliedReversalVitality += appliedAmount - delta;
+                }
+
+                if (appliedAmount != 0L)
+                {
+                    var txGuid = ActivityRewardIds.DeriveCorrectionGuid(
+                        identityKey, StepConversionRuleV1.RuleVersion, revision, appliedAmount);
+                    var transaction = new RewardTransaction(
+                        RewardTransactionId.FromGuid(txGuid), nowUtc, appliedAmount,
+                        "ingest-corr:" + record.ProviderNamespace);
+
+                    var outcome = delta > 0L
+                        ? game.Ledger.Apply(transaction, game.Resources)
+                        : game.Ledger.ApplyCorrection(transaction, game.Resources);
+
+                    if (outcome == LedgerApplyOutcome.AppliedFirstTime)
+                    {
+                        events.Add(delta > 0L
+                            ? (SimulationEvent)new ActivityCredited(nowUtc, transaction.TransactionId.Value, appliedAmount)
+                            : new ActivityCorrected(nowUtc, transaction.TransactionId.Value, appliedAmount));
+                        vitalityTotal += appliedAmount;
+                    }
+                    else
+                    {
+                        events.Add(new ActivityDuplicate(nowUtc, transaction.TransactionId.Value));
+                        dupTransactions++;
+                    }
+                }
+            }
+
+            // The row tracks net APPLIED vitality (what the durable ledger actually saw),
+            // so a clamped clawback can never make dedup state outrun reward state.
+            long newAppliedVitality = existing.VitalityCredited + appliedAmount;
+
+            game.ProcessedRecords.Update(new ProcessedRecordEntry(
+                identityKey,
+                StepConversionRuleV1.RuleVersion,
+                eligibleSteps,
+                newAppliedVitality,
+                nowUtc,
+                revision));
+
+            DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
+            if (endUtc > maxTrustedEndUtc)
+                maxTrustedEndUtc = endUtc;
+            corrections++;
+        }
+
+        /// <summary>
+        /// Deletion policy: reverse remaining credited value conservatively (clamped to
+        /// balance), mark the row deleted by zeroing it, or count an ignored marker.
+        /// Deletion records are never eligible for crediting.
+        /// </summary>
+        private void ProcessDeletion(
+            GameState game,
+            NormalizedActivityRecord record,
+            DateTimeOffset nowUtc,
+            List<SimulationEvent> events,
+            ref int deletionsApplied, ref int deletionsIgnored, ref int staleRevisions,
+            ref int dupTransactions, ref long vitalityTotal, ref DateTimeOffset maxTrustedEndUtc)
+        {
+            if (string.IsNullOrWhiteSpace(record.ProviderNamespace))
+                return; // nothing identifiable to reverse; counted nowhere.
+
+            string identityKey = ActivityIdentity.Compute(record);
+            if (!game.ProcessedRecords.TryGet(identityKey, out var existing))
+            {
+                deletionsIgnored++;
+                return;
+            }
+
+            int revision = Math.Max(1, record.Revision);
+            if (revision <= existing!.LastRevision)
+            {
+                staleRevisions++;
+                return;
+            }
+
+            long reversalTarget = -existing.VitalityCredited;
+            long balance = game.Resources.Get(ResourceType.Vitality);
+            long appliedAmount = Math.Max(reversalTarget, -balance);
+            if (appliedAmount > reversalTarget)
+                game.ProcessedRecords.UnappliedReversalVitality += appliedAmount - reversalTarget;
+
+            if (appliedAmount != 0L)
+            {
+                var txGuid = ActivityRewardIds.DeriveCorrectionGuid(
+                    identityKey, StepConversionRuleV1.RuleVersion, revision, appliedAmount);
+                var transaction = new RewardTransaction(
+                    RewardTransactionId.FromGuid(txGuid), nowUtc, appliedAmount,
+                    "ingest-del:" + record.ProviderNamespace);
+
+                var outcome = game.Ledger.ApplyCorrection(transaction, game.Resources);
+                if (outcome == LedgerApplyOutcome.AppliedFirstTime)
+                {
+                    events.Add(new ActivityCorrected(nowUtc, transaction.TransactionId.Value, appliedAmount));
+                    vitalityTotal += appliedAmount;
+                }
+                else
+                {
+                    events.Add(new ActivityDuplicate(nowUtc, transaction.TransactionId.Value));
+                    dupTransactions++;
+                }
+            }
+
+            long remainingAppliedVitality = existing.VitalityCredited + appliedAmount;
+
+            game.ProcessedRecords.Update(new ProcessedRecordEntry(
+                identityKey,
+                StepConversionRuleV1.RuleVersion,
+                EligibleSteps: 0L,
+                VitalityCredited: remainingAppliedVitality,
+                ProcessedAtUtc: nowUtc,
+                LastRevision: revision));
+
+            DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
+            if (endUtc > maxTrustedEndUtc)
+                maxTrustedEndUtc = endUtc;
+            deletionsApplied++;
         }
 
         public DomainResult EnqueueProject(string projectId)

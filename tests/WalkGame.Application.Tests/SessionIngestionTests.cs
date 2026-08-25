@@ -6,8 +6,10 @@ using WalkGame.Application;
 using WalkGame.Application.Content;
 using WalkGame.Application.Persistence;
 using WalkGame.Application.Tests.TestSupport;
+using WalkGame.Domain;
 using WalkGame.Domain.Activity;
 using WalkGame.Domain.Economy;
+using WalkGame.Domain.Projects;
 using WalkGame.Domain.Regions;
 using WalkGame.Domain.Time;
 using WalkGame.Infrastructure.Fixtures;
@@ -121,8 +123,8 @@ public sealed class SessionIngestionTests : IDisposable
         reversed.Reverse();
         reversedSession.IngestActivityBatch(reversed);
 
-        var stateA = DecodeFrom(tempA.Path);
-        var stateB = DecodeFrom(tempB.Path);
+        var stateA = DecodeState(tempA.Path);
+        var stateB = DecodeState(tempB.Path);
 
         Assert.Equal(
             stateA.Resources.Get(ResourceType.Vitality),
@@ -153,7 +155,7 @@ public sealed class SessionIngestionTests : IDisposable
             session.IngestActivityBatch(ActivityFixtures.LoadBatch("walking-clean-batch.json")));
 
         // Nothing partially advanced on disk: old valid state, zero ingestion side effects.
-        var afterFailure = DecodeFrom(_temp.Path);
+        var afterFailure = DecodeState(_temp.Path);
         Assert.Equal(0, afterFailure.ProcessedRecords.Count);
         Assert.Equal(0, afterFailure.Ledger.Records.Count);
         Assert.Equal(default, afterFailure.IngestionCheckpointUtc);
@@ -280,6 +282,144 @@ public sealed class SessionIngestionTests : IDisposable
         Assert.Equal(30L, reloaded.GetHome().Vitality);
     }
 
+    [Fact]
+    public void CorrectionUp_HigherRevision_CreditsExactlyTheDelta_AndReplaysClean()
+    {
+        var session = StartNewSession();
+        var original = Valid("corr-up", 2000L);
+        session.IngestActivityBatch(new[] { original });
+
+        var correction = Revised("corr-up", 5000L, revision: 2);
+        var result = session.IngestActivityBatch(new[] { correction });
+
+        Assert.Equal(1, result.CorrectionsApplied);
+        Assert.Equal(30L, result.VitalityCredited);
+        Assert.Equal(50L, session.GetHome().Vitality);
+
+        // Restart, then replay BOTH revisions: the original is a duplicate and the
+        // already-processed correction revision is a duplicate. Nothing re-credits.
+        var reloaded = ContinueSession();
+        var replay = reloaded.IngestActivityBatch(new[] { original, correction });
+
+        Assert.Equal(2, replay.DuplicatesIgnored);
+        Assert.Equal(0, replay.CorrectionsApplied);
+        Assert.Equal(0L, replay.VitalityCredited);
+        Assert.Equal(50L, reloaded.GetHome().Vitality);
+
+        var persisted = DecodePersisted();
+        Assert.Equal(2, persisted.State!.Ledger.Records.Count);
+        Assert.Equal(50L, persisted.State.Ledger.TotalVitalityCredited);
+    }
+
+    [Fact]
+    public void CorrectionDown_ClampsToUnspentBalance_TracksRemainder_KeepsWorldContent()
+    {
+        var session = StartNewSession();
+        session.EnqueueProject(TestSessions.EntryProjectId);
+        session.IngestActivityBatch(new[] { Valid("down", 250000L) });
+
+        // 2500 credited; 300 invested into the trailhead leaves 2200 unspent.
+        var home1 = session.GetHome();
+        Assert.Equal(2200L, home1.Vitality);
+
+        // Source corrects the record down to 100 steps (target vitality 1): a −2499 delta
+        // against only 2200 unspent — policy claws back 2200 and bounds the rest.
+        var result = session.IngestActivityBatch(new[] { Revised("down", 100L, revision: 2) });
+
+        Assert.Equal(1, result.CorrectionsApplied);
+        Assert.Equal(-2200L, result.VitalityCredited);
+        Assert.Equal(299L, result.UnappliedReversalVitality);
+
+        var home2 = session.GetHome();
+        Assert.Equal(0L, home2.Vitality);
+        // The trailhead completed during the first ingest; a source correction must not
+        // destroy completed world content (ACTIVITY_PIPELINE §11).
+        Assert.Equal(1, home2.CompletedProjects);
+        Assert.Null(home2.ActiveProjectId);
+
+        // Reload must pass state validation: net-applied accounting stays ledger-consistent.
+        var reloaded = ContinueSession();
+        Assert.Equal(0L, reloaded.GetHome().Vitality);
+        Assert.Equal(1, reloaded.GetHome().CompletedProjects);
+
+        var persisted = DecodePersisted();
+        Assert.Equal(2, persisted.State!.Ledger.Records.Count);
+        Assert.Equal(300L, persisted.State.Ledger.TotalVitalityCredited);
+    }
+
+    [Fact]
+    public void Deletion_ReversesRemainingValue_DuplicateDeletionIsIgnored()
+    {
+        var session = StartNewSession();
+        session.IngestActivityBatch(new[] { Valid("del-me", 6000L) });
+        Assert.Equal(60L, session.GetHome().Vitality);
+
+        var deletion = Revised("del-me", quantity: 0L, revision: 2, isDeletion: true);
+        var result = session.IngestActivityBatch(new[] { deletion });
+
+        Assert.Equal(1, result.DeletionsApplied);
+        Assert.Equal(-60L, result.VitalityCredited);
+        Assert.Equal(0L, result.UnappliedReversalVitality);
+        Assert.Equal(0L, session.GetHome().Vitality);
+
+        // Re-delivering the same deletion marker cannot claw anything twice.
+        var repeat = session.IngestActivityBatch(new[] { deletion });
+        Assert.Equal(1, repeat.StaleRevisionsIgnored);
+        Assert.Equal(0, repeat.DeletionsApplied);
+        Assert.Equal(0L, repeat.VitalityCredited);
+
+        // A deletion for a record this pipeline never credited is counted, not applied.
+        var unknownDeletion = Revised("never-seen", quantity: 0L, revision: 2, isDeletion: true);
+        var ignored = session.IngestActivityBatch(new[] { unknownDeletion });
+        Assert.Equal(1, ignored.DeletionsIgnored);
+        Assert.Equal(0, ignored.DeletionsApplied);
+
+        var persisted = DecodePersisted();
+        Assert.Equal(2, persisted.State!.Ledger.Records.Count); // +60 then −60
+        Assert.Equal(0L, persisted.State.Ledger.TotalVitalityCredited);
+    }
+
+    [Fact]
+    public void CorrectionFixtureBatch_NetsToZero_WithExactDiagnostics()
+    {
+        var session = StartNewSession();
+        var result = session.IngestActivityBatch(ActivityFixtures.LoadBatch("walking-correction-netzero.json"));
+
+        Assert.Equal(3, result.TotalReceived);
+        Assert.Equal(1, result.Accepted);
+        Assert.Equal(1, result.CorrectionsApplied);
+        Assert.Equal(1, result.DeletionsApplied);
+        Assert.Equal(0L, result.VitalityCredited); // +80 −50 −30
+
+        var persisted = DecodePersisted();
+        Assert.Equal(1, persisted.State!.ProcessedRecords.Count);
+        Assert.Equal(3, persisted.State.Ledger.Records.Count);
+        Assert.Equal(0L, persisted.State.Ledger.TotalVitalityCredited);
+        Assert.Equal(
+            new DateTimeOffset(2026, 3, 10, 7, 45, 0, TimeSpan.Zero),
+            persisted.State.IngestionCheckpointUtc);
+    }
+
+    [Fact]
+    public void RecordBeyondReconciliationHorizon_IsRejectedWithoutSideEffects()
+    {
+        var session = StartNewSession();
+
+        var ancient = new NormalizedActivityRecord(
+            "fixture", "ancient", ActivityCategory.Walking,
+            ActivityUnits.Steps, 9000L,
+            T0.AddDays(-15).AddMinutes(-30), T0.AddDays(-15));
+        var result = session.IngestActivityBatch(new[] { ancient });
+
+        Assert.Equal(1, result.Rejected);
+        Assert.Equal(1, result.RejectionCounts["OutsideHorizon"]);
+        Assert.Equal(0, result.Accepted);
+
+        var persisted = DecodePersisted();
+        Assert.Equal(0, persisted.State!.ProcessedRecords.Count);
+        Assert.Equal(0, persisted.State.Ledger.Records.Count);
+    }
+
     private static NormalizedActivityRecord Valid(
         string sourceRecordId, long quantity, DateTimeOffset? endUtcOverride = null) =>
         new NormalizedActivityRecord(
@@ -290,6 +430,19 @@ public sealed class SessionIngestionTests : IDisposable
             quantity,
             T0.AddMinutes(-40),
             endUtcOverride ?? T0.AddMinutes(-20));
+
+    private static NormalizedActivityRecord Revised(
+        string sourceRecordId, long quantity, int revision, bool isDeletion = false) =>
+        new NormalizedActivityRecord(
+            "fixture",
+            sourceRecordId,
+            ActivityCategory.Walking,
+            ActivityUnits.Steps,
+            quantity,
+            T0.AddMinutes(-40),
+            T0.AddMinutes(-20),
+            revision,
+            isDeletion);
 
     private GameSession StartNewSession(TempDirectory? directory = null)
     {
@@ -305,10 +458,16 @@ public sealed class SessionIngestionTests : IDisposable
         return reloaded;
     }
 
-    private DecodeResult DecodePersisted() => DecodeFrom(_temp.Path);
+    private DecodeResult DecodePersisted() =>
+        TestSessions.NewCodec().Decode(File.ReadAllBytes(Path.Combine(_temp.Path, "save.json")));
 
-    private static DecodeResult DecodeFrom(string directory) =>
-        TestSessions.NewCodec().Decode(File.ReadAllBytes(Path.Combine(directory, "save.json")));
+    /// <summary>Decodes the primary save and asserts integrity — use when only state matters.</summary>
+    private static GameState DecodeState(string directory)
+    {
+        var decoded = TestSessions.NewCodec().Decode(File.ReadAllBytes(Path.Combine(directory, "save.json")));
+        Assert.Equal(CodecStatus.Ok, decoded.Status);
+        return decoded.State!;
+    }
 
     /// <summary>Injects IOException at the atomic-commit boundary to prove interruption safety.</summary>
     private sealed class FlakySaveStore : ISaveStore

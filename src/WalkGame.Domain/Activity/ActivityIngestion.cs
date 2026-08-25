@@ -29,7 +29,9 @@ namespace WalkGame.Domain.Activity
         string Unit,
         long Quantity,
         DateTimeOffset StartUtc,
-        DateTimeOffset EndUtc);
+        DateTimeOffset EndUtc,
+        int Revision = 1,
+        bool IsDeletion = false);
 
     public enum ActivityValidationStatus
     {
@@ -41,6 +43,7 @@ namespace WalkGame.Domain.Activity
         NegativeQuantity = 5,
         MalformedTimestamps = 6,
         FutureTimestamp = 7,
+        OutsideHorizon = 8,
     }
 
     /// <summary>
@@ -52,6 +55,13 @@ namespace WalkGame.Domain.Activity
     {
         /// <summary>Records ending more than this far in the future are rejected as suspicious.</summary>
         public static readonly TimeSpan MaxFutureSkew = TimeSpan.FromMinutes(10);
+
+        /// <summary>
+        /// Bounded historical reconciliation window (ACTIVITY_PIPELINE §10): records older
+        /// than this relative to "now" are rejected instead of trusted, so a stale or
+        /// hostile source dump cannot re-open arbitrarily old history.
+        /// </summary>
+        public static readonly TimeSpan ReconciliationHorizon = TimeSpan.FromDays(14);
 
         /// <summary>Upper clamp on steps credited from a single record (~4x an extreme ultramarathon day).</summary>
         public const long MaxStepsPerRecord = 250_000L;
@@ -83,6 +93,8 @@ namespace WalkGame.Domain.Activity
                 return ActivityValidationStatus.MalformedTimestamps;
             if (record.EndUtc > nowUtc + MaxFutureSkew)
                 return ActivityValidationStatus.FutureTimestamp;
+            if (record.EndUtc < nowUtc - ReconciliationHorizon)
+                return ActivityValidationStatus.OutsideHorizon;
 
             return ActivityValidationStatus.Valid;
         }
@@ -171,7 +183,8 @@ namespace WalkGame.Domain.Activity
         int ConversionRuleVersion,
         long EligibleSteps,
         long VitalityCredited,
-        DateTimeOffset ProcessedAtUtc);
+        DateTimeOffset ProcessedAtUtc,
+        int LastRevision = 1);
 
     /// <summary>
     /// Append-only processed-record ledger: the durable dedup structure answering
@@ -186,6 +199,17 @@ namespace WalkGame.Domain.Activity
         public bool HasProcessed(string identityKey) =>
             identityKey != null && Entries.ContainsKey(identityKey);
 
+        public bool TryGet(string identityKey, out ProcessedRecordEntry? entry)
+        {
+            if (identityKey != null && Entries.TryGetValue(identityKey, out var found))
+            {
+                entry = found;
+                return true;
+            }
+            entry = null;
+            return false;
+        }
+
         public void Record(ProcessedRecordEntry entry)
         {
             if (entry == null) throw new ArgumentNullException(nameof(entry));
@@ -193,7 +217,23 @@ namespace WalkGame.Domain.Activity
                 throw new InvalidOperationException("Processed-record ledger already contains '" + entry.IdentityKey + "'.");
         }
 
+        /// <summary>Replaces an existing row during correction processing; must already exist.</summary>
+        public void Update(ProcessedRecordEntry entry)
+        {
+            if (entry == null) throw new ArgumentNullException(nameof(entry));
+            if (!Entries.ContainsKey(entry.IdentityKey))
+                throw new InvalidOperationException("Processed-record ledger has no row '" + entry.IdentityKey + "' to update.");
+            Entries[entry.IdentityKey] = entry;
+        }
+
         public int Count => Entries.Count;
+
+        /// <summary>
+        /// Cumulative reversal remainder the correction policy refused to claw back because
+        /// the unspent balance was too low. Bounded trust-impact accounting: completed world
+        /// content is never destroyed by a source correction (ACTIVITY_PIPELINE §11).
+        /// </summary>
+        public long UnappliedReversalVitality { get; set; }
 
         public long TotalVitalityCredited
         {
@@ -222,6 +262,28 @@ namespace WalkGame.Domain.Activity
 
             string canonical = "rtx1|" + identityKey + "|rule=" +
                 conversionRuleVersion.ToString(CultureInfo.InvariantCulture);
+            return Derive(canonical);
+        }
+
+        /// <summary>
+        /// Stable identity for a correction adjustment: distinct namespace from first-time
+        /// credit IDs so a correction can never collide with (and be swallowed by) the
+        /// original reward transaction.
+        /// </summary>
+        public static Guid DeriveCorrectionGuid(string identityKey, int conversionRuleVersion, int revision, long appliedAmount)
+        {
+            if (string.IsNullOrWhiteSpace(identityKey))
+                throw new ArgumentException("Identity key must be non-empty.", nameof(identityKey));
+
+            string canonical = "rtx-corr1|" + identityKey + "|rule=" +
+                conversionRuleVersion.ToString(CultureInfo.InvariantCulture) +
+                "|rev=" + revision.ToString(CultureInfo.InvariantCulture) +
+                "|amt=" + appliedAmount.ToString(CultureInfo.InvariantCulture);
+            return Derive(canonical);
+        }
+
+        private static Guid Derive(string canonical)
+        {
             byte[] hash;
             using (var sha = SHA256.Create())
                 hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(canonical));

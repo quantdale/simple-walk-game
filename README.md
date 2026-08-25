@@ -152,25 +152,37 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 ## Current repository state
 
-**Status: M1 (deterministic core and durable state) implemented and automated-verified; Unity presentation not started.**
+**Status: M1 (deterministic core and durable state) and M2 (activity trust pipeline) implemented and automated-verified; Unity presentation not started.**
 
 The repository now contains a headless .NET implementation of the deterministic game core:
 
 - `src/WalkGame.Domain` — pure domain (`netstandard2.1`, C# 9, zero engine/platform dependencies): stable IDs, resource accounting, reward ledger with exactly-once semantics, project state machine and queue with auto-rollover, region/landmark/producer model, deterministic offline advancement with backward-clock defense, injected clock, persisted-seed RNG, content/state validators.
 - `src/WalkGame.Application` — use-case orchestration (`GameSession`): boot/load/recover/migrate/advance/save flow, activity crediting, queue management, return summaries, read models. Dev content seed in `Content/Region1Catalog`.
 - `src/WalkGame.Infrastructure` — versioned JSON save envelope with SHA-256 payload integrity, sequential migration pipeline, atomic snapshot store with one-generation backup recovery.
-- `tests/` — 91 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness).
+- `tests/` — 131 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness).
 - `tools/simulation` — headless CLI: `new / credit / advance / simulate / dump / validate` for deterministic multi-day simulation and save validation.
+
+**M2 activity trust pipeline (automated verified):**
+
+- Normalized activity records (`WalkGame.Domain.Activity`): platform-neutral shape carrying provenance only — never raw health payloads.
+- Versioned identity: durable source record ID when available, deterministic SHA-256 content fingerprint otherwise (`rec1`/`fpt1` scheme prefixes).
+- Versioned validation policy: category/unit gates, positive quantities, timestamp ordering, future-skew rejection, 14-day reconciliation horizon (D-030), pathological quantity clamping (~4× extreme day).
+- Conversion rule v1: integer floor division, 100 steps → 1 Vitality, version stored on every processed row.
+- Durable dedup ledger (`ProcessedRecordLedgerState`): exactly-once trust keyed by logical record identity, surviving restarts and overlapping queries.
+- Correction/deletion policy (D-029): higher-revision redeliveries adjust credit deterministically; reversals clamp conservatively to the unspent balance so completed world content can never be destroyed; unclawed remainders are durably counted for diagnostics.
+- Ingestion checkpoint watermark advances only in the same atomic commit as the rewards it describes.
+- Per-batch diagnostics: received/accepted/rejected-by-code/duplicate/corrected/deleted/stale/clamped totals plus net vitality movement.
+- Fixture provider (`FixtureActivityFileReader`) feeds checked-in JSON fixtures through exactly the production ingestion path — no fixture-specific code exists.
 
 Verification evidence (automated verified per `docs/AGENT_EXECUTION_GUIDE.md` §17):
 
 - `dotnet build SimpleWalkGame.sln` — clean, zero warnings/errors;
-- `dotnet test` — Domain.Tests 60 passed, Infrastructure.Tests 19 passed, Application.Tests 12 passed;
+- `dotnet test` — Domain.Tests 85 passed, Infrastructure.Tests 19 passed, Application.Tests 27 passed;
 - CLI smoke run — fresh save → credit → 10-day simulation → project completion + queue rollover + landmark stage change → validate (0 violations, integrity self-test PASS);
 - **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
 
-Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-028.
+Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-030.
 
-The immediate next campaign is M2 (activity trust pipeline) or M3 (ambient progression vertical slice with minimal UI), per [`docs/ROADMAP.md`](docs/ROADMAP.md).
+The immediate next campaign is M3 (ambient progression vertical slice with minimal UI), per [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 The project should resist premature feature expansion. A small, deeply integrated, polished ambient-fitness loop is more valuable than a large collection of disconnected game systems.

@@ -477,3 +477,33 @@ Resolve these through new decision entries with rationale and consequences; do n
 **Consequences:**
 - callers who mint fresh GUIDs per retry defeat dedup — adapters must derive IDs deterministically from source records;
 - ledger growth is unbounded (years of daily transactions remain small); bounded retention would weaken exactly-once guarantees and needs explicit design first.
+
+---
+
+## D-029 — Correction/deletion baseline: conservative clawback with net-applied accounting
+
+**Status:** Accepted
+
+**Decision:** Higher-revision redeliveries of an already-trusted logical record are corrections. Positive deltas credit the difference; negative deltas (and deletions) claw back only what the unspent Vitality balance allows, durably counting any unclawed remainder in ProcessedRecordLedgerState.UnappliedReversalVitality. Processed-record rows store **net applied** vitality (what the ledger actually saw), never the theoretical target, so dedup state can never outrun reward state. Deletions for unknown records and stale revisions are counted diagnostics, not state changes. Corrections require durable source record IDs; fingerprint-identity sources treat changed content as a new logical record by construction.
+
+**Rationale:** ACTIVITY_PIPELINE §11 prioritizes state integrity and player trust over punitive clawbacks; completed world content must never be destroyed because a source corrected or deleted a small amount. Net-applied rows keep the validator invariant (processedTotal <= ledgerTotal) true without special cases.
+
+**Consequences:**
+- reversal remainders are revenue-safe but must be visible in diagnostics forever;
+- a later positive correction after a clamped reversal credits against net-applied value, converging toward earned value;
+- correction transaction IDs derive from identity + revision + applied amount (tx-corr1 namespace) and cannot collide with first-credit IDs;
+- sources without durable record IDs cannot express corrections (documented adapter requirement for Health Connect/HealthKit work).
+
+---
+
+## D-030 — Bounded reconciliation horizon
+
+**Status:** Accepted
+
+**Decision:** Records ending more than 14 days before "now" (injected clock) are rejected with OutsideHorizon; records ending more than 10 minutes in the future are rejected as FutureTimestamp. The ingestion checkpoint watermark is clamped to now.
+
+**Rationale:** ACTIVITY_PIPELINE §10 requires bounded historical reconciliation: a stale or hostile source dump must not be able to re-open arbitrarily old history, and future-dated records must not pre-mint rewards.
+
+**Consequences:**
+- genuinely older backfills need an explicit, separately-designed import path;
+- the horizon constants live in domain policy and are covered by validation tests.

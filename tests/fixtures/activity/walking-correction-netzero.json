@@ -1,0 +1,32 @@
+[
+  {
+    "providerNamespace": "fixture",
+    "sourceRecordId": "fix-corr-1",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 8000,
+    "startUtc": "2026-03-10T07:00:00Z",
+    "endUtc": "2026-03-10T07:40:00Z"
+  },
+  {
+    "providerNamespace": "fixture",
+    "sourceRecordId": "fix-corr-1",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 3000,
+    "startUtc": "2026-03-10T07:00:00Z",
+    "endUtc": "2026-03-10T07:40:00Z",
+    "revision": 2
+  },
+  {
+    "providerNamespace": "fixture",
+    "sourceRecordId": "fix-corr-1",
+    "category": "walking",
+    "unit": "steps",
+    "quantity": 0,
+    "startUtc": "2026-03-10T07:00:00Z",
+    "endUtc": "2026-03-10T07:45:00Z",
+    "revision": 3,
+    "isDeletion": true
+  }
+]

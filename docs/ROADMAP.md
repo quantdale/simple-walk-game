@@ -140,12 +140,12 @@ Build the full platform-neutral activity ingestion/reconciliation path and prove
 
 ## Exit criteria
 
-- [ ] replay cannot double-credit;
-- [ ] late valid activity credits once;
-- [ ] correction behavior is deterministic;
-- [ ] checkpoint cannot outrun durable reward state;
-- [ ] diagnostics explain accepted/rejected/duplicate totals;
-- [ ] activity fixtures pass through the same post-adapter pipeline as production data will.
+- [x] replay cannot double-credit; *(SessionIngestionTests.ReplaySameBatchAfterRestart_IsAFullNoOp + FingerprintIdentity_DedupSurvivesPersistenceRoundtrip — durable processed-record ledger keyed by source ID or content fingerprint)*
+- [x] late valid activity credits once; *(NewValidRecordAfterFullReplay_AddsOnlyItsDelta)*
+- [x] correction behavior is deterministic; *(CorrectionUp_HigherRevision_CreditsExactlyTheDelta_AndReplaysClean, CorrectionDown_ClampsToUnspentBalance_TracksRemainder_KeepsWorldContent, Deletion_ReversesRemainingValue_DuplicateDeletionIsIgnored, CorrectionFixtureBatch_NetsToZero_WithExactDiagnostics — conservative clawback clamped to unspent balance, net-applied row accounting, D-029)*
+- [x] checkpoint cannot outrun durable reward state; *(CheckpointNeverExceedsMaxTrustedEndUtc + SaveFailureMidIngest_LeavesDiskConsistent_AndRetryCreditsExactlyOnce — ledger, dedup rows and watermark persist in one atomic file commit)*
+- [x] diagnostics explain accepted/rejected/duplicate totals; *(IngestResult: received/accepted/rejected-by-code/duplicates/corrections/deletions/stale/clamped/net vitality/unapplied-reversal totals)*
+- [x] activity fixtures pass through the same post-adapter pipeline as production data will. *(tests/fixtures/activity JSON → FixtureActivityFileReader → GameSession.IngestActivityBatch; no fixture-specific code path exists)*
 
 ---
 

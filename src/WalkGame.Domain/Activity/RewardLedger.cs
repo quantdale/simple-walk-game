@@ -67,6 +67,43 @@ namespace WalkGame.Domain.Activity
             return LedgerApplyOutcome.AppliedFirstTime;
         }
 
+        /// <summary>
+        /// Applies a pipeline correction of either sign with exactly-once identity.
+        /// Negative amounts must be pre-clamped to the current balance by the correction
+        /// policy; the guard below is defense in depth so the balance can never go negative.
+        /// </summary>
+        public LedgerApplyOutcome ApplyCorrection(RewardTransaction transaction, ResourceBalances balances)
+        {
+            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
+            if (balances == null) throw new ArgumentNullException(nameof(balances));
+            if (transaction.VitalityAmount < 0L &&
+                balances.Get(ResourceType.Vitality) + transaction.VitalityAmount < 0L)
+                throw new InvalidOperationException(
+                    "Correction would drive the balance negative; clamp reversals before applying.");
+
+            EnsureIndex();
+            if (!_index!.Add(transaction.TransactionId.Value))
+                return LedgerApplyOutcome.DuplicateIgnored;
+
+            if (transaction.VitalityAmount < 0L)
+            {
+                if (!balances.TryConsume(ResourceType.Vitality, -transaction.VitalityAmount))
+                    throw new InvalidOperationException(
+                        "Correction deduction exceeded the available balance.");
+            }
+            else
+            {
+                balances.Add(ResourceType.Vitality, transaction.VitalityAmount);
+            }
+
+            Records.Add(new LedgerRecord(
+                transaction.TransactionId.Value,
+                transaction.OccurredAtUtc,
+                transaction.VitalityAmount,
+                transaction.Reason ?? string.Empty));
+            return LedgerApplyOutcome.AppliedFirstTime;
+        }
+
         private void EnsureIndex()
         {
             if (_index != null)

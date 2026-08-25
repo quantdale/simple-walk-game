@@ -29,6 +29,19 @@ namespace WalkGame.Domain.Simulation
         }
     }
 
+    /// <summary>A correction/deletion adjustment committed by the trust pipeline.</summary>
+    public sealed record ActivityCorrected : SimulationEvent
+    {
+        public string TransactionId { get; }
+        public long VitalityApplied { get; }
+
+        public ActivityCorrected(DateTimeOffset atUtc, string transactionId, long vitalityApplied) : base(atUtc)
+        {
+            TransactionId = transactionId ?? string.Empty;
+            VitalityApplied = vitalityApplied;
+        }
+    }
+
     public sealed record ProjectBecameAvailable : SimulationEvent
     {
         public string ProjectId { get; }

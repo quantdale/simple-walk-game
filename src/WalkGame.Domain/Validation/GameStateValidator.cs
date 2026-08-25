@@ -146,10 +146,15 @@ namespace WalkGame.Domain.Validation
                     violations.Add($"Processed-record entry '{pair.Key}' eligible steps out of bounds: {entry.EligibleSteps}.");
                 if (entry.VitalityCredited < 0L)
                     violations.Add($"Processed-record entry '{pair.Key}' credited vitality is negative.");
+                if (entry.LastRevision < 1)
+                    violations.Add($"Processed-record entry '{pair.Key}' has invalid revision {entry.LastRevision}.");
             }
 
             if (state.ProcessedRecords.TotalVitalityCredited > state.Ledger.TotalVitalityCredited)
                 violations.Add("Processed-record credited vitality exceeds reward ledger total: durable dedup state outruns reward state.");
+
+            if (state.ProcessedRecords.UnappliedReversalVitality < 0L)
+                violations.Add("Unapplied reversal counter is negative.");
 
             return violations;
         }
