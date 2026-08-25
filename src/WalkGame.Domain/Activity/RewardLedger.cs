@@ -54,29 +54,6 @@ namespace WalkGame.Domain.Activity
             if (transaction.VitalityAmount < 0L)
                 throw new ArgumentOutOfRangeException(nameof(transaction), "Reward transactions cannot be negative; corrections are an M2 pipeline policy.");
 
-            return ApplyCore(transaction, balances);
-        }
-
-        /// <summary>
-        /// Applies a pipeline correction of either sign with exactly-once identity.
-        /// Negative amounts must be pre-clamped to the current balance by the correction
-        /// policy; the guard below is defense in depth so the balance can never go negative.
-        /// </summary>
-        public LedgerApplyOutcome ApplyCorrection(RewardTransaction transaction, ResourceBalances balances)
-        {
-            if (transaction == null) throw new ArgumentNullException(nameof(transaction));
-            if (balances == null) throw new ArgumentNullException(nameof(balances));
-            if (transaction.VitalityAmount < 0L &&
-                balances.Get(ResourceType.Vitality) + transaction.VitalityAmount < 0L)
-                throw new InvalidOperationException(
-                    "Correction would drive the balance negative; clamp reversals before applying.");
-
-            return ApplyCore(transaction, balances);
-        }
-
-        private LedgerApplyOutcome ApplyCore(RewardTransaction transaction, ResourceBalances balances)
-        {
-
             EnsureIndex();
             if (!_index!.Add(transaction.TransactionId.Value))
                 return LedgerApplyOutcome.DuplicateIgnored;
