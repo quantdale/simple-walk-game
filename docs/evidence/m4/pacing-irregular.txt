@@ -1,0 +1,15 @@
+﻿[dev] started fresh game seed=42
+--- profile report: irregular ---
+pattern steps/day: 26000,15000,2000,18000,6000,22000,9000
+region completed: yes on day 139
+days simulated: 139  horizon: 400
+activity ingested: 1,951,000 steps / 19,510 vitality (exactly-once pipeline)
+foreground decisions: 19 (one queue choice per idle stop; auto-advance on)
+queue-empty days: 1
+producer capped-store days: 0
+chains (vitality): trail=1400, water=2350, settlement=3700, wetland=4150, forest=5000, research=2800
+per-chain completion day: trail=10, water=27, settlement=53, wetland=83, forest=119, research=139
+discovery pacing: disc.old-millstone@d2, disc.lookout-fire-lens@d10, disc.intake-plate-stamp@d15, disc.reservoir-time-capsule@d21, disc.workshop-ledger@d37, disc.market-mural@d44, disc.grid-archive-map@d53, disc.sedge-first-flush@d72, disc.crane-return@d78, disc.heron-roost-boards@d83, disc.understory-orchids@d90, disc.dome-star-chart@d125, disc.survey-baseline-stone@d139
+expeditions: exp.source-to-sound(avail d6, done d10), exp.river-run(avail d27, done d119), exp.valley-transect(avail d130, done d130)
+final arcs: ecology 4/4, settlement 4/4
+validator-clean: yes

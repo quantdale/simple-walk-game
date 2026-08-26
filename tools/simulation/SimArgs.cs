@@ -21,10 +21,11 @@ internal sealed class SimArgs
     private const string StepsPerDay = "--steps-per-day";
     private const string Selftest = "--selftest";
     private const string Replay = "--replay";
+    private const string ProfileName = "--profile";
 
     private static readonly HashSet<string> KnownFlags = new(StringComparer.Ordinal)
     {
-        Save, Seed, At, Vitality, Id, Reason, To, Days, Start, StepsPerDay, Selftest, Replay,
+        Save, Seed, At, Vitality, Id, Reason, To, Days, Start, StepsPerDay, Selftest, Replay, ProfileName,
     };
 
     private static readonly HashSet<string> BooleanFlags = new(StringComparer.Ordinal) { Selftest, Replay };

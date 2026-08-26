@@ -205,6 +205,173 @@ internal static class Cli
         return 0;
     }
 
+    /// <summary>
+    /// M4 pacing harness (campaign workstream F): runs Region 1 from clean state through
+    /// the REAL trust pipeline using a representative activity profile and a deterministic
+    /// low-decision player policy, then prints a stable machine-friendly pacing report.
+    /// Never sets completion flags directly — everything flows through ingestion,
+    /// allocation and canonical completion effects.
+    /// </summary>
+    public static int Profile(string[] tokens)
+    {
+        var a = new SimArgs(tokens);
+        string profileName = a.Has("--profile") ? a.Text("--profile") : string.Empty;
+        long[] pattern = profileName switch
+        {
+            "low" => new[] { 3000L },
+            "moderate" => new[] { 8000L },
+            "high" => new[] { 20000L },
+            "irregular" => new[] { 26000L, 15000L, 2000L, 18000L, 6000L, 22000L, 9000L },
+            _ => throw new CliUsageException("--profile must be one of: low | moderate | high | irregular"),
+        };
+        int horizon = a.Has("--days") ? (int)a.Long("--days") : 400;
+        if (horizon is < 1 or > 3650)
+            throw new CliUsageException("--days must be between 1 and 3650");
+        ulong seed = a.Has("--seed") ? a.ULong("--seed") : DefaultSeed;
+
+        var content = Region1Catalog.Create();
+        var catalogOrder = content.Projects.Select(p => p.Id.Value).ToList();
+        var clockBase = a.Has("--at") ? a.Iso("--at") : new DateTimeOffset(2026, 1, 1, 8, 0, 0, TimeSpan.Zero);
+
+        var session = CreateSession(new ManualClock(clockBase), a.SaveDir);
+        var boot = Boot(session, allowFreshStart: true, freshSeed: seed);
+        if (boot.ExitCode != 0)
+            return boot.ExitCode;
+
+        var projectCompletionDay = new Dictionary<string, int>();
+        var discoveryDay = new Dictionary<string, int>();
+        var expeditionAvailableDay = new Dictionary<string, int>();
+        var expeditionCompletedDay = new Dictionary<string, int>();
+        int decisions = 0, queueEmptyDays = 0, cappedProducerDays = 0;
+        long totalSteps = 0, vitalityCredited = 0;
+        int day = 0;
+        bool completed = false;
+
+        while (day < horizon && !completed)
+        {
+            day++;
+            long steps = pattern[(day - 1) % pattern.Length];
+            var windowStart = clockBase.AddDays(day - 1);
+            var windowEnd = clockBase.AddDays(day);
+
+            var dailySession = CreateSession(new ManualClock(windowEnd), a.SaveDir);
+            var dailyBoot = Boot(dailySession, allowFreshStart: false, freshSeed: 0);
+            if (dailyBoot.ExitCode != 0)
+                return dailyBoot.ExitCode;
+
+            var ingest = dailySession.IngestFromSource(new SyntheticWalkingSource(steps), windowStart, windowEnd);
+            totalSteps += steps;
+            vitalityCredited += Math.Max(0L, ingest.VitalityCredited);
+
+            var home = dailySession.GetHome();
+            if (home.ActiveProjectId == null && home.Queued.Count == 0)
+            {
+                bool queuedAny = false;
+                foreach (var projectId in catalogOrder)
+                    if (dailySession.EnqueueProject(projectId).IsSuccess) { queuedAny = true; break; }
+                if (!queuedAny) queueEmptyDays++; else decisions++;
+            }
+
+            var projectsModel = dailySession.GetProjects();
+            foreach (var row in projectsModel.Projects)
+                if (row.Status == WalkGame.Domain.Projects.ProjectStatus.Completed)
+                    TrackFirst(projectCompletionDay, row.ProjectId, day);
+
+            var journal = dailySession.GetDiscoveries();
+            foreach (var d in journal.Discoveries)
+                if (d.Unlocked) TrackFirst(discoveryDay, d.DiscoveryId, day);
+
+            var expeditions = dailySession.GetExpeditions();
+            foreach (var e in expeditions.Expeditions)
+            {
+                if (e.Status != ExpeditionsReadModel.ExpeditionStatus.Locked)
+                    TrackFirst(expeditionAvailableDay, e.ExpeditionId, day);
+                if (e.Status == ExpeditionsReadModel.ExpeditionStatus.Completed)
+                    TrackFirst(expeditionCompletedDay, e.ExpeditionId, day);
+            }
+
+            var region = dailySession.GetRegion();
+            foreach (var p in region.Producers)
+                if (p.Unlocked && p.StoredMilliUnits >= p.CapacityUnits * ProducerMilliUnitsPerUnit)
+                    cappedProducerDays++;
+
+            completed = region.RegionCompleted;
+        }
+
+        var finalState = DecodeForInspection(a.SaveDir, NewCodec(), out _);
+        var violations = finalState == null
+            ? new List<string> { "save could not be decoded" }
+            : GameStateValidator.Validate(finalState, content);
+
+        string closureId = content.CompletionMilestoneProjectId ?? string.Empty;
+        Console.WriteLine($"--- profile report: {profileName} ---");
+        Console.WriteLine($"pattern steps/day: {string.Join(",", pattern)}");
+        Console.WriteLine($"region completed: {(completed ? "yes" : "NO (horizon reached)")}" +
+            (projectCompletionDay.TryGetValue(closureId, out int closureDay) ? $" on day {closureDay}" : string.Empty));
+        Console.WriteLine($"days simulated: {day}  horizon: {horizon}");
+        Console.WriteLine($"activity ingested: {totalSteps:N0} steps / {vitalityCredited:N0} vitality (exactly-once pipeline)");
+        Console.WriteLine($"foreground decisions: {decisions} (one queue choice per idle stop; auto-advance on)");
+        Console.WriteLine($"queue-empty days: {queueEmptyDays}");
+        Console.WriteLine($"producer capped-store days: {cappedProducerDays}");
+        Console.WriteLine("chains (vitality): " + string.Join(", ", ChainVitality(content).Select(kv => kv.Key + "=" + kv.Value)));
+        Console.WriteLine("per-chain completion day: " + string.Join(", ", ChainVitality(content).Select(kv =>
+        {
+            int last = 0;
+            bool all = true;
+            foreach (var memberId in ChainMembers(kv.Key))
+            {
+                if (!projectCompletionDay.TryGetValue(memberId, out int memberDay)) { all = false; break; }
+                last = Math.Max(last, memberDay);
+            }
+            return kv.Key + "=" + (all ? last.ToString() : "incomplete");
+        })));
+        Console.WriteLine("discovery pacing: " + string.Join(", ", discoveryDay.OrderBy(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Key + "@d" + kv.Value)));
+        Console.WriteLine("expeditions: " + string.Join(", ", content.Expeditions.Select(e =>
+        {
+            string id = e.Id.Value;
+            string avail = expeditionAvailableDay.TryGetValue(id, out int av) ? av.ToString() : "-";
+            string done = expeditionCompletedDay.TryGetValue(id, out int dn) ? dn.ToString() : "-";
+            return id + "(avail d" + avail + ", done d" + done + ")";
+        })));
+        if (finalState != null)
+            Console.WriteLine($"final arcs: ecology {finalState.Region.EcologyStage}/{content.EcologyProgression.Stages.Count}, settlement {finalState.Region.SettlementStage}/{content.SettlementProgression.Stages.Count}");
+        Console.WriteLine("validator-clean: " + (violations.Count == 0 ? "yes" : "NO — " + string.Join("; ", violations)));
+
+        return violations.Count == 0 ? 0 : 2;
+    }
+
+    private const long ProducerMilliUnitsPerUnit = 1000L;
+
+    private static void TrackFirst(Dictionary<string, int> target, string key, int day)
+    {
+        if (!target.ContainsKey(key))
+            target[key] = day;
+    }
+
+    private static string[] ChainMembers(string chain) => chain switch
+    {
+        "trail" => new[] { "proj.clear-trailhead", "proj.rebuild-trail-bridges", "proj.open-lookout" },
+        "water" => new[] { "proj.river-intake", "proj.clear-reservoir", "proj.lay-water-lines" },
+        "settlement" => new[] { "proj.build-workshop", "proj.restore-market-hall", "proj.wire-settlement-power" },
+        "wetland" => new[] { "proj.wetland-drainage", "proj.replant-native-sedges", "proj.build-nesting-islets", "proj.wetland-boardwalk" },
+        "forest" => new[] { "proj.clear-fallen-timber", "proj.plant-woodland-understory", "proj.canopy-walkway" },
+        "research" => new[] { "proj.refit-observatory-dome", "proj.calibrate-survey-rig", "proj.complete-valley-survey" },
+        _ => Array.Empty<string>(),
+    };
+
+    private static List<KeyValuePair<string, long>> ChainVitality(WalkGame.Domain.Regions.RegionDefinition content)
+    {
+        var rows = new List<KeyValuePair<string, long>>();
+        foreach (var chain in new[] { "trail", "water", "settlement", "wetland", "forest", "research" })
+        {
+            long sum = 0L;
+            foreach (var memberId in ChainMembers(chain))
+                sum += content.FindProject(memberId)?.VitalityCost ?? 0L;
+            rows.Add(new KeyValuePair<string, long>(chain, sum));
+        }
+        return rows;
+    }
+
     /// <summary>Acknowledges (dismisses) the pending return summary; idempotent.</summary>
     public static int Ack(string[] tokens)
     {
@@ -322,9 +489,14 @@ internal static class Cli
               simulate  --save <dir> --days N [--start ISO8601] [--steps-per-day N] [--seed N]
                   LOW-LEVEL dev loop with direct daily credits and automatic queueing
               walk      --save <dir> --days N [--at ISO8601] [--steps-per-day N] [--replay]
-                  M3 ACCEPTANCE PATH: normalized synthetic records through the real
-                  IngestActivityBatch pipeline; session recreated from disk every window;
-                  --replay repeats the same window (--at required) and must credit nothing
+                   M3 ACCEPTANCE PATH: normalized synthetic records through the real
+                   IngestActivityBatch pipeline; session recreated from disk every window;
+                   --replay repeats the same window (--at required) and must credit nothing
+              profile   --save <dir> --profile low|moderate|high|irregular [--days N] [--seed N] [--at ISO8601]
+                   M4 PACING REPORT: deterministic Region 1 playthrough of the real
+                   pipeline with a representative activity profile; prints completion
+                   day, decisions, queue-empty days, producer caps, discovery/expedition
+                   pacing and final validator state
               ack       --save <dir>
                   acknowledge (dismiss) the pending return summary; idempotent
               dump      --save <dir>
