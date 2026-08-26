@@ -340,6 +340,95 @@ internal static class Cli
         return violations.Count == 0 ? 0 : 2;
     }
 
+    /// <summary>
+    /// M8-H1 long-horizon harness (campaign workstream F/H): drives Region 1 through
+    /// months of deterministic app-closed days via the REAL trust pipeline under a
+    /// named activity shape, then prints a machine-readable growth/performance record
+    /// (processed-ledger and reward-ledger sizes, save bytes, wall time, validator
+    /// state). Never mutates canonical state directly.
+    /// </summary>
+    public static int LongHaul(string[] tokens)
+    {
+        var a = new SimArgs(tokens);
+        long days = a.RequireLong("--days");
+        if (days is < 1 or > 3650)
+            throw new CliUsageException("--days must be between 1 and 3650");
+
+        string shape = a.Has("--shape") ? a.Text("--shape") : "flat";
+        if (shape is not ("flat" or "irregular" or "absence"))
+            throw new CliUsageException("--shape must be one of: flat | irregular | absence");
+
+        long stepsPerDay = a.Has("--steps-per-day") ? a.Long("--steps-per-day") : 8000L;
+        if (stepsPerDay <= 0)
+            throw new CliUsageException("--steps-per-day must be positive");
+
+        ulong seed = a.Has("--seed") ? a.ULong("--seed") : DefaultSeed;
+        var clockBase = a.Has("--at") ? a.Iso("--at") : new DateTimeOffset(2026, 1, 1, 8, 0, 0, TimeSpan.Zero);
+        var content = Region1Catalog.Create();
+        var catalogOrder = content.Projects.Select(p => p.Id.Value).ToList();
+
+        long[] irregularPattern = { 26000L, 15000L, 2000L, 18000L, 6000L, 22000L, 9000L };
+        const long AbsenceStartDay = 61;
+        const long AbsenceEndDay = 240;
+
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        long vitalityCredited = 0;
+        int ingestionDays = 0;
+
+        for (long day = 1; day <= days; day++)
+        {
+            long steps = shape == "irregular" ? irregularPattern[(day - 1) % irregularPattern.Length] : stepsPerDay;
+            bool silentDay = shape == "absence" && day >= AbsenceStartDay && day <= AbsenceEndDay;
+
+            var windowStart = clockBase.AddDays(day - 1);
+            var windowEnd = clockBase.AddDays(day);
+
+            var session = CreateSession(new ManualClock(windowEnd), a.SaveDir);
+            var boot = Boot(session, allowFreshStart: day == 1, freshSeed: seed);
+            if (boot.ExitCode != 0)
+                return boot.ExitCode;
+
+            if (!silentDay)
+            {
+                var ingest = session.IngestFromSource(new SyntheticWalkingSource(steps), windowStart, windowEnd);
+                vitalityCredited += Math.Max(0L, ingest.VitalityCredited);
+                ingestionDays++;
+            }
+
+            AutoQueueIfIdle(session, catalogOrder);
+        }
+
+        stopwatch.Stop();
+
+        var finalState = DecodeForInspection(a.SaveDir, NewCodec(), out string sourceFile);
+        var violations = finalState == null
+            ? new List<string> { "save could not be decoded" }
+            : GameStateValidator.Validate(finalState, content);
+
+        int completedProjects = 0;
+        if (finalState != null)
+            foreach (var pair in finalState.Region.Projects)
+                if (pair.Value.Status == WalkGame.Domain.Projects.ProjectStatus.Completed)
+                    completedProjects++;
+
+        string savePath = Path.Combine(a.SaveDir, sourceFile);
+        long saveBytes = File.Exists(savePath) ? new FileInfo(savePath).Length : 0;
+
+        Console.WriteLine("--- longhaul report ---");
+        Console.WriteLine($"shape: {shape}  days: {days}  ingestion-days: {ingestionDays}  base-steps/day: {stepsPerDay}");
+        Console.WriteLine($"vitality credited (exactly-once pipeline): {vitalityCredited:N0}");
+        Console.WriteLine($"completed projects: {completedProjects}/{content.Projects.Count}  region completed: {(finalState?.Region.IsCompleted ?? false)}");
+        Console.WriteLine($"validator-clean: {(violations.Count == 0 ? "yes" : "NO - " + string.Join("; ", violations))}");
+        Console.WriteLine(
+            $"LONGHAUL-RESULT days={days} shape={shape} processedLedger={(finalState?.ProcessedRecords.Count ?? -1)} " +
+            $"ledgerRecords={(finalState?.Ledger.Records.Count ?? -1)} ledgerVitality={(finalState?.Ledger.TotalVitalityCredited ?? -1)} " +
+            $"unappliedReversal={(finalState?.ProcessedRecords.UnappliedReversalVitality ?? -1)} saveBytes={saveBytes} " +
+            $"completed={completedProjects} regionCompleted={(finalState?.Region.IsCompleted ?? false)} " +
+            $"violations={violations.Count} wallMs={stopwatch.ElapsedMilliseconds}");
+
+        return violations.Count == 0 ? 0 : 2;
+    }
+
     private const long ProducerMilliUnitsPerUnit = 1000L;
 
     private static void TrackFirst(Dictionary<string, int> target, string key, int day)
@@ -497,6 +586,10 @@ internal static class Cli
                    pipeline with a representative activity profile; prints completion
                    day, decisions, queue-empty days, producer caps, discovery/expedition
                    pacing and final validator state
+              longhaul  --save <dir> --days N [--shape flat|irregular|absence] [--steps-per-day N] [--seed N] [--at ISO8601]
+                   M8-H1 LONG-HORIZON HARNESS: months of app-closed days through the real
+                   trust pipeline; prints machine-readable growth/performance record
+                   (processed/ledger sizes, save bytes, validator state, wall time)
               ack       --save <dir>
                   acknowledge (dismiss) the pending return summary; idempotent
               dump      --save <dir>
