@@ -160,7 +160,7 @@ The repository now contains a headless .NET implementation of the deterministic 
 - `src/WalkGame.Application` — use-case orchestration (`GameSession`): boot/load/recover/migrate/advance/save flow, activity crediting, queue management, return summaries, read models. Dev content seed in `Content/Region1Catalog`.
 - `src/WalkGame.Infrastructure` — versioned JSON save envelope with SHA-256 payload integrity, sequential migration pipeline, atomic snapshot store with one-generation backup recovery.
 - `tests/` — 221 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, content red-team validation, end-to-end M3 and M4 acceptance, plus the M8-H1 hardening suites described below).
-- `tools/simulation` — headless CLI: `new / credit / advance / simulate / walk / profile / longhaul / ack / dump / validate` for deterministic multi-day simulation, pacing reports, long-horizon growth records and save validation.
+- `tools/simulation` — headless CLI: `new / credit / advance / simulate / walk / profile / longhaul / bench / ack / dump / validate` for deterministic multi-day simulation, pacing reports, long-horizon growth records, phase-level performance measurement and save validation.
 
 **M2 activity trust pipeline (automated verified):**
 

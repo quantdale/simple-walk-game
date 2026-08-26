@@ -174,6 +174,15 @@ namespace WalkGame.Application
     /// </summary>
     public sealed class GameSession
     {
+        /// <summary>
+        /// Content validation is deterministic over an immutable graph, so each distinct
+        /// RegionDefinition instance is validated at most once per process. Sessions are
+        /// constructed per boot and per simulated app-closed day; re-walking the full
+        /// content graph every time was pure duplicate work.
+        /// </summary>
+        private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<
+            RegionDefinition, IReadOnlyList<string>> ValidatedContent = new();
+
         private readonly ISaveStore _store;
         private readonly ISaveCodec _codec;
         private readonly IClock _clock;
@@ -219,9 +228,15 @@ namespace WalkGame.Application
 
             LoadPreferencesFromStore();
 
-            var violations = ContentValidator.Validate(_content);
-            if (violations.Count > 0)
-                throw new ArgumentException("Invalid region content: " + string.Join("; ", violations), nameof(content));
+            // GetValue is atomic per key: concurrent session construction (parallel test
+            // collections, harness loops) never duplicates validation or races Add().
+            ValidatedContent.GetValue(_content, static validatedContent =>
+            {
+                var violations = ContentValidator.Validate(validatedContent);
+                if (violations.Count > 0)
+                    throw new ArgumentException("Invalid region content: " + string.Join("; ", violations), "content");
+                return (IReadOnlyList<string>)Array.Empty<string>();
+            });
         }
 
         /// <summary>

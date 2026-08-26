@@ -31,6 +31,14 @@ namespace WalkGame.Application.Content
     {
         public const int AuthoredContentVersion = 2;
 
+        /// <summary>
+        /// The authored catalog is a deterministic immutable content graph (every
+        /// definition is constructor-frozen), so building it once per process removes
+        /// pure duplicate work from session construction — sessions are created on every
+        /// boot and once per app-closed day in the simulation harnesses.
+        /// </summary>
+        private static readonly RegionDefinition CachedInstance = Build();
+
         // ---- Chain 1: Trail access (access → stabilization → restored route) ----
         private const string ClearTrailHead = "proj.clear-trailhead";
         private const string RebuildTrailBridges = "proj.rebuild-trail-bridges";
@@ -62,7 +70,9 @@ namespace WalkGame.Application.Content
         private const string CalibrateSurveyRig = "proj.calibrate-survey-rig";
         private const string CompleteValleySurvey = "proj.complete-valley-survey";
 
-        public static RegionDefinition Create()
+        public static RegionDefinition Create() => CachedInstance;
+
+        private static RegionDefinition Build()
         {
             var projects = new List<ProjectDefinition>
             {

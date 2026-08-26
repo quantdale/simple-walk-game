@@ -715,3 +715,24 @@ Resolve these through new decision entries with rationale and consequences; do n
 - every text field from adapters/stores is truncated (300 chars max) and lives behind the explicit diagnostics gate;
 - reading diagnostics is side-effect free and available pre-boot-success (schemaVersion 0 / empty identity until state exists);
 - aggregates stay permanently bounded (single counter row) honoring PERFORMANCE_BUDGETS memory/save rules.
+
+---
+
+## D-045 — Systemic performance pass: cached content/validation, decode fast path, durability-preserving commit I/O
+
+**Status:** Accepted *(automated verified: full test suites, guard proof suite 25/25, `bench` phase harness, longhaul/profile/walk outputs byte-identical to committed evidence)*
+
+**Decision:** Four optimizations on the boot/ingest/commit hot paths, none changing canonical semantics:
+1. `Region1Catalog.Create()` returns one process-wide instance. Every definition is constructor-frozen (get-only properties), so rebuilding a 20 KB immutable content graph per session — once per boot and once per simulated app-closed day — was pure duplicate work.
+2. `GameSession` validates content at most once per distinct content instance (`ConditionalWeakTable`, atomic per-key `GetValue`). Invalid content still fails closed on every construction; valid graphs skip re-walking reachability/cycle analysis.
+3. `SaveCodec.Decode` deserializes current-version payloads directly from payload bytes. The JsonNode DOM materialization is now paid only when a migration actually needs to transform the tree (v1→v2 path unchanged).
+4. Commit I/O keeps `Flush(flushToDisk:true)` as THE durability barrier and drops only `FileOptions.WriteThrough` (redundant behind an explicit FlushFileBuffers on a single buffered write); the backup rotation copy streams instead of buffering the whole save in memory.
+
+**Rationale:** Phase-level measurement (`tools/simulation bench`) showed decode ≈6× encode (DOM double-parse) and ~0.13 ms/session of duplicated catalog+validation work. Longhaul 365-day wall time improved ≈27% (≈6.95 s → ≈5.1 s median) with identical final state bytes, ledger sizes and pacing reports; decode −51%, session construction −58%.
+
+**Consequences:**
+- rejected: rename-chain backup rotation (would widen the primary-empty crash window and force boot-fallback semantic changes in the durability core for ~1 flush/commit);
+- rejected: skipping the boot persist when no events fired (producer integer milli-unit truncation makes tick granularity observable; risk without measurable gain);
+- deferred: processed-record/reward-ledger compaction for save-size bounding (PERFORMANCE_BUDGETS §14–15) — late deletions target ledger rows without horizon checks, so compaction changes deletion semantics and requires a product decision;
+- deferred: STJ source generation — projected single-digit ms/boot gain does not justify serializer-mode drift risk while reflection mode remains correct;
+- `bench --save <dir> [--iterations N] [--days N]` stays available as the regression-measurement entry point.

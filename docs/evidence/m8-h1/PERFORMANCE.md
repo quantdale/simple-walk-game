@@ -28,3 +28,21 @@ See LONG_HORIZON.md table. Highlights: 365-day flat run = 10.9 s wall for 365
 boots+ingests+saves (≈30 ms/day); save 202 KB; validator clean throughout.
 Duplicate-flood handling (5,010-record batch of already-known identities) completes
 immediately with all duplicates ignored (`ActivityRedTeamTests.HugeDuplicateFlood_...`).
+
+## Systemic optimization pass (D-045)
+
+Phase-level harness (`tools/simulation bench`, Release, Windows/SSD, medians of 3):
+
+| Phase | Before | After | Δ |
+|---|---:|---:|---:|
+| decode (21 KB save, v2 fast path) | 1.17 ms/op | 0.57 ms/op | −51% |
+| session construction | 0.19 ms/op | 0.08 ms/op | −58% |
+| app-closed day (boot+ingest+commits) | 14.5 ms/day | 10.9 ms/day | −25% |
+| longhaul 365-day flat wall time | ≈6.95 s | ≈5.1 s | −27% |
+
+Correctness cross-checks after the pass: all unit suites green; guard proof suite
+25/25; longhaul final state byte-identical (same ledger/processed sizes, save bytes,
+vitality); `profile --profile moderate` reproduces `pacing-moderate.txt` exactly
+(day-242 completion). Remaining per-day cost is dominated by durable-commit I/O
+(2 commits × temp-write + backup-copy flushes), which the durability contract
+(D-040, offline-first invariant) requires and which was deliberately not reduced.

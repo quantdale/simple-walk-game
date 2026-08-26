@@ -14,6 +14,7 @@ try
         "walk" => Cli.Walk(args[1..]),
         "profile" => Cli.Profile(args[1..]),
         "longhaul" => Cli.LongHaul(args[1..]),
+        "bench" => Bench.Run(args[1..]),
         "ack" => Cli.Ack(args[1..]),
         "dump" => Cli.Dump(args[1..]),
         "validate" => Cli.Validate(args[1..]),
