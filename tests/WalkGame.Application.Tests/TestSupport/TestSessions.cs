@@ -2,6 +2,7 @@ using System;
 using WalkGame.Application;
 using WalkGame.Application.Content;
 using WalkGame.Application.Persistence;
+using WalkGame.Application.Ux;
 using WalkGame.Domain.Regions;
 using WalkGame.Domain.Time;
 using WalkGame.Infrastructure.Persistence;
@@ -30,6 +31,18 @@ namespace WalkGame.Application.Tests.TestSupport
                 NewCodec(),
                 clock,
                 content);
+
+        /// <summary>M5-H1 factory wiring local preferences store and/or connection port.</summary>
+        public static GameSession Create(string directory, IClock clock,
+            IUxPreferencesStore? preferencesStore,
+            WalkGame.Application.Activity.IActivityConnectionPort? connectionPort = null) =>
+            new GameSession(
+                new AtomicFileSaveStore(directory),
+                NewCodec(),
+                clock,
+                Region1Catalog.Create(),
+                preferencesStore,
+                connectionPort);
 
         public static SaveCodec NewCodec() =>
             new SaveCodec(new MigrationRunner(DefaultMigrations.All));

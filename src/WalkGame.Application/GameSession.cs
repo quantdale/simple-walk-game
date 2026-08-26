@@ -1239,16 +1239,22 @@ namespace WalkGame.Application
 
         /// <summary>Support-oriented diagnostics snapshot. Privacy-safe by construction:
         /// classified enums, bounded counters, timestamps; adapter technical detail only via
-        /// the adapter-owned string. Never raw records or payloads (D-044).</summary>
+        /// the adapter-owned string. Never raw records or payloads (D-044). Deliberately
+        /// available EVEN WHEN boot failed — that is exactly when support needs it.</summary>
         public DiagnosticsReadModel GetDiagnostics()
         {
-            var game = RequireState();
             var nowUtc = _clock.UtcNow;
+            var game = _state;
 
-            var outcome = game.LastIngestionOutcome;
-            var checkpointAge = nowUtc - game.IngestionCheckpointUtc;
-            if (checkpointAge < TimeSpan.Zero)
-                checkpointAge = TimeSpan.Zero;
+            IngestionOutcomeState? outcome = game?.LastIngestionOutcome;
+            long? watermarkAgeDays = null;
+            if (game != null && game.IngestionCheckpointUtc != default)
+            {
+                var checkpointAge = nowUtc - game.IngestionCheckpointUtc;
+                if (checkpointAge < TimeSpan.Zero)
+                    checkpointAge = TimeSpan.Zero;
+                watermarkAgeDays = (long)checkpointAge.TotalDays;
+            }
 
             return new DiagnosticsReadModel(
                 generatedAtUtc: nowUtc,
@@ -1256,13 +1262,13 @@ namespace WalkGame.Application
                 recoveredFromBackup: _lastBootRecoveredFromBackup,
                 lastBootCodecFailure: _lastBootCodecFailure,
                 appliedMigrationsAtBoot: _lastBootAppliedMigrations,
-                schemaVersion: game.SchemaVersion,
-                regionId: game.Region.RegionId,
-                ingestionCheckpointUtc: game.IngestionCheckpointUtc,
-                checkpointWatermarkAgeDays: (long)checkpointAge.TotalDays,
-                processedRecordCount: game.ProcessedRecords.Count,
-                lifetimeVitalityCredited: game.ProcessedRecords.TotalVitalityCredited,
-                unappliedReversalVitality: game.ProcessedRecords.UnappliedReversalVitality,
+                schemaVersion: game?.SchemaVersion ?? 0,
+                regionId: game?.Region.RegionId ?? string.Empty,
+                ingestionCheckpointUtc: game?.IngestionCheckpointUtc ?? DateTimeOffset.MinValue,
+                checkpointWatermarkAgeDays: watermarkAgeDays,
+                processedRecordCount: game?.ProcessedRecords.Count ?? 0,
+                lifetimeVitalityCredited: game?.ProcessedRecords.TotalVitalityCredited ?? 0L,
+                unappliedReversalVitality: game?.ProcessedRecords.UnappliedReversalVitality ?? 0L,
                 lastIngestion: outcome == null ? null : DiagnosticsIngestionRow.FromState(outcome),
                 preferencesLoadOutcome: _preferencesLoadOutcome,
                 preferencesLoadDetail: BoundDetail(_preferencesLoadDetail),
@@ -1442,6 +1448,8 @@ namespace WalkGame.Application
             var decoded = _codec.Decode(envelopeBytes);
             if (decoded.Status != CodecStatus.Ok || decoded.State == null)
             {
+                // Recorded monotonically: a later successful BACKUP decode must not erase
+                // the evidence that the primary failed (that failure caused the recovery).
                 _lastBootCodecFailure = MapCodecFailure(decoded.Status);
                 return new DecodeAndValidateOutcome(null, DescribeDecodeFailure(decoded));
             }
@@ -1453,7 +1461,6 @@ namespace WalkGame.Application
                 return new DecodeAndValidateOutcome(null, "Save state failed validation: " + string.Join("; ", violations));
             }
 
-            _lastBootCodecFailure = CodecFailureCategory.None;
             _lastBootAppliedMigrations = decoded.AppliedMigrations;
             return new DecodeAndValidateOutcome(decoded.State, null);
         }

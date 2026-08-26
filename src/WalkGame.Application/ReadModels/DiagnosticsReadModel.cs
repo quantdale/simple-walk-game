@@ -35,8 +35,9 @@ namespace WalkGame.Application.ReadModels
         /// <summary>Durable reconciliation watermark: latest activity end trusted so far.</summary>
         public DateTimeOffset IngestionCheckpointUtc { get; }
 
-        /// <summary>Floor of (read time − watermark) in whole days; clamped at zero.</summary>
-        public long CheckpointWatermarkAgeDays { get; }
+        /// <summary>Floor of (read time − watermark) in whole days; null until the first
+        /// batch has ever set a real watermark (default sentinel is not a fact).</summary>
+        public long? CheckpointWatermarkAgeDays { get; }
 
         public int ProcessedRecordCount { get; }
 
@@ -65,7 +66,7 @@ namespace WalkGame.Application.ReadModels
             int schemaVersion,
             string regionId,
             DateTimeOffset ingestionCheckpointUtc,
-            long checkpointWatermarkAgeDays,
+            long? checkpointWatermarkAgeDays,
             int processedRecordCount,
             long lifetimeVitalityCredited,
             long unappliedReversalVitality,
