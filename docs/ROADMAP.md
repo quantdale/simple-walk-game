@@ -229,6 +229,10 @@ Turn the systems vertical slice into one coherent, complete restoration region.
 
 # M5 — Mobile shell and low-attention UX
 
+> **M5-H1 headless contract campaign (2026-08-26): the platform-neutral UX state layer is implemented and automated verified** (295 automated tests): durable local preferences/onboarding store with documented corruption/future-version policy and byte-proven canonical isolation (D-042); platform-neutral activity connection/permission status projection with documented precedence, conformance tables, and durable refresh-failure evidence (D-043); shell-facing read models for onboarding/settings/activity-status/support-diagnostics plus explicit Home attention classification; explicit empty/error/recovery semantics incl. save-recovery and future-schema fail-closed states (D-044); eleven named low-attention acceptance scenarios (first-run grant/denial, 1/7/30-day returns, queue-empty, source-failure, external revocation, save recovery, preference isolation, replay-after-UX zero-recredit) plus adversarial hardening suites.
+>
+> **NOT yet delivered by M5-H1 (runtime/platform, remains open until an editor exists, D-035): actual Unity screens/scenes, screen-reader navigation, reduced-motion runtime behavior, notification DELIVERY, OS permission dialogs, device lifecycle/performance evidence. These stay UNVERIFIED and M5 is NOT complete as a milestone.**
+
 ## Goal
 
 Make the ordinary daily experience polished before the optional 3D mode becomes the center of development.

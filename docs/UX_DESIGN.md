@@ -468,3 +468,18 @@ M4 landed the canonical state and data contract; Unity screens remain M5/M6 scop
 - **Closure beat**: IsCompleted triggers exactly one celebratory transformation moment; afterwards the world stays evergreen with no artificial reset.
 
 Binding tables per landmark stage are documented in WORLD_AND_CONTENT §23; no scenes, prefabs or assets exist yet, and none are required for headless qualification.
+
+
+---
+
+## M5-H1 implementation contracts (headless, automated verified)
+
+The following UX_DESIGN requirements now have concrete platform-neutral contracts that a Unity shell will bind later; all runtime/accessibility behavior itself remains UNVERIFIED until an editor/device campaign runs:
+
+- **Activity/source status (section 5 states):** implemented as `ActivityPlayerStatus` (connected-current / permission-needed / permission-denied / source-unavailable / waiting-for-first-data / refresh-temporarily-failed) plus a separate last-outcome fact carrying "data processed successfully". Precedence is documented in D-043 and pinned by table tests; raw exception text can never become player copy (automated leak sweep).
+- **Onboarding flow (ordered stages):** durable forward-only stage machine persisted in the local preferences store; resumable after interruption at every stage; the first-project step completes ONLY through real project operations; permission denial leaves navigation fully available (acceptance scenario 2).
+- **Settings ownership:** reduced motion, haptics, sound, notification master/category toggles, optional daily reminder time, and diagnostics visibility are durable LOCAL preferences (D-042); queue auto-advance remains CANONICAL and is surfaced separately in `SettingsReadModel`. Quiet hours stay delegated to the operating system; no app-defined schedule was invented.
+- **Empty/error states (sections 16-17):** encoded as explicit read-model facts with next-action classifications — including Home attention reasons (pending summary vs queue-empty-with-banked-vitality vs nothing-needed), producer-not-unlocked via `RegionReadModel.ProducerRow.Unlocked`, region completed evergreen state, save-recovery surfaced calmly with structured evidence, and fail-closed future-schema/unrecoverable-save classifications in `DiagnosticsReadModel`.
+- **Notification principles:** defaults respect sections 13 rules — opt-in master, per-category enables (project completions / expedition results / discoveries / reminder), no delivery infrastructure in this scope.
+
+Still open for runtime campaigns: screen-reader semantics, reduced-motion runtime effects, actual notification scheduling/delivery, OS permission dialogs, touch/text-scaling verification, lifecycle behavior on device.

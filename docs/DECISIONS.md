@@ -664,3 +664,54 @@ Resolve these through new decision entries with rationale and consequences; do n
 **Rationale:** Producer rows are created for the full content set at game start; a silently missing row would permanently disable that producer's production and unlock path while everything else appeared healthy. Unknown EXTRA rows were already rejected; absence was the unguarded direction.
 
 **Consequences:** payloads produced by any factory since M1 always satisfy the rule; hand-crafted or damaged saves missing a row are rejected with a specific diagnostic instead of silently degrading.
+
+---
+
+## D-042 — Durable local UX preferences and onboarding progress live in a separate versioned store, never in canonical game state
+
+**Status:** Accepted *(implemented and automated verified: LocalPreferencesStoreTests, OnboardingAndPreferencesTests, M5H1ShellAcceptanceTests, M5H1ContractHardeningTests)*
+
+**Decision:** Onboarding stage/completion, reduced-motion/haptics/sound flags, notification opt-in + per-category toggles + optional daily reminder time, and diagnostics visibility are **durable local UX state**. They are persisted in a dedicated `IUxPreferencesStore` (file implementation `LocalPreferencesStore`: single JSON file, versioned envelope schema v1, atomic temp+flush+replace write, NO backup generations) and never enter `GameState` or the canonical save envelope.
+
+**Rationale:** Ownership audit (M5-H1 Workstream A): none of these values affect game rules, reward math, queue behavior, or content completion, so canonical ownership would be misclassification; but they must survive restarts, so they cannot be ephemeral. A separate physically-isolated record makes preference corruption unable to touch progression and makes "preference writes leave canonical save bytes identical" provable byte-for-byte. The value of the data is low: one atomic file without backup chains is proportionate; worst case is re-setting preferences, never gameplay loss.
+
+**Consequences:**
+- load policy is explicit: absent → NotFound→defaults; malformed/JSON-invalid/wrong-typed/pre-history version → Malformed→defaults; future version → FutureVersion, payload never interpreted; v1 keys merge over documented defaults so missing keys mean default;
+- preferences NEVER block boot: any damage degrades to defaults while gameplay loads normally;
+- setters fail with stable code `ux.preferences-store-missing` when no store is wired instead of silently diverging;
+- onboarding progression is forward-only and idempotent; reaching Complete requires a first project to exist in canonical queue/active/completed state — earned only through real project operations (`EnqueueProject`/`ActivateQueuedProject`), so denial of activity permission can never trap onboarding;
+- notification QUIET HOURS are delegated to the operating system (UX_DESIGN §13 mandates respecting system settings); this store persists category toggles and an optional reminder time-of-day only;
+- canonical presentation-affecting state that already exists elsewhere (queue auto-advance) is surfaced in `SettingsReadModel` marked canonical — never duplicated into preferences.
+
+---
+
+## D-043 — Activity connection/permission status is an adapter-owned projection behind one platform-neutral port; status never mutates progression
+
+**Status:** Accepted *(implemented and automated verified: ActivityStatusProjectionTests, M5H1ContractHardeningTests, M5H1ShellAcceptanceTests scenarios 2/7/8)*
+
+**Decision:** One narrow port, `IActivityConnectionPort`, reports ephemeral platform truth (permission state incl. partially-granted/revoked, availability, refresh timestamps, adapter-owned technical detail). Player-safe classification is a PURE projection (`ActivityStatusProjector`) over that snapshot plus two canonical facts: processed-record existence, and the durable last-ingestion outcome. The six standing states use UX_DESIGN §5 vocabulary with documented precedence: denied/revoked → permission-denied; not-requested → permission-needed; unsupported provider → source-unavailable; transient adapter failure or durable fetch-failure → refresh-temporarily-failed; connected with zero processed records → waiting-for-first-data; otherwise connected-current. "Data processed successfully" rides separately as a last-outcome fact so standing state and event outcome are never conflated.
+
+**Rationale:** Before M7 delivers Health Connect/HealthKit adapters, the shell needs honest, testable player-facing source state without native SDKs or fake device claims. Future adapters implement exactly this port; conformance is pinned by table tests today.
+
+**Consequences:**
+- raw exceptions/messages can never become ordinary player copy: read models carry enums, counts, timestamps only; adapter technical detail surfaces exclusively through the bounded diagnostics projection;
+- status reads are side-effect free and byte-neutral (proven against save bytes);
+- external revocation/grant changes are representable at any moment by swapping snapshot values; earned progress is untouched;
+- a failed adapter fetch durably records `IngestionOutcomeState` with `SourceFetchFailed` and an error category equal to the exception TYPE name, in the same atomic discipline as successful batches, then rethrows — callers keep existing semantics while the shell gains cross-restart "temporarily unable to refresh";
+- no HC/HK SDK, OS permission dialog, or device verification exists in this scope; those remain UNVERIFIED runtime items.
+
+---
+
+## D-044 — Support diagnostics expose only privacy-safe operational facts in one bounded projection
+
+**Status:** Accepted *(implemented and automated verified: DiagnosticsReadModelTests, M5H1ContractHardeningTests leak sweep)*
+
+**Decision:** `DiagnosticsReadModel` is the single support-oriented surface: boot outcome classification (including recovered-from-backup and the structured codec/state-validation failure category of the last failed decode, retained monotonically so a successful backup recovery cannot erase primary-failure evidence), applied migrations, schema version, region identity, ingestion checkpoint watermark plus age in days (reported only after a real batch sets it), processed-record count, lifetime credited vitality, forever-visible unapplied-reversal vitality (D-029), the bounded last-batch counter row, the preferences-load outcome, and optionally the adapter-owned bounded technical detail string. Display gating uses the local DiagnosticsVisible preference.
+
+**Rationale:** ACTIVITY_PIPELINE §19 and RISK_REGISTER R-022 require redacted bounded diagnostics; players and support need operational facts after crashes, which demands durability across restarts and availability even when boot FAILED.
+
+**Consequences:**
+- no raw records, payloads, stack traces, or exception messages generated by this codebase ever appear; error categories are stable type/class names;
+- every text field from adapters/stores is truncated (300 chars max) and lives behind the explicit diagnostics gate;
+- reading diagnostics is side-effect free and available pre-boot-success (schemaVersion 0 / empty identity until state exists);
+- aggregates stay permanently bounded (single counter row) honoring PERFORMANCE_BUDGETS memory/save rules.

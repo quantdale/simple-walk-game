@@ -537,4 +537,22 @@ Named, reproducible gates added by the M4-H campaign (all automated verified; ru
    - M4Region1AcceptanceTests — THE named acceptance: clean profile through the real trust pipeline to the closure milestone with replay exactly-once, review independence, post-completion stability across reloads and byte-identical determinism.
 3. dotnet run --project tools/simulation -- profile --save <dir> --profile low|moderate|high|irregular --days 400 — deterministic pacing reports (committed under vidence/m4/); rerunning any profile reproduces its report byte-for-byte.
 4. dotnet run --project tools/simulation -- walk --save <dir> --days N --at <iso> --replay — unchanged M3 replay proof still credits zero against the expanded graph.
-5. 	ests/guards/run-guard-tests.sh — guard proof suite green.
+5. `tests/guards/run-guard-tests.sh` — guard proof suite green.
+
+
+---
+
+## M5-H1 automated evidence (headless)
+
+Named, reproducible gates added by the M5-H1 campaign (all automated verified; runtime/device evidence remains UNVERIFIED and out of scope):
+
+1. dotnet build SimpleWalkGame.sln — zero errors (295 tests compile clean).
+2. dotnet test SimpleWalkGame.sln — Domain 105 / Infrastructure 48 / Application 142. M5-H1 suites:
+   - LocalPreferencesStoreTests — D-042 store contract: atomic single-file writes, NotFound/Malformed/FutureVersion degradation, absent-keys-mean-default merge, byte-stable rewrites, interrupted-write temporaries ignored, no canonical-state keys in payload.
+   - OnboardingAndPreferencesTests — durable forward-only stage flow, canonical first-project gate for Complete (stable error codes), restart resume, preference churn provably byte-neutral to save.json, reminder range validation, missing-store explicit failure, damaged prefs never blocking boot.
+   - ActivityStatusProjectionTests — documented six-state precedence table, recommended-action mapping, rapid-transition determinism, zero-record vs mature-history classification, denial does not trap navigation, external revocation without progress mutation, durable source-failure classification with exactly-once retry, side-effect-free reads.
+   - DiagnosticsReadModelTests — boot/recovery/migration evidence (recovered-from-backup keeps primary-failure category), mixed-batch counters, watermark age null until a real batch, VersionTooNew via properly framed future envelope, diagnostics available even when boot failed, raw exception text can never leak.
+   - M5H1ShellAcceptanceTests — THE named low-attention acceptance: scenarios 1-11 (first-run grant; first-run denial not trapping the profile; calm 1-day return; 7-day app-closed advancement surviving reloads; bounded 30-day long-absence summary inside the glance budget; queue-empty attention reason with banked vitality and unchanged fallback policy; transient source failure preserving progress with exactly-once retry; external permission revocation with intact progress and representable reconnect; calm save-recovery surfacing with diagnostics proof and no silent reset; byte-level preference isolation across restarts; zero-additional replay after onboarding/settings/status/diagnostics operations).
+   - M5H1ContractHardeningTests — hostile preferences payload table (never throw, never partially interpret), interrupted writes never promote temporaries, path-independent byte-stable rewrites under churn, documented transition sequences end in exact classifications, read models side-effect-free at zero records AND mature histories, stale diagnostic snapshots frozen and never canonical inputs, onboarding interruption resumed exactly at every durable step with the gate enforced after each restart, explicit per-version-class schema policy, reflection-based sweep proving no raw exception/health text reaches any player-facing surface.
+3. Guard proof suite (`tests/guards/run-guard-tests.sh`) — unchanged, green.
+4. Simulation smoke + tamper selftest and `tools/simulation walk --replay` exactly-once proof — unchanged contracts consumed unchanged by all new code.

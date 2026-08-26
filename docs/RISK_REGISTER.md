@@ -535,7 +535,14 @@ Proof-suite lease/race scenarios stay green; no recurrence of interleaved-lineag
 
 ---
 
-## Risk-review cadence
+## Campaign updates — M5-H1 (platform-neutral UX state contracts, headless)
+
+- **R-003 (valid activity is silently lost):** further mitigated headlessly — player-safe source status projection now distinguishes waiting-for-first-data from connected-current and durably classifies transient refresh failures across restarts (D-043); support diagnostics expose checkpoint-watermark age and last-batch counters so staleness is observable before data is lost. Real-provider behavior remains open until M7 adapters.
+- **R-022 (privacy scope expands unnoticed):** strengthened by construction — D-043/D-044 pin status and diagnostics to enum/count/timestamp projections with adapter technical detail bounded to one gated field; automated reflection sweeps assert raw exception text and health payloads cannot reach any player-facing surface.
+- **R-019 (notification design becomes manipulative):** preference contract landed as opt-in master plus per-category toggles and an optional reminder time only; quiet hours delegated to the OS; no delivery, scheduling, or copy exists in this campaign to become manipulative.
+- **R-001 (screen-time creep):** the eleven acceptance scenarios enforce glance-budget bounds (≤12 summary items), explicit nothing-needs-attention states, and denial paths that never trap the profile.
+
+---
 
 Review this file:
 

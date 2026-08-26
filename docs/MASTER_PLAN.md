@@ -451,7 +451,7 @@ The MVP is strategically successful when all of the following are true:
 
 ## 20. Immediate next campaign
 
-**Status update (2026-08-26): M1, the M2 trust pipeline, and the M3 ambient progression vertical slice are implemented and automated-verified headless on `main` (156 tests; see ROADMAP exit criteria and README for evidence). The Unity presentation shell + editor/runtime verification of the already-implemented M3 boundaries is the immediate next campaign (D-035): it requires an installed Unity 6 LTS editor and must start at those runtime gates, not at domain/application rework.**
+**Status update (2026-08-26, post M5-H1): M1–M4-H and M8-H1 remain automated-verified on `main`; M5-H1 has now landed the platform-neutral UX state layer headless (295 automated tests): durable local preferences/onboarding store (D-042), platform-neutral activity connection/permission status projection behind `IActivityConnectionPort` with conformance tables and durable refresh-failure evidence (D-043), shell-facing read models for onboarding/settings/status/diagnostics plus explicit Home attention classification, explicit empty/error/recovery semantics, eleven named low-attention acceptance scenarios and adversarial hardening suites (D-044). The Unity presentation shell + editor/runtime verification of these contracts remains the immediate next campaign (D-035): it requires an installed Unity 6 LTS editor and must start at those runtime gates — rendering the already-defined read models, binding the already-defined ports, proving screen-reader/reduced-motion/notification behavior on device. No runtime or device claim may be inferred from M5-H1.**
 
 The foundation campaign proved that the game can:
 

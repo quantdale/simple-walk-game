@@ -152,7 +152,7 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 ## Current repository state
 
-**Status: M1 (deterministic core), M2 (activity trust pipeline), headless M3 (ambient progression) and M4-H (Region 1 content systems) implemented and automated-verified; M8-H1 (headless trust & persistence hardening) completed — persistence hostile-path, mature-save/migration, adversarial red-team, temporal-anomaly, long-horizon and seeded-property suites landed. **221 automated tests**. Unity presentation not started and remains externally blocked (no editor in this environment; runtime gates recorded UNVERIFIED).**
+**Status: M1 (deterministic core), M2 (activity trust pipeline), headless M3 (ambient progression), M4-H (Region 1 content systems) implemented and automated-verified; M8-H1 (headless trust & persistence hardening) completed; M5-H1 (platform-neutral UX state contracts) completed headless — durable local preferences/onboarding store (D-042), activity connection/permission status projection behind `IActivityConnectionPort` (D-043), shell-facing read models incl. support diagnostics and explicit Home attention semantics (D-044), eleven named low-attention acceptance scenarios plus adversarial hardening suites. **295 automated tests**. Unity presentation and all runtime/device behavior remain UNVERIFIED and externally blocked (no editor in this environment; D-035).**
 
 The repository now contains a headless .NET implementation of the deterministic game core:
 
@@ -208,6 +208,14 @@ Verification evidence additions:
 - guard proof suite — `tests/guards/run-guard-tests.sh`, all assertions green;
 - **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
 
+**M5-H1 platform-neutral UX state contracts (automated verified, headless):**
+
+- Durable local UX-preferences/onboarding store (D-042, `LocalPreferencesStore` + `IUxPreferencesStore`): versioned schema v1 envelope, atomic single-file writes proportionate to data value, explicit malformed/future-version → documented-defaults policy with merge-over-defaults for missing keys, forward-only onboarding flow whose Complete step is canonically gated on a real first project chosen through normal queue operations. Preference writes are provably byte-neutral to the canonical save across restarts and churn.
+- Activity connection/permission status projection (D-043): `IActivityConnectionPort` snapshot + pure `ActivityStatusProjector` producing player-safe states (`connected-current / permission-needed / permission-denied / source-unavailable / waiting-for-first-data / refresh-temporarily-failed`) plus last-outcome facts, with a documented precedence table under conformance tests; failed source fetches durably record bounded evidence then rethrow; external revocation is representable without touching earned progress.
+- Shell-facing read models: `OnboardingReadModel`, `SettingsReadModel` (local preferences separated from canonical auto-advance), `ActivityStatusReadModel`, `DiagnosticsReadModel` (privacy-safe operational facts only — boot/recovery/migration evidence, watermark age, trust-pipeline aggregates including forever-visible unapplied reversals; no raw records/exceptions/payloads, adapter detail bounded to 300 chars), and `HomeReadModel` attention classification (`RequiresAttention`/reason/banked vitality).
+- Acceptance + hardening: eleven named scenarios in `M5H1ShellAcceptanceTests` (grant/denial first run, 1/7/30-day returns, queue-empty, transient source failure, external revocation, save recovery, preference isolation, replay-after-UX zero-recredit) and `M5H1ContractHardeningTests` (hostile payload table, interrupted writes, rapid transitions, per-step onboarding interruption, reflection-based leak sweep).
+- Evidence package: [`docs/evidence/m5-h1/`](docs/evidence/m5-h1). Decisions D-042/D-043/D-044.
+
 **M8-H1 headless trust & persistence hardening (automated verified):**
 
 - Persistence fault injection (`PersistenceFaultInjectionTests`, `SessionPersistenceHardeningTests`): recovery commits can no longer displace the last healthy backup generation (D-040 `WriteAtomicPreservingBackup`); access failures are diagnosed instead of crashing or masquerading as "no save found"; boot surfaces specific decode/validation reasons; unrecoverable saves fail closed without fabricating a fresh world; future-schema saves are never overwritten.
@@ -234,6 +242,6 @@ After two concurrent autonomous executor sessions damaged overlapping work (comm
   inherit the preflight. See also `scripts/new-agent-worktree.sh` for isolated
   concurrent sessions (`one writer = one worktree = one branch`).
 
-The immediate next campaign is the Unity presentation shell + runtime verification of the already-implemented M3/M4 boundaries (requires an installed Unity 6 LTS editor), per [`docs/ROADMAP.md`](docs/ROADMAP.md) and D-035. The M3-R blocker remains truthful: no Unity editor exists in this execution environment.
+The immediate next campaign is the **Unity presentation shell + runtime verification of the M3/M4/M5-H1 boundaries** (requires an installed Unity 6 LTS editor), per [`docs/ROADMAP.md`](docs/ROADMAP.md) and D-035. The M3-R blocker remains truthful: no Unity editor exists in this execution environment. M5-H1 narrowed that future job to: render typed read models, invoke application operations, bind native permission/source adapters to `IActivityConnectionPort`, bind preferences to real controls, implement normal/loading/empty/error visuals, add accessibility/reduced-motion runtime behavior, and prove lifecycle/device budgets.
 
 The project should resist premature feature expansion. A small, deeply integrated, polished ambient-fitness loop is more valuable than a large collection of disconnected game systems.
