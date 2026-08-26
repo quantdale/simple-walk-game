@@ -132,7 +132,8 @@ public sealed class SessionQueueControlTests : IDisposable
 
         Assert.Equal("Millbrook Valley", region.RegionTitleKey);
         Assert.All(region.Landmarks, l => Assert.Equal(RestorationStage.Ruined, l.Stage));
-        var producer = Assert.Single(region.Producers);
+        Assert.Equal(3, region.Producers.Count);
+        var producer = region.Producers.Single(p => p.ProducerId == "prd.workshop-salvage");
         Assert.False(producer.Unlocked);
         Assert.Equal(ResourceType.Materials, producer.Output);
         Assert.Equal(500L, producer.CapacityUnits);

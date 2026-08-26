@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using WalkGame.Domain.Discoveries;
 using WalkGame.Domain.Economy;
+using WalkGame.Domain.Expeditions;
 using WalkGame.Domain.Projects;
 using LandmarkId = WalkGame.Domain.Common.Id<WalkGame.Domain.Common.LandmarkIdKind>;
 using ProducerId = WalkGame.Domain.Common.Id<WalkGame.Domain.Common.ProducerIdKind>;
@@ -92,6 +94,43 @@ namespace WalkGame.Domain.Regions
         }
     }
 
+    /// <summary>One discrete stage of a region-level progression arc (D-038).</summary>
+    public sealed class ProgressionStageDefinition
+    {
+        /// <summary>1-based, strictly ascending within an arc.</summary>
+        public int Stage { get; }
+
+        public string UnlockedByProjectId { get; }
+
+        public ProgressionStageDefinition(int stage, string unlockedByProjectId)
+        {
+            if (stage < 1)
+                throw new ArgumentException("Progression stages are 1-based.", nameof(stage));
+            if (string.IsNullOrWhiteSpace(unlockedByProjectId))
+                throw new ArgumentException("Progression stages must reference the project that unlocks them.", nameof(unlockedByProjectId));
+            Stage = stage;
+            UnlockedByProjectId = unlockedByProjectId;
+        }
+    }
+
+    /// <summary>
+    /// A region-level progression axis (ecology or settlement): discrete, monotonic,
+    /// explainable stages driven by project completion — deliberately not a continuous
+    /// simulation (GAME_SYSTEMS §10).
+    /// </summary>
+    public sealed class RegionProgressionDefinition
+    {
+        public IReadOnlyList<ProgressionStageDefinition> Stages { get; }
+
+        public RegionProgressionDefinition(IEnumerable<ProgressionStageDefinition> stages)
+        {
+            Stages = new List<ProgressionStageDefinition>(stages).AsReadOnly();
+        }
+
+        public static RegionProgressionDefinition Empty() =>
+            new RegionProgressionDefinition(Array.Empty<ProgressionStageDefinition>());
+    }
+
     /// <summary>
     /// Immutable content for one region. Definitions carry authoring data only;
     /// player-specific values live in <see cref="RegionState"/>.
@@ -100,25 +139,58 @@ namespace WalkGame.Domain.Regions
     {
         public RegionId Id { get; }
         public string TitleKey { get; }
+
+        /// <summary>Authored content contract version; bumps whenever authored content changes meaning.</summary>
+        public int ContentVersion { get; }
+
         public IReadOnlyList<ProjectDefinition> Projects { get; }
         public IReadOnlyList<LandmarkDefinition> Landmarks { get; }
         public IReadOnlyList<ProducerDefinition> Producers { get; }
+        public IReadOnlyList<DiscoveryDefinition> Discoveries { get; }
+        public IReadOnlyList<ExpeditionDefinition> Expeditions { get; }
+
+        /// <summary>Region-level ecological recovery arc.</summary>
+        public RegionProgressionDefinition EcologyProgression { get; }
+
+        /// <summary>Region-level settlement/hub arc.</summary>
+        public RegionProgressionDefinition SettlementProgression { get; }
+
+        /// <summary>The project whose completion is the explicit region closure milestone; null when the region has no closure yet.</summary>
+        public string? CompletionMilestoneProjectId { get; }
 
         public RegionDefinition(RegionId id, string titleKey,
             IEnumerable<ProjectDefinition> projects,
             IEnumerable<LandmarkDefinition> landmarks,
-            IEnumerable<ProducerDefinition> producers)
+            IEnumerable<ProducerDefinition> producers,
+            int contentVersion = 1,
+            IEnumerable<DiscoveryDefinition>? discoveries = null,
+            IEnumerable<ExpeditionDefinition>? expeditions = null,
+            RegionProgressionDefinition? ecologyProgression = null,
+            RegionProgressionDefinition? settlementProgression = null,
+            string? completionMilestoneProjectId = null)
         {
             if (!id.IsValid)
                 throw new ArgumentException("Region definition requires a valid ID.", nameof(id));
             if (string.IsNullOrWhiteSpace(titleKey))
                 throw new ArgumentException("Region definition requires a title key.", nameof(titleKey));
+            if (contentVersion < 1)
+                throw new ArgumentException("Content version must be positive.", nameof(contentVersion));
 
             Id = id;
             TitleKey = titleKey;
+            ContentVersion = contentVersion;
             Projects = new List<ProjectDefinition>(projects).AsReadOnly();
             Landmarks = new List<LandmarkDefinition>(landmarks).AsReadOnly();
             Producers = new List<ProducerDefinition>(producers).AsReadOnly();
+            Discoveries = discoveries != null
+                ? new List<DiscoveryDefinition>(discoveries).AsReadOnly()
+                : (IReadOnlyList<DiscoveryDefinition>)new List<DiscoveryDefinition>().AsReadOnly();
+            Expeditions = expeditions != null
+                ? new List<ExpeditionDefinition>(expeditions).AsReadOnly()
+                : (IReadOnlyList<ExpeditionDefinition>)new List<ExpeditionDefinition>().AsReadOnly();
+            EcologyProgression = ecologyProgression ?? RegionProgressionDefinition.Empty();
+            SettlementProgression = settlementProgression ?? RegionProgressionDefinition.Empty();
+            CompletionMilestoneProjectId = completionMilestoneProjectId;
         }
 
         public ProjectDefinition? FindProject(string projectId)
@@ -142,6 +214,22 @@ namespace WalkGame.Domain.Regions
             foreach (var landmark in Landmarks)
                 if (landmark.Id.Value == landmarkId)
                     return landmark;
+            return null;
+        }
+
+        public DiscoveryDefinition? FindDiscovery(string discoveryId)
+        {
+            foreach (var discovery in Discoveries)
+                if (discovery.Id.Value == discoveryId)
+                    return discovery;
+            return null;
+        }
+
+        public ExpeditionDefinition? FindExpedition(string expeditionId)
+        {
+            foreach (var expedition in Expeditions)
+                if (expedition.Id.Value == expeditionId)
+                    return expedition;
             return null;
         }
     }
@@ -172,9 +260,16 @@ namespace WalkGame.Domain.Regions
     }
 
     /// <summary>
-    /// Canonical per-player state of a region: project progress, landmark stages and
-    /// producer runtimes. Visuals bind to this state; it is never derived from scenes.
+    /// Canonical per-player state of a region: project progress, landmark stages, producer
+    /// runtimes, discovery/expedition progress and region-level progression axes. Visuals
+    /// bind to this state; it is never derived from scenes.
     /// </summary>
+    /// <remarks>
+    /// Schema v2 additive fields (D-036): discoveries/expeditions entries appear only after
+    /// their first canonical transition and stage counters default to 0/false, so payloads
+    /// written before M4 decode with exactly "nothing unlocked yet" semantics — no schema
+    /// bump or migration is required.
+    /// </remarks>
     public sealed class RegionState
     {
         public string RegionId { get; set; } = string.Empty;
@@ -184,6 +279,23 @@ namespace WalkGame.Domain.Regions
         public Dictionary<string, RestorationStage> LandmarkStages { get; } = new Dictionary<string, RestorationStage>();
 
         public List<ProducerRuntimeState> Producers { get; } = new List<ProducerRuntimeState>();
+
+        /// <summary>Unlocked discoveries only; absence means not-yet-discovered.</summary>
+        public Dictionary<string, DiscoveryRuntimeState> Discoveries { get; } = new Dictionary<string, DiscoveryRuntimeState>();
+
+        /// <summary>Available-or-completed expeditions only; absence means locked.</summary>
+        public Dictionary<string, ExpeditionRuntimeState> Expeditions { get; } = new Dictionary<string, ExpeditionRuntimeState>();
+
+        /// <summary>Highest reached ecology arc stage; 0 = baseline.</summary>
+        public int EcologyStage { get; set; }
+
+        /// <summary>Highest reached settlement arc stage; 0 = baseline.</summary>
+        public int SettlementStage { get; set; }
+
+        /// <summary>True once the closure milestone completed. Never resets (post-completion evergreen).</summary>
+        public bool IsCompleted { get; set; }
+
+        public DateTimeOffset? RegionCompletedAtUtc { get; set; }
 
         public ProjectState? FindProject(string projectId) =>
             Projects.TryGetValue(projectId, out var state) ? state : null;

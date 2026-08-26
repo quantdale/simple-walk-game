@@ -131,6 +131,79 @@ namespace WalkGame.Domain.Validation
                     violations.Add($"Locked producer '{producer.ProducerId}' has produced output.");
             }
 
+            // Discovery runtimes. Entries exist only once unlocked; absence is valid.
+            foreach (var pair in state.Region.Discoveries)
+            {
+                var definition = content.FindDiscovery(pair.Key);
+                if (definition == null)
+                {
+                    violations.Add($"Discovery runtime '{pair.Key}' is unknown to content definitions.");
+                    continue;
+                }
+                var discovery = pair.Value;
+                if (discovery == null)
+                {
+                    violations.Add($"Discovery runtime '{pair.Key}' is null.");
+                    continue;
+                }
+                if (!string.Equals(discovery.DiscoveryId, pair.Key, StringComparison.Ordinal))
+                    violations.Add($"Discovery dictionary key '{pair.Key}' does not match runtime ID '{discovery.DiscoveryId}'.");
+                if (discovery.DiscoveredAtUtc == default)
+                    violations.Add($"Discovery '{pair.Key}' has no discovery timestamp.");
+                if (discovery.Reviewed != discovery.ReviewedAtUtc.HasValue)
+                    violations.Add($"Discovery '{pair.Key}' reviewed flag and timestamp are inconsistent.");
+                if (discovery.ReviewedAtUtc.HasValue && discovery.ReviewedAtUtc.Value < discovery.DiscoveredAtUtc)
+                    violations.Add($"Discovery '{pair.Key}' was reviewed before it was discovered.");
+            }
+
+            // Expedition runtimes. Entries exist only once available; absence means locked.
+            foreach (var pair in state.Region.Expeditions)
+            {
+                var definition = content.FindExpedition(pair.Key);
+                if (definition == null)
+                {
+                    violations.Add($"Expedition runtime '{pair.Key}' is unknown to content definitions.");
+                    continue;
+                }
+                var expedition = pair.Value;
+                if (expedition == null)
+                {
+                    violations.Add($"Expedition runtime '{pair.Key}' is null.");
+                    continue;
+                }
+                if (!string.Equals(expedition.ExpeditionId, pair.Key, StringComparison.Ordinal))
+                    violations.Add($"Expedition dictionary key '{pair.Key}' does not match runtime ID '{expedition.ExpeditionId}'.");
+                if (expedition.AvailableAtUtc == default)
+                    violations.Add($"Expedition '{pair.Key}' has no availability timestamp.");
+                if (expedition.CompletedAtUtc.HasValue && expedition.CompletedAtUtc.Value < expedition.AvailableAtUtc)
+                    violations.Add($"Expedition '{pair.Key}' completed before it became available.");
+            }
+
+            // Region progression arc bounds (monotonic advance is enforced by construction).
+            if (state.Region.EcologyStage < 0 || state.Region.EcologyStage > content.EcologyProgression.Stages.Count)
+                violations.Add($"Ecology stage {state.Region.EcologyStage} is outside its content arc (0..{content.EcologyProgression.Stages.Count}).");
+            if (state.Region.SettlementStage < 0 || state.Region.SettlementStage > content.SettlementProgression.Stages.Count)
+                violations.Add($"Settlement stage {state.Region.SettlementStage} is outside its content arc (0..{content.SettlementProgression.Stages.Count}).");
+
+            // Region completion consistency.
+            if (state.Region.IsCompleted)
+            {
+                if (string.IsNullOrEmpty(content.CompletionMilestoneProjectId))
+                    violations.Add("Region is marked completed but its content defines no completion milestone.");
+                else
+                {
+                    var milestone = state.Region.FindProject(content.CompletionMilestoneProjectId);
+                    if (milestone == null || milestone.Status != ProjectStatus.Completed)
+                        violations.Add($"Region is marked completed but milestone project '{content.CompletionMilestoneProjectId}' is not completed.");
+                }
+                if (state.Region.RegionCompletedAtUtc == null)
+                    violations.Add("Region is marked completed without a completion timestamp.");
+            }
+            else if (state.Region.RegionCompletedAtUtc != null)
+            {
+                violations.Add("Region has a completion timestamp but is not marked completed.");
+            }
+
             // Durable pending return summary.
             var pendingSummary = state.PendingReturnSummary;
             if (pendingSummary != null)

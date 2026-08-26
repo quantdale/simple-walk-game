@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using WalkGame.Domain.Discoveries;
 using WalkGame.Domain.Economy;
+using WalkGame.Domain.Expeditions;
 using WalkGame.Domain.Projects;
 using WalkGame.Domain.Regions;
 
@@ -247,7 +249,150 @@ namespace WalkGame.Domain.Simulation
                 }
             }
 
+            AdvanceProgressionArcs(region, content, completedProjectId, nowUtc, events);
+            EvaluateDiscoveries(region, content, completedProjectId, nowUtc, events);
+            EvaluateExpeditions(game, content, nowUtc, events);
+            EvaluateRegionCompletion(game, content, nowUtc, events);
+
             UpdateAvailability(game, content, nowUtc, events);
+        }
+
+        /// <summary>
+        /// Advances both region-level arcs through every stage unlocked by this project.
+        /// Stages are discrete, strictly monotonic and idempotent — reprocessing the same
+        /// completion can never regress or duplicate a stage.
+        /// </summary>
+        private static void AdvanceProgressionArcs(RegionState region, RegionDefinition content, string completedProjectId, DateTimeOffset nowUtc, List<SimulationEvent> events)
+        {
+            region.EcologyStage = AdvanceArc(content.EcologyProgression, region.EcologyStage, completedProjectId, nowUtc, RegionProgressionAxis.Ecology, events);
+            region.SettlementStage = AdvanceArc(content.SettlementProgression, region.SettlementStage, completedProjectId, nowUtc, RegionProgressionAxis.Settlement, events);
+        }
+
+        private static int AdvanceArc(
+            RegionProgressionDefinition arc,
+            int currentStage,
+            string completedProjectId,
+            DateTimeOffset nowUtc,
+            RegionProgressionAxis axis,
+            List<SimulationEvent> events)
+        {
+            int stage = currentStage;
+            foreach (var stageDefinition in arc.Stages)
+            {
+                if (stageDefinition.Stage <= stage)
+                    continue;
+                if (stageDefinition.UnlockedByProjectId != completedProjectId)
+                    continue;
+
+                stage = stageDefinition.Stage;
+                events.Add(new RegionProgressionAdvanced(nowUtc, axis, stage));
+            }
+            return stage;
+        }
+
+        /// <summary>Unlocks discoveries triggered by this project, at most once each.</summary>
+        private static void EvaluateDiscoveries(RegionState region, RegionDefinition content, string completedProjectId, DateTimeOffset nowUtc, List<SimulationEvent> events)
+        {
+            foreach (var definition in content.Discoveries)
+            {
+                if (definition.UnlockedByProjectId != completedProjectId)
+                    continue;
+                if (region.Discoveries.ContainsKey(definition.Id.Value))
+                    continue;
+
+                region.Discoveries[definition.Id.Value] = new DiscoveryRuntimeState
+                {
+                    DiscoveryId = definition.Id.Value,
+                    DiscoveredAtUtc = nowUtc,
+                    Reviewed = false,
+                    ReviewedAtUtc = null,
+                };
+                events.Add(new DiscoveryUnlocked(nowUtc, definition.Id.Value));
+            }
+        }
+
+        /// <summary>
+        /// Deterministic expedition hooks: routes become available when their required
+        /// projects are all completed, then complete when their required landmark stages
+        /// are all reached. Each transition fires at most once; rewards apply cap-clamped
+        /// in the same state transition as the completion timestamp.
+        /// </summary>
+        private static void EvaluateExpeditions(GameState game, RegionDefinition content, DateTimeOffset nowUtc, List<SimulationEvent> events)
+        {
+            var expeditions = game.Region.Expeditions;
+            foreach (var definition in content.Expeditions)
+            {
+                if (!expeditions.TryGetValue(definition.Id.Value, out var runtime))
+                {
+                    if (!AreProjectsCompleted(game, definition))
+                        continue;
+
+                    runtime = new ExpeditionRuntimeState
+                    {
+                        ExpeditionId = definition.Id.Value,
+                        AvailableAtUtc = nowUtc,
+                        CompletedAtUtc = null,
+                    };
+                    expeditions[definition.Id.Value] = runtime;
+                    events.Add(new ExpeditionAvailable(nowUtc, definition.Id.Value));
+                }
+
+                if (runtime.CompletedAtUtc != null)
+                    continue;
+                if (!AreStagesReached(game, definition))
+                    continue;
+
+                ResourceType? rewardType = null;
+                long grantedUnits = 0L;
+                if (definition.Reward != null)
+                {
+                    rewardType = definition.Reward.Type;
+                    grantedUnits = game.Resources.Add(definition.Reward.Type, definition.Reward.Units);
+                }
+
+                runtime.CompletedAtUtc = nowUtc;
+                events.Add(new ExpeditionCompleted(nowUtc, definition.Id.Value, rewardType, grantedUnits));
+            }
+        }
+
+        private static bool AreProjectsCompleted(GameState game, ExpeditionDefinition definition)
+        {
+            foreach (var projectId in definition.RequiredProjectIds)
+            {
+                var state = game.Region.FindProject(projectId);
+                if (state == null || state.Status != ProjectStatus.Completed)
+                    return false;
+            }
+            return true;
+        }
+
+        private static bool AreStagesReached(GameState game, ExpeditionDefinition definition)
+        {
+            foreach (var requirement in definition.RequiredStages)
+            {
+                var reached = game.Region.LandmarkStages.TryGetValue(requirement.LandmarkId, out var stage)
+                    ? stage
+                    : RestorationStage.Ruined;
+                if (reached < requirement.Stage)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>Detects the closure milestone exactly once; post-completion state never resets.</summary>
+        private static void EvaluateRegionCompletion(GameState game, RegionDefinition content, DateTimeOffset nowUtc, List<SimulationEvent> events)
+        {
+            string? milestoneId = content.CompletionMilestoneProjectId;
+            if (string.IsNullOrEmpty(milestoneId) || game.Region.IsCompleted)
+                return;
+
+            var milestone = game.Region.FindProject(milestoneId);
+            if (milestone == null || milestone.Status != ProjectStatus.Completed)
+                return;
+
+            game.Region.IsCompleted = true;
+            game.Region.RegionCompletedAtUtc = nowUtc;
+            events.Add(new RegionCompleted(nowUtc, milestoneId));
         }
 
         /// <summary>Promotes Locked projects whose prerequisites are all Completed.</summary>

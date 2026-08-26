@@ -117,4 +117,75 @@ namespace WalkGame.Domain.Simulation
             AttemptedBackstep = attemptedBackstep;
         }
     }
+
+    /// <summary>A discovery unlocked from a canonical trigger; fires at most once (idempotent).</summary>
+    public sealed record DiscoveryUnlocked : SimulationEvent
+    {
+        public string DiscoveryId { get; }
+
+        public DiscoveryUnlocked(DateTimeOffset atUtc, string discoveryId) : base(atUtc)
+        {
+            DiscoveryId = discoveryId ?? string.Empty;
+        }
+    }
+
+    /// <summary>An expedition route became available; fires at most once per route.</summary>
+    public sealed record ExpeditionAvailable : SimulationEvent
+    {
+        public string ExpeditionId { get; }
+
+        public ExpeditionAvailable(DateTimeOffset atUtc, string expeditionId) : base(atUtc)
+        {
+            ExpeditionId = expeditionId ?? string.Empty;
+        }
+    }
+
+    /// <summary>
+    /// An expedition completed deterministically. <see cref="UnitsGranted"/> records the
+    /// cap-clamped reward actually applied in the same state transition.
+    /// </summary>
+    public sealed record ExpeditionCompleted : SimulationEvent
+    {
+        public string ExpeditionId { get; }
+        public Economy.ResourceType? RewardType { get; }
+        public long UnitsGranted { get; }
+
+        public ExpeditionCompleted(DateTimeOffset atUtc, string expeditionId,
+            Economy.ResourceType? rewardType, long unitsGranted) : base(atUtc)
+        {
+            ExpeditionId = expeditionId ?? string.Empty;
+            RewardType = rewardType;
+            UnitsGranted = unitsGranted;
+        }
+    }
+
+    public enum RegionProgressionAxis
+    {
+        Ecology = 0,
+        Settlement = 1,
+    }
+
+    /// <summary>A region-level progression arc advanced one discrete stage; monotonic, idempotent.</summary>
+    public sealed record RegionProgressionAdvanced : SimulationEvent
+    {
+        public RegionProgressionAxis Axis { get; }
+        public int Stage { get; }
+
+        public RegionProgressionAdvanced(DateTimeOffset atUtc, RegionProgressionAxis axis, int stage) : base(atUtc)
+        {
+            Axis = axis;
+            Stage = stage;
+        }
+    }
+
+    /// <summary>The region closure milestone was reached; never resets afterwards.</summary>
+    public sealed record RegionCompleted : SimulationEvent
+    {
+        public string MilestoneProjectId { get; }
+
+        public RegionCompleted(DateTimeOffset atUtc, string milestoneProjectId) : base(atUtc)
+        {
+            MilestoneProjectId = milestoneProjectId ?? string.Empty;
+        }
+    }
 }
