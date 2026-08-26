@@ -1,6 +1,6 @@
 # Active Execution Campaign — M3/M4-R Unity Shell + Runtime Qualification
 
-**Status:** ACTIVE  
+**Status:** BLOCKED (Gate A1: no Unity 6 LTS editor installed)  
 **Planned-From:** `c4ba6f686741435144bf9fdb753612c5ceeabcfc`  
 **Target branch:** `main`  
 **Campaign class:** IMPLEMENTATION + RUNTIME VERIFICATION  
@@ -493,3 +493,23 @@ Stop and record a precise `BLOCKED` state instead of fabricating evidence if:
 - a required external service/license/tool blocks a gate that cannot be reproduced honestly.
 
 Do not begin M5 full UX completion, M6, M7, hardening, or release qualification in the same session after this campaign completes. Stop after reconciliation and push so the planner can choose the next campaign from evidence.
+
+---
+
+## 16. Execution outcome (recorded by the executing session)
+
+**Outcome:** BLOCKED at Gate A1 — no compatible Unity 6 LTS editor is installed or usable in this execution environment. No editor state was generated and no runtime claim was made. Headless repository truth is untouched.
+
+- **Start SHA:** `7022dab86c02e009e47132ee672a78702cd5b8a1`. Session reconciled Git first: local `main` was behind `origin/main` by exactly this one planning commit with a clean tree; deliberate `git merge --ff-only origin/main` applied it (start-of-session checkout was `c4ba6f686741435144bf9fdb753612c5ceeabcfc`, the `Planned-From`).
+- **Preflight:** identity guard OK (`quantdale/simple-walk-game`); writer lease acquired normally (no stale lock encountered).
+- **Gate A1 detection evidence (Windows development host):**
+  - `C:\Program Files\Unity\Hub\Editor` — MISSING (no Hub-managed editors).
+  - `C:\Program Files\Unity`, `C:\Program Files (x86)\*Unity*`, `D:\Program Files\Unity\Hub\Editor` — all MISSING.
+  - Recursive `Unity.exe` search across `C:\Program Files` and `D:\` (depth 3) — zero results.
+  - Registry uninstall entries: **Unity Hub 3.12.1** present (`C:\Program Files\Unity Hub\Unity Hub.exe`); NO Unity editor entry.
+  - `%APPDATA%\UnityHub` absent → Hub has never been run/configured; no secondary install path, no `editors-v2.json`.
+  - `HKLM\SOFTWARE\Unity Technologies` contains only the `Hub` key; `where.exe unity` → not on PATH.
+- **Conclusion:** Unity Hub is installed but contains no editor. There is no Unity 6 LTS editor to detect, bootstrap, import, compile, or execute, so Workstream A1 fails closed exactly as specified. D-035 remains open and truthful; this outcome re-confirms (does not close) the external runtime-toolchain blocker.
+- **First resumable action:** the human operator installs a licensed Unity 6 LTS editor (6000.x LTS line) via Unity Hub (`"C:\Program Files\Unity Hub\Unity Hub.exe"` → Installs), verifies the editor launches (including `batchmode` capability), then resumes/reactivates this campaign from Workstream A1. Agents must not silently install editors or substitute a different major Unity line.
+- **Headless gates:** untouched — zero implementation/test/tooling files changed by this session; baseline remains `dotnet build` PASS / `dotnet test` 180/180 with hosted CI success on `c4ba6f6` (run 32922388778).
+- **Lease:** released normally after committing/pushing this blocker record.
