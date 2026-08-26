@@ -1,11 +1,11 @@
-# Active Execution Campaign — M4-H Region 1 Content Systems + Headless Qualification
+# Active Execution Campaign — M3/M4-R Unity Shell + Runtime Qualification
 
-**Status:** COMPLETED  
-**Planned-From:** `f80127e035c6bd9f8fa8ce810687d02ee00bf8f0`  
+**Status:** ACTIVE  
+**Planned-From:** `c4ba6f686741435144bf9fdb753612c5ceeabcfc`  
 **Target branch:** `main`  
-**Campaign class:** IMPLEMENTATION + CONTENT QUALIFICATION (HEADLESS)  
-**Primary roadmap target:** M4 — Region 1 content production  
-**Target size:** one substantial integrated campaign, approximately 8–12 focused hours if the work remains coherent. Do not pad the session or split it into artificial micro-campaigns.
+**Campaign class:** IMPLEMENTATION + RUNTIME VERIFICATION  
+**Primary roadmap target:** close D-035 and runtime-qualify the already-landed M3 ambient loop plus M4 Region 1 presentation contract before full M5 UX expansion  
+**Target size:** one substantial integrated campaign, approximately 8–12 focused hours if a compatible Unity editor is actually available. Do not pad the session or split it into artificial micro-campaigns.
 
 ---
 
@@ -17,428 +17,479 @@ Before any write, execute the mandatory `AGENTS.md` repository-identity / fetch 
 
 Then:
 
-1. Read `AGENTS.md`, `docs/AGENT_EXECUTION_GUIDE.md`, `.agent/PLANNER_HANDOFF.md`, this campaign, `README.md`, `docs/MASTER_PLAN.md`, `docs/ROADMAP.md`, `docs/PRODUCT_SPEC.md`, `docs/GAME_SYSTEMS.md`, `docs/WORLD_AND_CONTENT.md`, `docs/TECHNICAL_ARCHITECTURE.md`, `docs/UX_DESIGN.md`, `docs/TESTING_AND_RELEASE.md`, `docs/DECISIONS.md`, and `docs/RISK_REGISTER.md` before architectural changes.
-2. Inspect the complete implementation/test/tooling tree, recent commits since `Planned-From`, open issues/PRs, hosted CI state, and any native runtime state that is actually relevant. Do not review only recently changed files.
-3. Build a fresh campaign ledger. Classify findings as **LANDED/TRUSTED**, **M4 IMPLEMENTATION GAP**, **M4 VALIDATION GAP**, **M3-R EXTERNAL BLOCKER**, **NEW SAME-DOMAIN DEFECT**, or **STALE/SUPERSEDED**.
+1. Read `AGENTS.md`, `docs/AGENT_EXECUTION_GUIDE.md`, `.agent/PLANNER_HANDOFF.md`, this campaign, `README.md`, `docs/MASTER_PLAN.md`, `docs/ROADMAP.md`, `docs/PRODUCT_SPEC.md`, `docs/GAME_SYSTEMS.md`, `docs/WORLD_AND_CONTENT.md`, `docs/TECHNICAL_ARCHITECTURE.md`, `docs/UX_DESIGN.md`, `docs/ACTIVITY_PIPELINE.md`, `docs/TESTING_AND_RELEASE.md`, `docs/PERFORMANCE_BUDGETS.md`, `docs/DECISIONS.md`, and `docs/RISK_REGISTER.md` before architectural changes.
+2. Inspect the **complete** implementation/test/tooling/presentation tree, all commits since `Planned-From`, open issues/PRs, hosted CI, and actual native runtime/toolchain state. Do not review only recently changed files.
+3. Build a fresh campaign ledger. Classify findings as **LANDED/TRUSTED**, **RUNTIME-ONLY GAP**, **M4 PRESENTATION-BINDING GAP**, **NEW SAME-DOMAIN DEFECT**, **EXTERNAL BLOCKER**, or **STALE/SUPERSEDED**.
 4. Preserve unrelated user work. Never reset, clean away, overwrite, or force-push other work to make integration convenient.
 5. Keep the repository buildable at meaningful checkpoints. If isolated worktrees/branches are required by `AGENTS.md`, integrate accepted work back into `main` before completion.
 6. Fix every Critical/High regression introduced or exposed by this campaign before completion. Record lower-severity unrelated findings precisely and defer them rather than expanding scope without limit.
-7. During implementation, prefer focused tests around the work being changed. Run the full certification suite only at meaningful integration boundaries and at the end.
+7. During implementation, use focused tests around the affected layer. Run the full headless suite and Unity runtime suite at meaningful integration boundaries and at the end.
 
-This is an **implementation-heavy headless M4 campaign**. It exists because the previous M3-R Unity runtime campaign is blocked externally at Gate A1: no Unity 6 LTS editor exists in that execution environment. That blocker remains truthful and unresolved. This campaign must not falsify or erase it.
+This campaign is the **runtime dependency bottleneck**. M1, M2, headless M3, and headless M4 are already proven. Do not consume the session rewriting them simply because presentation work is harder.
 
-The scheduling rule for this campaign is:
+The governing rule is:
 
-> Advance only M4 work that is valid, testable, and evidence-backed without Unity. Do not claim M3-R runtime verification, do not manufacture Unity assets, and do not let the external editor blocker freeze independent content/domain/simulation work.
+> Make the existing canonical game visible, lifecycle-safe, and runtime-verified in a real Unity 6 LTS editor. Presentation consumes state and application operations; it never becomes authoritative state.
 
 ---
 
 ## 1. Repository truth at planning time
 
-The planner audited current `main` at `f80127e035c6bd9f8fa8ce810687d02ee00bf8f0`, recent history, the full tree, roadmap/master plan, the current execution handoff, and open PR state before activating this campaign.
+The planner audited current `main` at `c4ba6f686741435144bf9fdb753612c5ceeabcfc`, recent commits, repository structure, M4 outcome evidence, roadmap/master plan, current prompt state, open PR/issue state, and hosted CI before activating this campaign.
 
 Current evidence:
 
-- M1 deterministic core, M2 trust pipeline, and the headless portion of M3 are implemented and automated-verified.
-- The latest M3-R attempt stopped correctly at runtime Gate A1 because no Unity 6 LTS editor was installed. It did **not** change shared implementation code.
-- Headless baseline at the blocker commit: `dotnet build SimpleWalkGame.sln` PASS and `dotnet test SimpleWalkGame.sln` PASS, 156/156 tests (Domain 89 / Infrastructure 23 / Application 44).
-- No open pull request currently carries unfinished work for this repository.
-- `Region1Catalog` is still explicitly a development seed, not final M4 content: **5 projects, 3 landmarks, 1 producer**.
-- `RegionDefinition` currently owns only Projects, Landmarks, and Producers.
-- Strong ID marker kinds for `DiscoveryId` and `ExpeditionId` already exist, but there are no landed discovery/expedition domain models or Region 1 definitions using them.
-- `ContentValidator` currently checks basic duplicate IDs, prerequisite references, landmark/producer unlock references, existence of an entry project, and project-cycle detection. It does not yet qualify the full M4 content contract.
-- `GameState` save schema is currently **v2**. Any new canonical persisted state that cannot be safely additive must bump the schema and ship a registered migration plus roundtrip/upgrade evidence.
-- `docs/WORLD_AND_CONTENT.md` requires Region 1 to become a complete headless-validatable content package: 5–7 project chains, 12–20 meaningful project nodes, 6+ landmarks, 2+ producers, 10+ discoveries, 3+ expedition objectives/routes, ecological and settlement progression, a closure milestone, post-completion state, reference validation, and deterministic progression reports.
-- M4 roadmap exit criteria are headless-friendly: critical path reachable, no dependency cycles, pacing across representative profiles, low foreground-decision pressure, presentation requirements documented, and Region 1 completable headlessly.
+- M1 deterministic core and durable state are automated-verified.
+- M2 activity trust pipeline is automated-verified, including durable deduplication, corrections/deletions, bounded reconciliation, atomic checkpoint/reward persistence, and replay safety.
+- The headless M3 ambient loop is automated-verified through `M3AmbientProgressionAcceptanceTests`, durable return summaries, queue controls, producer simulation, application read models, and the `walk --replay` acceptance path.
+- M4-H is COMPLETED headlessly: Millbrook Valley content v2 contains **19 projects / 6 chains / 6 landmarks / 3 producers / 13 discoveries / 3 expeditions**, ecology + settlement arcs, a closure milestone, stable post-completion state, expanded validation, deterministic pacing reports, and `M4Region1AcceptanceTests`.
+- Save schema remains v2. M4 additions are additive under D-036; do not invent a migration merely because Unity is being added.
+- The current automated baseline is **180/180 tests**: Domain 101 / Infrastructure 25 / Application 54.
+- The latest pushed SHA `c4ba6f686741435144bf9fdb753612c5ceeabcfc` has hosted `ci` success (run `32922388778`).
+- There are no open PRs or open issues carrying unfinished work at planning time.
+- `README.md` and `docs/MASTER_PLAN.md` identify the next dependency bottleneck as an installed Unity 6 LTS editor for the presentation/runtime lane.
+- D-035 remains truthful: the prior runtime campaign stopped at Gate A1 because no Unity 6 LTS editor existed in that execution environment. No Unity project was manufactured and no runtime claim was falsified.
+- There is still no verified `src/WalkGame.Unity` runtime project on `main` at planning time.
+- Application already exposes presentation-safe boundaries including Home/Projects/Region/ReturnSummary read models and M4 discovery/expedition/region progression data. UX docs require M4 runtime binding for discovery reviewed state, expedition locked/available/completed state, ecology/settlement stages, closure, and bounded return-summary events.
 
-Treat the proven M1–M3 contracts as trusted starting evidence. If M4 exposes a genuine cross-layer defect, fix it at the correct layer and add regression coverage. Do not rewrite the trust pipeline, reward ledger, persistence architecture, queue semantics, or producer semantics without evidence.
+Treat proven headless semantics as trusted evidence. If Unity exposes a real cross-layer defect, fix the correct layer and add regression coverage. Do not fork canonical logic into Unity-owned copies.
 
 ---
 
 ## 2. Campaign objective
 
-Turn Region 1 from a five-node development seed into a coherent, production-oriented **headless content system** that can be validated, simulated, persisted, completed, and audited without Unity.
+Create and runtime-qualify the minimal **Unity mobile shell** that makes the existing M3/M4 game loop visible and operable without starting the full M5 polish program or M6 3D world.
 
-By the end of this campaign, a clean deterministic profile must be able to progress Region 1 from the degraded starting state through a substantial restoration arc using the existing activity/reward pipeline, while the repository can prove all of the following:
+By the end of this campaign, a deterministic development profile must be able to execute this story through the real Unity runtime and the same application/domain boundaries already proven headlessly:
 
-- the full project dependency graph is valid and reachable;
-- major landmarks advance through canonical restoration stages;
-- producers unlock and behave within existing deterministic rules;
-- discoveries unlock from durable canonical triggers and preserve provenance/review state;
-- expedition objectives/routes have stable definitions and deterministic availability/completion hooks appropriate to M4;
-- ecology and settlement progression are represented canonically at a deliberately simple abstraction level;
-- the region reaches an explicit closure/completion milestone;
-- post-completion state is stable and does not reset the region;
-- replaying already-processed activity cannot create duplicate progression;
-- representative low/moderate/high/irregular profiles produce analyzable pacing reports;
-- every M4 exit criterion that does not require Unity is supported by named automated evidence.
+`launch/load durable state → see pending return summary and Home state → inspect current project/region → queue/reorder/start restoration work → inject deterministic development activity through IActivityRecordSource → close/recreate runtime/session → reload persisted state → exactly-once activity advances canonical projects/landmarks/producers/discoveries/expeditions/arcs → see bounded durable summary → inspect Projects/Region/Discoveries/Expeditions → acknowledge summary/review discoveries through application operations → replay the exact same activity window → observe zero duplicate reward/world progress → reach or load a closure-state profile → verify completed-region presentation stays stable after restart`
 
-This campaign should leave later presentation work with a data contract to bind to, not a pile of presentation-owned assumptions.
+The shell is intentionally modest. Its purpose is to prove:
 
----
-
-## 3. Workstream A — Content contract and model expansion
-
-Audit the current `RegionDefinition`, `ProjectDefinition`, `RegionState`, `GameState`, validators, simulation events, read models, and save codec before adding types.
-
-Introduce only the smallest coherent model extensions required for M4.
-
-### A1. Versioned authored content
-
-Evolve authored content toward an explicit, testable schema consistent with `WORLD_AND_CONTENT.md`.
-
-At minimum, every meaningful authored definition must have stable identity and enough metadata for deterministic validation. Where appropriate, add:
-
-- region identity;
-- prerequisite/trigger references;
-- title/description/presentation/localization keys instead of hard-wiring final player copy into canonical logic;
-- content version or equivalent versioned authoring contract;
-- documented stage/unlock effects;
-- explicit critical-path / optional-branch semantics where validation requires it.
-
-Do not build a generic content engine merely because one could exist. Optimize for Region 1 plus safe future extension.
-
-### A2. Discoveries
-
-Add a minimal but durable discovery model with the semantics already required by the content spec:
-
-- stable `DiscoveryId`;
-- category;
-- title/body keys;
-- deterministic unlock trigger;
-- provenance data/text key;
-- reviewed state separate from unlocked state;
-- optional location/presentation metadata without Unity dependencies.
-
-Discovery unlocks must be derived from canonical events/state and must be idempotent. Re-loading or replaying history must not duplicate unlocks or review transitions.
-
-### A3. Expeditions
-
-Add the smallest M4-appropriate expedition/objective model needed to author at least three routes/objectives and prove reference integrity.
-
-Do **not** turn M4 into a complete foreground expedition gameplay system if that belongs later. M4 needs stable definitions, deterministic availability/unlock/completion hooks, rewards/effects only where existing architecture can support them safely, and clear presentation requirements for M5/M6.
-
-If the correct M4 boundary is “definition + availability/completion state + deterministic simulation hook” rather than a full interactive mechanic, choose that boundary and document it.
-
-### A4. Region progression axes and completion
-
-Implement a simple canonical representation for the Region 1 restoration arc. At minimum cover:
-
-- ecological progression;
-- settlement/hub progression;
-- explicit region completion/closure milestone;
-- post-completion/evergreen state that does not reset completed world state.
-
-Prefer discrete, explainable stages over speculative continuous simulation.
-
-The new state must remain reconstructable, persistable, validator-clean, and presentation-independent.
+- actual Unity compatibility;
+- assembly/composition boundaries;
+- lifecycle-safe durable persistence;
+- application-driven mutations;
+- M3/M4 read-model binding;
+- deterministic development activity ingestion;
+- restart/replay correctness;
+- basic mobile navigation and accessible operation;
+- runtime evidence strong enough that the next campaign can be **M5 UX completion/polish**, not another architecture bootstrap.
 
 ---
 
-## 4. Workstream B — Full Region 1 authored graph
+## 3. Workstream A — Runtime/toolchain gate and Unity project bootstrap
 
-Replace the current five-project development seed with a coherent Region 1 graph. Preserve stable IDs already used by tests/save fixtures unless an evidence-backed migration strategy makes a change necessary.
+### A1. Prove the editor exists before generating editor state
 
-Target the documented content minimum without padding weak nodes:
+Detect the actual installed Unity 6 LTS editor and record:
 
-- **5–7 major restoration chains**;
-- **12–20 meaningful projects** total;
-- **6+ major landmarks**;
-- **2+ producer/infrastructure systems**;
-- **10+ discoveries** with deterministic provenance-bearing unlocks;
-- **3+ expedition objectives/routes**;
-- one region-level ecological progression arc;
-- one settlement/hub progression arc;
-- one strong region closure milestone;
-- a stable post-completion state.
+- exact editor version/build;
+- executable path;
+- platform/runtime backend relevant to the development host;
+- package manager resolution state;
+- whether batchmode EditMode/PlayMode execution is available.
 
-Use the existing Millbrook Valley seed as the starting fiction unless repository docs provide a stronger current direction.
+**If no compatible Unity 6 LTS editor is installed or usable, STOP at Gate A1.**
 
-### B1. Chain quality
+Do not:
 
-Every major chain must represent a transformation story rather than repeated numeric gates. Use dependency relationships that produce visible/systemic consequences, for example access → stabilization → restored function → dependent ecosystem/community payoff.
+- hand-author unverifiable Unity project YAML to appear productive;
+- claim editor import/compile/runtime evidence that did not execute;
+- silently install a different major Unity line;
+- spend the campaign rewriting headless systems to avoid the editor dependency.
 
-### B2. Dependency design
+Instead, set this prompt `BLOCKED`, record exact detection evidence and the first resumable action, keep headless truth untouched, commit/push only the truthful blocker record, and stop.
 
-Require:
+### A2. Bootstrap through the real editor/toolchain
 
-- at least one reachable entry path from a clean profile;
-- no hidden deadlock;
-- no cycles;
-- optional branches cannot block the critical path accidentally;
-- cross-chain dependencies are understandable and intentional;
-- the queue can always make progress when a legitimate available project exists.
+If A1 passes, create the minimal Unity project through the actual supported toolchain, preferably at `src/WalkGame.Unity` unless current repository structure justifies an equivalent path.
 
-### B3. Presentation contract without Unity
+Requirements:
 
-For every major landmark/stage and project outcome, author enough presentation metadata/requirements that a later Unity campaign can bind canonical state to visuals without reverse-engineering game logic.
+- target the installed Unity 6 LTS version deliberately and record the decision;
+- commit only source/config/assets needed for deterministic clean import;
+- never commit `Library/`, `Temp/`, `Logs/`, generated caches, IDE state, local machine paths, credentials, license material, build output, or user-specific files;
+- keep the package surface minimal;
+- use the Unity Test Framework or equivalent editor-supported test mechanism rather than inventing an external pseudo-runtime harness;
+- establish explicit assembly definitions/package boundaries so presentation depends inward on Application/Domain/Infrastructure without making those layers depend on Unity;
+- prove actual compatibility of the current `netstandard2.1`/C# 9 shared projects and `System.Text.Json` dependency from the real editor.
 
-This is documentation/data-contract work only. Do not create scenes, prefabs, meshes, materials, animation controllers, or hand-written Unity YAML.
-
----
-
-## 5. Workstream C — Deterministic progression integration
-
-Wire the expanded authored content into canonical progression without creating a parallel rules engine.
-
-Project completion and world advancement must produce deterministic consequences at the existing domain/application boundaries.
-
-Cover at least:
-
-- project prerequisite unlocking;
-- landmark stage advancement;
-- producer unlocks;
-- ecology/settlement stage updates;
-- discovery unlocks;
-- expedition availability/completion hooks where applicable;
-- region completion detection;
-- post-completion behavior;
-- return-summary/event visibility for major changes where the existing summary architecture can represent them coherently.
-
-Do not bypass `GameSession`, the trust pipeline, reward ledger, or offline advancement with content-specific shortcuts.
-
-If new event types are required, keep them typed, deterministic, bounded, and useful for summaries/tests/diagnostics. Avoid emitting high-volume noise for every tiny state change.
+If shared code requires a compatibility adjustment, choose the smallest architecture-preserving solution and prove the headless suite still passes. Never duplicate serializers, state models, content catalogs, or game rules only for Unity.
 
 ---
 
-## 6. Workstream D — Persistence and migration safety
+## 4. Workstream B — Composition root, persistence, lifecycle, and failure recovery
 
-Audit whether new canonical Region 1 state can be added safely under schema v2.
+Build one explicit composition/bootstrap root that owns runtime wiring but not canonical state.
 
-If persisted semantics require a schema bump:
+Wire the existing production stack deliberately:
 
-- increment `SchemaVersions.Current` deliberately;
-- add a registered migration from the previous schema;
-- define deterministic defaults for old saves;
-- preserve already-earned project/landmark/producer progress;
-- prove decode → migrate → validate → encode stability;
-- add representative v2 fixtures or explicit programmatic migration cases;
-- verify backup/recovery behavior remains correct.
+- `AtomicFileSaveStore` rooted under the correct Unity persistent-data location;
+- current `SaveCodec` and registered migration chain;
+- production `SystemClock` for ordinary runtime execution;
+- the **full M4 Region1Catalog**, not the old five-project seed assumption;
+- `GameSession` and its read models/use cases;
+- development-only synthetic activity source behind explicit development/editor configuration.
 
-Never silently reinterpret old canonical data in a way that grants or destroys progression.
+Required lifecycle behavior:
 
-If additive fields legitimately require no migration, document why and add backward-decoding tests proving the default semantics are correct.
+- cold launch can create or load a save deterministically;
+- session recreation reloads from disk rather than static/singleton shadow state;
+- all committed mutations persist before presentation treats them as durable;
+- boot-time advancement is not applied twice because scenes reload;
+- pending return summaries survive runtime restart until acknowledged;
+- summary acknowledgement is idempotent and progression-neutral;
+- save recovery/corruption failures produce a clear runtime state instead of a frozen or silently reset UI;
+- migration/load failure never continues with a half-valid canonical state;
+- exiting/re-entering screens cannot mutate world progress;
+- runtime teardown does not manufacture extra producer time or activity credit.
+
+Do not spread a service locator across arbitrary `MonoBehaviour`s. Keep composition centralized and testable.
 
 ---
 
-## 7. Workstream E — Content validation as a release gate
+## 5. Workstream C — Minimal runtime surfaces over canonical read models
 
-Expand `ContentValidator` or introduce a narrowly scoped validator layer so invalid Region 1 content fails fast before runtime.
+Implement a coherent lightweight mobile shell. This is the **qualification shell**, not final visual polish.
+
+### C1. Home + return summary
+
+Home must answer the existing UX contract quickly:
+
+- what changed;
+- what is progressing now;
+- whether attention is required.
+
+Bind canonical/application data for:
+
+- pending return summary;
+- primary next action / nothing-needs-attention state;
+- current project progress;
+- Vitality/resource summary where useful;
+- region completion/restoration summary;
+- navigation to Projects, Region, Discoveries, and Expeditions.
+
+The return summary must render the durable typed state and acknowledge only through the application operation after it is actually presented. Do not clear it on scene load.
+
+### C2. Projects
+
+Provide runtime controls for:
+
+- locked / available / queued / active / completed states;
+- enqueue/remove where allowed;
+- ordered queue;
+- reorder with an accessible non-drag alternative even if drag is also implemented;
+- persisted auto-advance toggle;
+- manual start/activation when automation is off;
+- prerequisite/unlock explanation sufficient for diagnostics;
+- explicit invalid-action feedback rather than silent no-op.
+
+All mutations must go through `GameSession`/application use cases. Refresh from a new read-model snapshot after success; never patch UI-local state as if the operation succeeded.
+
+### C3. Lightweight Region
+
+Bind `RegionReadModel` and M4 canonical state without loading a 3D world.
+
+Show at minimum:
+
+- all six major landmarks with canonical stage/status;
+- damaged/restored distinction without color-only meaning;
+- active/current project context;
+- producer unlock/output/store/cap state as exposed by application data;
+- ecology stage;
+- settlement stage;
+- region completion state/timestamp where appropriate;
+- compact progress toward closure.
+
+### C4. Discoveries
+
+Bind the landed M4 discovery contract:
+
+- authored discovery identity/title/body/provenance/location keys resolved into displayable content;
+- locked/unlocked distinction;
+- unread/reviewed distinction that survives restart;
+- review action routed through the canonical application operation;
+- reviewing a discovery may never gate or grant progression.
+
+### C5. Expeditions
+
+Bind the landed M4 expedition contract:
+
+- Locked / Available / Completed states;
+- route title/description and authored requirements;
+- no mandatory manual claim interaction;
+- completion/result presentation reflects canonical automatic progression;
+- one bounded celebration/summary hook is allowed, but no new foreground expedition rules may be invented in presentation.
+
+### C6. Closure/post-completion presentation
+
+Provide a deterministic lightweight closure state:
+
+- `IsCompleted` is reflected correctly;
+- closure is celebrated once from canonical event/summary state, not every launch;
+- post-completion world status remains stable after restart;
+- nothing resets Region 1 or forces Region 2.
+
+---
+
+## 6. Workstream D — Navigation, accessibility baseline, and runtime state coverage
+
+Implement only the baseline necessary to prove the shell is viable and to avoid building obvious M5 debt.
+
+Required:
+
+- Home is always one clear action away;
+- back behavior is coherent and does not recreate canonical state accidentally;
+- loading never looks like frozen input;
+- implemented screens have deliberate normal/loading/empty/error states;
+- no core state is communicated by color alone;
+- practical text scaling does not destroy navigation or primary actions;
+- interactive controls have meaningful semantic labels where supported;
+- focus order is sensible for keyboard/controller/screen-reader tooling where Unity permits it;
+- queue reorder has a non-drag path;
+- reduced-motion-safe behavior is the default for this qualification shell; no mandatory sweeping camera/particle transitions;
+- haptics/audio, if added at all, are optional and never required to understand state.
+
+Do **not** attempt complete M5 accessibility certification, notification architecture, polished onboarding, or every platform-specific semantics edge case here. The goal is to ensure the runtime architecture does not make those requirements impossible.
+
+---
+
+## 7. Workstream E — Development activity injector and deterministic runtime scenarios
+
+Expose a clearly development-only activity/absence surface that drives the **existing** platform-neutral seam.
+
+Rules:
+
+- all synthetic records enter through `GameSession.IngestFromSource` → `IngestActivityBatch`;
+- never call low-level `CreditActivity` or mutate Vitality directly for runtime acceptance;
+- use stable provider/source IDs and deterministic timestamps so replay is exactly-once;
+- release/non-development configuration must exclude or disable the injector cleanly;
+- controlled time must use the narrowest existing clock abstraction; do not create a Unity-only clock model;
+- test profiles may load known deterministic fixture saves, but fixtures must still pass through the real codec/validator and must not bypass progression logic to manufacture success.
+
+Provide development scenarios sufficient to exercise:
+
+1. ordinary one-day return;
+2. multi-day absence with multiple project boundaries;
+3. queue-empty/decision-needed state;
+4. discovery unlock/review;
+5. expedition availability/completion;
+6. ecology/settlement stage advancement;
+7. region closure/post-completion;
+8. replay of the exact same activity window;
+9. save recovery/error presentation where practically automatable.
+
+---
+
+## 8. Workstream F — EditMode/PlayMode/runtime acceptance evidence
+
+Use the strongest practical tests supported by the actual editor.
+
+### F1. EditMode / integration coverage
 
 At minimum prove:
 
-- all stable IDs are unique within their entity kind;
-- all project prerequisite references resolve;
-- no project dependency cycles;
-- an entry path exists;
-- the designated critical path is reachable to the closure milestone;
-- optional branches cannot be mandatory by accidental reference;
-- landmark stage trigger references resolve and stages are monotonic;
-- producer unlock references resolve and capacities/rates remain representable;
-- discovery trigger references resolve;
-- expedition references/rewards/effects resolve;
-- content/localization/presentation keys required by the new schema are non-empty and structurally valid;
-- every major canonical landmark state has documented presentation binding requirements;
-- region completion conditions are satisfiable;
-- no impossible or overflow-prone resource/progress requirement exists;
-- the final authored Region 1 definition itself validates with zero violations.
+- composition root can instantiate the production stack without Unity-owned canonical state;
+- Unity persistent-path adaptation can be redirected to an isolated temporary path for tests;
+- save/load/recovery/migration wiring works through the real shared Infrastructure layer;
+- Home/Projects/Region/Discoveries/Expeditions presenters/controllers consume immutable snapshots/application results;
+- development injector is absent/disabled in production configuration;
+- any shared-code compatibility adapter introduced for Unity is covered;
+- content/resource/presentation key resolution fails diagnostically rather than silently.
 
-Add red-team tests for malformed content, not only a happy-path catalog test.
+### F2. PlayMode qualification
 
-Do not make validation order-dependent. The current prerequisite validation checks references while accumulating project IDs; fix any behavior that incorrectly rejects a valid forward reference.
+Create a named runtime acceptance test or small family of tests that proves the actual player-visible M3/M4 story through the shell:
 
----
+1. clean deterministic launch;
+2. Home renders canonical state;
+3. player queues/chooses work through UI → application boundary;
+4. synthetic activity enters through `IngestFromSource`;
+5. one or more projects/landmarks/producers advance;
+6. app/session-equivalent recreation reloads durable state;
+7. pending return summary survives and acknowledges correctly;
+8. Discoveries reflects unlock/review persistence;
+9. Expeditions reflects locked/available/completed canonical state without manual claim semantics;
+10. Region reflects ecology/settlement stages and completion state;
+11. Projects reorder/toggle/manual-start operations remain correct after reload;
+12. replaying the identical activity window credits **zero** additional reward/world progress and creates no fabricated transformation summary;
+13. closure/post-completion presentation remains stable across another restart;
+14. final canonical state validates cleanly.
 
-## 8. Workstream F — Deterministic Region 1 simulation and pacing reports
+Prefer several diagnosable scenario tests over one opaque giant test.
 
-Extend the existing headless tooling instead of creating a separate simulator.
+### F3. Headless regression preservation
 
-Add a reproducible command/report that can run Region 1 from clean state through completion using representative activity profiles:
+After any Unity/shared-layer integration change, keep the existing repository gates green:
 
-- low;
-- moderate;
-- high;
-- irregular/bursty.
+- repository identity/guard proof;
+- `dotnet build SimpleWalkGame.sln`;
+- `dotnet test SimpleWalkGame.sln`;
+- documented simulation smoke;
+- M3 `walk --replay` proof;
+- M4 `profile`/validation evidence as applicable when content/economy code changes.
 
-The simulator must use canonical application/domain paths. It must not directly set completion flags merely to reach the end.
+Do not regenerate M4 pacing evidence unless a code/content change actually affects it.
 
-Produce machine-readable or stable text evidence for at least:
+### F4. Hosted Unity CI
 
-- activity/Vitality required per major project or chain;
-- region completion range per profile;
-- bottleneck resources/producers;
-- queue-empty frequency;
-- capped/idle producer time where measurable;
-- discovery unlock pacing;
-- expedition availability/completion pacing where implemented;
-- number of required foreground decisions;
-- final ecological/settlement stages;
-- closure milestone reached;
-- validator-clean final state.
+If reproducible hosted Unity tests can be added without unsafe licensing/secrets handling, do so narrowly. If licensing/environment prevents hosted Unity execution, keep hosted headless CI green and record Unity evidence as **local runtime verified** only. Never call it hosted-CI verified when it was not.
 
-Add deterministic replay evidence: identical profile + seed + content must produce the same meaningful final canonical state/report, and replaying already-trusted activity must not duplicate rewards/world progress.
-
-Do not invent arbitrary “good pacing” thresholds just to make tests pass. If tuning targets are not yet specified, report the measured distributions, document the chosen provisional targets, and make obviously pathological outcomes fail.
+No physical-device claim is allowed unless a real device run actually occurred.
 
 ---
 
-## 9. Workstream G — Automated acceptance evidence
+## 9. Workstream G — Runtime smoke performance and diagnostics
 
-Add named tests that make M4 completion auditable.
+Do not turn this into M8 performance hardening, but collect enough runtime evidence to prevent obvious architectural mistakes.
 
-Expected coverage includes:
+At minimum inspect and record:
 
-### Domain/content tests
+- cold import/compile stability;
+- shell launch responsiveness on the development host;
+- no unnecessary 3D scene or heavyweight world asset loading in lightweight screens;
+- obvious managed allocation/update-loop mistakes introduced by presentation;
+- save path and file size behavior under a mature M4 profile;
+- repeated lightweight screen navigation for runaway object/listener accumulation;
+- runtime logs free of repeating exceptions/warnings caused by the new shell.
 
-- full Region 1 graph validates;
-- forward prerequisite references validate correctly;
-- cycles/missing refs/duplicate IDs fail;
-- critical path is reachable;
-- discoveries unlock once and review state is independent;
-- expedition availability/completion hooks are deterministic;
-- ecology/settlement stages advance monotonically;
-- region completion is idempotent;
-- post-completion state remains stable;
-- producer bounds remain unchanged under the larger graph.
+If the shell obviously violates the documented lightweight architecture, fix it before declaring completion. Detailed device thermal/battery/frame-budget qualification remains M8/M9.
 
-### Persistence tests
-
-- new state roundtrips;
-- old-save compatibility/migration works;
-- migrated state remains validator-clean;
-- deterministic re-encode remains stable where existing policy requires it.
-
-### Application/integration acceptance
-
-Create a named M4 Region 1 acceptance test that drives a clean profile through the actual trust/progression stack and proves:
-
-1. initial graph is valid and exposes reachable work;
-2. representative activity enters through the normal ingestion/application path;
-3. queued work crosses multiple completion boundaries correctly;
-4. at least several landmark stages change;
-5. both producer/infrastructure systems unlock and remain bounded;
-6. discoveries unlock at intended milestones without duplicates;
-7. expedition hooks become available/complete deterministically;
-8. ecological and settlement stages progress;
-9. the region closure milestone is reached;
-10. the game is persisted/reloaded at meaningful boundaries;
-11. replaying already-processed activity is a no-op for reward and world progression;
-12. post-completion state remains stable after another advance/reload;
-13. final state and content validators are clean.
-
-Keep the acceptance test deterministic and diagnosable; avoid one giant opaque assertion.
+Add a small diagnostics surface or development logging only where it materially improves supportability: current save path/profile, activity-source status, last ingestion diagnostics/checkpoint, schema version, and runtime/editor version are useful; raw health payloads are not.
 
 ---
 
-## 10. Workstream H — Documentation and evidence reconciliation
+## 10. Cross-layer audit before completion
+
+After the runtime slice works, perform a deliberate whole-repository review.
+
+Inspect at least:
+
+- Unity assembly/package dependency direction;
+- whether any canonical state leaked into scene-owned mutable objects;
+- save/recovery/migration behavior under Unity lifecycle and file paths;
+- duplicate boot advancement and producer ticking;
+- return-summary commit/presentation/ack ordering;
+- queue mutation + snapshot refresh correctness;
+- discovery review persistence;
+- expedition automatic-completion semantics;
+- region closure one-shot presentation;
+- activity replay identity across runtime recreation;
+- clock/UTC/time-zone formatting at presentation boundaries;
+- listener/event subscription lifecycle across navigation;
+- dev injector exclusion from production configuration;
+- generated/project hygiene;
+- headless CLI/tests after shared-layer compatibility changes;
+- docs/evidence drift.
+
+A runtime-discovered defect may live in shared code. Fix root cause with a regression test. Conversely, do not rewrite shared code when the defect is presentation misuse.
+
+---
+
+## 11. Documentation and evidence reconciliation
 
 Before completion, update repository truth to exactly match what landed.
 
 At minimum reconcile:
 
-- `README.md` — actual M4 headless implementation/evidence, and M3-R still externally blocked if Unity remains unavailable;
-- `docs/ROADMAP.md` — check only M4 exit criteria supported by named evidence;
-- `docs/MASTER_PLAN.md` — record the dependency-safe scheduling pivot: M4 headless work advanced while M3-R runtime qualification remained externally blocked; do not rewrite history as if M3-R completed;
-- `docs/WORLD_AND_CONTENT.md` — actual authored schema, Region 1 composition, presentation contract, simulation/pacing evidence;
-- `docs/GAME_SYSTEMS.md` — any new canonical discovery/expedition/region-progression rules;
-- `docs/TECHNICAL_ARCHITECTURE.md` — actual content/state/validation boundaries;
-- `docs/UX_DESIGN.md` — presentation requirements implied by discoveries/expeditions/region completion, without claiming implemented Unity screens;
-- `docs/TESTING_AND_RELEASE.md` — exact validation/simulation commands and named M4 automated evidence;
-- `docs/DECISIONS.md` — durable choices about content schema, discovery/expedition boundary, completion model, migrations, and pacing methodology;
-- `docs/RISK_REGISTER.md` — content deadlock, pacing, migration, and scope risks exposed/mitigated;
-- `.agent/EXECUTION_PROMPT.md` — append a concise execution outcome and change `ACTIVE` to `COMPLETED` only if every applicable headless M4 gate is satisfied. If implementation work is blocked, set `BLOCKED` with exact evidence and first resumable gate.
+- `README.md` — actual Unity shell state, exact editor version, runtime evidence tier, current test totals, remaining unverified device/platform work;
+- `docs/ROADMAP.md` — mark only runtime criteria supported by named evidence; do not mark full M5 complete from this shell;
+- `docs/MASTER_PLAN.md` — if D-035 is genuinely closed, move the immediate-next pointer to the first remaining M5 completion campaign;
+- `docs/DECISIONS.md` — exact Unity 6 LTS version, package/assembly strategy, composition/persistence choices, and any compatibility decisions;
+- `docs/TECHNICAL_ARCHITECTURE.md` — real Unity composition root and dependency boundaries;
+- `docs/UX_DESIGN.md` — implemented runtime behavior for Home/Projects/Region/Discoveries/Expeditions/closure and explicit M5 gaps;
+- `docs/WORLD_AND_CONTENT.md` — only if runtime binding reveals a real presentation-contract correction;
+- `docs/TESTING_AND_RELEASE.md` — exact editor/batchmode test commands, named EditMode/PlayMode/runtime evidence, and honest evidence tiers;
+- `docs/PERFORMANCE_BUDGETS.md` — only for measurements actually established;
+- `docs/RISK_REGISTER.md` — runtime lifecycle/toolchain/presentation risks exposed or mitigated;
+- `.agent/EXECUTION_PROMPT.md` — append a concise execution outcome and set `ACTIVE` → `COMPLETED` only when every applicable campaign gate is satisfied. If Unity/runtime remains unavailable or an external gate prevents qualification, set `BLOCKED` with exact evidence and the first resumable action.
 
-Do not mark Unity runtime/device evidence complete unless it actually ran.
+Do not erase the historical fact that the earlier M3-R attempt was blocked; record that this campaign resumed and either closed or re-confirmed the blocker.
 
 ---
 
-## 11. Scope boundaries
+## 12. Scope boundaries
 
 Do **not** spend this campaign on:
 
-- installing or configuring Unity merely to unblock M3-R;
-- Unity scenes, prefabs, hand-authored YAML, final art, shaders, 3D world, character controller, camera, traversal, or Visit World (M6);
-- full mobile onboarding/settings/notification/accessibility implementation (M5);
-- Health Connect/HealthKit, permissions, background platform APIs, or physical-device ingestion (M7);
-- cloud sync, accounts, backend, multiplayer, social systems, monetization, ads, or live-service infrastructure;
+- changing Region 1 content scale/balance merely for novelty;
 - Region 2;
-- speculative ECS/content frameworks or generic authoring platforms;
-- broad performance benchmarking unrelated to deterministic content simulation;
-- rewriting proven M1–M3 semantics without evidence.
+- full M5 onboarding polish, notification implementation, permission flow integration, exhaustive settings, or complete accessibility certification beyond the baseline required here;
+- M6 Visit World: character controller, camera, terrain, 3D exploration, final art, shaders, streaming, environment production, quality tiers;
+- M7 Health Connect/HealthKit/native activity providers or physical-device permission qualification;
+- broad M8 red-team/performance/device hardening;
+- M9 release candidate work;
+- backend, accounts, cloud sync, multiplayer, social features, leaderboards, monetization, ads, live-service systems;
+- speculative framework migrations, ECS, generic MVVM packages, heavy DI frameworks, or custom content engines not demanded by runtime qualification;
+- rewriting proven trust/reward/persistence/content semantics without evidence.
 
-M4 may add **presentation requirements/keys** needed for later runtime work, but presentation itself remains out of scope.
+The shell may contain placeholders for art/layout, but placeholders must bind real canonical data and must not masquerade as completed M5/M6 presentation.
 
 ---
 
-## 12. Completion gates
+## 13. Completion gates
 
 This campaign is complete only when all applicable gates below are satisfied:
 
 1. Repository identity/lease/reconciliation policy was followed.
-2. The final authored Region 1 meets the documented M4 content scale without padding.
-3. The final content graph validates with zero violations.
-4. Critical path reaches the explicit region closure milestone from a clean state.
-5. No dependency cycle/deadlock remains.
-6. Discoveries and expedition hooks have durable deterministic semantics and validation.
-7. Ecology/settlement progression and post-completion state are canonical and tested.
-8. Save compatibility/migration evidence covers every new persisted semantic.
-9. Representative low/moderate/high/irregular simulations complete or produce an explicitly justified result, with deterministic reports.
-10. Replay/exactly-once behavior remains intact.
-11. Focused new tests pass.
-12. `dotnet build SimpleWalkGame.sln` passes.
-13. `dotnet test SimpleWalkGame.sln` passes in full.
-14. Existing guard/identity proof and repository-documented simulation/validation gates remain green.
-15. Relevant docs match the final implementation and distinguish HEADLESS/AUTOMATED VERIFIED from RUNTIME VERIFIED.
-16. Every introduced Critical/High defect is fixed.
-17. Intended work is committed and pushed to `origin/main` without force-push/history rewrite.
-18. Final local `main` equals `origin/main` and the working tree is clean.
-19. Hosted CI for the final pushed SHA is inspected. If it fails for an implementation-addressable reason, fix and push until green; if externally blocked, record exact evidence without pretending success.
-20. `.agent/EXECUTION_PROMPT.md` records the final outcome and no stale superseded campaign is left ACTIVE.
+2. A real compatible Unity 6 LTS editor was detected and exact version recorded.
+3. Unity project imports/compiles through the real editor without unverifiable hand-authored bootstrap artifacts.
+4. Shared Domain/Application/Infrastructure remain the canonical implementation; no Unity-owned fork exists.
+5. Composition root wires the production save/codec/clock/catalog/session stack correctly.
+6. Runtime lifecycle reloads durable state rather than relying on scene/static shadow state.
+7. Home + return summary work through application/read-model boundaries.
+8. Projects queue/reorder/auto-advance/manual-start operations work through application use cases.
+9. Lightweight Region accurately reflects M4 landmark/producer/ecology/settlement/completion state.
+10. Discoveries accurately reflect unlock/review state and review persistence.
+11. Expeditions accurately reflect locked/available/completed state without manual-claim divergence.
+12. Closure/post-completion presentation is one-shot/stable and never resets Region 1.
+13. Development activity enters through `IActivityRecordSource` / `IngestFromSource`; no presentation shortcut credits progression.
+14. Runtime restart/reload evidence proves summary and world state durability.
+15. Replay of already-processed activity is a no-op for reward/world progression in runtime evidence.
+16. EditMode/integration tests pass.
+17. PlayMode/runtime acceptance tests pass.
+18. `dotnet build SimpleWalkGame.sln` passes.
+19. `dotnet test SimpleWalkGame.sln` passes in full with no regression.
+20. Repository simulation/validation/guard gates remain green.
+21. No repeating runtime exceptions/warnings or obvious lifecycle listener leaks remain.
+22. No introduced Critical/High defect remains unresolved.
+23. Docs accurately distinguish AUTOMATED VERIFIED, RUNTIME VERIFIED, DEVICE VERIFIED, and UNVERIFIED claims.
+24. Intended work is committed and pushed to `origin/main` without force-push/history rewrite.
+25. Final local `main` equals `origin/main` and the working tree is clean.
+26. Hosted CI for the final pushed SHA is inspected; implementation-addressable failures are fixed before completion.
+27. `.agent/EXECUTION_PROMPT.md` records the outcome and no stale superseded campaign remains ACTIVE.
 
-A campaign is not complete because “most content exists.” It is complete when the repository can **prove** Region 1 is structurally valid, deterministic, persistable, completable headlessly, and ready for later presentation binding.
+If Gate A1 fails because Unity is unavailable, the correct result is **BLOCKED**, not a partial fake implementation.
 
 ---
 
-## 13. Git and reporting contract
+## 14. Git and reporting contract
 
-Use the repository's `AGENTS.md` policy as authoritative.
+Use `AGENTS.md` as authoritative.
 
 In addition:
 
-- Start from current `main`; fetch/reconcile before implementation.
-- Never force-push or rewrite shared history.
-- Use focused implementation commits with meaningful messages, but do not fragment trivial edits into noise.
-- Preserve unrelated user work.
-- Before final push, inspect the full diff for generated files, machine-local state, secrets, and accidental scope creep.
-- Final commit/report must state: start SHA, final SHA, major systems changed, schema/migration effect, new test counts/evidence, exact simulation commands/results, remaining blockers/deferrals, CI result, and whether M3-R Unity qualification remains externally blocked.
-- Finish on `main`, push to `origin/main`, and verify exact SHA equality.
+- start from current `main`; fetch/reconcile before implementation;
+- never force-push or rewrite shared history;
+- preserve unrelated user work;
+- use logical implementation commits with detailed messages;
+- before final integration/push, inspect the complete diff for generated Unity junk, local editor state, secrets, machine-specific paths, accidental binary/cache output, and scope creep;
+- if `origin/main` advanced after the starting SHA, reconcile deliberately under the repository lost-update policy and re-run affected verification;
+- final commit/report must state: start SHA, final SHA, exact Unity version, project/package/assembly strategy, major runtime surfaces landed, shared-layer compatibility changes, schema/migration effect, headless + Unity test counts/results, runtime acceptance scenarios, remaining M5/M6/M7 gaps, device evidence status, CI result, and whether D-035 is closed;
+- finish on `main`, push to `origin/main`, verify exact SHA equality, and release the writer lease normally.
 
 ---
 
-## 14. Stop conditions
+## 15. Stop conditions
 
 Stop and record a precise `BLOCKED` state instead of fabricating evidence if:
 
-- repository identity/lease safeguards fail;
-- required source truth is contradictory enough that a safe model cannot be chosen without a product decision;
-- a migration cannot preserve existing canonical progress safely;
-- content completion would require redefining a proven trust/reward invariant without evidence;
-- an external service/tool is required for a gate that cannot be reproduced headlessly.
+- repository identity or writer-lease safeguards fail;
+- no compatible Unity 6 LTS editor exists or licensing prevents actual editor execution;
+- the project cannot be imported/compiled without a material toolchain decision that requires operator input;
+- a migration/save compatibility issue cannot preserve canonical progress safely;
+- runtime qualification would require bypassing the trust pipeline or duplicating canonical state;
+- a required external service/license/tool blocks a gate that cannot be reproduced honestly.
 
-The absence of Unity is **not** itself a stop condition for this M4-H campaign, because Unity work is explicitly outside scope. It remains a separate M3-R blocker.
-
-When the headless M4 campaign is complete, stop. Do not automatically begin M5, M6, M7, hardening, or the blocked M3-R runtime campaign in the same session.
-
----
-
-## 15. Execution outcome (recorded by the executing session)
-
-**Outcome:** COMPLETED. Every applicable headless M4-H gate was satisfied; the only external blocker (no Unity editor -> M3-R runtime qualification) remains truthful, unchanged, and outside this campaign scope.
-
-- **Start SHA:** `27a6f5801f64189428c24075bd38d9a3aa8bc005` (plan activation) - **Final SHA:** `25bf731ed68885dbad61025fc45a6cab76a94e4e` (= `origin/main`, pushed without force-push; local == remote; tree clean).
-- **Landed (d673aa5 -> 25bf731):** WS-A/B domain models (discoveries, expeditions, progression arcs, closure milestone) + full Millbrook Valley authored graph (content v2: 19 projects / 6 chains / 6 landmarks / 3 producers / 13 discoveries / 3 expeditions; five seed definitions preserved verbatim); WS-C application integration (read models, review op, summary visibility); WS-E validator release gate incl. forward-reference defect fix + red-team suite; WS-G named acceptance proof `M4Region1AcceptanceTests`; WS-D additive schema-v2 backward-decoding evidence (D-036); WS-F deterministic `profile` pacing harness with committed reports (`docs/evidence/m4/`); WS-H documentation reconciliation across README, ROADMAP, MASTER_PLAN, WORLD_AND_CONTENT, GAME_SYSTEMS, TECHNICAL_ARCHITECTURE, UX_DESIGN, TESTING_AND_RELEASE, DECISIONS (D-036..D-039), RISK_REGISTER.
-- **Verification:** `dotnet build` clean; `dotnet test` 180/180 (Domain 101 / Infrastructure 25 / Application 54); AGENTS.md simulation smoke green; completed-region `validate --selftest` PASS (violations=0); walk replay of 16 windows credited 0 (16 duplicates ignored); guard proof suite 25/25; hosted CI **success** on final SHA `25bf731` (run 32922198325).
-- **Pacing evidence (D-039):** high d97 / irregular d139 / moderate d242 / low = documented long tail (62% vitality at d400); foreground pressure: exactly 19 queue decisions, <=1 queue-empty day, 0 capped-store days per profile.
-- **Schema effect:** none - additive v2 fields with absent-means-default decoding (D-036), proven by strip-and-redecode tests.
-- **Remaining blockers / deferrals:** M3-R Unity runtime qualification stays externally blocked (Gate A1: no Unity 6 LTS editor); low-profile completion beyond one year recorded as accepted pacing characteristic (D-039); discovery trigger models beyond project-completion deferred per D-037.
-- **Lease note:** preflight found a stale lease from dead session `pid-45188`; released via operator-authorized `writer-lease.ps1 -Release -Force` after PID-liveness verification, then acquired normally. No history rewrites occurred.
+Do not begin M5 full UX completion, M6, M7, hardening, or release qualification in the same session after this campaign completes. Stop after reconciliation and push so the planner can choose the next campaign from evidence.
