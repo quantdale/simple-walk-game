@@ -428,3 +428,17 @@ Stop and record a precise `BLOCKED` state instead of fabricating evidence if:
 The absence of Unity is **not** itself a stop condition for this M4-H campaign, because Unity work is explicitly outside scope. It remains a separate M3-R blocker.
 
 When the headless M4 campaign is complete, stop. Do not automatically begin M5, M6, M7, hardening, or the blocked M3-R runtime campaign in the same session.
+
+---
+
+## 15. Execution outcome (recorded by the executing session)
+
+**Outcome:** COMPLETED. Every applicable headless M4-H gate was satisfied; the only external blocker (no Unity editor -> M3-R runtime qualification) remains truthful, unchanged, and outside this campaign scope.
+
+- **Start SHA:** `27a6f5801f64189428c24075bd38d9a3aa8bc005` (plan activation) - **Final SHA:** `25bf731ed68885dbad61025fc45a6cab76a94e4e` (= `origin/main`, pushed without force-push; local == remote; tree clean).
+- **Landed (d673aa5 -> 25bf731):** WS-A/B domain models (discoveries, expeditions, progression arcs, closure milestone) + full Millbrook Valley authored graph (content v2: 19 projects / 6 chains / 6 landmarks / 3 producers / 13 discoveries / 3 expeditions; five seed definitions preserved verbatim); WS-C application integration (read models, review op, summary visibility); WS-E validator release gate incl. forward-reference defect fix + red-team suite; WS-G named acceptance proof `M4Region1AcceptanceTests`; WS-D additive schema-v2 backward-decoding evidence (D-036); WS-F deterministic `profile` pacing harness with committed reports (`docs/evidence/m4/`); WS-H documentation reconciliation across README, ROADMAP, MASTER_PLAN, WORLD_AND_CONTENT, GAME_SYSTEMS, TECHNICAL_ARCHITECTURE, UX_DESIGN, TESTING_AND_RELEASE, DECISIONS (D-036..D-039), RISK_REGISTER.
+- **Verification:** `dotnet build` clean; `dotnet test` 180/180 (Domain 101 / Infrastructure 25 / Application 54); AGENTS.md simulation smoke green; completed-region `validate --selftest` PASS (violations=0); walk replay of 16 windows credited 0 (16 duplicates ignored); guard proof suite 25/25; hosted CI **success** on final SHA `25bf731` (run 32922198325).
+- **Pacing evidence (D-039):** high d97 / irregular d139 / moderate d242 / low = documented long tail (62% vitality at d400); foreground pressure: exactly 19 queue decisions, <=1 queue-empty day, 0 capped-store days per profile.
+- **Schema effect:** none - additive v2 fields with absent-means-default decoding (D-036), proven by strip-and-redecode tests.
+- **Remaining blockers / deferrals:** M3-R Unity runtime qualification stays externally blocked (Gate A1: no Unity 6 LTS editor); low-profile completion beyond one year recorded as accepted pacing characteristic (D-039); discovery trigger models beyond project-completion deferred per D-037.
+- **Lease note:** preflight found a stale lease from dead session `pid-45188`; released via operator-authorized `writer-lease.ps1 -Release -Force` after PID-liveness verification, then acquired normally. No history rewrites occurred.
