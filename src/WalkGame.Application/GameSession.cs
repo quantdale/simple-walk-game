@@ -764,13 +764,125 @@ namespace WalkGame.Application
                 if (pair.Value.Status == ProjectStatus.Completed)
                     completed++;
 
+            int expeditionsAvailable = 0, expeditionsCompleted = 0;
+            foreach (var pair in game.Region.Expeditions)
+            {
+                if (pair.Value.CompletedAtUtc != null) expeditionsCompleted++;
+                else expeditionsAvailable++;
+            }
+
             return new RegionReadModel(
                 _content.TitleKey,
                 landmarks,
                 producers,
                 completed,
                 _content.Projects.Count,
-                game.Queue.ActiveProjectId);
+                game.Queue.ActiveProjectId,
+                game.Region.EcologyStage,
+                game.Region.SettlementStage,
+                game.Region.IsCompleted,
+                game.Region.RegionCompletedAtUtc,
+                game.Region.Discoveries.Count,
+                expeditionsAvailable,
+                expeditionsCompleted);
+        }
+
+        /// <summary>Discovery journal snapshot: every authored discovery with its flags.</summary>
+        public DiscoveriesReadModel GetDiscoveries()
+        {
+            var game = RequireState();
+
+            var rows = new List<DiscoveriesReadModel.DiscoveryRow>();
+            int unlocked = 0, unreviewed = 0;
+            foreach (var definition in _content.Discoveries)
+            {
+                game.Region.Discoveries.TryGetValue(definition.Id.Value, out var runtime);
+                bool isUnlocked = runtime != null;
+                if (isUnlocked) unlocked++;
+                if (isUnlocked && runtime!.Reviewed == false) unreviewed++;
+
+                rows.Add(new DiscoveriesReadModel.DiscoveryRow(
+                    definition.Id.Value,
+                    definition.Category,
+                    definition.TitleKey,
+                    definition.BodyKey,
+                    definition.ProvenanceKey,
+                    definition.LocationKey,
+                    isUnlocked,
+                    runtime?.DiscoveredAtUtc,
+                    runtime?.Reviewed ?? false));
+            }
+
+            return new DiscoveriesReadModel(rows, _content.Discoveries.Count, unlocked, unreviewed);
+        }
+
+        /// <summary>Expedition route snapshot with deterministic availability/completion status.</summary>
+        public ExpeditionsReadModel GetExpeditions()
+        {
+            var game = RequireState();
+
+            var rows = new List<ExpeditionsReadModel.ExpeditionRow>();
+            int available = 0, completed = 0;
+            foreach (var definition in _content.Expeditions)
+            {
+                game.Region.Expeditions.TryGetValue(definition.Id.Value, out var runtime);
+                var status = ExpeditionsReadModel.ExpeditionStatus.Locked;
+                if (runtime != null)
+                {
+                    if (runtime.CompletedAtUtc != null)
+                    {
+                        status = ExpeditionsReadModel.ExpeditionStatus.Completed;
+                        completed++;
+                    }
+                    else
+                    {
+                        status = ExpeditionsReadModel.ExpeditionStatus.Available;
+                        available++;
+                    }
+                }
+
+                var requiredProjects = new List<string>();
+                foreach (var projectId in definition.RequiredProjectIds)
+                    requiredProjects.Add(projectId);
+
+                var requiredStages = new List<string>();
+                foreach (var requirement in definition.RequiredStages)
+                    requiredStages.Add(requirement.LandmarkId + "@" + requirement.Stage);
+
+                rows.Add(new ExpeditionsReadModel.ExpeditionRow(
+                    definition.Id.Value,
+                    definition.TitleKey,
+                    definition.DescriptionKey,
+                    status,
+                    requiredProjects,
+                    requiredStages,
+                    definition.Reward?.Type,
+                    definition.Reward?.Units ?? 0L,
+                    runtime?.CompletedAtUtc));
+            }
+
+            return new ExpeditionsReadModel(rows, _content.Expeditions.Count, available, completed);
+        }
+
+        /// <summary>
+        /// Marks an unlocked discovery reviewed. Presentation convenience only (GAME_SYSTEMS
+        /// §7): idempotent, never gates progression, never alters earned state.
+        /// </summary>
+        public DomainResult MarkDiscoveryReviewed(string discoveryId)
+        {
+            var game = RequireState();
+            if (_content.FindDiscovery(discoveryId) == null)
+                return DomainResult.Fail(ErrorCodes.DiscoveryUnknown, $"Unknown discovery '{discoveryId}'.");
+            if (!game.Region.Discoveries.TryGetValue(discoveryId, out var runtime) || runtime == null)
+                return DomainResult.Fail(ErrorCodes.DiscoveryNotUnlocked, $"Discovery '{discoveryId}' has not been unlocked yet.");
+
+            if (!runtime.Reviewed)
+            {
+                runtime.Reviewed = true;
+                runtime.ReviewedAtUtc = _clock.UtcNow;
+                PersistOrThrow();
+            }
+            return DomainResult.Ok();
         }
 
         /// <summary>

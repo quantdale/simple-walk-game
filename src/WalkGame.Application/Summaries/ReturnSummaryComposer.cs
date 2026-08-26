@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using WalkGame.Domain.Economy;
 using WalkGame.Domain.Regions;
 using WalkGame.Domain.Simulation;
 using WalkGame.Domain.Summaries;
@@ -57,6 +58,9 @@ namespace WalkGame.Application.Summaries
             int availableNamed = 0;
             int availableExtra = 0;
             var unlockedProducers = new List<string>();
+            var unlockedDiscoveries = new List<string>();
+            var availableExpeditions = new List<string>();
+            var completedExpeditions = new List<(string Id, ResourceType? RewardType, long Units)>();
 
             foreach (var evt in events)
             {
@@ -112,12 +116,51 @@ namespace WalkGame.Application.Summaries
                     case ClockSkewIgnored:
                         clockSkew = true;
                         break;
+
+                    case DiscoveryUnlocked discovery:
+                        if (!unlockedDiscoveries.Contains(discovery.DiscoveryId))
+                            unlockedDiscoveries.Add(discovery.DiscoveryId);
+                        break;
+
+                    case ExpeditionAvailable expeditionAvailable:
+                        if (!availableExpeditions.Contains(expeditionAvailable.ExpeditionId))
+                            availableExpeditions.Add(expeditionAvailable.ExpeditionId);
+                        break;
+
+                    case ExpeditionCompleted expeditionCompleted:
+                        if (!completedExpeditions.Exists(e => e.Id == expeditionCompleted.ExpeditionId))
+                            completedExpeditions.Add((expeditionCompleted.ExpeditionId, expeditionCompleted.RewardType, expeditionCompleted.UnitsGranted));
+                        break;
+
+                    case RegionProgressionAdvanced progression:
+                        AddDeduped(merged, SummaryItemKind.Transformation,
+                            (progression.Axis == RegionProgressionAxis.Ecology ? "The valley's ecology" : "The settlement")
+                            + $" has reached stage {progression.Stage}.");
+                        break;
+
+                    case RegionCompleted:
+                        AddDeduped(merged, SummaryItemKind.Transformation,
+                            content.TitleKey + "'s restoration is complete.");
+                        break;
                 }
             }
 
             foreach (var producerId in unlockedProducers)
                 AddDeduped(merged, SummaryItemKind.Production,
                     Title(content.FindProducer(producerId)?.TitleKey, producerId) + " is now operating.");
+
+            foreach (var discoveryId in unlockedDiscoveries)
+                AddDeduped(merged, SummaryItemKind.Notice,
+                    "Discovery recorded: " + Title(content.FindDiscovery(discoveryId)?.TitleKey, discoveryId) + ".");
+
+            foreach (var expeditionId in availableExpeditions)
+                AddDeduped(merged, SummaryItemKind.Notice,
+                    Title(content.FindExpedition(expeditionId)?.TitleKey, expeditionId) + " route is ready.");
+
+            foreach (var (expeditionId, rewardType, units) in completedExpeditions)
+                AddDeduped(merged, SummaryItemKind.Transformation,
+                    Title(content.FindExpedition(expeditionId)?.TitleKey, expeditionId) + " expedition complete"
+                    + (rewardType == null ? "." : $" (+{units:N0} {rewardType})."));
 
             if (availableExtra > 0)
                 AddDeduped(merged, SummaryItemKind.ActionableDecision, $"{availableExtra} more projects became ready to queue.");

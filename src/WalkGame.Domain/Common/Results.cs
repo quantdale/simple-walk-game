@@ -12,6 +12,8 @@ namespace WalkGame.Domain.Common
         public const string ProjectAlreadyActive = "project.already-active";
         public const string QueueEmpty = "queue.empty";
         public const string InvalidQueueOrder = "queue.invalid-order";
+        public const string DiscoveryUnknown = "discovery.unknown";
+        public const string DiscoveryNotUnlocked = "discovery.not-unlocked";
         public const string InvalidArgument = "domain.invalid-argument";
     }
 
