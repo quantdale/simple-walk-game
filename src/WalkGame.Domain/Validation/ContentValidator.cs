@@ -166,7 +166,7 @@ namespace WalkGame.Domain.Validation
             if (cycleRoot != null)
                 violations.Add($"Project prerequisite chain contains a cycle at '{cycleRoot}'.");
 
-            if (hasReachableEntry && cycleRoot == null)
+            if (hasReachableEntry)
             {
                 var reachable = ComputeReachable(content);
                 if (content.CompletionMilestoneProjectId != null &&
