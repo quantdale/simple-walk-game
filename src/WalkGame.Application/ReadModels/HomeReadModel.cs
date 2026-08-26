@@ -5,6 +5,26 @@ using WalkGame.Domain.Regions;
 namespace WalkGame.Application.ReadModels
 {
     /// <summary>
+    /// Explicit attention classification for the Home surface (UX_DESIGN §3): why the
+    /// shell believes the player should look, or None. Derived deterministically from
+    /// canonical state; never persisted.
+    /// </summary>
+    public enum HomeAttentionReason
+    {
+        /// <summary>Nothing needs attention.</summary>
+        None = 0,
+
+        /// <summary>A durable return summary awaits acknowledgement.</summary>
+        PendingReturnSummary = 1,
+
+        /// <summary>No active/queued project while unallocated Vitality sits banked.</summary>
+        QueueEmptyWithBankedVitality = 2,
+
+        /// <summary>Fresh profile: no project has ever been started (informational).</summary>
+        NoProjectStartedYet = 3,
+    }
+
+    /// <summary>
     /// Purpose-built read model for the Home screen. Presentation receives immutable
     /// snapshots like this instead of mutable domain graphs.
     /// </summary>
@@ -34,6 +54,14 @@ namespace WalkGame.Application.ReadModels
 
         public string? PrimaryNextAction { get; }
 
+        /// <summary>True when the shell should request player attention, with the reason below.</summary>
+        public bool RequiresAttention { get; }
+
+        public HomeAttentionReason AttentionReason { get; }
+
+        /// <summary>Vitality currently unallocated because no project is active/queued; 0 otherwise.</summary>
+        public long BankedVitality { get; }
+
         public HomeReadModel(
             string regionTitleKey,
             long vitality, long materials, long knowledge,
@@ -44,7 +72,10 @@ namespace WalkGame.Application.ReadModels
             IReadOnlyList<LandmarkRow> landmarks,
             bool autoAdvance = true,
             bool hasPendingSummary = false,
-            string? primaryNextAction = null)
+            string? primaryNextAction = null,
+            bool requiresAttention = false,
+            HomeAttentionReason attentionReason = HomeAttentionReason.None,
+            long bankedVitality = 0)
         {
             RegionTitleKey = regionTitleKey;
             Vitality = vitality;
@@ -61,6 +92,9 @@ namespace WalkGame.Application.ReadModels
             AutoAdvance = autoAdvance;
             HasPendingSummary = hasPendingSummary;
             PrimaryNextAction = primaryNextAction;
+            RequiresAttention = requiresAttention;
+            AttentionReason = attentionReason;
+            BankedVitality = bankedVitality;
         }
 
         public sealed class QueuedRow

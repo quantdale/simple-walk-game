@@ -62,6 +62,14 @@ namespace WalkGame.Domain
         /// </summary>
         public PendingReturnSummaryState? PendingReturnSummary { get; set; }
 
+        /// <summary>
+        /// Bounded privacy-safe aggregate of the most recent ingestion batch (M5-H1).
+        /// Additive on schema v2 exactly like PendingReturnSummary: absent decodes to null
+        /// = "never run". Diagnostic evidence only — never a second copy of ledger/world
+        /// state, and never consulted by progression math.
+        /// </summary>
+        public IngestionOutcomeState? LastIngestionOutcome { get; set; }
+
         public RngState Rng { get; set; }
     }
 

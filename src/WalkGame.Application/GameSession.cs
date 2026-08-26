@@ -4,6 +4,7 @@ using System.IO;
 using WalkGame.Application.Activity;
 using WalkGame.Application.Persistence;
 using WalkGame.Application.ReadModels;
+using WalkGame.Application.Ux;
 using WalkGame.Application.Summaries;
 using WalkGame.Domain;
 using WalkGame.Domain.Activity;
@@ -27,6 +28,41 @@ namespace WalkGame.Application
         NoSaveFound = 3,
         SaveUnreadable = 4,
         StateInvalid = 5,
+    }
+
+        /// <summary>Boot outcome classification for the support diagnostics projection.</summary>
+    public enum DiagnosticsBootOutcome
+    {
+        NeverBooted = 0,
+        NewGameCreated = 1,
+        Loaded = 2,
+        RecoveredFromBackup = 3,
+        NoSaveFound = 4,
+        SaveUnreadable = 5,
+        StateInvalid = 6,
+    }
+
+    /// <summary>Structured failure category of the last failed boot decode attempt.</summary>
+    public enum CodecFailureCategory
+    {
+        None = 0,
+        MalformedEnvelope = 1,
+        ChecksumMismatch = 2,
+        VersionTooOld = 3,
+        VersionTooNew = 4,
+        MigrationFailed = 5,
+        DeserializationFailed = 6,
+        StateValidationFailed = 7,
+    }
+
+    /// <summary>Stable application-level error codes for UX contract operations.</summary>
+    public static class UxErrorCodes
+    {
+        public const string PreferencesStoreMissing = "ux.preferences-store-missing";
+        public const string InvalidReminderTime = "ux.invalid-reminder-time";
+        public const string InvalidOnboardingTarget = "ux.invalid-onboarding-target";
+        public const string OnboardingPrerequisite = "ux.onboarding-prerequisite-not-met";
+        public const string ConnectionPortMissing = "ux.connection-port-missing";
     }
 
     public sealed class StartResult
@@ -142,19 +178,68 @@ namespace WalkGame.Application
         private readonly ISaveCodec _codec;
         private readonly IClock _clock;
         private readonly RegionDefinition _content;
+        private readonly IUxPreferencesStore? _preferencesStore;
+        private readonly IActivityConnectionPort? _connectionPort;
 
         private GameState? _state;
 
+        /// <summary>Cached local UX preferences; documented defaults until a store is wired.</summary>
+        private UxPreferencesState _preferences = UxPreferencesState.CreateDefault();
+
+        private UxPreferencesLoadOutcome _preferencesLoadOutcome = UxPreferencesLoadOutcome.NotFound;
+
+        private string? _preferencesLoadDetail;
+
+        // Boot evidence for the support diagnostics projection (bounded, privacy-safe).
+        private DiagnosticsBootOutcome _lastBootOutcome = DiagnosticsBootOutcome.NeverBooted;
+        private bool _lastBootRecoveredFromBackup;
+        private CodecFailureCategory _lastBootCodecFailure = CodecFailureCategory.None;
+        private IReadOnlyList<string> _lastBootAppliedMigrations = Array.Empty<string>();
+
         public GameSession(ISaveStore store, ISaveCodec codec, IClock clock, RegionDefinition content)
+            : this(store, codec, clock, content, preferencesStore: null, connectionPort: null)
+        {
+        }
+
+        public GameSession(ISaveStore store, ISaveCodec codec, IClock clock, RegionDefinition content,
+            IUxPreferencesStore? preferencesStore)
+            : this(store, codec, clock, content, preferencesStore, connectionPort: null)
+        {
+        }
+
+        public GameSession(ISaveStore store, ISaveCodec codec, IClock clock, RegionDefinition content,
+            IUxPreferencesStore? preferencesStore, IActivityConnectionPort? connectionPort)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
             _content = content ?? throw new ArgumentNullException(nameof(content));
+            _preferencesStore = preferencesStore;
+            _connectionPort = connectionPort;
+
+            LoadPreferencesFromStore();
 
             var violations = ContentValidator.Validate(_content);
             if (violations.Count > 0)
                 throw new ArgumentException("Invalid region content: " + string.Join("; ", violations), nameof(content));
+        }
+
+        /// <summary>
+        /// Loads the durable local preferences once at construction. A damaged or future-
+        /// version record degrades to documented defaults instead of blocking boot (D-042):
+        /// preferences are never allowed to prevent gameplay.
+        /// </summary>
+        private void LoadPreferencesFromStore()
+        {
+            if (_preferencesStore == null)
+                return;
+
+            var result = _preferencesStore.Load();
+            _preferencesLoadOutcome = result.Outcome;
+            _preferencesLoadDetail = result.Detail;
+            _preferences = result.State != null
+                ? result.State
+                : UxPreferencesState.CreateDefault();
         }
 
         public bool HasLoadedState => _state != null;
@@ -182,6 +267,7 @@ namespace WalkGame.Application
             }
 
             _state = fresh;
+            CaptureBootOutcome(DiagnosticsBootOutcome.NewGameCreated, recoveredFromBackup: false);
             return new StartResult(StartStatus.NewGameCreated, new[]
             {
                 "A new restoration begins in " + _content.TitleKey + ".",
@@ -196,7 +282,10 @@ namespace WalkGame.Application
         {
             var primary = SafeReadPrimary();
             if (primary.Outcome == SaveReadOutcome.NotFound)
+            {
+                CaptureBootOutcome(DiagnosticsBootOutcome.NoSaveFound, recoveredFromBackup: false);
                 return new StartResult(StartStatus.NoSaveFound);
+            }
 
             string? primaryDecodeDetail = null;
             if (primary.EnvelopeBytes != null)
@@ -225,6 +314,7 @@ namespace WalkGame.Application
                 primary.Detail ??
                 backup.Detail ??
                 "Save data could not be read.";
+            CaptureBootOutcome(DiagnosticsBootOutcome.SaveUnreadable, recoveredFromBackup: false);
             return new StartResult(StartStatus.SaveUnreadable, detail: reason);
         }
 
@@ -359,6 +449,22 @@ namespace WalkGame.Application
 
             game.IngestionCheckpointUtc = maxTrustedEndUtc;
 
+            // Bounded diagnostic evidence of this batch, committed in the SAME atomic
+            // write as the rewards it describes (never consulted by progression math).
+            game.LastIngestionOutcome = new IngestionOutcomeState
+            {
+                Outcome = IngestionOutcomeKind.Succeeded,
+                CompletedAtUtc = nowUtc,
+                TotalReceived = total,
+                Accepted = accepted,
+                Rejected = rejected,
+                DuplicatesIgnored = duplicates,
+                CorrectionsApplied = corrections,
+                DeletionsApplied = deletionsApplied,
+                VitalityCredited = vitalityTotal,
+                UnappliedReversalVitality = game.ProcessedRecords.UnappliedReversalVitality,
+            };
+
             OfflineAdvancer.AllocateVitality(game, _content, nowUtc, events);
             ComposePendingSummary(game, events);
 
@@ -381,9 +487,29 @@ namespace WalkGame.Application
         public IngestResult IngestFromSource(IActivityRecordSource source, DateTimeOffset windowStartUtc, DateTimeOffset windowEndUtc)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));
-            RequireState();
+            var game = RequireState();
 
-            var records = source.FetchRecords(windowStartUtc, windowEndUtc);
+            IReadOnlyList<NormalizedActivityRecord> records;
+            try
+            {
+                records = source.FetchRecords(windowStartUtc, windowEndUtc);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+            {
+                // Durably record the transient refresh failure as bounded evidence so the
+                // shell can classify "temporarily unable to refresh" across restarts, then
+                // rethrow — callers keep their existing failure semantics. Prior progress
+                // is untouched: nothing reached the trust pipeline.
+                game.LastIngestionOutcome = new IngestionOutcomeState
+                {
+                    Outcome = IngestionOutcomeKind.SourceFetchFailed,
+                    CompletedAtUtc = _clock.UtcNow,
+                    ErrorCategory = ex.GetType().Name,
+                };
+                PersistOrThrow();
+                throw;
+            }
+
             return IngestActivityBatch(records);
         }
 
@@ -684,9 +810,19 @@ namespace WalkGame.Application
             }
 
             int completed = 0;
+            bool anyStarted = false;
             foreach (var pair in region.Projects)
+            {
                 if (pair.Value.Status == ProjectStatus.Completed)
+                {
                     completed++;
+                    anyStarted = true;
+                }
+                else if (pair.Value.Status == ProjectStatus.Active)
+                {
+                    anyStarted = true;
+                }
+            }
 
             var landmarkRows = new List<HomeReadModel.LandmarkRow>();
             foreach (var landmark in _content.Landmarks)
@@ -697,9 +833,30 @@ namespace WalkGame.Application
                 landmarkRows.Add(new HomeReadModel.LandmarkRow(landmark.Id.Value, landmark.TitleKey, stage));
             }
 
+            long vitality = game.Resources.Get(ResourceType.Vitality);
+
+            bool queueIdle = activeId == null && queuedRows.Count == 0;
+            long banked = queueIdle ? vitality : 0L;
+            var reason = HomeAttentionReason.None;
+            bool requiresAttention = false;
+            if (game.PendingReturnSummary != null)
+            {
+                requiresAttention = true;
+                reason = HomeAttentionReason.PendingReturnSummary;
+            }
+            else if (queueIdle && banked > 0)
+            {
+                requiresAttention = true;
+                reason = HomeAttentionReason.QueueEmptyWithBankedVitality;
+            }
+            else if (queueIdle && !anyStarted)
+            {
+                reason = HomeAttentionReason.NoProjectStartedYet;
+            }
+
             return new HomeReadModel(
                 _content.TitleKey,
-                game.Resources.Get(ResourceType.Vitality),
+                vitality,
                 game.Resources.Get(ResourceType.Materials),
                 game.Resources.Get(ResourceType.Knowledge),
                 activeId, activeTitle, invested, cost,
@@ -708,7 +865,10 @@ namespace WalkGame.Application
                 landmarkRows,
                 game.Queue.AutoAdvance,
                 game.PendingReturnSummary != null,
-                game.PendingReturnSummary?.PrimaryNextAction);
+                game.PendingReturnSummary?.PrimaryNextAction,
+                requiresAttention,
+                reason,
+                banked);
         }
 
         /// <summary>Complete Projects management snapshot for presentation.</summary>
@@ -925,9 +1085,287 @@ namespace WalkGame.Application
             return DomainResult.Ok();
         }
 
+        // ---------------------------------------------------------------------
+        // M5-H1: local UX preferences + onboarding (D-042). These operations
+        // touch ONLY the local preferences store — never GameState, never the
+        // canonical save envelope. Preference writes cannot alter progression.
+        // ---------------------------------------------------------------------
+
+        /// <summary>Settings snapshot built from local preferences plus the canonical auto-advance flag.</summary>
+        public SettingsReadModel GetSettings()
+        {
+            var game = RequireState();
+            var categories = new List<NotificationCategoryRow>
+            {
+                Row(NotificationCategory.ProjectCompletions, _preferences.NotifyProjectCompletions),
+                Row(NotificationCategory.ExpeditionResults, _preferences.NotifyExpeditionResults),
+                Row(NotificationCategory.Discoveries, _preferences.NotifyDiscoveries),
+            };
+
+            return new SettingsReadModel(
+                _preferences.ReducedMotion,
+                _preferences.HapticsEnabled,
+                _preferences.SoundEnabled,
+                _preferences.NotificationsOptIn,
+                categories,
+                _preferences.DailyReminderEnabled,
+                _preferences.DailyReminderMinutesOfDay,
+                UxPreferencesState.ReminderMinutesMin,
+                UxPreferencesState.ReminderMinutesMax,
+                _preferences.DiagnosticsVisible,
+                game.Queue.AutoAdvance);
+        }
+
+        public DomainResult SetReducedMotion(bool enabled) => UpdatePreferences(p => p.ReducedMotion = enabled);
+
+        public DomainResult SetHapticsEnabled(bool enabled) => UpdatePreferences(p => p.HapticsEnabled = enabled);
+
+        public DomainResult SetSoundEnabled(bool enabled) => UpdatePreferences(p => p.SoundEnabled = enabled);
+
+        public DomainResult SetNotificationsOptIn(bool optIn) => UpdatePreferences(p => p.NotificationsOptIn = optIn);
+
+        public DomainResult SetNotificationCategory(NotificationCategory category, bool enabled)
+        {
+            return UpdatePreferences(p =>
+            {
+                switch (category)
+                {
+                    case NotificationCategory.ProjectCompletions: p.NotifyProjectCompletions = enabled; break;
+                    case NotificationCategory.ExpeditionResults: p.NotifyExpeditionResults = enabled; break;
+                    case NotificationCategory.Discoveries: p.NotifyDiscoveries = enabled; break;
+                    case NotificationCategory.DailyReminder:
+                        p.DailyReminderEnabled = enabled && p.DailyReminderEnabled;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(category));
+                }
+            });
+        }
+
+        /// <summary>Configures the optional daily reminder. Quiet hours are delegated to the OS; only a time-of-day is stored.</summary>
+        public DomainResult SetDailyReminder(bool enabled, int minutesOfDay)
+        {
+            if (minutesOfDay < UxPreferencesState.ReminderMinutesMin || minutesOfDay > UxPreferencesState.ReminderMinutesMax)
+                return DomainResult.Fail(
+                    UxErrorCodes.InvalidReminderTime,
+                    "Reminder minutes-of-day must be between " + UxPreferencesState.ReminderMinutesMin + " and " + UxPreferencesState.ReminderMinutesMax + ".");
+
+            return UpdatePreferences(p =>
+            {
+                p.DailyReminderEnabled = enabled;
+                p.DailyReminderMinutesOfDay = minutesOfDay;
+            });
+        }
+
+        public DomainResult SetDiagnosticsVisible(bool visible) => UpdatePreferences(p => p.DiagnosticsVisible = visible);
+
+        /// <summary>Outcome of the last preferences load, for support diagnostics only.</summary>
+        public UxPreferencesLoadOutcome PreferencesLoadOutcome => _preferencesLoadOutcome;
+
+        public string? PreferencesLoadDetail => _preferencesLoadDetail;
+
+        private DomainResult UpdatePreferences(Action<UxPreferencesState> mutate)
+        {
+            if (_preferencesStore == null)
+                return DomainResult.Fail(UxErrorCodes.PreferencesStoreMissing, "No UX preferences store is configured for this session.");
+
+            mutate(_preferences);
+            try
+            {
+                _preferencesStore.Save(_preferences.Clone());
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                throw new IOException("Persisting UX preferences failed: " + ex.Message, ex);
+            }
+            return DomainResult.Ok();
+        }
+
+        // ---------------------------------------------------------------------
+        // Onboarding flow state machine (durable in the local store, forward-only,
+        // canonical-gated at the first-project step).
+        // ---------------------------------------------------------------------
+
+        /// <summary>
+        /// Presentation-ready onboarding projection. Side-effect free; safe to call in
+        /// every state including permission-denied profiles.
+        /// </summary>
+        public OnboardingReadModel GetOnboarding() => BuildOnboardingReadModel(_preferences.OnboardingStage);
+
+        /// <summary>
+        /// Forward-only onboarding progress. Moving backwards or to the current stage is an
+        /// idempotent no-op. Reaching Complete requires that a first project actually exists
+        /// in canonical queue/active/completed state — onboarding alone can never satisfy
+        /// it; the choice must have been made through the real project operations.
+        /// </summary>
+        public DomainResult AdvanceOnboarding(OnboardingStage target)
+        {
+            if (target < OnboardingStage.NotStarted || target > OnboardingStage.Complete)
+                return DomainResult.Fail(UxErrorCodes.InvalidOnboardingTarget, "Unknown onboarding stage value.");
+
+            if (target <= _preferences.OnboardingStage)
+                return DomainResult.Ok();
+
+            if (target == OnboardingStage.Complete && !HasFirstProjectBeenChosen())
+                return DomainResult.Fail(
+                    UxErrorCodes.OnboardingPrerequisite,
+                    "Complete requires a chosen first project through the normal project operations.");
+
+            return UpdatePreferences(p => p.OnboardingStage = target);
+        }
+
+        // ---------------------------------------------------------------------
+        // M5-H1: activity connection status projection (D-043) — pure, side-effect
+        // free, and never a mutator of progression. Requires a connection port;
+        // headless compositions without one get an explicit error.
+        // ---------------------------------------------------------------------
+
+        /// <summary>Player-safe activity connection status. Reading never touches state.</summary>
+        public ActivityStatusReadModel GetActivityStatus()
+        {
+            if (_connectionPort == null)
+                throw new InvalidOperationException(
+                    "No activity connection port is configured for this session (" + UxErrorCodes.ConnectionPortMissing + ").");
+
+            var game = RequireState();
+            var outcome = game.LastIngestionOutcome;
+            return ActivityStatusProjector.Project(
+                _connectionPort.SnapshotConnection(),
+                hasProcessedAnyRecord: game.ProcessedRecords.Count > 0,
+                lastOutcome: outcome?.Outcome ?? IngestionOutcomeKind.NeverRun,
+                lastBatchVitalityCredited: outcome?.Outcome == IngestionOutcomeKind.Succeeded ? outcome.VitalityCredited : 0L,
+                lastProcessedAtUtc: outcome?.Outcome == IngestionOutcomeKind.Succeeded ? outcome.CompletedAtUtc : null);
+        }
+
+        /// <summary>Support-oriented diagnostics snapshot. Privacy-safe by construction:
+        /// classified enums, bounded counters, timestamps; adapter technical detail only via
+        /// the adapter-owned string. Never raw records or payloads (D-044).</summary>
+        public DiagnosticsReadModel GetDiagnostics()
+        {
+            var game = RequireState();
+            var nowUtc = _clock.UtcNow;
+
+            var outcome = game.LastIngestionOutcome;
+            var checkpointAge = nowUtc - game.IngestionCheckpointUtc;
+            if (checkpointAge < TimeSpan.Zero)
+                checkpointAge = TimeSpan.Zero;
+
+            return new DiagnosticsReadModel(
+                generatedAtUtc: nowUtc,
+                bootOutcome: _lastBootOutcome,
+                recoveredFromBackup: _lastBootRecoveredFromBackup,
+                lastBootCodecFailure: _lastBootCodecFailure,
+                appliedMigrationsAtBoot: _lastBootAppliedMigrations,
+                schemaVersion: game.SchemaVersion,
+                regionId: game.Region.RegionId,
+                ingestionCheckpointUtc: game.IngestionCheckpointUtc,
+                checkpointWatermarkAgeDays: (long)checkpointAge.TotalDays,
+                processedRecordCount: game.ProcessedRecords.Count,
+                lifetimeVitalityCredited: game.ProcessedRecords.TotalVitalityCredited,
+                unappliedReversalVitality: game.ProcessedRecords.UnappliedReversalVitality,
+                lastIngestion: outcome == null ? null : DiagnosticsIngestionRow.FromState(outcome),
+                preferencesLoadOutcome: _preferencesLoadOutcome,
+                preferencesLoadDetail: BoundDetail(_preferencesLoadDetail),
+                connectionTechnicalDetail: BoundDetail(_connectionPort?.SnapshotConnection().TechnicalDetail));
+        }
+
+        /// <summary>Bounds adapter/store-provided technical text so diagnostics stay bounded.</summary>
+        private static string? BoundDetail(string? detail)
+        {
+            if (detail == null)
+                return null;
+            return detail.Length <= 300 ? detail : detail.Substring(0, 300);
+        }
+
+        private void CaptureBootOutcome(DiagnosticsBootOutcome outcome, bool recoveredFromBackup)
+        {
+            _lastBootOutcome = outcome;
+            _lastBootRecoveredFromBackup = recoveredFromBackup;
+        }
+
+        private static CodecFailureCategory MapCodecFailure(CodecStatus status)
+        {
+            switch (status)
+            {
+                case CodecStatus.MalformedEnvelope: return CodecFailureCategory.MalformedEnvelope;
+                case CodecStatus.ChecksumMismatch: return CodecFailureCategory.ChecksumMismatch;
+                case CodecStatus.VersionTooOld: return CodecFailureCategory.VersionTooOld;
+                case CodecStatus.VersionTooNew: return CodecFailureCategory.VersionTooNew;
+                case CodecStatus.MigrationFailed: return CodecFailureCategory.MigrationFailed;
+                case CodecStatus.DeserializationFailed: return CodecFailureCategory.DeserializationFailed;
+                default: return CodecFailureCategory.MalformedEnvelope;
+            }
+        }
+
+        private NotificationCategoryRow Row(NotificationCategory category, bool enabled) =>
+            new NotificationCategoryRow(category, enabled, _preferences.NotificationsOptIn && enabled);
+
+        private OnboardingReadModel BuildOnboardingReadModel(OnboardingStage stage)
+        {
+            bool firstProjectChosen = HasFirstProjectBeenChosen();
+
+            var activityStep = OnboardingActivityStepState.NotAvailable;
+            if (_connectionPort != null)
+            {
+                var snapshot = _connectionPort.SnapshotConnection();
+                switch (snapshot.Permission)
+                {
+                    case ActivityPermissionState.Granted:
+                    case ActivityPermissionState.PartiallyGranted:
+                        activityStep = OnboardingActivityStepState.Granted;
+                        break;
+                    case ActivityPermissionState.NotRequested:
+                        activityStep = OnboardingActivityStepState.NotYetRequested;
+                        break;
+                    case ActivityPermissionState.Denied:
+                    case ActivityPermissionState.Revoked:
+                        activityStep = OnboardingActivityStepState.Denied;
+                        break;
+                    default:
+                        activityStep = snapshot.Availability == ActivitySourceAvailability.Unsupported
+                            ? OnboardingActivityStepState.SourceUnavailable
+                            : OnboardingActivityStepState.NotYetRequested;
+                        break;
+                }
+            }
+
+            var nextAction = stage switch
+            {
+                OnboardingStage.NotStarted => OnboardingNextAction.ExplainPremise,
+                OnboardingStage.Premise => OnboardingNextAction.ShowWorldBaseline,
+                OnboardingStage.WorldBaseline => OnboardingNextAction.OfferActivityConnection,
+                OnboardingStage.ActivityConnection => OnboardingNextAction.ChooseFirstProject,
+                OnboardingStage.FirstProject => firstProjectChosen
+                    ? OnboardingNextAction.DemonstrateProgression
+                    : OnboardingNextAction.ChooseFirstProject,
+                OnboardingStage.Simulation => OnboardingNextAction.ShowExitMessage,
+                OnboardingStage.Exit => OnboardingNextAction.None,
+                _ => OnboardingNextAction.None,
+            };
+
+            bool deniedButNavigable = activityStep == OnboardingActivityStepState.Denied;
+            return new OnboardingReadModel(stage, nextAction, firstProjectChosen, activityStep, deniedButNavigable);
+        }
+
+        /// <summary>Canonical fact: any queued, active, or completed project exists.</summary>
+        private bool HasFirstProjectBeenChosen()
+        {
+            var game = RequireState();
+            if (game.Queue.ActiveProjectId != null || game.Queue.QueuedProjectIds.Count > 0)
+                return true;
+
+            foreach (var pair in game.Region.Projects)
+                if (pair.Value.Status == ProjectStatus.Completed)
+                    return true;
+            return false;
+        }
+
         private StartResult FinishBoot(GameState state, bool recoveredFromBackup)
         {
             _state = state;
+            CaptureBootOutcome(
+                recoveredFromBackup ? DiagnosticsBootOutcome.RecoveredFromBackup : DiagnosticsBootOutcome.Loaded,
+                recoveredFromBackup);
 
             var events = new List<SimulationEvent>();
             OfflineAdvancer.Advance(state, _content, _clock.UtcNow, events);
@@ -1003,12 +1441,20 @@ namespace WalkGame.Application
         {
             var decoded = _codec.Decode(envelopeBytes);
             if (decoded.Status != CodecStatus.Ok || decoded.State == null)
+            {
+                _lastBootCodecFailure = MapCodecFailure(decoded.Status);
                 return new DecodeAndValidateOutcome(null, DescribeDecodeFailure(decoded));
+            }
 
             var violations = GameStateValidator.Validate(decoded.State, _content);
             if (violations.Count > 0)
+            {
+                _lastBootCodecFailure = CodecFailureCategory.StateValidationFailed;
                 return new DecodeAndValidateOutcome(null, "Save state failed validation: " + string.Join("; ", violations));
+            }
 
+            _lastBootCodecFailure = CodecFailureCategory.None;
+            _lastBootAppliedMigrations = decoded.AppliedMigrations;
             return new DecodeAndValidateOutcome(decoded.State, null);
         }
 
