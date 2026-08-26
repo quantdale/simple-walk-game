@@ -107,7 +107,17 @@ namespace WalkGame.Domain.Validation
                     violations.Add($"Landmark '{landmark.Id}' has stage '{stage}' not present in its content definition.");
             }
 
-            // Producer runtimes.
+            // Producer runtimes. Every content producer must own a runtime row: rows are
+            // created at game start for the full content set, so a missing row means
+            // silent corruption — the producer would never produce or unlock again.
+            var knownProducerIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var definition in content.Producers)
+                knownProducerIds.Add(definition.Id.Value);
+            foreach (var definition in content.Producers)
+            {
+                if (state.Region.FindProducer(definition.Id.Value) == null)
+                    violations.Add($"Missing runtime state for producer '{definition.Id}'.");
+            }
             foreach (var producer in state.Region.Producers)
             {
                 var definition = content.FindProducer(producer.ProducerId);
