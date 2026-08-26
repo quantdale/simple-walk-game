@@ -590,6 +590,9 @@ internal static class Cli
                    M8-H1 LONG-HORIZON HARNESS: months of app-closed days through the real
                    trust pipeline; prints machine-readable growth/performance record
                    (processed/ledger sizes, save bytes, validator state, wall time)
+              bench     --save <dir> [--iterations N] [--days N]
+                   PHASE TIMING HARNESS: catalog/validation/encode/decode/ctor/boot+ingest
+                   day costs as BENCH-RESULT lines for optimization comparisons
               ack       --save <dir>
                   acknowledge (dismiss) the pending return summary; idempotent
               dump      --save <dir>

@@ -538,3 +538,60 @@ Named, reproducible gates added by the M4-H campaign (all automated verified; ru
 3. dotnet run --project tools/simulation -- profile --save <dir> --profile low|moderate|high|irregular --days 400 — deterministic pacing reports (committed under vidence/m4/); rerunning any profile reproduces its report byte-for-byte.
 4. dotnet run --project tools/simulation -- walk --save <dir> --days N --at <iso> --replay — unchanged M3 replay proof still credits zero against the expanded graph.
 5. 	ests/guards/run-guard-tests.sh — guard proof suite green.
+
+---
+
+## M5-H1 automated evidence (headless)
+
+Named, reproducible gates added by the M5-H1 campaign (all automated verified; runtime/device evidence remains UNVERIFIED and out of scope):
+
+1. dotnet build SimpleWalkGame.sln — zero errors (295 tests compile clean).
+2. dotnet test SimpleWalkGame.sln — Domain 105 / Infrastructure 48 / Application 142. M5-H1 suites:
+   - LocalPreferencesStoreTests — D-042 store contract: atomic single-file writes, NotFound/Malformed/FutureVersion degradation, absent-keys-mean-default merge, byte-stable rewrites, interrupted-write temporaries ignored, no canonical-state keys in payload.
+   - OnboardingAndPreferencesTests — durable forward-only stage flow, canonical first-project gate for Complete (stable error codes), restart resume, preference churn provably byte-neutral to save.json, reminder range validation, missing-store explicit failure, damaged prefs never blocking boot.
+   - ActivityStatusProjectionTests — documented six-state precedence table, recommended-action mapping, rapid-transition determinism, zero-record vs mature-history classification, denial does not trap navigation, external revocation without progress mutation, durable source-failure classification with exactly-once retry, side-effect-free reads.
+   - DiagnosticsReadModelTests — boot/recovery/migration evidence (recovered-from-backup keeps primary-failure category), mixed-batch counters, watermark age null until a real batch, VersionTooNew via properly framed future envelope, diagnostics available even when boot failed, raw exception text can never leak.
+   - M5H1ShellAcceptanceTests — THE named low-attention acceptance: scenarios 1–11 (first-run grant; first-run denial not trapping the profile; 1-day return calm; 7-day app-closed advancement surviving reloads; 30-day bounded long-absence summary inside the glance budget with watermark-age evidence; queue-empty attention reason with banked vitality and unchanged fallback policy; transient source failure preserving progress with exactly-once retry; external permission revocation with intact progress and representable reconnect; calm save-recovery surfacing with diagnostics proof and no silent reset; byte-level preference isolation across restarts; zero-additional replay after onboarding/settings/status/diagnostics operations).
+   - M5H1ContractHardeningTests — 14-payload hostile preferences table (never throw, never partially interpret), interrupted writes never promote temporaries, path-independent byte-stable rewrites under churn, documented transition sequences end in exact classifications, read models side-effect-free at zero records AND mature histories, stale diagnostic snapshots frozen and never canonical inputs, onboarding interruption resumed exactly at every durable step with the gate enforced after each restart, explicit per-version-class schema policy, reflection-based sweep proving no raw exception/health text reaches any player-facing surface.
+3. Guard proof suite (== building isolated fixture repository ==
+== scenario 1: correct repo passes ==
+  PASS: guard accepts faithful clone (exit 0)
+== scenario 2: identity file claiming the SIBLING repo fails ==
+  PASS: guard rejects sibling identity file (exit 86)
+== scenario 3: wrong origin slug fails ==
+  PASS: guard rejects sibling origin (https) (exit 86)
+  PASS: guard rejects sibling origin (ssh) (exit 86)
+== scenario 4: wrong CI repository value fails ==
+  PASS: guard rejects mismatched GITHUB_REPOSITORY (exit 86)
+  PASS: matching GITHUB_REPOSITORY passes (exit 0)
+== scenario 5: second writer lease acquisition fails ==
+  PASS: first lease acquires (exit 0)
+  PASS: second lease refused (exit 87)
+== scenario 6: released lease permits a new writer ==
+  PASS: foreign release without --force refused (exit 87)
+  PASS: owner releases (exit 0)
+  PASS: new writer acquires after release (exit 0)
+  PASS: cleanup release (exit 0)
+== scenario 7: stale lease is NOT silently stolen ==
+  PASS: stale lease reported BUSY with STALE CANDIDATE diagnostics
+  PASS: plain acquire does NOT steal stale lease (exit 87)
+  PASS: --force alone does NOT steal (env ack required) (exit 87)
+  PASS: stale lease file survived all refusal paths, still owned by 'ghost'
+  PASS: operator override (flag + env ack) takes over explicitly (exit 0)
+  PASS: override holder releases cleanly (exit 0)
+== scenario 8: pre-push detects unexpected remote advancement ==
+REPOSITORY IDENTITY OK: quantdale/simple-walk-game (Simple Walk Game)
+  PASS: divergent push refused by pre-push lost-update guard
+  PASS: session B's divergent commit did NOT land on the remote
+  PASS: reconciled (rebased) push accepted
+== scenario 9: guard behaves correctly from a nested working directory ==
+  PASS: guard resolves nested cwd to repo root (exit 0)
+  PASS: lease also resolves nested cwd (exit 0)
+  PASS: nested cleanup release (exit 0)
+== scenario 10: HTTPS and SSH forms of the correct remote normalize identically ==
+  PASS: https / scp-ssh / ssh:// forms all normalize to quantdale/simple-walk-game
+
+==============================
+GUARD PROOF SUITE: 25 passed, 0 failed
+==============================) — unchanged, green.
+4. Simulation smoke + tamper selftest and  exactly-once proof — unchanged contracts consumed unchanged by all new code.

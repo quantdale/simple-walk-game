@@ -57,8 +57,7 @@ namespace WalkGame.Infrastructure.Persistence
 
             if (File.Exists(_primaryPath))
             {
-                byte[] currentPrimary = File.ReadAllBytes(_primaryPath);
-                WriteDurable(_backupTempPath, currentPrimary);
+                CopyToDurableFile(_primaryPath, _backupTempPath);
                 ReplaceFile(_backupTempPath, _backupPath);
             }
 
@@ -83,6 +82,24 @@ namespace WalkGame.Infrastructure.Persistence
             if (File.Exists(destinationPath))
                 File.Delete(destinationPath);
             File.Move(sourcePath, destinationPath);
+        }
+
+        /// <summary>
+        /// Streams the previous primary generation into the backup slot without holding
+        /// the whole save in memory. The copy becomes durable before it is promoted,
+        /// exactly like <see cref="WriteDurable"/> did for the buffered variant.
+        /// </summary>
+        private static void CopyToDurableFile(string sourcePath, string destinationPath)
+        {
+            using (var source = new FileStream(
+                sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (var destination = new FileStream(
+                destinationPath, FileMode.Create, FileAccess.Write, FileShare.None,
+                bufferSize: 4096))
+            {
+                source.CopyTo(destination, bufferSize: 16384);
+                destination.Flush(flushToDisk: true);
+            }
         }
 
         private static SaveReadResult ReadFile(string path)
@@ -185,12 +202,18 @@ namespace WalkGame.Infrastructure.Persistence
             }
         }
 
-        /// <summary>Write + FlushToDisk semantics; WriteThrough bypasses the OS cache.</summary>
+        /// <summary>
+        /// Durable write: Flush(flushToDisk:true) issues FlushFileBuffers, which is the
+        /// actual durability barrier the atomic-commit sequence relies on — data reaches
+        /// media before any rename step runs. FILE_FLAG_WRITE_THROUGH was deliberately
+        /// not requested: with a single buffered write followed by an explicit flush to
+        /// disk it adds no durability and measurably slows every commit on Windows.
+        /// </summary>
         private static void WriteDurable(string path, byte[] bytes)
         {
             using (var stream = new FileStream(
                 path, FileMode.Create, FileAccess.Write, FileShare.None,
-                bufferSize: 4096, FileOptions.WriteThrough))
+                bufferSize: 4096))
             {
                 stream.Write(bytes, 0, bytes.Length);
                 stream.Flush(flushToDisk: true);

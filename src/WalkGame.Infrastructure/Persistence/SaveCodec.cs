@@ -20,6 +20,8 @@ namespace WalkGame.Infrastructure.Persistence
 
         private readonly MigrationRunner _migrations;
 
+        [ThreadStatic] private static System.Security.Cryptography.SHA256? _sha256;
+
         public SaveCodec(MigrationRunner migrations)
         {
             _migrations = migrations ?? throw new ArgumentNullException(nameof(migrations));
@@ -83,26 +85,31 @@ namespace WalkGame.Infrastructure.Persistence
                 return new DecodeResult(CodecStatus.VersionTooOld, null, sourceVersion);
 
             JsonNode? payloadNode;
-            try
-            {
-                payloadNode = JsonNode.Parse(payloadBytes);
-            }
-            catch (JsonException ex)
-            {
-                return new DecodeResult(CodecStatus.DeserializationFailed, null, sourceVersion, detail: ex.Message);
-            }
-            if (payloadNode == null)
-                return new DecodeResult(CodecStatus.DeserializationFailed, null, sourceVersion, detail: "Payload parsed to empty node.");
-
-            var appliedMigrations = (IReadOnlyList<string>)Array.Empty<string>();
-            if (!_migrations.TryMigrate(sourceVersion, CurrentSchemaVersion, ref payloadNode, out var applied, out var migrationError))
-                return new DecodeResult(CodecStatus.MigrationFailed, null, sourceVersion, appliedMigrations, migrationError);
-            appliedMigrations = applied;
-
             GameState? state;
+            IReadOnlyList<string> appliedMigrations = Array.Empty<string>();
             try
             {
-                state = payloadNode.Deserialize<GameState>(SaveJson.Options);
+                if (sourceVersion == CurrentSchemaVersion)
+                {
+                    // Fast path: no migration pending, so deserialize directly from the
+                    // payload bytes. Materializing a JsonNode DOM first cost several times
+                    // the deserialization itself on every boot of every current save.
+                    state = JsonSerializer.Deserialize<GameState>(payloadBytes, SaveJson.Options);
+                }
+                else
+                {
+                    payloadNode = JsonNode.Parse(payloadBytes);
+                    if (payloadNode == null)
+                        return new DecodeResult(CodecStatus.DeserializationFailed, null, sourceVersion, detail: "Payload parsed to empty node.");
+
+                    var appliedMigrationsList = (IReadOnlyList<string>)Array.Empty<string>();
+                    if (!_migrations.TryMigrate(sourceVersion, CurrentSchemaVersion, ref payloadNode, out var applied, out var migrationError))
+                        return new DecodeResult(CodecStatus.MigrationFailed, null, sourceVersion, appliedMigrationsList, migrationError);
+                    appliedMigrationsList = applied;
+
+                    state = payloadNode.Deserialize<GameState>(SaveJson.Options);
+                    appliedMigrations = appliedMigrationsList;
+                }
             }
             catch (JsonException ex)
             {
@@ -119,7 +126,9 @@ namespace WalkGame.Infrastructure.Persistence
 
         private static byte[] Sha256(byte[] bytes)
         {
-            using var sha = SHA256.Create();
+            // Thread-scoped instance: encode+decode hash on every commit; transform
+            // construction per call is pure churn and instances are never shared across threads.
+            var sha = _sha256 ??= System.Security.Cryptography.SHA256.Create();
             return sha.ComputeHash(bytes);
         }
 

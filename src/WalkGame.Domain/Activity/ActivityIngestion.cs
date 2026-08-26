@@ -101,6 +101,19 @@ namespace WalkGame.Domain.Activity
     }
 
     /// <summary>
+    /// Thread-scoped SHA-256 reuse: hashing is deterministic regardless of instance,
+    /// so large ingestion batches and reward-ID derivation avoid one transform
+    /// construction per call. Instances are never shared across threads.
+    /// </summary>
+    internal static class Sha256Pool
+    {
+        [ThreadStatic] private static System.Security.Cryptography.SHA256? _instance;
+
+        public static System.Security.Cryptography.SHA256 Rent() =>
+            _instance ??= System.Security.Cryptography.SHA256.Create();
+    }
+
+    /// <summary>
     /// Versioned stable identity for logical activity records (ACTIVITY_PIPELINE.md §6).
     /// Preferred: platform source record ID inside a provider namespace.
     /// Fallback: deterministic fingerprint over normalized stable fields.
@@ -138,9 +151,7 @@ namespace WalkGame.Domain.Activity
                 record.EndUtc.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture),
                 record.Quantity.ToString(CultureInfo.InvariantCulture));
 
-            byte[] hash;
-            using (var sha = SHA256.Create())
-                hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(canonical));
+            byte[] hash = Sha256Pool.Rent().ComputeHash(System.Text.Encoding.UTF8.GetBytes(canonical));
             return ToHex(hash);
         }
 
@@ -152,10 +163,17 @@ namespace WalkGame.Domain.Activity
         private static string ToHex(byte[] bytes)
         {
 #if NETSTANDARD2_1_OR_GREATER || NET5_0_OR_GREATER
-            var builder = new System.Text.StringBuilder(bytes.Length * 2);
-            foreach (byte b in bytes)
-                builder.Append(b.ToString("x2", CultureInfo.InvariantCulture));
-            return builder.ToString();
+            // Lowercase hex via table lookup: identical output to byte.ToString("x2",
+            // InvariantCulture) without per-byte boxing and culture-aware formatting on
+            // the ingest fingerprint hot path.
+            const string HexDigits = "0123456789abcdef";
+            var chars = new char[bytes.Length * 2];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                chars[i * 2] = HexDigits[bytes[i] >> 4];
+                chars[i * 2 + 1] = HexDigits[bytes[i] & 0xF];
+            }
+            return new string(chars);
 #else
             return Convert.ToHexString(bytes).ToLowerInvariant();
 #endif
@@ -284,9 +302,7 @@ namespace WalkGame.Domain.Activity
 
         private static Guid Derive(string canonical)
         {
-            byte[] hash;
-            using (var sha = SHA256.Create())
-                hash = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(canonical));
+            byte[] hash = Sha256Pool.Rent().ComputeHash(System.Text.Encoding.UTF8.GetBytes(canonical));
 
             var guidBytes = new byte[16];
             Array.Copy(hash, guidBytes, 16);
