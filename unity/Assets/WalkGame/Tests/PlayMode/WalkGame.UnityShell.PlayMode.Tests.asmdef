@@ -1,0 +1,26 @@
+{
+    "name": "WalkGame.UnityShell.PlayMode.Tests",
+    "rootNamespace": "WalkGame.UnityShell.PlayModeTests",
+    "references": ["Assembly-CSharp"],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "WalkGame.Domain.dll",
+        "WalkGame.Application.dll",
+        "WalkGame.Infrastructure.dll",
+        "System.Text.Json.dll",
+        "System.Text.Encodings.Web.dll",
+        "Microsoft.Bcl.AsyncInterfaces.dll",
+        "System.Buffers.dll",
+        "System.Memory.dll",
+        "System.Runtime.CompilerServices.Unsafe.dll",
+        "System.Threading.Tasks.Extensions.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

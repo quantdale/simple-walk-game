@@ -1,0 +1,10 @@
+<linker>
+  <!--
+    The canonical core is consumed as precompiled managed plugins. Preserve every
+    type: save deserialization (System.Text.Json) and content lookups rely on
+    reflection over these assemblies; IL2CPP stripping must never remove them.
+  -->
+  <assembly fullname="WalkGame.Domain" preserve="all" />
+  <assembly fullname="WalkGame.Application" preserve="all" />
+  <assembly fullname="WalkGame.Infrastructure" preserve="all" />
+</linker>

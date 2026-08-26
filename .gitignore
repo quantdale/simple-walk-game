@@ -17,3 +17,15 @@ TestResults/
 
 # Local save slots used during development smoke runs
 saves/
+
+# Unity generated
+unity/Library/
+unity/Temp/
+unity/Obj/
+unity/Logs/
+unity/UserSettings/
+unity/Builds/
+unity/.utmp/
+unity/*.csproj
+unity/*.sln
+unity/Assets/WalkGame/Plugins/Core/
