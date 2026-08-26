@@ -152,7 +152,7 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 ## Current repository state
 
-**Status: M1 (deterministic core), M2 (activity trust pipeline), headless M3 (ambient progression) and M4-H (Region 1 content systems) implemented and automated-verified; M8-H1 (headless trust & persistence hardening) completed — persistence hostile-path, mature-save/migration, adversarial red-team, temporal-anomaly, long-horizon and seeded-property suites landed. **221 automated tests**. Unity presentation not started and remains externally blocked (no editor in this environment; runtime gates recorded UNVERIFIED).**
+**Status: M1 (deterministic core), M2 (activity trust pipeline), headless M3 (ambient progression) and M4-H (Region 1 content systems) implemented and automated-verified; M8-H1 (headless trust & persistence hardening) completed — persistence hostile-path, mature-save/migration, adversarial red-team, temporal-anomaly, long-horizon and seeded-property suites landed. **221 automated tests**. M5-R1 runtime campaign closed BLOCKED at the Unity environment gate: Unity 6000.3.22f1 pinned (D-044), installers staged, every non-interactive install path exhausted (`docs/evidence/m5-r1/UNITY_ENVIRONMENT.md`); an authored-but-uncompiled shell is staged under `unity/` and labeled UNVERIFIED — no Editor ever ran here.**
 
 The repository now contains a headless .NET implementation of the deterministic game core:
 
@@ -234,6 +234,6 @@ After two concurrent autonomous executor sessions damaged overlapping work (comm
   inherit the preflight. See also `scripts/new-agent-worktree.sh` for isolated
   concurrent sessions (`one writer = one worktree = one branch`).
 
-The immediate next campaign is the Unity presentation shell + runtime verification of the already-implemented M3/M4 boundaries (requires an installed Unity 6 LTS editor), per [`docs/ROADMAP.md`](docs/ROADMAP.md) and D-035. The M3-R blocker remains truthful: no Unity editor exists in this execution environment.
+The immediate next campaign resumes M5-R1 at its failed gate after two interactive human actions (editor elevation + license sign-in) documented in [`docs/evidence/m5-r1/UNITY_ENVIRONMENT.md`](docs/evidence/m5-r1/UNITY_ENVIRONMENT.md); it starts from the committed `unity/` sources and the pinned 6000.3.22f1 editor (D-044), not from re-planning.
 
 The project should resist premature feature expansion. A small, deeply integrated, polished ambient-fitness loop is more valuable than a large collection of disconnected game systems.
