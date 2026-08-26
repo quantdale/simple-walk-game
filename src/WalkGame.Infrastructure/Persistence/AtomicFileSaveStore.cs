@@ -7,13 +7,20 @@ namespace WalkGame.Infrastructure.Persistence
     /// <summary>
     /// Durable file store with atomic commit and one-generation backup.
     ///
-    /// Write sequence:
+    /// Write sequence (WriteAtomic):
     ///   1. envelope bytes → slot.tmp   (durable flush)
     ///   2. existing primary → backup.tmp → backup   (previous good copy retained)
     ///   3. slot.tmp → primary          (atomic replace)
     ///
-    /// A crash at any point leaves either the old primary or the new primary intact and
-    /// the previous generation recoverable from backup.
+    /// Recovery sequence (WriteAtomicPreservingBackup), used after boot fell back to the
+    /// backup because the primary failed decode/validation:
+    ///   1. envelope bytes → slot.tmp   (durable flush)
+    ///   2. slot.tmp → primary          (atomic replace; backup untouched)
+    ///
+    /// A crash at any point leaves either the old primary or the new primary intact, and
+    /// the most recent healthy generation recoverable from backup. A known-bad primary is
+    /// never promoted into the backup slot, so recovering can never trade the last valid
+    /// generation for garbage.
     /// </summary>
     public sealed class AtomicFileSaveStore : ISaveStore
     {
@@ -34,6 +41,8 @@ namespace WalkGame.Infrastructure.Persistence
             _backupPath = Path.Combine(directory, slotName + ".backup.json");
             _tempPath = Path.Combine(directory, slotName + ".tmp");
             _backupTempPath = Path.Combine(directory, slotName + ".backup.tmp");
+
+            CleanupStaleTemporaries();
         }
 
         public SaveReadResult ReadPrimary() => ReadFile(_primaryPath);
@@ -56,6 +65,15 @@ namespace WalkGame.Infrastructure.Persistence
             ReplaceFile(_tempPath, _primaryPath);
         }
 
+        /// <inheritdoc />
+        public void WriteAtomicPreservingBackup(byte[] envelopeBytes)
+        {
+            if (envelopeBytes == null) throw new ArgumentNullException(nameof(envelopeBytes));
+
+            WriteDurable(_tempPath, envelopeBytes);
+            ReplaceFile(_tempPath, _primaryPath);
+        }
+
         /// <summary>
         /// netstandard2.1 lacks File.Move(overwrite). Delete+Move keeps the safety contract:
         /// a crash between the two steps leaves the previous generation in backup.
@@ -70,7 +88,18 @@ namespace WalkGame.Infrastructure.Persistence
         private static SaveReadResult ReadFile(string path)
         {
             if (!File.Exists(path))
+            {
+                // File.Exists also returns false when the file's metadata cannot be
+                // accessed at all (for example permission-denied). Probe once so an
+                // intact-but-inaccessible save is diagnosed as an I/O failure instead of
+                // being misreported as absent — "no save found" must mean the save is
+                // really not there, never "we could not look".
+                var accessFailure = ClassifyInaccessible(path);
+                if (accessFailure != null)
+                    return accessFailure;
+
                 return SaveReadResult.Fail(SaveReadOutcome.NotFound, $"No file at '{path}'.");
+            }
 
             try
             {
@@ -82,6 +111,77 @@ namespace WalkGame.Infrastructure.Persistence
             catch (IOException ex)
             {
                 return SaveReadResult.Fail(SaveReadOutcome.IoFailure, ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return SaveReadResult.Fail(
+                    SaveReadOutcome.IoFailure,
+                    $"Access denied reading '{path}': {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns an IoFailure result when the path exists but cannot be opened for
+        /// reading (access denied, or the path names a directory). Returns null when the
+        /// probe confirms the file is genuinely absent/unreadable-as-missing.
+        /// </summary>
+        private static SaveReadResult? ClassifyInaccessible(string path)
+        {
+            try
+            {
+                using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                }
+            }
+            catch (FileNotFoundException)
+            {
+                return null;
+            }
+            catch (DirectoryNotFoundException)
+            {
+                return null;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return SaveReadResult.Fail(
+                    SaveReadOutcome.IoFailure,
+                    $"Access denied reading '{path}': {ex.Message}");
+            }
+            catch (IOException ex)
+            {
+                return SaveReadResult.Fail(SaveReadOutcome.IoFailure, ex.Message);
+            }
+
+            // The probe succeeded — the file appeared between the existence check and the
+            // probe. Report the read outcome honestly rather than NotFound.
+            return SaveReadResult.Fail(SaveReadOutcome.IoFailure,
+                $"File '{path}' appeared while being checked; retry the read.");
+        }
+
+        /// <summary>
+        /// Removes leftover temporary files from a previously crashed session. Temp files
+        /// are never canonical data (reads ignore them and the next write recreates them),
+        /// so deleting them at construction cannot lose progress.
+        /// </summary>
+        private void CleanupStaleTemporaries()
+        {
+            TryDeleteQuietly(_tempPath);
+            TryDeleteQuietly(_backupTempPath);
+        }
+
+        private static void TryDeleteQuietly(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                    File.Delete(path);
+            }
+            catch (IOException)
+            {
+                // Best effort only; the write path tolerates leftover temporaries.
+            }
+            catch (UnauthorizedAccessException)
+            {
             }
         }
 

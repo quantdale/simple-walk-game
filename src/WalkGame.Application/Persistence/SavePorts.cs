@@ -44,6 +44,14 @@ namespace WalkGame.Application.Persistence
 
         /// <summary>Atomically commits envelope bytes to primary and refreshes the backup.</summary>
         void WriteAtomic(byte[] envelopeBytes);
+
+        /// <summary>
+        /// Atomically commits envelope bytes to primary WITHOUT rotating the current
+        /// primary into the backup slot; existing backup bytes stay untouched. The boot-
+        /// recovery path uses this so a known-bad primary can never displace the last
+        /// healthy generation while recovered state is being made durable.
+        /// </summary>
+        void WriteAtomicPreservingBackup(byte[] envelopeBytes);
     }
 
     public enum CodecStatus

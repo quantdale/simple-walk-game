@@ -35,7 +35,7 @@ namespace WalkGame.Application.Summaries
 
         /// <summary>Appends an operational notice (backup recovery, save warnings) to pending state.</summary>
         public static PendingReturnSummaryState WithNotice(
-            PendingReturnSummaryState state, DateTimeOffset generatedAtUtc, string noticeText)
+            PendingReturnSummaryState? state, DateTimeOffset generatedAtUtc, string noticeText)
         {
             var merged = new List<PendingSummaryItemState>();
             if (state != null)

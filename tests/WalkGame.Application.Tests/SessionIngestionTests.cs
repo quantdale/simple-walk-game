@@ -488,6 +488,9 @@ public sealed class SessionIngestionTests : IDisposable
             _inner.WriteAtomic(envelopeBytes);
         }
 
+        public void WriteAtomicPreservingBackup(byte[] envelopeBytes) =>
+            WriteAtomic(envelopeBytes);
+
         public SaveReadResult ReadPrimary() => _inner.ReadPrimary();
 
         public SaveReadResult ReadBackup() => _inner.ReadBackup();

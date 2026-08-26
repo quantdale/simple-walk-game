@@ -176,6 +176,10 @@ namespace WalkGame.Application
             {
                 return new StartResult(StartStatus.SaveUnreadable, detail: "Could not create a new save: " + ex.Message);
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                return new StartResult(StartStatus.SaveUnreadable, detail: "Could not create a new save: " + ex.Message);
+            }
 
             _state = fresh;
             return new StartResult(StartStatus.NewGameCreated, new[]
@@ -194,22 +198,30 @@ namespace WalkGame.Application
             if (primary.Outcome == SaveReadOutcome.NotFound)
                 return new StartResult(StartStatus.NoSaveFound);
 
+            string? primaryDecodeDetail = null;
             if (primary.EnvelopeBytes != null)
             {
                 var decodedPrimary = DecodeAndValidate(primary.EnvelopeBytes);
                 if (decodedPrimary.State != null)
                     return FinishBoot(decodedPrimary.State, recoveredFromBackup: false);
+                primaryDecodeDetail = decodedPrimary.Error;
             }
 
+            string? backupDecodeDetail = null;
             var backup = SafeReadBackup();
             if (backup.EnvelopeBytes != null)
             {
                 var decodedBackup = DecodeAndValidate(backup.EnvelopeBytes);
                 if (decodedBackup.State != null)
                     return FinishBoot(decodedBackup.State, recoveredFromBackup: true);
+                backupDecodeDetail = decodedBackup.Error;
             }
 
+            // Surface the specific failure reason (integrity, version, migration,
+            // validation) instead of a generic unreadable-save message.
             string reason =
+                primaryDecodeDetail ??
+                backupDecodeDetail ??
                 primary.Detail ??
                 backup.Detail ??
                 "Save data could not be read.";
@@ -470,7 +482,10 @@ namespace WalkGame.Application
             ref int dupTransactions, ref long vitalityTotal, ref DateTimeOffset maxTrustedEndUtc)
         {
             if (string.IsNullOrWhiteSpace(record.ProviderNamespace))
-                return; // nothing identifiable to reverse; counted nowhere.
+            {
+                deletionsIgnored++; // nothing identifiable to reverse; counted diagnostically.
+                return;
+            }
 
             string identityKey = ActivityIdentity.Compute(record);
             if (!game.ProcessedRecords.TryGet(identityKey, out var existing))
@@ -928,12 +943,22 @@ namespace WalkGame.Application
             string? saveWarning = null;
             try
             {
-                _store.WriteAtomic(_codec.Encode(state, _clock.UtcNow));
+                // Recovery commits must not rotate the known-bad primary into the backup
+                // slot: that would replace the last healthy generation with garbage, so a
+                // failure during this very commit could destroy the only valid copy.
+                if (recoveredFromBackup)
+                    _store.WriteAtomicPreservingBackup(_codec.Encode(state, _clock.UtcNow));
+                else
+                    _store.WriteAtomic(_codec.Encode(state, _clock.UtcNow));
             }
             catch (IOException ex)
             {
                 // Presentation-only warning: the durable pending summary already reflects
                 // everything committed before this failed write.
+                saveWarning = "Progress advanced but could not be persisted: " + ex.Message;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
                 saveWarning = "Progress advanced but could not be persisted: " + ex.Message;
             }
 
@@ -1022,6 +1047,12 @@ namespace WalkGame.Application
             }
         }
 
+        /// <summary>
+        /// Persists current state or throws. Reaching the caller means the bytes are
+        /// durably committed — a failed commit is never reported as success. Access-
+        /// denied failures are translated to IOException so callers handle one documented
+        /// persistence-failure type.
+        /// </summary>
         private bool PersistOrThrow()
         {
             var state = RequireState();
@@ -1030,9 +1061,9 @@ namespace WalkGame.Application
                 _store.WriteAtomic(_codec.Encode(state, _clock.UtcNow));
                 return true;
             }
-            catch (IOException)
+            catch (UnauthorizedAccessException ex)
             {
-                throw;
+                throw new IOException("Persisting game state failed: " + ex.Message, ex);
             }
         }
 
