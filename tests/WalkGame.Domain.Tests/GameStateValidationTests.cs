@@ -53,6 +53,19 @@ public class GameStateValidationTests
     }
 
     [Fact]
+    public void MissingProducerRuntimeRow_IsFlagged()
+    {
+        // D-041: producer rows are created for the full content set at game start;
+        // a missing row is corruption that would silently disable the producer.
+        var game = NewTamperedGame(out var content);
+        game.Region.Producers.RemoveAt(0);
+
+        var violations = GameStateValidator.Validate(game, content);
+
+        Assert.Contains(violations, v => v.Contains("Missing runtime state for producer", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void NegativeResourceBalance_IsFlagged()
     {
         var game = NewTamperedGame(out var content);

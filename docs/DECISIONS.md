@@ -635,4 +635,32 @@ Resolve these through new decision entries with rationale and consequences; do n
 
 **Consequences:**
 - Content cost changes require regenerating `docs/evidence/m4/pacing-*.txt`.
-- The low-profile long tail is the top input for any future pacing campaign; it is a design characteristic, not a defect against the no-punishment rule (no progress decays).
+ - The low-profile long tail is the top input for any future pacing campaign; it is a design characteristic, not a defect against the no-punishment rule (no progress decays).
+
+---
+
+## D-040 — Recovery commits preserve the last healthy generation
+
+**Status:** Accepted *(implemented and automated verified: PersistenceFaultInjectionTests, SessionPersistenceHardeningTests, M8H1HardeningAcceptanceTests)*
+
+**Decision:** `ISaveStore` gains `WriteAtomicPreservingBackup`: an atomic commit to the primary slot that never rotates the current primary into the backup. The boot-recovery path (`GameSession.Continue` → recovered-from-backup) uses it exclusively. A known-corrupt primary may therefore NEVER displace the last valid backup generation, and after a recovery commit at least two decodable generations exist (backup N−1, primary N′). Interruption windows during recovery leave either the exact pre-recovery state or a strictly better one.
+
+**Rationale:** The previous recovery path reused `WriteAtomic`, whose first step promotes whatever sits in the primary slot — including bytes just proven corrupt — into the backup, destroying the last healthy copy as a safety net; a crash inside that same window could then lose every valid generation.
+
+**Consequences:**
+- normal (non-recovery) writes keep rotation semantics unchanged;
+- reads classify access-denied/inaccessible paths as IoFailure with detail — "no save found" means genuinely absent; persist paths surface access failures as the documented IOException type;
+- boot surfaces specific decode/validation failure reasons instead of a generic unreadable message;
+- stale crash temporaries are removed at store construction.
+
+---
+
+## D-041 — Producer runtime rows are mandatory canonical state
+
+**Status:** Accepted *(implemented and automated verified: GameStateValidationTests coverage via validator rule; MatureSaveMigrationTests)*
+
+**Decision:** `GameStateValidator` requires exactly one runtime row for every content producer, mirroring the existing project-runtime rule. Missing rows are corruption and fail closed at load.
+
+**Rationale:** Producer rows are created for the full content set at game start; a silently missing row would permanently disable that producer's production and unlock path while everything else appeared healthy. Unknown EXTRA rows were already rejected; absence was the unguarded direction.
+
+**Consequences:** payloads produced by any factory since M1 always satisfy the rule; hand-crafted or damaged saves missing a row are rejected with a specific diagnostic instead of silently degrading.

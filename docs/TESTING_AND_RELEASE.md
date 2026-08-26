@@ -161,6 +161,13 @@ Required scenarios:
 
 Each scenario must define expected ledger and game-state outcome.
 
+**Status (M8-H1, automated verified):** covered by `ActivityRedTeamTests`
+(permutations, overlaps, corrections/deletions, junk, floods, replays),
+`TemporalAnomalyTests` (boundaries, timezone-offset expression, backward clocks,
+long absences) and `SessionIngestionTests` (crash-boundary interruption with
+exactly-once retry). Permission-revoked and source-exception mid-query scenarios
+remain platform-adapter work (M7).
+
 ---
 
 ## 6. Persistence red-team suite
@@ -183,6 +190,15 @@ Required scenarios:
 - many months of synthetic save growth.
 
 Never overwrite the last recoverable save before a migration is proven successful.
+
+**Status (M8-H1, automated verified):** covered by
+`PersistenceFaultInjectionTests` and `SessionPersistenceHardeningTests`
+(interrupted writes/promotions, corrupt/empty/malformed generation matrix, stale
+temporaries, access failures, future schema fail-closed, interrupted-commit
+exactly-once retry), `MatureSaveMigrationTests` (genuine v1 fixture migration,
+post-migration replay exactly-once) and the `longhaul` CLI verb for months-scale
+save growth. Recovery additionally guarantees the last healthy generation survives
+recovery re-commits (`WriteAtomicPreservingBackup`, D-040).
 
 ---
 

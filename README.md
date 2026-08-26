@@ -152,15 +152,15 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 ## Current repository state
 
-**Status: M1 (deterministic core and durable state), M2 (activity trust pipeline), the headless portion of M3 (ambient progression vertical slice), and M4-H (Region 1 content systems, headless qualification) implemented and automated-verified — 180 automated tests. Unity presentation not started and remains externally blocked (no editor in this environment; runtime gates recorded UNVERIFIED).**
+**Status: M1 (deterministic core), M2 (activity trust pipeline), headless M3 (ambient progression) and M4-H (Region 1 content systems) implemented and automated-verified; M8-H1 (headless trust & persistence hardening) completed — persistence hostile-path, mature-save/migration, adversarial red-team, temporal-anomaly, long-horizon and seeded-property suites landed. **221 automated tests**. Unity presentation not started and remains externally blocked (no editor in this environment; runtime gates recorded UNVERIFIED).**
 
 The repository now contains a headless .NET implementation of the deterministic game core:
 
 - `src/WalkGame.Domain` — pure domain (`netstandard2.1`, C# 9, zero engine/platform dependencies): stable IDs, resource accounting, reward ledger with exactly-once semantics, project state machine and queue with auto-rollover, region/landmark/producer model, deterministic offline advancement with backward-clock defense, injected clock, persisted-seed RNG, content/state validators.
 - `src/WalkGame.Application` — use-case orchestration (`GameSession`): boot/load/recover/migrate/advance/save flow, activity crediting, queue management, return summaries, read models. Dev content seed in `Content/Region1Catalog`.
 - `src/WalkGame.Infrastructure` — versioned JSON save envelope with SHA-256 payload integrity, sequential migration pipeline, atomic snapshot store with one-generation backup recovery.
-- `tests/` — 180 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, content red-team validation, end-to-end M3 and M4 acceptance).
-- `tools/simulation` — headless CLI: `new / credit / advance / simulate / walk / profile / ack / dump / validate` for deterministic multi-day simulation, pacing reports across activity profiles and save validation.
+- `tests/` — 221 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, content red-team validation, end-to-end M3 and M4 acceptance, plus the M8-H1 hardening suites described below).
+- `tools/simulation` — headless CLI: `new / credit / advance / simulate / walk / profile / longhaul / ack / dump / validate` for deterministic multi-day simulation, pacing reports, long-horizon growth records and save validation.
 
 **M2 activity trust pipeline (automated verified):**
 
@@ -207,6 +207,14 @@ Verification evidence additions:
 - `dotnet run --project tools/simulation -- validate --save <tmpdir> --selftest` on a completed-region save — violations=0, integrity self-test PASS;
 - guard proof suite — `tests/guards/run-guard-tests.sh`, all assertions green;
 - **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
+
+**M8-H1 headless trust & persistence hardening (automated verified):**
+
+- Persistence fault injection (`PersistenceFaultInjectionTests`, `SessionPersistenceHardeningTests`): recovery commits can no longer displace the last healthy backup generation (D-040 `WriteAtomicPreservingBackup`); access failures are diagnosed instead of crashing or masquerading as "no save found"; boot surfaces specific decode/validation reasons; unrecoverable saves fail closed without fabricating a fresh world; future-schema saves are never overwritten.
+- Mature-save & migration qualification (`MatureSaveMigrationTests`): genuine rich v1 payload migrates through the registered chain with exactly-once replay after migration and canonical byte stability; content-identity durability under checksum-correct payload surgery; validator now requires a runtime row for every content producer (D-041).
+- Adversarial red-team (`ActivityRedTeamTests`) and temporal anomalies (`TemporalAnomalyTests`): hostile permutations converge to identical canonical state; corrections/deletions pinned to exact D-029 semantics; horizon/skew edges decided exactly at documented boundaries; timezone/offset independence through the pipeline.
+- Long-horizon & performance: `longhaul` CLI verb measures months-scale runs (365-day saves ≈202 KB, linear ~554 B/day growth documented as accepted exactly-once cost); seeded property suite (`SeededProgressionPropertyTests`); named end-to-end acceptance `M8H1HardeningAcceptanceTests` (interruption → recovery → exactly-once retry → corrections/deletions → double replay → long absence → closure → byte equivalence).
+- Evidence package: [`docs/evidence/m8-h1/`](docs/evidence/m8-h1).
 
 ### Repository safety rails (agent isolation)
 

@@ -62,6 +62,8 @@ Overlapping provider queries, app restart, provider replay, correction, or save 
 
 Red-team suite proves repeated/reordered/overlapping activity leads to the same final state as a single valid processing pass.
 
+**M8-H1 update (automated verified):** `ActivityRedTeamTests` converges five hostile permutations plus overlapping-window, duplicate-flood and full-replay scenarios to identical canonical state; interruption/retry is exactly-once (`SessionPersistenceHardeningTests`, acceptance scenario); corrections/deletions pinned to exact D-029 values. Status remains Open only for real-provider/device evidence.
+
 ---
 
 ## R-003 — Valid activity is silently lost
@@ -125,7 +127,7 @@ Interrupted writes, schema changes, bugs, or storage failures make a mature worl
 - corruption tests;
 - never overwrite last recoverable state before validation.
 
----
+**M8-H1 update (automated verified):** recovery re-commits can no longer displace the last healthy generation with a corrupt primary (`WriteAtomicPreservingBackup`, D-040); access failures and decode reasons are diagnosed instead of crashing or masquerading as "no save"; hostile-path matrix in `docs/evidence/m8-h1/PERSISTENCE_RECOVERY.md`.
 
 ## R-006 — Migration duplicates or invalidates activity rewards
 
@@ -146,7 +148,7 @@ A schema migration alters ledger identity, conversion semantics, or checkpoints 
 - update-in-place qualification;
 - post-migration duplicate reconciliation test.
 
-**Evidence so far (automated verified):** schema v2 shipped behind registered `MigrationV1ToV2` with representative hand-built v1 envelope fixtures decoding through the real chain (`MigrationV1ToV2Tests`), value-promotion semantics documented in D-032, and post-migration replay still exactly-once (acceptance suite). Device/update-in-place qualification remains open for release.
+**Evidence so far (automated verified):** schema v2 shipped behind registered `MigrationV1ToV2` with representative hand-built v1 envelope fixtures decoding through the real chain (`MigrationV1ToV2Tests`), value-promotion semantics documented in D-032, and post-migration replay still exactly-once (acceptance suite). M8-H1 adds genuine mature-v1 fixture migration with exactly-once replay after migration and canonical byte stability (`MatureSaveMigrationTests`, `docs/evidence/m8-h1/MATURE_SAVE_MIGRATION.md`). Device/update-in-place qualification remains open for release.
 
 ---
 
@@ -169,7 +171,7 @@ Streak loss, overflowing producers, expiring rewards, or world decay makes retur
 - welcoming return summary;
 - seven-/thirty-day return acceptance scenarios.
 
-**Evidence so far (automated verified):** unallocated Vitality banks indefinitely while queues are empty or automation is off; producer overflow is no-waste bounded parking (D-032); the return summary is durable, welcoming, priority-ordered and survives restarts without nagging (D-033). Long-absence (10/30-day) production bounds are explicitly tested. Seven-/thirty-day UX scenarios remain open until presentation exists.
+**Evidence so far (automated verified):** unallocated Vitality banks indefinitely while queues are empty or automation is off; producer overflow is no-waste bounded parking (D-032); the return summary is durable, welcoming, priority-ordered and survives restarts without nagging (D-033). Long-absence production bounds are explicitly tested; M8-H1 adds a 4,000-day absence test and measured 400-day-absence simulation completing Region 1 cleanly (`TemporalAnomalyTests`, `docs/evidence/m8-h1/LONG_HORIZON.md`). Seven-/thirty-day UX scenarios remain open until presentation exists.
 
 ---
 
