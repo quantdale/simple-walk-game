@@ -524,6 +524,15 @@ Proof-suite lease/race scenarios stay green; no recurrence of interleaved-lineag
 
 ---
 
+## Campaign updates — M4-H (Region 1 content systems, headless)
+
+- **R-013 (balance assumes one activity pattern):** mitigated by measured evidence — four deterministic profiles simulated to completion/horizon (`evidence/m4/`); moderate d242 / high d97 / irregular d139 complete; low is a documented long tail with no punishment mechanics. Provisional targets recorded in D-039; future tuning must beat the committed baseline.
+- **R-018 (content ID/schema drift breaks mature saves):** seed IDs/costs/prerequisites preserved verbatim in content v2; M4 state is additive schema-v2 with absent-means-default decoding proven by `M4BackwardDecodingTests`; validator rejects unknown runtime IDs on load.
+- **R-006 (migration duplicates/invalidates rewards):** unchanged trust pipeline consumed by all new systems; full-history replay after region completion credits zero (`M4Region1AcceptanceTests`), and expedition rewards fire exactly once by construction.
+- **R-021 (scope expansion prevents completing Region 1):** Region 1 reached headless content-completeness within a single campaign without Unity assets, generic content frameworks or Region 2 work; scope boundaries from EXECUTION_PROMPT §11 held.
+
+---
+
 ## Risk-review cadence
 
 Review this file:

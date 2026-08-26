@@ -227,6 +227,8 @@ A discovery may be triggered by:
 
 If a discovery can occur through Visit World, equivalent core progression must not require precise exploration input unless it is intentionally optional content.
 
+> **Implemented (M4-H, D-037):** discoveries carry stable ID, category, title/body/provenance keys, an optional location key and exactly one deterministic trigger — completion of one designated project. Unlock fires at most once inside canonical completion effects; reviewed state is separate presentation convenience (`MarkDiscoveryReviewed`, idempotent, never gates progression). Other trigger models remain future extensions of the same durable state shape.
+
 ---
 
 ## 8. Expedition system
@@ -255,6 +257,8 @@ Expeditions are asynchronous objectives that create anticipation without forcing
 - retry/replay cannot duplicate rewards;
 - randomness, if used, must be deterministic from stored seed/state;
 - expedition cancellation rules must be explicit.
+
+> **Implemented (M4-H, D-037):** expeditions ship as stable route definitions (required projects + required landmark stages + optional one-time integer reward) whose availability and completion resolve deterministically inside canonical effects while the app is closed; rewards apply cap-clamped in the same state transition as the completion timestamp. No foreground interaction exists yet, so start/cancel/retry rules are intentionally absent.
 
 ---
 
@@ -290,6 +294,8 @@ It should require completion of several major chains and result in:
 - sustainable/evergreen systems;
 - a strong milestone reward;
 - a clean future hook for expansion.
+
+> **Implemented (M4-H, D-038):** canonical region progression is two strictly ascending discrete arcs (ecology, settlement — each stage named by its unlocking project) plus one explicit closure milestone project; `RegionState.IsCompleted` sets once and never resets, and producers/discoveries/flourishing stages keep operating afterwards. Arc bounds, monotonicity references and completion consistency are validator-enforced.
 
 ---
 

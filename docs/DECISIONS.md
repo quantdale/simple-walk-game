@@ -580,3 +580,59 @@ Resolve these through new decision entries with rationale and consequences; do n
 **Consequences:**
 - The exact Unity 6 LTS version remains unresolved decision #1; the next campaign with an installed editor starts at the Unity shell + EditMode/PlayMode gates, not at domain/application rework.
 - Any future presentation technology must consume the same read-model/use-case boundary; nothing in Domain/Application references Unity.
+
+---
+
+## D-036 — M4 canonical state is additive under save schema v2; absent means "nothing yet"
+
+**Status:** Accepted *(implemented and automated verified: M4BackwardDecodingTests, SaveCodecRoundtripTests)*
+
+**Decision:** Discovery runtimes (`RegionState.Discoveries`), expedition runtimes (`RegionState.Expeditions`), region progression stages (`EcologyStage`/`SettlementStage`) and the completion markers (`IsCompleted`/`RegionCompletedAtUtc`) are added as additive schema-v2 payload fields with strict absent-means-default decoding: a missing entry always means "not yet discovered / not yet available / baseline stage / not completed". Entries appear only after their first canonical transition, so pre-M4 payloads and fresh saves share identical semantics without a schema bump or registered migration. `GameStateValidator` validates every present entry against authored content (unknown IDs, review-flag/timestamp consistency, availability-before-completion ordering, arc bounds, completion/milestone consistency).
+
+**Rationale:** The v1→v2 producer migration precedent showed migrations must change semantics; none of the M4 fields reinterpret any existing persisted value, so a bump would add risk without protecting anything.
+
+**Consequences:**
+- Backward-decoding tests strip all new properties from a real v2 payload and prove decode + validate + re-encode stability.
+- If a future field ever needs non-default history interpretation, it requires a versioned migration like m1-to-v2 — this decision does not create a general exemption.
+
+---
+
+## D-037 — Discoveries and expeditions ship at an M4 headless boundary
+
+**Status:** Accepted *(implemented and automated verified: M4ProgressionMechanicsTests, M4Region1AcceptanceTests)*
+
+**Decision:** A discovery is defined by stable ID, category, title/body/provenance keys, optional location key, and exactly one deterministic trigger: completion of one designated project. Unlock is derived from canonical completion effects, fires at most once, and reviewed state is separate presentation convenience (`MarkDiscoveryReviewed`, idempotent, never gates progression). An expedition is a stable route definition (title/description keys, required projects, required landmark stages, optional one-time integer reward) with deterministic availability (all required projects completed) and completion (all required landmark stages reached) hooks evaluated inside the same canonical effects pipeline; rewards apply cap-clamped in the same state transition as the completion timestamp. Neither system has foreground interaction at M4; both continue while the app is closed.
+
+**Rationale:** GAME_SYSTEMS §7/§8 list richer trigger models (activity thresholds, seeded rolls, visit interactions) that cannot be honestly exercised or validated without runtime presentation. The chosen boundary keeps definitions durable and validation complete while leaving those extensions open.
+
+**Consequences:**
+- Adding trigger kinds later extends `DiscoveryDefinition`; the durable unlocked/reviewed state shape is final.
+- Expedition cancellation/retry rules are intentionally absent: there is nothing to cancel while routes resolve automatically.
+
+---
+
+## D-038 — Region progression uses two discrete arcs plus one closure project; post-completion is evergreen
+
+**Status:** Accepted *(implemented and automated verified: M4ProgressionMechanicsTests, GameStateValidationTests)*
+
+**Decision:** Region-level restoration state is represented by strictly-ascending discrete stage arcs — ecology and settlement — where each arc stage names the single project whose completion advances it, and by an explicit closure milestone project (`CompletionMilestoneProjectId`). Arcs advance monotonically inside canonical completion effects (never continuous simulation); reaching closure sets `IsCompleted`/`RegionCompletedAtUtc` exactly once and nothing ever resets it. Producers, discoveries and flourishing stages keep operating after closure.
+
+**Rationale:** WORLD_AND_CONTENT §8/§9 and GAME_SYSTEMS §9/§10 demand explainable, presentation-bindable progression without city-builder micromanagement; discrete stages satisfy the attention budget and remain fully validator-checkable.
+
+**Consequences:**
+- Arc stage counts are bounded (≤10) and validated ascending with resolvable unlockers.
+- `GameStateValidator` rejects completion claims inconsistent with content (flag without milestone, milestone completed without flag, timestamp without flag).
+
+---
+
+## D-039 — Region 1 pacing is measured by deterministic profile simulation; provisional targets documented, low-profile long tail accepted for M4
+
+**Status:** Accepted *(automated verified: `tools/simulation profile`, reports committed under `docs/evidence/m4/`, M4Region1AcceptanceTests byte-determinism)*
+
+**Decision:** Pacing evidence comes from the `profile` CLI verb: a deterministic auto-player (catalog-order queue choice only when fully idle; auto-advance on) drives fresh saves through the real ingestion pipeline under four fixed step patterns — low 3,000/day, moderate 8,000/day, high 20,000/day, irregular [26k,15k,2k,18k,6k,22k,9k]/week — to completion or horizon, printing a stable report (completion day, per-chain vitality/completion days, decisions, queue-empty days, capped-store days, discovery/expedition pacing, final arcs, validator cleanliness). Measured results (seed 42): high completes day 97, moderate day 242, irregular day 139; low completes 12,000 of ~19,400 vitality within 400 days (wetland chain done day 387; forest/research open). Provisional targets: high ≤120 days, irregular ≤250, moderate ≤300 — all met; low-profile completion beyond one year is recorded as an accepted characteristic of a movement-proportional economy, not hidden. Foreground pressure stays minimal everywhere: exactly one queue decision per project (19 total), zero-to-one queue-empty days, zero producer cap waste.
+
+**Rationale:** The campaign forbids inventing thresholds just to pass tests. Publishing measured distributions with explicitly provisional targets keeps balance work honest and gives future tuning (more activity categories, cost scaling) a regression baseline.
+
+**Consequences:**
+- Content cost changes require regenerating `docs/evidence/m4/pacing-*.txt`.
+- The low-profile long tail is the top input for any future pacing campaign; it is a design characteristic, not a defect against the no-punishment rule (no progress decays).

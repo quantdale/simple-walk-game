@@ -190,7 +190,7 @@ A test profile should be able to:
 - [x] return summary stays concise; *(ReturnSummaryComposer hard 12-item bound with priority ordering and dedupe; durable pending summary survives commit-before-presentation restarts — ReturnSummaryDurabilityTests)*
 - [x] no UI owns canonical progression state. *(presentation consumes HomeReadModel/ProjectsReadModel/RegionReadModel/ReturnSummaryReadModel plus use cases only; Domain/Application carry zero Unity references — D-035)*
 
-**M3 status: implemented and automated verified headless (156 tests).** Runtime-only deliverables — the minimal Unity 6 LTS shell (Home/Projects/Region scenes), EditMode/PlayMode coverage and editor/device verification — are explicitly deferred to a runtime-enabled session (D-035): no Unity editor exists in the environment where this campaign ran, and unverifiable editor artifacts must not be committed as evidence.
+**M3 status: implemented and automated verified headless (180 tests across all suites at M4-H completion).** Runtime-only deliverables — the minimal Unity 6 LTS shell (Home/Projects/Region scenes), EditMode/PlayMode coverage and editor/device verification — are explicitly deferred to a runtime-enabled session (D-035): no Unity editor exists in the environment where this campaign ran, and unverifiable editor artifacts must not be committed as evidence.
 
 ---
 
@@ -218,12 +218,12 @@ Turn the systems vertical slice into one coherent, complete restoration region.
 
 ## Exit criteria
 
-- [ ] critical path is reachable;
-- [ ] no dependency cycles;
-- [ ] pacing works across low/moderate/high/irregular profiles;
-- [ ] required foreground decisions remain low;
-- [ ] all major stages have presentation requirements documented;
-- [ ] Region 1 can be completed headlessly.
+- [x] critical path is reachable; *(ContentValidator fixpoint reachability gate: every project, landmark stage, producer unlock, discovery trigger and expedition requirement reachable from an entry project; closure milestone `proj.complete-valley-survey` reachable — M4ContentGraphTests)*
+- [x] no dependency cycles; *(cycle detection plus hidden-deadlock red-team tests: UnreachableProject/UnreachableClosureMilestone flagged — M4ContentGraphTests)*
+- [x] pacing works across low/moderate/high/irregular profiles; *(deterministic `tools/simulation profile` reports committed under docs/evidence/m4/: high d97, irregular d139, moderate d242, low long-tail documented with provisional targets D-039)*
+- [x] required foreground decisions remain low; *(exactly one queue decision per project (19 total) with auto-advance; zero-to-one queue-empty days and zero capped-store days across all four profiles)*
+- [x] all major stages have presentation requirements documented; *(WORLD_AND_CONTENT §12 binding table covers all six landmarks' canonical stages, discovery/expedition/arc presentation keys; UX_DESIGN §8 lists runtime binding requirements)*
+- [x] Region 1 can be completed headlessly. *(M4Region1AcceptanceTests drives a clean profile through the real trust pipeline to the closure milestone with replay exactly-once, post-completion stability and byte-identical determinism)*
 
 ---
 

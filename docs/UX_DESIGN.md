@@ -454,3 +454,17 @@ A player-facing feature is not complete until it has:
 - touch/input validation;
 - concise copy;
 - device verification for platform-specific interactions.
+
+---
+
+## 8. M4 presentation requirements (discoveries, expeditions, region completion)
+
+M4 landed the canonical state and data contract; Unity screens remain M5/M6 scope. Runtime work must bind to:
+
+- **Discovery journal** (DiscoveriesReadModel): every authored discovery with unlocked/reviewed flags; titles/bodies/provenance resolve via keys; unread affordance must survive restarts (reviewed is durable); reviewing never gates progression.
+- **Expedition routes** (ExpeditionsReadModel): Locked/Available/Completed states with route markers; completion may fire one celebration hook; no claim interaction may be required (routes resolve while the app is closed).
+- **Region status**: RegionReadModel now includes ecology/settlement arc stages (0–4), region completion flag/timestamp and collection counts; damaged-vs-restored remains distinguishable without color alone.
+- **Return summary**: composer now emits transformation lines for landmark stages, arc advances, expedition completions, region closure, and notice lines for discoveries/route readiness — all inside the existing 12-item bound and priority order.
+- **Closure beat**: IsCompleted triggers exactly one celebratory transformation moment; afterwards the world stays evergreen with no artificial reset.
+
+Binding tables per landmark stage are documented in WORLD_AND_CONTENT §23; no scenes, prefabs or assets exist yet, and none are required for headless qualification.

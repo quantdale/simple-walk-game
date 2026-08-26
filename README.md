@@ -152,15 +152,15 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 ## Current repository state
 
-**Status: M1 (deterministic core and durable state) and M2 (activity trust pipeline) implemented and automated-verified; M3 (ambient progression vertical slice) implemented and automated-verified headless. Unity presentation not started (no editor in this environment; runtime gates recorded UNVERIFIED).**
+**Status: M1 (deterministic core and durable state), M2 (activity trust pipeline), the headless portion of M3 (ambient progression vertical slice), and M4-H (Region 1 content systems, headless qualification) implemented and automated-verified — 180 automated tests. Unity presentation not started and remains externally blocked (no editor in this environment; runtime gates recorded UNVERIFIED).**
 
 The repository now contains a headless .NET implementation of the deterministic game core:
 
 - `src/WalkGame.Domain` — pure domain (`netstandard2.1`, C# 9, zero engine/platform dependencies): stable IDs, resource accounting, reward ledger with exactly-once semantics, project state machine and queue with auto-rollover, region/landmark/producer model, deterministic offline advancement with backward-clock defense, injected clock, persisted-seed RNG, content/state validators.
 - `src/WalkGame.Application` — use-case orchestration (`GameSession`): boot/load/recover/migrate/advance/save flow, activity crediting, queue management, return summaries, read models. Dev content seed in `Content/Region1Catalog`.
 - `src/WalkGame.Infrastructure` — versioned JSON save envelope with SHA-256 payload integrity, sequential migration pipeline, atomic snapshot store with one-generation backup recovery.
-- `tests/` — 156 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, end-to-end M3 acceptance).
-- `tools/simulation` — headless CLI: `new / credit / advance / simulate / dump / validate` for deterministic multi-day simulation and save validation.
+- `tests/` — 180 automated tests across domain, infrastructure and application suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, content red-team validation, end-to-end M3 and M4 acceptance).
+- `tools/simulation` — headless CLI: `new / credit / advance / simulate / walk / profile / ack / dump / validate` for deterministic multi-day simulation, pacing reports across activity profiles and save validation.
 
 **M2 activity trust pipeline (automated verified):**
 
@@ -192,6 +192,22 @@ Verification evidence (automated verified per `docs/AGENT_EXECUTION_GUIDE.md` §
 
 Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISIONS.md) D-024…D-035.
 
+**M4-H Region 1 content systems (automated verified, headless; D-036…D-039):**
+
+- Full authored Region 1 graph — Millbrook Valley content version 2: **19 projects** in six interdependent restoration chains (trail access, water system, settlement community, wetland recovery, woodland, research), **6 landmarks** with canonical stage triggers, **3 bounded producers**, **13 provenance-bearing discoveries** with deterministic project-completion triggers and independent reviewed state, **3 expedition routes** with deterministic availability/completion hooks and cap-clamped rewards, region-level **ecology and settlement arcs** (4 discrete stages each), and the **Complete Valley Survey closure milestone** with a stable post-completion evergreen state. The original five seed definitions are preserved verbatim for save compatibility.
+- Additive schema-v2 persistence (D-036): absent entries mean "nothing unlocked yet" — pre-M4 saves decode with exactly-once semantics intact, proven by strip-and-redecode backward tests.
+- `ContentValidator` is now a release gate: forward-safe reference resolution, cycle detection, hidden-deadlock/unreachable-content rejection, critical-path reachability to the closure milestone, arc monotonicity, discovery/expedition/producer integrity and overflow bounds.
+- Deterministic pacing evidence (`tools/simulation profile`, reports under [`docs/evidence/m4/`](docs/evidence/m4)): high completes day 97, irregular day 139, moderate day 242; low is a documented long tail (62% of region vitality within 400 days); foreground pressure stays at one queue decision per project everywhere.
+- Named acceptance proof `M4Region1AcceptanceTests`: clean profile → real ingestion pipeline → all chains complete → closure milestone → replay of the entire window credits zero → post-completion stable after reload → validators clean → byte-identical determinism.
+
+Verification evidence additions:
+
+- `dotnet build SimpleWalkGame.sln` — clean, zero errors;
+- `dotnet test SimpleWalkGame.sln` — Domain.Tests 101 passed, Infrastructure.Tests 25 passed, Application.Tests 54 passed;
+- `dotnet run --project tools/simulation -- validate --save <tmpdir> --selftest` on a completed-region save — violations=0, integrity self-test PASS;
+- guard proof suite — `tests/guards/run-guard-tests.sh`, all assertions green;
+- **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
+
 ### Repository safety rails (agent isolation)
 
 After two concurrent autonomous executor sessions damaged overlapping work (commits
@@ -210,6 +226,6 @@ After two concurrent autonomous executor sessions damaged overlapping work (comm
   inherit the preflight. See also `scripts/new-agent-worktree.sh` for isolated
   concurrent sessions (`one writer = one worktree = one branch`).
 
-The immediate next campaign is the Unity presentation shell + runtime verification of the already-implemented M3 boundaries (requires an installed Unity 6 LTS editor), per [`docs/ROADMAP.md`](docs/ROADMAP.md) and D-035.
+The immediate next campaign is the Unity presentation shell + runtime verification of the already-implemented M3/M4 boundaries (requires an installed Unity 6 LTS editor), per [`docs/ROADMAP.md`](docs/ROADMAP.md) and D-035. The M3-R blocker remains truthful: no Unity editor exists in this execution environment.
 
 The project should resist premature feature expansion. A small, deeply integrated, polished ambient-fitness loop is more valuable than a large collection of disconnected game systems.

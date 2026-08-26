@@ -469,3 +469,11 @@ The M3 campaign then proved the full ambient loop end-to-end through the trust p
 Once the M3 runtime gates make that loop visible in Unity, every later visual and gameplay feature can build on it safely.
 
 Do not begin new campaigns without the `AGENTS.md` preflight (repository identity guard, single-writer lease); concurrent uncoordinated sessions previously damaged this repository.
+
+---
+
+## Scheduling note — M4-H pivot (recorded, not history rewritten)
+
+The M3-R Unity runtime qualification campaign stopped truthfully at Gate A1 (no Unity 6 LTS editor in the execution environment) and that blocker remains unresolved. Rather than freezing independent progress, the dependency-safe pivot advanced **M4 Region 1 content systems headless** while leaving every M3-R runtime gate UNVERIFIED: all M4 work is testable without Unity, the M2/M3 trust and persistence contracts were consumed unchanged, and no Unity/device evidence was claimed or manufactured. Milestone ordering is otherwise intact: M5–M7 presentation/platform work still requires the blocked editor first.
+
+Outcome: M4-H completed headless (Region 1 content-complete per WORLD_AND_CONTENT §23, pacing evidence D-039, acceptance proof M4Region1AcceptanceTests, 180 automated tests green). Next dependency bottleneck is unchanged: an installed Unity 6 LTS editor for M3-R/M5.
