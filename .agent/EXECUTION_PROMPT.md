@@ -1,6 +1,6 @@
 # Active Execution Campaign — M5-H1 Headless UX State Contracts + Mobile-Shell Readiness
 
-**Status:** ACTIVE  
+**Status:** COMPLETED  
 **Planned-From:** `d73183497a6d2ca3f7845cfee1697d1faeff7c5d` (= `origin/main` at planner audit)  
 **Target branch:** `main`  
 **Campaign class:** IMPLEMENTATION + HEADLESS QUALIFICATION + UX CONTRACT HARDENING  
@@ -408,3 +408,15 @@ A future Unity-enabled M5 runtime campaign should be able to start from a much n
 It should **not** need to invent onboarding persistence, settings ownership, player-safe activity states, support diagnostics, long-return semantics, or canonical error/recovery behavior inside Unity.
 
 If the Unity 6 LTS blocker is still unresolved after this campaign, do not automatically generate another fake-runtime campaign. The next planner must audit whether another independent, high-value implementation lane exists; if not, stop and report the external dependency rather than manufacturing work.
+---
+
+## Execution outcome (2026-08-26) — COMPLETED
+
+- **Executed by:** ox-alpha agent session (isolated worktree `simple-walk-game-wt-m5-h1-oxalpha-0826a`, branch `agent/simple-walk-game/m5-h1-oxalpha-0826a`, own writer lease; original holder lease on the main checkout was STALE with a dead PID and was left untouched for operator override).
+- **Starting point:** Planned-From d731834 (branch fast-forwarded to fa3fdc8 before first write).
+- **Final implementation SHA:** recorded in the final session-report commit message on this branch.
+- **All 16 workstream requirements delivered:** ownership audit + D-042/D-043/D-044; durable preferences/onboarding store with corruption/future-version policy; platform-neutral status projection with conformance tables; shell-facing read models incl. privacy-safe diagnostics; explicit empty/error/recovery states; eleven named acceptance scenarios (M5H1ShellAcceptanceTests); adversarial hardening suites (M5H1ContractHardeningTests); docs/evidence reconciliation.
+- **Verification:** build clean; 295/295 tests (baseline 221, zero regressions); guard proof suite 25 assertions green; simulation smoke violations=0 with integrity selftest PASS; walk --replay exactly-once proof credits zero.
+- **Defects fixed during campaign:** diagnostics unavailable when boot failed; backup decode erasing primary-failure evidence; sentinel watermark age reported as fact. No Critical/High defects remain.
+- **Remaining risks / UNVERIFIED:** all Unity runtime, screen-reader, reduced-motion runtime effects, notification delivery, OS permission dialogs, HC/HK adapters, device lifecycle/performance/accessibility items (D-035 open and truthful). M5 milestone NOT complete as a roadmap milestone.
+- **Next dependency:** unchanged — an installed Unity 6 LTS editor for the presentation-shell/runtime-verification campaign, now narrowed to binding the contracts defined here.
