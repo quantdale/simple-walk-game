@@ -449,7 +449,7 @@ A failure must be treated as a real blocker or explicitly quarantined with owner
 
 | # | Target gate | Status |
 |---|---|---|
-| 1 | formatting/static checks | **Not adopted.** `dotnet build` runs with warnings visible and the tree is at 0 warnings. A `dotnet format --verify-no-changes` gate was deliberately NOT added: it fails against the existing tree and adopting it would force mass reformatting churn across files unrelated to any risk, which this repository's campaign policy forbids. |
+| 1 | formatting/static checks | **Not adopted.** `dotnet build` runs with warnings visible. A `dotnet format --verify-no-changes` gate was deliberately NOT added: it fails against the existing tree and adopting it would force mass reformatting churn across files unrelated to any risk, which this repository's campaign policy forbids. See the build-warning baseline note below. |
 | 2–4 | domain / application / persistence tests | **Implemented** — `dotnet test SimpleWalkGame.sln` (295 tests). |
 | 5 | content validation | **Implemented** — the `validate` simulation step runs `GameStateValidator` against `Region1Catalog`; the same validator is a release gate enforced at session construction. |
 | 6 | architecture dependency checks | **Implemented** — `scripts/verify-architecture.sh`, added 2026-09-29. Enforces that Domain references nothing and stays on `netstandard2.1`, Application references only Domain, Infrastructure references only Application + Domain, no engine namespace appears anywhere in `src/`, and Domain/Application perform no filesystem access (comments stripped first so prose cannot false-positive). This is the countermeasure for R-017. |
@@ -461,6 +461,24 @@ Additional gates implemented 2026-09-29 that were not in the original target lis
 
 - **Exactly-once acceptance** — `walk` followed by `walk --replay`; the replayed window must report `vitality credited: 0` and `duplicate records ignored: 16`. The repository's flagship invariant previously had no CI gate at all.
 - **Long-horizon offline simulation** — `longhaul --days 365` (TESTING_AND_RELEASE §7 offline simulation was documented but not run in CI).
+- **Performance-scenario / save-growth determinism** — `scripts/verify-save-growth.sh`, added 2026-09-29. Runs the PERFORMANCE_BUDGETS §19 headless scenarios twice and requires the deterministic size/count lines to match, discharging §15's "CI simulation should report save-size growth" obligation. Wall-clock is deliberately **not** gated.
+
+### Build warning baseline (corrected 2026-09-29)
+
+An incremental `dotnet build` reports **0 warnings**, which is misleading: the test projects
+are not recompiled, so their analyzer warnings are never re-emitted. A clean
+`dotnet build --no-incremental` reports the true baseline:
+
+- **production code (`src/`, `tools/`): 0 warnings**;
+- **test code: 8 pre-existing xUnit analyzer warnings** — 6x `xUnit2013` (`Assert.Equal` on a
+  collection size), 1x `xUnit2020` (`Assert.True` on a collection), 1x `xUnit2009`
+  (`Assert.False` on a collection), in `SessionIngestionTests`, `M4Region1AcceptanceTests`
+  and `DiagnosticsReadModelTests`.
+
+These predate this work; `docs/evidence/m5-h1/OUTCOME.md` records them as deliberately left
+untouched, and they were left in place rather than churned. **Do not cite "0 warnings" as a
+property of this repository without specifying `--no-incremental`** — an earlier campaign
+commit message did exactly that and was wrong.
 
 ### Hosted CI availability (external blocker, observed 2026-09-29)
 

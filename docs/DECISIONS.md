@@ -776,3 +776,25 @@ decisions, which is exactly the documentation-drift failure R-020 describes.)*
 - a `dotnet format --verify-no-changes` gate was **deliberately not adopted**: it fails against the existing tree and adopting it would force mass reformatting churn in files unrelated to any risk. The tree is held at 0 build warnings instead;
 - each rule was verified to *fail* against a deliberately-broken throwaway fixture (injected `UnityEngine` using, `File.AppendAllText` in Application, a `net9.0` Domain, a Domain→Infrastructure reference) — a gate that has only ever passed proves nothing;
 - `verify-architecture.sh` exits 2 with a clear message when run outside the checkout, rather than silently scanning the wrong tree.
+
+---
+
+## D-048 — Performance regression scenarios and save-size growth are measured and gated; the remainder is device-blocked
+
+**Status:** Accepted *(automated verified: 5 of 10 PERFORMANCE_BUDGETS §19 scenarios measured headlessly, 1 by explicit surrogate, 4 deliberately not simulated; save-growth series reproduces exactly across independent runs; 0 validator violations at maximum content)*
+
+**Decision:** `tools/simulation scenarios` implements the headless-measurable subset of PERFORMANCE_BUDGETS §19 and the §15 save-growth obligation that nothing previously performed. It emits two line classes:
+
+- `SCENARIO-RESULT` carries wall-clock and status. **Not gated** — machine-dependent, and TESTING_AND_RELEASE §17 treats flaky timing assertions as defects.
+- `SCENARIO-SIZES` carries save bytes, ledger sizes, credited totals and resource balances. Deterministic for a fixed seed and content, and therefore gated by `scripts/verify-save-growth.sh`, which runs the harness twice and requires exact reproduction.
+
+**Rationale:** §19 named ten scenarios with none implemented, and §15 stated a CI obligation that was never met. Growth existed only as prose inside `docs/evidence/m8-h1/`.
+
+**Consequences:**
+- §19 is now **5/10 measured headlessly, 1/10 by surrogate (background/resume, which repeated boot-from-disk is *not*), 4/10 not simulated (Home idle, Visit World enter/traverse/exit)**. No figure was invented for the four device-only scenarios; a fabricated number would be worse than an acknowledged gap;
+- scenario 6 is measured for its **canonical** cost only — a landmark stage transition in canonical state, never its rendered frame cost;
+- save growth is measured **linear and unbounded at ~525-530 bytes per ingestion day** (day 7: 10,344 B; day 365: 202,644 B; day 730: 394,401 B), corroborating the ~554 B/day figure in `LONG_HORIZON.md`. Region completes at day 365 and stays stable through day 730, so post-completion growth is pure ledger accumulation — the shape D-045 deferred;
+- the same run **quantifies the D-032 deferral**: at day 730 a save holds 2,604 Materials and 638 Knowledge with no consumer anywhere in `src/`, so producer capacity still can never bind;
+- adding project secondary-resource requirements is explicitly NOT done here. It alters progression balance, and `ContentValidator`'s critical-path reachability would have to prove a project is *schedulable* given what its unlock dependency actually produces, or it can certify a reachable graph that deadlocks in play. This campaign produced the measurement series such a change must be judged against, and stopped;
+- the harness also corrects a misleading claim: an incremental `dotnet build` reports 0 warnings, but a clean `--no-incremental` build reveals 8 pre-existing xUnit analyzer warnings in test code. Production code is genuinely at 0 warnings. TESTING_AND_RELEASE now records the distinction so "0 warnings" is never cited without qualification;
+- evidence: `docs/evidence/performance/SCENARIOS.md`.

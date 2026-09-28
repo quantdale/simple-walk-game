@@ -701,9 +701,16 @@ internal static class Cli
                    M8-H1 LONG-HORIZON HARNESS: months of app-closed days through the real
                    trust pipeline; prints machine-readable growth/performance record
                    (processed/ledger sizes, save bytes, validator state, wall time)
-              bench     --save <dir> [--iterations N] [--days N]
-                   PHASE TIMING HARNESS: catalog/validation/encode/decode/ctor/boot+ingest
-                   day costs as BENCH-RESULT lines for optimization comparisons
+               bench     --save <dir> [--iterations N] [--days N]
+                    PHASE TIMING HARNESS: catalog/validation/encode/decode/ctor/boot+ingest
+                    day costs as BENCH-RESULT lines for optimization comparisons
+               scenarios --save <dir> [--days N] [--seed N] [--at ISO8601]
+                    PERFORMANCE_BUDGETS 19 REGRESSION SCENARIOS (headless subset):
+                    cold boot with mature save, return after 7 days with a large batch,
+                    canonical landmark stage transition, background/resume surrogate, and
+                    mature-region max content. Emits SCENARIO-SIZES lines whose byte/count
+                    values are deterministic and CI-gatable; wall-clock is evidence-only.
+                    Visit World / Home-idle scenarios are NOT simulated (no editor).
               ack       --save <dir>
                   acknowledge (dismiss) the pending return summary; idempotent
               dump      --save <dir>

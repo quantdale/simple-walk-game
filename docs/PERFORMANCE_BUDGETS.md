@@ -255,6 +255,10 @@ Targets:
 
 CI simulation should report save-size growth across long-running synthetic profiles.
 
+**Status (2026-09-29, D-048): discharged.** `scripts/verify-save-growth.sh` reports the series in CI and requires it to reproduce exactly. Measured growth is **linear and unbounded at ~525-530 bytes per ingestion day** (day 7: 10,344 B; day 365: 202,644 B; day 730: 394,401 B), corroborating the ~554 B/day figure in `docs/evidence/m8-h1/LONG_HORIZON.md`. Region completes at day 365 and is stable through day 730, so post-completion growth is pure ledger accumulation.
+
+Compaction is still deferred and is still a product decision, not an engineering one: D-045 records that late deletions target ledger rows without horizon checks, so compaction changes deletion semantics. The measurement that decision needs now exists; the decision has not been made.
+
 ---
 
 ## 16. Storage budgets
@@ -320,6 +324,8 @@ Maintain repeatable scenarios:
 10. long-running simulated save/ledger.
 
 Record build, device, OS, quality tier, profiler configuration, and measurements.
+
+**Status (2026-09-29, D-048): 5/10 measured headlessly, 1/10 by explicit surrogate, 4/10 not simulated.** `tools/simulation scenarios` implements 1, 2, 6 (canonical half), 9 and 10; scenario 8 is covered only by a surrogate (repeated boot-from-disk plus advance, which is not real backgrounding). Scenarios 3, 4, 5 and 7 are **not simulated** — no editor, no device — and no figure was invented for them. Timings are recorded as evidence and deliberately not gated; the deterministic size/count half is gated by `scripts/verify-save-growth.sh`. Evidence: `docs/evidence/performance/SCENARIOS.md`.
 
 ---
 

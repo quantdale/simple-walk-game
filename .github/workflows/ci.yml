@@ -76,3 +76,6 @@ jobs:
 
       - name: Pacing evidence reproducibility (all seven GAME_SYSTEMS 13 profiles)
         run: scripts/verify-pacing-evidence.sh
+
+      - name: Save-growth / performance-scenario determinism (PERFORMANCE_BUDGETS 15)
+        run: scripts/verify-save-growth.sh
