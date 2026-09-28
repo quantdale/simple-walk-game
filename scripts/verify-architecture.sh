@@ -18,6 +18,12 @@
 #   3. Infrastructure references only Application and Domain.
 #   4. No engine namespace (UnityEngine/UnityEditor/...) appears anywhere in src/.
 #   5. Domain and Application perform no filesystem access.
+#   6. Every script CI invokes directly is committed executable and LF-only.
+#
+# Rule 6 exists because a gate script committed without the executable bit passes
+# every local run on Windows (which ignores the bit) and then fails in CI with
+# "Permission denied". That exact latent breakage was introduced and shipped once
+# already; this rule makes it fail locally instead.
 #
 # Exit codes:
 #   0  every rule holds
@@ -121,6 +127,32 @@ EOF
         bad "$layer performs filesystem access:$fs_hits"
     fi
 done
+
+echo "== rule 6: CI-invoked scripts are executable and LF-only =="
+ci_scripts="$(sed -n 's/^[[:space:]]*run:[[:space:]]*\(scripts\/[A-Za-z0-9._-]*\.sh\).*/\1/p' \
+             .github/workflows/ci.yml 2>/dev/null | sort -u)"
+ci_scripts="$ci_scripts
+$(sed -n 's/^[[:space:]]*run:[[:space:]]*\(tests\/guards\/[A-Za-z0-9._/-]*\.sh\).*/\1/p' \
+             .github/workflows/ci.yml 2>/dev/null | sort -u)"
+
+if [ -z "$(printf '%s' "$ci_scripts" | tr -d '[:space:]')" ]; then
+    bad "no CI-invoked shell scripts were discovered; the extraction pattern is broken"
+else
+    for s in $ci_scripts; do
+        if [ ! -f "$s" ]; then
+            bad "CI invokes $s but it does not exist"
+            continue
+        fi
+        mode="$(git ls-files -s -- "$s" | awk '{print $1}')"
+        if [ "$mode" != "100755" ]; then
+            bad "CI invokes $s directly but it is committed with mode ${mode:-unknown}, not 100755"
+        elif grep -qU $'\r' "$s"; then
+            bad "$s contains CRLF; a POSIX shebang script with CRLF breaks under sh"
+        else
+            ok "$s is committed executable and LF-only"
+        fi
+    done
+fi
 
 echo ""
 echo "=============================="
