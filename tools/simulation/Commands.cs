@@ -216,14 +216,7 @@ internal static class Cli
     {
         var a = new SimArgs(tokens);
         string profileName = a.Has("--profile") ? a.Text("--profile") : string.Empty;
-        long[] pattern = profileName switch
-        {
-            "low" => new[] { 3000L },
-            "moderate" => new[] { 8000L },
-            "high" => new[] { 20000L },
-            "irregular" => new[] { 26000L, 15000L, 2000L, 18000L, 6000L, 22000L, 9000L },
-            _ => throw new CliUsageException("--profile must be one of: low | moderate | high | irregular"),
-        };
+        PacingProfile pacing = ResolvePacingProfile(profileName);
         int horizon = a.Has("--days") ? (int)a.Long("--days") : 400;
         if (horizon is < 1 or > 3650)
             throw new CliUsageException("--days must be between 1 and 3650");
@@ -243,6 +236,7 @@ internal static class Cli
         var expeditionAvailableDay = new Dictionary<string, int>();
         var expeditionCompletedDay = new Dictionary<string, int>();
         int decisions = 0, queueEmptyDays = 0, cappedProducerDays = 0;
+        int silentDays = 0;
         long totalSteps = 0, vitalityCredited = 0;
         int day = 0;
         bool completed = false;
@@ -250,18 +244,27 @@ internal static class Cli
         while (day < horizon && !completed)
         {
             day++;
-            long steps = pattern[(day - 1) % pattern.Length];
             var windowStart = clockBase.AddDays(day - 1);
             var windowEnd = clockBase.AddDays(day);
+            // A silent day models a real source returning no record at all (not a
+            // zero-quantity record, which the trust pipeline rejects by design).
+            long steps = pacing.StepsForDay(day, windowStart);
 
             var dailySession = CreateSession(new ManualClock(windowEnd), a.SaveDir);
             var dailyBoot = Boot(dailySession, allowFreshStart: false, freshSeed: 0);
             if (dailyBoot.ExitCode != 0)
                 return dailyBoot.ExitCode;
 
-            var ingest = dailySession.IngestFromSource(new SyntheticWalkingSource(steps), windowStart, windowEnd);
-            totalSteps += steps;
-            vitalityCredited += Math.Max(0L, ingest.VitalityCredited);
+            if (steps > 0L)
+            {
+                var ingest = dailySession.IngestFromSource(new SyntheticWalkingSource(steps), windowStart, windowEnd);
+                totalSteps += steps;
+                vitalityCredited += Math.Max(0L, ingest.VitalityCredited);
+            }
+            else
+            {
+                silentDays++;
+            }
 
             var home = dailySession.GetHome();
             if (home.ActiveProjectId == null && home.Queued.Count == 0)
@@ -305,11 +308,16 @@ internal static class Cli
 
         string closureId = content.CompletionMilestoneProjectId ?? string.Empty;
         Console.WriteLine($"--- profile report: {profileName} ---");
-        Console.WriteLine($"pattern steps/day: {string.Join(",", pattern)}");
+        if (pacing.PositionalPattern != null)
+            Console.WriteLine($"pattern steps/day: {string.Join(",", pacing.PositionalPattern)}");
+        else
+            Console.WriteLine($"pattern steps/day: {pacing.Description}");
         Console.WriteLine($"region completed: {(completed ? "yes" : "NO (horizon reached)")}" +
             (projectCompletionDay.TryGetValue(closureId, out int closureDay) ? $" on day {closureDay}" : string.Empty));
         Console.WriteLine($"days simulated: {day}  horizon: {horizon}");
         Console.WriteLine($"activity ingested: {totalSteps:N0} steps / {vitalityCredited:N0} vitality (exactly-once pipeline)");
+        if (pacing.AllowsSilentDays)
+            Console.WriteLine($"silent days (no record returned): {silentDays}");
         Console.WriteLine($"foreground decisions: {decisions} (one queue choice per idle stop; auto-advance on)");
         Console.WriteLine($"queue-empty days: {queueEmptyDays}");
         Console.WriteLine($"producer capped-store days: {cappedProducerDays}");
@@ -430,6 +438,109 @@ internal static class Cli
     }
 
     private const long ProducerMilliUnitsPerUnit = 1000L;
+
+    /// <summary>
+    /// A named pacing profile from GAME_SYSTEMS §13 "Simulation testing" / R-013.
+    /// A profile resolves a day index to a synthetic walking quantity, or 0 to model a
+    /// day on which the source returned no record at all. Resolution depends only on
+    /// the day index and the window start instant, so reports stay byte-reproducible.
+    /// </summary>
+    private sealed class PacingProfile
+    {
+        private readonly Func<int, DateTimeOffset, long> _resolve;
+
+        private PacingProfile(
+            Func<int, DateTimeOffset, long> resolve,
+            long[]? positionalPattern,
+            string? description,
+            bool allowsSilentDays)
+        {
+            _resolve = resolve;
+            PositionalPattern = positionalPattern;
+            Description = description;
+            AllowsSilentDays = allowsSilentDays;
+        }
+
+        /// <summary>Fixed rotation by day position; printed verbatim in the report.</summary>
+        public long[]? PositionalPattern { get; }
+
+        /// <summary>Human-readable rule for profiles that are not a fixed rotation.</summary>
+        public string? Description { get; }
+
+        public bool AllowsSilentDays { get; }
+
+        public long StepsForDay(int day, DateTimeOffset windowStartUtc) => _resolve(day, windowStartUtc);
+
+        public static PacingProfile Rotating(params long[] pattern) =>
+            new(
+                (day, _) => pattern[(day - 1) % pattern.Length],
+                positionalPattern: pattern,
+                description: null,
+                allowsSilentDays: false);
+
+        public static PacingProfile Ruled(
+            Func<int, DateTimeOffset, long> resolve,
+            string description,
+            bool allowsSilentDays) =>
+            new(
+                resolve,
+                positionalPattern: null,
+                description: description,
+                allowsSilentDays: allowsSilentDays);
+    }
+
+    /// <summary>
+    /// Resolves the seven profiles named by GAME_SYSTEMS §13. The first four are the
+    /// M4 profiles and keep their original positional semantics so the committed
+    /// evidence under docs/evidence/m4/ still reproduces byte-for-byte.
+    /// </summary>
+    private static PacingProfile ResolvePacingProfile(string name) => name switch
+    {
+        "low" => PacingProfile.Rotating(3000L),
+        "moderate" => PacingProfile.Rotating(8000L),
+        "high" => PacingProfile.Rotating(20000L),
+        "irregular" => PacingProfile.Rotating(26000L, 15000L, 2000L, 18000L, 6000L, 22000L, 9000L),
+
+        // Weekend-heavy: concentrated Saturday/Sunday effort, quiet weekdays. Driven by
+        // the real calendar weekday rather than array position so it stays correct for
+        // any --at start instant.
+        "weekend-heavy" => PacingProfile.Ruled(
+            (day, start) => start.DayOfWeek switch
+            {
+                DayOfWeek.Saturday => 22000L,
+                DayOfWeek.Sunday => 24000L,
+                DayOfWeek.Friday => 6000L,
+                DayOfWeek.Thursday => 4500L,
+                DayOfWeek.Wednesday => 4000L,
+                DayOfWeek.Tuesday => 3500L,
+                _ => 3000L,
+            },
+            description: "calendar weekday (Sat 22000, Sun 24000, Fri 6000, Thu 4500, Wed 4000, Tue 3500, Mon 3000)",
+            allowsSilentDays: false),
+
+        // Multi-day inactivity: five active weekdays, silent weekends, then a long
+        // 45-day total absence. Proves the anti-quitting-spiral mechanics (indefinite
+        // vitality banking, no-waste producer parking, durable return summary) keep a
+        // returning player on a viable pacing curve rather than a stalled one.
+        "inactivity" => PacingProfile.Ruled(
+            (day, _) =>
+            {
+                if (day >= 100 && day <= 144) return 0L;
+                if ((day - 1) % 7 is 5 or 6) return 0L;
+                return (day % 2 == 0) ? 9000L : 4000L;
+            },
+            description: "weekdays 4000/9000 alternating, weekends silent, days 100-144 entirely silent",
+            allowsSilentDays: true),
+
+        // Extreme/pathological source values: alternates implausible volumes with
+        // near-zero volumes to exercise D-030 quantity clamping and the
+        // integer-floor conversion rule. Every day stays positive so the run measures
+        // clamping, not record rejection.
+        "pathological" => PacingProfile.Rotating(250000L, 100L, 40000L, 50L, 500000L, 10L, 8000L, 1L),
+
+        _ => throw new CliUsageException(
+            "--profile must be one of: low | moderate | high | irregular | weekend-heavy | inactivity | pathological"),
+    };
 
     private static void TrackFirst(Dictionary<string, int> target, string key, int day)
     {
@@ -581,7 +692,7 @@ internal static class Cli
                    M3 ACCEPTANCE PATH: normalized synthetic records through the real
                    IngestActivityBatch pipeline; session recreated from disk every window;
                    --replay repeats the same window (--at required) and must credit nothing
-              profile   --save <dir> --profile low|moderate|high|irregular [--days N] [--seed N] [--at ISO8601]
+               profile   --save <dir> --profile low|moderate|high|irregular|weekend-heavy|inactivity|pathological [--days N] [--seed N] [--at ISO8601]
                    M4 PACING REPORT: deterministic Region 1 playthrough of the real
                    pipeline with a representative activity profile; prints completion
                    day, decisions, queue-empty days, producer caps, discovery/expedition

@@ -575,7 +575,7 @@ M1 is complete only when:
 
 ---
 
-## 24. M4-H content/state/validation boundaries (implemented)
+## 25. M4-H content/state/validation boundaries (implemented)
 
 - **Authored content** lives in `WalkGame.Application.Content.Region1Catalog` as pure definitions: projects, landmarks, producers, discoveries, expeditions, progression arcs and a closure milestone, versioned by `ContentVersion` (currently 2). Definitions are immutable; runtime values live only in `RegionState`.
 - **Canonical M4 state** extends `RegionState` additively under schema v2 (D-036): discovery/expedition dictionaries whose entries appear only after their first transition, integer arc stage counters, and completion flag/timestamp. Absent decodes to default semantics — no migration.

@@ -45,3 +45,6 @@ jobs:
 
       - name: Guard proof suite (identity / lease / pre-push race)
         run: tests/guards/run-guard-tests.sh
+
+      - name: Pacing evidence reproducibility (all seven GAME_SYSTEMS 13 profiles)
+        run: scripts/verify-pacing-evidence.sh

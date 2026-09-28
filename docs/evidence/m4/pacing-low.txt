@@ -1,4 +1,4 @@
-﻿[dev] started fresh game seed=42
+[dev] started fresh game seed=42
 --- profile report: low ---
 pattern steps/day: 3000
 region completed: NO (horizon reached)

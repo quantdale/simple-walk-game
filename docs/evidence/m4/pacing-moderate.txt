@@ -1,4 +1,4 @@
-﻿[dev] started fresh game seed=42
+[dev] started fresh game seed=42
 --- profile report: moderate ---
 pattern steps/day: 8000
 region completed: yes on day 242

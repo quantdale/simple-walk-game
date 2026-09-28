@@ -392,18 +392,22 @@ Use the format:
 
 The following should be resolved at the relevant milestone rather than guessed prematurely:
 
-1. Exact Unity 6 LTS editor/runtime version.
-2. Exact local persistence implementation (snapshot+journal vs SQLite or another adapter).
-3. Exact Android Health Connect SDK/API integration strategy and minimum supported OS/device policy.
-4. Exact iOS HealthKit integration strategy and minimum supported iOS version.
-5. Final Region 1 fiction/name/art direction.
-6. Final Vitality conversion curve and safety bounds.
-7. Whether Materials and Knowledge both survive MVP balance testing.
-8. Notification categories and defaults after UX/device validation.
-9. Asset delivery strategy for Visit World.
-10. Whether cloud backup/sync enters post-MVP scope.
+1. Exact Unity 6 LTS editor/runtime version. **(open — D-035)**
+2. Exact local persistence implementation (snapshot+journal vs SQLite or another adapter). *(resolved by D-025/D-026: versioned JSON envelope with SHA-256 integrity, atomic snapshot + one-generation backup)*
+3. Exact Android Health Connect SDK/API integration strategy and minimum supported OS/device policy. *(open — M7, physically blocked)*
+4. Exact iOS HealthKit integration strategy and minimum supported iOS version. *(open — M7, physically blocked)*
+5. Final Region 1 fiction/name/art direction. *(fiction resolved: Millbrook Valley, WORLD_AND_CONTENT; art direction still open — M6)*
+6. Final Vitality conversion curve and safety bounds. *(curve resolved: conversion rule v1, 100 steps → 1 Vitality, integer floor, versioned. Safety bounds remain open — the `pathological` profile in D-046 measures ≈686 effective steps/Vitality under D-030 clamping, and no diminishing-returns design exists, so R-008 is untouched)*
+7. Whether Materials and Knowledge both survive MVP balance testing. *(open — and now materially different: neither resource has any production consumer or cap, see the D-032 discharge note recorded under D-046)*
+8. Notification categories and defaults after UX/device validation. *(categories/defaults resolved by D-042: opt-in master, four categories, optional reminder; "after UX/device validation" remains open — M5/M7)*
+9. Asset delivery strategy for Visit World. *(open — M6)*
+10. Whether cloud backup/sync enters post-MVP scope. *(open; ROADMAP post-MVP gate explicitly does not pre-authorize it)*
 
 Resolve these through new decision entries with rationale and consequences; do not silently bake them into implementation.
+
+*(Status annotation added 2026-09-29 during the documentation-truth campaign: this list was
+presented as uniformly unresolved even though four entries had been settled by accepted
+decisions, which is exactly the documentation-drift failure R-020 describes.)*
 
 ---
 
@@ -536,7 +540,7 @@ Resolve these through new decision entries with rationale and consequences; do n
 
 **Consequences:**
 - Save schema bumped to v2; registered sequential migration `m1-to-v2-producer-stored-milli-units` promotes v1 `carryMilliUnits` (always < 1000) into `storedMilliUnits`. Representative v1 fixtures decode through the real chain; re-encode/re-decode is stable.
-- With no resource cap set, delivery always succeeds and the store only ever holds sub-unit remainders — capacity binds when content defines resource caps or sinks (M4 concern).
+- With no resource cap set, delivery always succeeds and the store only ever holds sub-unit remainders — capacity binds when content defines resource caps or sinks (M4 concern). **This deferral was never discharged:** as of 2026-09-29 M4 shipped without defining any resource cap or sink, `ResourceBalances.SetCap` has no production call site (tests only), and `TryConsume` in `src/` only ever consumes Vitality. The bounded-store overflow, no-waste and parked-flush branch is therefore exercised solely by synthetic unit tests and never by the real simulation — all committed pacing reports show `producer capped-store days: 0`. Tracked as a candidate M5/M6 content campaign; see D-046.
 - Validator enforces `0 <= StoredMilliUnits <= CapacityUnits × 1000`, locked producers hold nothing, and content validator rejects capacities unrepresentable in checked milli-unit math.
 
 ---
@@ -736,3 +740,21 @@ Resolve these through new decision entries with rationale and consequences; do n
 - deferred: processed-record/reward-ledger compaction for save-size bounding (PERFORMANCE_BUDGETS §14–15) — late deletions target ledger rows without horizon checks, so compaction changes deletion semantics and requires a product decision;
 - deferred: STJ source generation — projected single-digit ms/boot gain does not justify serializer-mode drift risk while reflection mode remains correct;
 - `bench --save <dir> [--iterations N] [--days N]` stays available as the regression-measurement entry point.
+
+---
+
+## D-046 — Pacing evidence covers all seven GAME_SYSTEMS §13 profiles; intermittent engagement is recorded as an open balance finding
+
+**Status:** Accepted *(automated verified: seven reproducible reports, SHA-256 byte-identical on re-run; the four pre-existing M4 reports unchanged)*
+
+**Decision:** `tools/simulation profile` resolves its `--profile` name through a `PacingProfile` table covering all seven profiles named by GAME_SYSTEMS §13 and repeated by R-013: `low`, `moderate`, `high`, `irregular` (pre-existing), plus `weekend-heavy`, `inactivity` and `pathological` (added). A profile resolves a day index to a synthetic walking quantity, or 0 to model a day on which the source returned **no record at all** — never a zero-quantity record, which the trust pipeline rejects by design. The four original profiles keep their exact positional rotation so the evidence committed under `docs/evidence/m4/` still reproduces byte-for-byte. `weekend-heavy` keys off the real calendar weekday rather than array position so it stays correct for any `--at` instant.
+
+**Rationale:** Only four of the seven profiles existed, so R-013's mitigation was half-implemented and GAME_SYSTEMS §13 was unmet. Two of the new profiles changed the balance picture:
+
+- `pathological` completes the region on **day 29** from 3,184,633 ingested steps yielding 21,844 Vitality — ≈**686 steps/Vitality** against the nominal 100. The D-030 pathological-quantity clamp is doing real work; "100 steps → 1 Vitality" is a ceiling, not a guarantee.
+- `inactivity` (silent weekends plus a fully silent day 100–144) **does not reach the closure milestone within 400 days** — forest and research chains stay incomplete while both arcs reach 4/4.
+
+**Consequences:**
+- committed evidence `docs/evidence/m4/pacing-weekend-heavy.txt`, `pacing-inactivity.txt`, `pacing-pathological.txt`, each reproducible by SHA-256;
+- the intermittent-engagement shortfall is **recorded, not silently re-balanced** — changing chain costs or Vitality awards would invalidate the four previously committed M4 pacing reports and the D-039 provisional targets, which is a product-balance decision belonging to the M5/M6 milestone;
+- silent days still run the full canonical day loop (offline advancement, queue policy, production), so an absent player is simulated rather than skipped.

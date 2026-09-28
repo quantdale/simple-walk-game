@@ -300,6 +300,8 @@ Simulate:
 
 Balance against distributions, not one daily step target.
 
+**Status update (2026-09-29, D-046):** all seven profiles named by GAME_SYSTEMS §13 are now executable with committed, SHA-256-reproducible evidence under `docs/evidence/m4/`. The `pathological` profile shows the D-030 clamp reducing effective credit to ≈686 steps/Vitality against the nominal 100. The `inactivity` profile exposes a genuine balance finding: a player who walks only on weekdays and takes a six-week break restores both region arcs to 4/4 but **cannot finish the forest or research chains within 400 days** — the exact quitting-spiral shape this risk describes. Status remains **Open** until that shortfall is a deliberate balance decision, not a silent re-tune.
+
 ---
 
 ## R-014 — Too many currencies obscure the activity-to-world relationship

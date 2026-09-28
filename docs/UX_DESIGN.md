@@ -457,7 +457,7 @@ A player-facing feature is not complete until it has:
 
 ---
 
-## 8. M4 presentation requirements (discoveries, expeditions, region completion)
+## 24. M4 presentation requirements (discoveries, expeditions, region completion)
 
 M4 landed the canonical state and data contract; Unity screens remain M5/M6 scope. Runtime work must bind to:
 

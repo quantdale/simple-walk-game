@@ -1,4 +1,4 @@
-﻿[dev] started fresh game seed=42
+[dev] started fresh game seed=42
 --- profile report: irregular ---
 pattern steps/day: 26000,15000,2000,18000,6000,22000,9000
 region completed: yes on day 139

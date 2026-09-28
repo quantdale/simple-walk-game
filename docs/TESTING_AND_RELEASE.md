@@ -528,14 +528,14 @@ A build can be marked RELEASE QUALIFIED only when:
 
 Named, reproducible gates added by the M4-H campaign (all automated verified; runtime/device evidence remains UNVERIFIED and out of scope):
 
-1. dotnet build SimpleWalkGame.sln — zero errors (180 tests compile clean).
-2. dotnet test SimpleWalkGame.sln — Domain 101 / Infrastructure 25 / Application 54:
+1. dotnet build SimpleWalkGame.sln — zero errors (180 tests compile clean at M4-H exit).
+2. dotnet test SimpleWalkGame.sln — Domain 101 / Infrastructure 25 / Application 54 *(M4-H-era counts; the current suite is 295 — Domain 105 / Infrastructure 48 / Application 142)*:
    - M4ContentGraphTests — authored Region 1 validates with zero violations; content minimum met (19 projects / 6 landmarks / 3 producers / 13 discoveries / 3 expeditions); forward-reference regression fixed; red-team cases for duplicate IDs, broken triggers, unreachable stages/projects/closure.
    - M4ProgressionMechanicsTests — discovery unlock idempotency, expedition availability/completion one-shot semantics + cap-clamped rewards, monotonic arcs, closure once + post-completion evergreen.
    - M4StateValidationTests — canonical-state red team (unknown discovery/expedition IDs, review/timestamp inconsistencies, arc bounds, completion-flag consistency).
    - M4BackwardDecodingTests — pre-M4 v2 payloads strip all new properties, decode with default semantics, validate clean, re-encode stably (D-036).
    - M4Region1AcceptanceTests — THE named acceptance: clean profile through the real trust pipeline to the closure milestone with replay exactly-once, review independence, post-completion stability across reloads and byte-identical determinism.
-3. dotnet run --project tools/simulation -- profile --save <dir> --profile low|moderate|high|irregular --days 400 — deterministic pacing reports (committed under vidence/m4/); rerunning any profile reproduces its report byte-for-byte.
+3. dotnet run --project tools/simulation -- profile --save <dir> --profile low|moderate|high|irregular|weekend-heavy|inactivity|pathological --days 400 — deterministic pacing reports (committed under `evidence/m4/`); rerunning any profile reproduces its report byte-for-byte.
 4. dotnet run --project tools/simulation -- walk --save <dir> --days N --at <iso> --replay — unchanged M3 replay proof still credits zero against the expanded graph.
 5. `tests/guards/run-guard-tests.sh` — guard proof suite green.
 

@@ -220,10 +220,33 @@ Turn the systems vertical slice into one coherent, complete restoration region.
 
 - [x] critical path is reachable; *(ContentValidator fixpoint reachability gate: every project, landmark stage, producer unlock, discovery trigger and expedition requirement reachable from an entry project; closure milestone `proj.complete-valley-survey` reachable — M4ContentGraphTests)*
 - [x] no dependency cycles; *(cycle detection plus hidden-deadlock red-team tests: UnreachableProject/UnreachableClosureMilestone flagged — M4ContentGraphTests)*
-- [x] pacing works across low/moderate/high/irregular profiles; *(deterministic `tools/simulation profile` reports committed under docs/evidence/m4/: high d97, irregular d139, moderate d242, low long-tail documented with provisional targets D-039)*
-- [x] required foreground decisions remain low; *(exactly one queue decision per project (19 total) with auto-advance; zero-to-one queue-empty days and zero capped-store days across all four profiles)*
+- [x] pacing works across the GAME_SYSTEMS §13 activity profiles; *(deterministic `tools/simulation profile` reports committed under docs/evidence/m4/ — high d97, irregular d139, weekend-heavy d201, moderate d242, low long-tail documented with provisional targets D-039, pathological d29; the `inactivity` profile does NOT reach the closure milestone inside the 400-day horizon and two chains remain incomplete — see the "Intermittent-engagement pacing finding" note below)*
+- [x] required foreground decisions remain low; *(exactly one queue decision per project (19 total) with auto-advance; zero-to-one queue-empty days and zero capped-store days across the completed profiles)*
 - [x] all major stages have presentation requirements documented; *(WORLD_AND_CONTENT §12 binding table covers all six landmarks' canonical stages, discovery/expedition/arc presentation keys; UX_DESIGN §8 lists runtime binding requirements)*
 - [x] Region 1 can be completed headlessly. *(M4Region1AcceptanceTests drives a clean profile through the real trust pipeline to the closure milestone with replay exactly-once, post-completion stability and byte-identical determinism)*
+
+### Intermittent-engagement pacing finding (recorded 2026-09-29, R-013 / R-007)
+
+The seven GAME_SYSTEMS §13 profiles are now all executable and have committed evidence
+(`docs/evidence/m4/pacing-*.txt`; each reproduces byte-for-byte by SHA-256). Three were
+added in this campaign because only four existed, and two of the new ones changed the
+balance picture materially:
+
+- **`pathological`** (new) completes the region on **day 29** from 3,184,633 ingested
+  steps yielding only 21,844 Vitality — roughly **686 steps/Vitality against the nominal
+  100**. This is the D-030 pathological-quantity clamp working, and it means the
+  documented "100 steps → 1 Vitality" conversion is a ceiling, not a promise.
+- **`inactivity`** (new: silent weekends plus a fully silent day 100–144) **does not
+  reach the closure milestone within 400 days**; the forest and research chains stay
+  incomplete while ecology and settlement arcs both reach 4/4.
+
+That is a real product finding, not a test defect: a player who walks only on weekdays
+and takes a six-week break can restore the region's arcs but can never finish the last
+two chains on the current numbers. R-007 explicitly names this quitting-spiral shape.
+It is **recorded rather than silently re-balanced**: changing chain costs or Vitality
+awards would invalidate the four previously committed M4 pacing reports and the D-039
+provisional targets, which is a product-balance decision reserved for the M5/M6
+milestone rather than a documentation or tooling campaign.
 
 ---
 
