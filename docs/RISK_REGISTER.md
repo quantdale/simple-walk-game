@@ -382,6 +382,8 @@ As presentation work accelerates, state and rules move into MonoBehaviours, maki
 - scene state is derived;
 - domain tests must remain runnable outside Unity.
 
+**Status update (2026-09-29):** the "dependency checks" bullet above was previously an aspiration with nothing enforcing it. `scripts/verify-architecture.sh` now runs in CI and mechanically enforces the layering: Domain references nothing and stays on `netstandard2.1`; Application references only Domain; Infrastructure references only Application + Domain; no engine namespace appears anywhere in `src/`; and Domain/Application perform no filesystem access (comments stripped first so prose cannot false-positive). Every rule was proven to fail against a deliberately-broken fixture, not merely to pass against the current tree. Status remains **Open** rather than Mitigating — the gate proves the headless layering today, but R-017 is only re-testable end to end once M5/M6 land the Unity presentation project.
+
 ---
 
 ## R-018 — Content IDs/schema drift break mature saves

@@ -445,6 +445,23 @@ Target CI pipeline:
 
 A failure must be treated as a real blocker or explicitly quarantined with owner, rationale, and remediation criteria.
 
+### Implemented gate status (reconciled 2026-09-29)
+
+| # | Target gate | Status |
+|---|---|---|
+| 1 | formatting/static checks | **Not adopted.** `dotnet build` runs with warnings visible and the tree is at 0 warnings. A `dotnet format --verify-no-changes` gate was deliberately NOT added: it fails against the existing tree and adopting it would force mass reformatting churn across files unrelated to any risk, which this repository's campaign policy forbids. |
+| 2–4 | domain / application / persistence tests | **Implemented** — `dotnet test SimpleWalkGame.sln` (295 tests). |
+| 5 | content validation | **Implemented** — the `validate` simulation step runs `GameStateValidator` against `Region1Catalog`; the same validator is a release gate enforced at session construction. |
+| 6 | architecture dependency checks | **Implemented** — `scripts/verify-architecture.sh`, added 2026-09-29. Enforces that Domain references nothing and stays on `netstandard2.1`, Application references only Domain, Infrastructure references only Application + Domain, no engine namespace appears anywhere in `src/`, and Domain/Application perform no filesystem access (comments stripped first so prose cannot false-positive). This is the countermeasure for R-017. |
+| 7–8 | Unity EditMode / PlayMode | **Blocked** — no Unity 6 LTS editor (D-035). |
+| 9 | build smoke test | **Implemented** — `dotnet publish tools/simulation -c Release` must yield a runnable artifact. |
+| 10 | documentation/evidence checks | **Partially implemented** — `scripts/verify-pacing-evidence.sh` proves every committed pacing report reproduces byte-for-byte. Full release-branch documentation review remains manual. |
+
+Additional gates implemented 2026-09-29 that were not in the original target list:
+
+- **Exactly-once acceptance** — `walk` followed by `walk --replay`; the replayed window must report `vitality credited: 0` and `duplicate records ignored: 16`. The repository's flagship invariant previously had no CI gate at all.
+- **Long-horizon offline simulation** — `longhaul --days 365` (TESTING_AND_RELEASE §7 offline simulation was documented but not run in CI).
+
 ---
 
 ## 17. Flaky test policy

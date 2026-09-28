@@ -29,12 +29,40 @@ jobs:
       - name: Test
         run: dotnet test SimpleWalkGame.sln --no-build
 
+      - name: Architecture fitness checks (dependency direction, engine-free domain)
+        run: scripts/verify-architecture.sh
+
+      - name: Build smoke (Release publish produces a runnable artifact)
+        run: |
+          dotnet publish tools/simulation -c Release -o "$RUNNER_TEMP/simcli"
+          test -x "$RUNNER_TEMP/simcli/WalkGame.SimCli"
+
       - name: Simulation smoke (deterministic loop + tamper selftest)
         run: |
           SAVES=$(mktemp -d)
           dotnet run --project tools/simulation --no-build -- new --save "$SAVES" --seed 7 --at 2026-08-20T08:00:00Z
           dotnet run --project tools/simulation --no-build -- simulate --save "$SAVES" --days 5 --start 2026-08-20T08:00:00Z > /dev/null
           dotnet run --project tools/simulation --no-build -- validate --save "$SAVES" --selftest
+          rm -rf "$SAVES"
+
+      - name: Exactly-once acceptance (walk, then replay must credit zero)
+        run: |
+          SAVES=$(mktemp -d)
+          dotnet run --project tools/simulation --no-build -- walk --save "$SAVES" --days 16 \
+            --steps-per-day 20000 --at 2026-08-20T08:00:00Z
+          # The replayed window must be recognised as 16 duplicates and credit nothing.
+          dotnet run --project tools/simulation --no-build -- walk --save "$SAVES" --days 16 \
+            --steps-per-day 20000 --at 2026-08-20T08:00:00Z --replay \
+            | tee "$RUNNER_TEMP/replay.txt"
+          grep -q "vitality credited: 0" "$RUNNER_TEMP/replay.txt"
+          grep -q "duplicate records ignored: 16" "$RUNNER_TEMP/replay.txt"
+          rm -rf "$SAVES"
+
+      - name: Long-horizon offline simulation (365 app-closed days)
+        run: |
+          SAVES=$(mktemp -d)
+          dotnet run --project tools/simulation --no-build -- longhaul --save "$SAVES" --days 365 \
+            --seed 7 --at 2026-08-20T08:00:00Z
           rm -rf "$SAVES"
 
       - name: Hook installer is idempotent

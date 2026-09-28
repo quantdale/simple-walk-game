@@ -758,3 +758,21 @@ decisions, which is exactly the documentation-drift failure R-020 describes.)*
 - committed evidence `docs/evidence/m4/pacing-weekend-heavy.txt`, `pacing-inactivity.txt`, `pacing-pathological.txt`, each reproducible by SHA-256;
 - the intermittent-engagement shortfall is **recorded, not silently re-balanced** — changing chain costs or Vitality awards would invalidate the four previously committed M4 pacing reports and the D-039 provisional targets, which is a product-balance decision belonging to the M5/M6 milestone;
 - silent days still run the full canonical day loop (offline advancement, queue policy, production), so an absent player is simulated rather than skipped.
+
+---
+
+## D-047 — Architectural layering and the exactly-once invariant are CI-enforced, not aspirational
+
+**Status:** Accepted *(automated verified: 6/6 architecture assertions green on the real tree; every rule proven to fail against a deliberately-broken fixture; `walk --replay` reports `vitality credited: 0` / `duplicate records ignored: 16`)*
+
+**Decision:** Two new mechanical gates replace documented-but-unenforced intentions.
+
+1. `scripts/verify-architecture.sh` enforces the layering: Domain references nothing and targets `netstandard2.1`; Application references only Domain; Infrastructure references only Application + Domain; no engine namespace appears anywhere in `src/`; Domain and Application perform no filesystem access. Comments are stripped before the filesystem scan, so prose such as "no separate code path." cannot produce a false positive. It is the countermeasure for R-017 and implements the mechanically-verifiable subset of TECHNICAL_ARCHITECTURE §23.
+2. CI now runs `walk` then `walk --replay` and **asserts** the replayed window credits zero and reports 16 duplicates. The repository's flagship invariant previously had no CI gate whatsoever. CI also runs `longhaul --days 365` (§7 offline simulation was documented but never executed in CI) and a Release `dotnet publish` build smoke (TESTING_AND_RELEASE §16 gate 9).
+
+**Rationale:** §16 listed ten target CI gates and implemented six; R-017's "dependency checks" mitigation bullet had no enforcement behind it, and the exactly-once property that defines this product was proven only by locally-run evidence documents.
+
+**Consequences:**
+- a `dotnet format --verify-no-changes` gate was **deliberately not adopted**: it fails against the existing tree and adopting it would force mass reformatting churn in files unrelated to any risk. The tree is held at 0 build warnings instead;
+- each rule was verified to *fail* against a deliberately-broken throwaway fixture (injected `UnityEngine` using, `File.AppendAllText` in Application, a `net9.0` Domain, a Domain→Infrastructure reference) — a gate that has only ever passed proves nothing;
+- `verify-architecture.sh` exits 2 with a clear message when run outside the checkout, rather than silently scanning the wrong tree.

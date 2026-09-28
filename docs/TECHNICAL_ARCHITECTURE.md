@@ -539,6 +539,19 @@ CI should eventually enforce or detect:
 - tests pass from clean checkout;
 - docs/checklists reflect evidence state.
 
+**Implemented 2026-09-29 (D-047).** `scripts/verify-architecture.sh` now enforces the
+first two mechanically, and `scripts/verify-pacing-evidence.sh` partially covers the last:
+
+| Check | Enforced by | Status |
+|---|---|---|
+| Domain assembly has no Unity reference | `verify-architecture.sh` rules 1 and 4 (zero project/package references; no `UnityEngine`/`UnityEditor` anywhere in `src/`) | automated |
+| forbidden dependency direction | `verify-architecture.sh` rules 1–3 (exact allowed reference set per layer) | automated |
+| all content IDs unique | `ContentValidator` as a release gate, exercised by `M4ContentGraphTests` | automated |
+| migrations are registered sequentially | `MigrationRunner` validates chain contiguity in its own constructor and fails closed | automated |
+| no unresolved content validation errors | `tools/simulation validate` (CI) and validator-on-construct | automated |
+| tests pass from clean checkout | `dotnet test` in CI | automated |
+| docs/checklists reflect evidence state | `verify-pacing-evidence.sh` covers the pacing evidence only | **partial** — a full documentation-truth review remains manual |
+
 ---
 
 ## 24. Architectural non-goals
