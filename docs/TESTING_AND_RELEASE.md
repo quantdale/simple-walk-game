@@ -462,6 +462,31 @@ Additional gates implemented 2026-09-29 that were not in the original target lis
 - **Exactly-once acceptance** — `walk` followed by `walk --replay`; the replayed window must report `vitality credited: 0` and `duplicate records ignored: 16`. The repository's flagship invariant previously had no CI gate at all.
 - **Long-horizon offline simulation** — `longhaul --days 365` (TESTING_AND_RELEASE §7 offline simulation was documented but not run in CI).
 
+### Hosted CI availability (external blocker, observed 2026-09-29)
+
+Hosted GitHub Actions runs for this repository are currently **not executing**, for an
+account-level reason outside the repository's control. Runs `36486102864` (C1) and
+`36486996353` (C2) both report `conclusion: failure` with **`steps: 0`** and a two-second
+duration, annotated:
+
+> The job was not started because recent account payments have failed or your spending
+> limit needs to be increased. Please check the 'Billing & plans' section in your settings
+
+This is **not** a code, test or workflow failure — no runner was ever allocated, so no step
+executed. The last green run was `33293682455` on 2026-08-30; every run since has been
+refused before starting.
+
+Consequences, recorded honestly rather than papered over:
+
+- **No commit after 2026-08-30 has hosted-CI verification.** Any statement that a change is
+  "CI-verified" is false for those commits and must not be written.
+- Every gate in this section remains **locally reproducible** and was executed directly:
+  `dotnet build`, `dotnet test`, `scripts/verify-architecture.sh`, `scripts/verify-pacing-evidence.sh`,
+  `tests/guards/run-guard-tests.sh`, and the simulation verbs. Local execution is evidence of
+  the gate passing; it is **not** a substitute for a hosted run and is not reported as one.
+- Restoring hosted runs requires an account owner to resolve billing/spending limits. Until
+  then, treat hosted CI as an external blocker (condition B) and rely on local gates.
+
 ---
 
 ## 17. Flaky test policy
