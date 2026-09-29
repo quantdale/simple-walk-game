@@ -64,7 +64,7 @@ assert_repo_identity() {
     _ari_origin="$(git -C "$_ari_root" remote get-url origin 2>/dev/null)" ||
         fail_identity "no 'origin' remote configured."
     _ari_slug="$(normalize_github_slug "$_ari_origin")" ||
-        fail_identity "origin '$(_ari_origin)' is not a recognizable GitHub remote."
+        fail_identity "origin '$_ari_origin' is not a recognizable GitHub remote."
     if [ "$_ari_slug" != "$_ari_expected_repo" ]; then
         fail_identity "origin resolves to '$_ari_slug' but this checkout declares '$_ari_expected_repo'."
     fi
