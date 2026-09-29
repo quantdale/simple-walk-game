@@ -548,6 +548,13 @@ A release candidate should produce an evidence summary containing:
 - clean-clone/build result;
 - remaining unverified claims.
 
+Two §18 artifacts now exist as living documents rather than one-off release
+attachments: [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md) is the durable severity
+register (Critical/High open items block release qualification by rule), and
+[`PRIVACY_REVIEW.md`](PRIVACY_REVIEW.md) is the command-verified privacy and
+permission review. Both cover the headless lanes only; runtime/device halves
+stay explicitly UNVERIFIED until those lanes exist.
+
 This can be a Markdown artifact committed under a future `verification/` or `docs/releases/` path.
 
 ---

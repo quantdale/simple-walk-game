@@ -814,3 +814,19 @@ decisions, which is exactly the documentation-drift failure R-020 describes.)*
 - a local reproduction is a reproduction, not hosted CI: Linux-runner environment behavior remains unverified until the block lifts, and the first hosted green run must be diffed against this package's recorded results;
 - `uses:`-step assertions and the publish-apphost existence check follow MSYS `-x` semantics locally; equivalence with the Linux ELF apphost check was verified by inspection, not execution;
 - evidence: `docs/evidence/ci-local/CAMPAIGN-2026-09-29.md`.
+
+---
+
+## D-050 — Release-evidence registers (known issues, privacy review) are living documents, headless-scoped
+
+**Status:** Accepted *(all mechanical claims verified by recorded commands at `e2ea00a`; runtime/device halves explicitly reserved UNVERIFIED)*
+
+**Decision:** The two §18 release-package artifacts that can be produced without runtime, devices, or hosted CI are established as durable, versioned documents instead of one-off release attachments: `docs/KNOWN_ISSUES.md` (severity register per §15; any newly accepted-open defect, gap, or verification hole gains an entry; Critical/High entries block release qualification by rule) and `docs/PRIVACY_REVIEW.md` (every claim backed by a re-runnable command: zero network APIs in sources, single runtime NuGet dependency, save-content inventory, host-injected storage paths, test-enforced privacy-safe diagnostics). Both are scoped to the headless lanes; no runtime/device privacy or permission claim is made.
+
+**Rationale:** M9 deliverables list both artifacts; neither requires the blocked lanes; a living register makes externally blocked items (KI-001 hosted CI, KI-002 runtime) impossible to forget and locally accepted risks (plaintext health-adjacent saves) impossible to hide. Encoding privacy mechanically (grep-verifiable absence of network surface, test-enforced diagnostics safety) matches the repository evidence culture far better than prose assurances.
+
+**Consequences:**
+- two Medium findings are now formally open and must be dispositioned before M9: no explicit privacy requirements section in PRODUCT_SPEC (KI-005) and plaintext at-rest save data with OS encryption as the only shield (KI-006);
+- tooling/process items KI-007 (fixture hook env coupling) and KI-008 (stranded writer leases from killed foreground suites) join the backlog with evidence;
+- when the runtime/device lanes unblock, both documents require a second pass; until then they bound every privacy claim to the headless code;
+- evidence: `docs/PRIVACY_REVIEW.md`, `docs/KNOWN_ISSUES.md`.

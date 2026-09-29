@@ -86,6 +86,8 @@ A player who only uses the first two modes must still experience a coherent, sat
 | [`docs/AGENT_EXECUTION_GUIDE.md`](docs/AGENT_EXECUTION_GUIDE.md) | Rules for autonomous coding agents and long development sessions |
 | [`docs/RISK_REGISTER.md`](docs/RISK_REGISTER.md) | High-risk product/technical assumptions and mitigation plans |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | Architectural/product decisions and unresolved decision records |
+| [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) | Durable severity register of accepted-open defects and verification holes |
+| [`docs/PRIVACY_REVIEW.md`](docs/PRIVACY_REVIEW.md) | Command-verified privacy/permission review (headless lanes) |
 | [`ONBOARDING.md`](ONBOARDING.md) | Fresh-machine / fresh-agent bootstrap: prerequisites, agent setup, baseline verification |
 
 ---
