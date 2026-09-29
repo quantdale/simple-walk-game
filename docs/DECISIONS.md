@@ -798,3 +798,19 @@ decisions, which is exactly the documentation-drift failure R-020 describes.)*
 - adding project secondary-resource requirements is explicitly NOT done here. It alters progression balance, and `ContentValidator`'s critical-path reachability would have to prove a project is *schedulable* given what its unlock dependency actually produces, or it can certify a reachable graph that deadlocks in play. This campaign produced the measurement series such a change must be judged against, and stopped;
 - the harness also corrects a misleading claim: an incremental `dotnet build` reports 0 warnings, but a clean `--no-incremental` build reveals 8 pre-existing xUnit analyzer warnings in test code. Production code is genuinely at 0 warnings. TESTING_AND_RELEASE now records the distinction so "0 warnings" is never cited without qualification;
 - evidence: `docs/evidence/performance/SCENARIOS.md`.
+
+---
+
+## D-049 — The complete CI gate is mechanically reproducible locally while hosted runners remain blocked
+
+**Status:** Accepted *(full ci.yml body reproduction at `3b5d3e0`: 12 ok / 2 hosted-only SKIP / 0 failed; 295/295 tests; all four blocked runs confirmed `steps: 0` via gh)*
+
+**Decision:** `scripts/verify-ci-steps.sh` parses `.github/workflows/ci.yml` mechanically and executes every `run:` step body locally, in checkout order, under the GitHub Actions Linux default shell (`bash --noprofile --norc -eo pipefail`), honoring `continue-on-error` as WARN, exporting `GITHUB_REPOSITORY` and a CI-style `RUNNER_TEMP`, and reporting hosted-only `uses:` steps as explicit SKIPs backed by asserted local facts. The extractor is guarded both directions: extracted run/uses counts must equal the workflow's declared occurrences, and an empty extracted body is a hard failure — parser drift can only abort loudly, never report a hollow success.
+
+**Rationale:** no workflow run has progressed since `33293682455` (2026-08-30); the account-level billing/spending block (runs annotated "recent account payments have failed or your spending limit needs to be increased") holds C1–C3 and HEAD runs at `steps: 0`, and the repository's documented position (TESTING_AND_RELEASE §16) is that hosted CI is an external blocker awaiting an account owner while every gate remains locally reproducible. Release confidence cannot wait indefinitely on billing support, and what is needed is not the hosted *platform* but the hosted *gate* — and that gate is defined by the text of `ci.yml`.
+
+**Consequences:**
+- the reproduction tool now lives beside the workflow it reproduces; its hollow-pass guard proved necessary during its own development — the first two runs falsely reported 12/14 ok because step keys at 8-space indentation were parsed against 6-space patterns, and every "empty script" exited 0 (miss recorded in `docs/evidence/ci-local/CAMPAIGN-2026-09-29.md`);
+- a local reproduction is a reproduction, not hosted CI: Linux-runner environment behavior remains unverified until the block lifts, and the first hosted green run must be diffed against this package's recorded results;
+- `uses:`-step assertions and the publish-apphost existence check follow MSYS `-x` semantics locally; equivalence with the Linux ELF apphost check was verified by inspection, not execution;
+- evidence: `docs/evidence/ci-local/CAMPAIGN-2026-09-29.md`.

@@ -504,6 +504,14 @@ Consequences, recorded honestly rather than papered over:
   the gate passing; it is **not** a substitute for a hosted run and is not reported as one.
 - Restoring hosted runs requires an account owner to resolve billing/spending limits. Until
   then, treat hosted CI as an external blocker (condition B) and rely on local gates.
+- Mechanical local reproduction is now scripted: `scripts/verify-ci-steps.sh` parses
+  `ci.yml`, executes every `run:` step body in checkout order under the GitHub Actions
+  Linux default shell, honors `continue-on-error`, marks hosted-only `uses:` steps as
+  explicit SKIPs against asserted local facts, and treats parser drift against the
+  workflow file as a hard error rather than a silently empty step (D-049). Runs
+  `36488324241` (C3) and `36488888405` (HEAD) are in the same no-job-allocated state as
+  the two runs above. Status at HEAD `3b5d3e0`: 12 reproduced steps ok, 2 hosted-only
+  SKIP, 0 failed (295/295 tests). Evidence: `docs/evidence/ci-local/CAMPAIGN-2026-09-29.md`.
 
 ---
 

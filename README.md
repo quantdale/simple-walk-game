@@ -239,6 +239,9 @@ After two concurrent autonomous executor sessions damaged overlapping work (comm
   remote commits (exit 88); reconcile via fetch + deliberate merge/rebase instead.
 - **CI:** `.github/workflows/ci.yml` re-checks identity under GitHub's own
   `GITHUB_REPOSITORY`, builds/tests, runs the simulation smoke and the guard proof suite.
+  While hosted runners are blocked by an account billing/spending limit,
+  `scripts/verify-ci-steps.sh` reproduces every `ci.yml` step body locally in
+  checkout order, with parser-drift protection (D-049; TESTING_AND_RELEASE §16).
 - **Contract:** root [`AGENTS.md`](AGENTS.md) binds every harness; all `/goal` adapters
   inherit the preflight. See also `scripts/new-agent-worktree.sh` for isolated
   concurrent sessions (`one writer = one worktree = one branch`).
