@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using WalkGame.Domain;
 using WalkGame.Domain.Economy;
 using WalkGame.Domain.Projects;
 using WalkGame.Domain.Regions;
+using WalkGame.Domain.Simulation;
 using WalkGame.Domain.Validation;
 using LandmarkId = WalkGame.Domain.Common.Id<WalkGame.Domain.Common.LandmarkIdKind>;
 using ProjectId = WalkGame.Domain.Common.Id<WalkGame.Domain.Common.ProjectIdKind>;
@@ -13,6 +16,7 @@ namespace WalkGame.Domain.Tests;
 
 public class ContentValidationTests
 {
+    private static readonly DateTimeOffset T0 = new(2026, 8, 1, 9, 0, 0, TimeSpan.Zero);
     private static ProjectDefinition P(string id, long cost, params string[] prerequisiteIds) =>
         new(new ProjectId(id), $"title.{id}", cost,
             prerequisiteIds.Select(p => new ProjectId(p)));
@@ -144,5 +148,211 @@ public class ContentValidationTests
 
         Assert.NotEmpty(violations);
         Assert.Contains(violations, v => v.Contains("no entry project"));
+    }
+
+    // ==================================================================
+    // D-058: every numeric bound the validator enforces, at the accepted
+    // maximum and at the FIRST value above it. A bound nobody pins is a
+    // bound nobody can trust.
+    // ==================================================================
+
+    private static RegionDefinition ProducerRegion(long milliUnitsPerDay, long capacityUnits, long projectCost = 100L) =>
+        new(
+            new RegionId("region.bounds"), "Bounds",
+            new[] { new ProjectDefinition(new ProjectId("proj.a"), "A", projectCost) },
+            Array.Empty<LandmarkDefinition>(),
+            new[]
+            {
+                new ProducerDefinition(new ProducerId("prod.p"), "P",
+                    ResourceType.Materials, milliUnitsPerDay, capacityUnits, "proj.a"),
+            },
+            resourceCaps: new[] { new KeyValuePair<ResourceType, long>(ResourceType.Materials, 1_000_000L) });
+
+    [Fact]
+    public void ProducerRate_AtTheAcceptedMaximum_IsAccepted()
+    {
+        long max = ContentValidator.MaxMilliUnitsPerDay;
+
+        var violations = ContentValidator.Validate(ProducerRegion(max, 1_000L));
+
+        Assert.DoesNotContain(violations, v => v.Contains("rate"));
+    }
+
+    [Fact]
+    public void ProducerRate_OneTickAboveTheAcceptedMaximum_IsRejected_NamingTheProducer()
+    {
+        long tooHigh = ContentValidator.MaxMilliUnitsPerDay + 1L;
+
+        var violations = ContentValidator.Validate(ProducerRegion(tooHigh, 1_000L));
+
+        Assert.Contains(violations, v => v.Contains("prod.p") && v.Contains("rate"));
+    }
+
+    [Fact]
+    public void TheAcceptedRate_IsTheDerivedBound_NotARoundNumber()
+    {
+        // The old bound was 1e12, wrong by ~5 orders of magnitude. Pin the DERIVATION.
+        Assert.Equal(ProducerArithmetic.MaxRepresentableMilliUnitsPerDay,
+            ContentValidator.MaxMilliUnitsPerDay);
+        Assert.Equal(ProducerArithmetic.DeriveMaxRepresentableMilliUnitsPerDay(),
+            ContentValidator.MaxMilliUnitsPerDay);
+
+        // The sub-day remainder is the binding term, and that is asserted, not assumed.
+        Assert.True(ProducerArithmetic.SubDayRemainderBinds);
+        Assert.Equal(ProducerArithmetic.SubDayTermBound, ContentValidator.MaxMilliUnitsPerDay);
+
+        // And the bound really is where the arithmetic says: one above it overflows.
+        Assert.Equal(long.MaxValue / (TimeSpan.TicksPerDay - 1L),
+            ContentValidator.MaxMilliUnitsPerDay);
+    }
+
+    [Fact]
+    public void ProducerCapacity_AtAndAboveTheAcceptedMaximum_BehavesAsDocumented()
+    {
+        long maxCapacity = long.MaxValue / ProducerDefinition.MilliUnitsPerUnit;
+
+        var atBound = ContentValidator.Validate(ProducerRegion(1_000L, maxCapacity));
+        Assert.DoesNotContain(atBound, v => v.Contains("capacity"));
+
+        var above = ContentValidator.Validate(ProducerRegion(1_000L, maxCapacity + 1L));
+        Assert.Contains(above, v => v.Contains("prod.p") && v.Contains("capacity"));
+    }
+
+    [Fact]
+    public void ProducerCapacity_MustBePositive()
+    {
+        // `ProducerDefinition` rejects a non-positive capacity at CONSTRUCTION, so the
+        // validator's own `capacityUnits <= 0` rule can only be reached by a definition
+        // that bypasses the constructor. Prove the guard that actually runs, and note the
+        // validator rule as defence in depth rather than pretend it is reachable.
+        Assert.Throws<ArgumentException>(() => new ProducerDefinition(
+            new ProducerId("prod.zero"), "Z", ResourceType.Materials, 1_000L, 0L, "proj.a"));
+    }
+
+    [Fact]
+    public void ResourceCap_MustBePositive_AndEveryViolationNamesTheResource()
+    {
+        var badCap = new RegionDefinition(
+            new RegionId("region.cap"), "Cap",
+            new[] { new ProjectDefinition(new ProjectId("proj.a"), "A", 100L) },
+            Array.Empty<LandmarkDefinition>(),
+            new[]
+            {
+                new ProducerDefinition(new ProducerId("prod.p"), "P",
+                    ResourceType.Materials, 1_000L, 100L, "proj.a"),
+            },
+            // Constructed directly rather than through the constructor guard, because the
+            // constructor REJECTS a non-positive cap -- the validator must still be correct
+            // for any RegionDefinition that reaches it.
+            resourceCaps: null);
+
+        // No cap at all: the produced resource is unbounded, and is named.
+        var violations = ContentValidator.Validate(badCap);
+        Assert.Contains(violations, v => v.Contains("Materials") && v.Contains("no cap"));
+
+        // A non-positive cap cannot be constructed, so prove the guard that enforces it.
+        Assert.Throws<ArgumentException>(() => new RegionDefinition(
+            new RegionId("region.cap2"), "Cap2",
+            new[] { new ProjectDefinition(new ProjectId("proj.a"), "A", 100L) },
+            Array.Empty<LandmarkDefinition>(), Array.Empty<ProducerDefinition>(),
+            resourceCaps: new[] { new KeyValuePair<ResourceType, long>(ResourceType.Materials, -1L) }));
+    }
+
+    [Fact]
+    public void SelfCheck_ReportsAViolation_WhenThePublishedBoundDriftsFromTheDerivedOne()
+    {
+        // Exercise the self-check itself: a hand-edited published bound that no longer
+        // matches the simulation must be reported, naming BOTH values.
+        var problems = ContentValidator.CheckNumericBoundsAgainstSimulation(
+            publishedMaxMilliUnitsPerDay: 1_000_000_000_000L);
+
+        Assert.NotEmpty(problems);
+        Assert.Contains(problems, v =>
+            v.Contains("out of step with the simulation")
+            && v.Contains("1000000000000")
+            && v.Contains(ProducerArithmetic.MaxRepresentableMilliUnitsPerDay.ToString()));
+    }
+
+    [Fact]
+    public void SelfCheck_IsSilent_WhenThePublishedBoundAgreesWithTheDerivation()
+    {
+        Assert.Empty(ContentValidator.CheckNumericBoundsAgainstSimulation(
+            ContentValidator.MaxMilliUnitsPerDay));
+    }
+
+    [Fact]
+    public void TheCorrectedBound_IsOrdersOfMagnitudeAboveShippedRates_AndBelowTheOldOne()
+    {
+        // Task 3.2. Region 1's three authored rates are 1200, 1500 and 2500 milli-units/day.
+        // The corrected bound must sit far above all of them -- and, critically, FAR BELOW
+        // the 1e12 the validator used to accept, which is the whole defect.
+        const long shippedRate = 2_500L;
+        long bound = ContentValidator.MaxMilliUnitsPerDay;
+
+        Assert.True(bound > shippedRate * 1_000L,
+            "the corrected bound (" + bound + ") must be far above the largest shipped rate ("
+            + shippedRate + "); a bound near real content would mean the arithmetic is suspect");
+        Assert.True(bound < 1_000_000_000_000L,
+            "the corrected bound (" + bound + ") must be far below the old 1e12 bound");
+    }
+
+    // ==================================================================
+    // Task 2.3 / 2.4: the simulation genuinely cannot overflow at the bound.
+    // ==================================================================
+
+    [Fact]
+    public void Simulation_DoesNotOverflow_AtTheAcceptedRateOverTheMaximumInterval()
+    {
+        var content = ProducerRegion(ContentValidator.MaxMilliUnitsPerDay, capacityUnits: 1_000_000L);
+        Assert.DoesNotContain(ContentValidator.Validate(content), v => v.Contains("rate"));
+
+        var game = GameFactory.NewGame(content, T0, seed: 1UL);
+        var unlocker = game.Region.FindProject("proj.a")!;
+        unlocker.Status = ProjectStatus.Completed;
+        unlocker.CompletedAtUtc = T0;
+        game.Region.FindProducer("prod.p")!.Unlocked = true;
+
+        // The maximum interval the simulation will ever process in one tick.
+        OfflineAdvancer.TickProducers(
+            game, content, T0.Add(OfflineAdvancer.MaxProducerInterval), new List<SimulationEvent>());
+
+        var runtime = game.Region.FindProducer("prod.p")!;
+        long storeCapacity = 1_000_000L * ProducerDefinition.MilliUnitsPerUnit;
+
+        // The whole point: non-negative and inside the store, at the maximum authored rate.
+        Assert.True(runtime.StoredMilliUnits >= 0L,
+            "the tick must not wrap to a negative store at the accepted rate");
+        Assert.InRange(runtime.StoredMilliUnits, 0L, storeCapacity);
+        Assert.Empty(GameStateValidator.Validate(game, content));
+    }
+
+    [Fact]
+    public void Simulation_DoesNotOverflow_AtTheAcceptedRateWithAFractionalDay()
+    {
+        // The sub-day remainder is the binding term, so a FRACTIONAL day at the maximum
+        // rate is the single most overflow-prone input the tick can receive.
+        var content = ProducerRegion(ContentValidator.MaxMilliUnitsPerDay, capacityUnits: 1_000_000L);
+        var game = GameFactory.NewGame(content, T0, seed: 1UL);
+        game.Region.FindProject("proj.a")!.Status = ProjectStatus.Completed;
+        game.Region.FindProducer("prod.p")!.Unlocked = true;
+
+        foreach (var elapsed in new[]
+                 {
+                     TimeSpan.FromTicks(1),
+                     TimeSpan.FromHours(23),
+                     TimeSpan.FromDays(1) - TimeSpan.FromTicks(1),
+                     TimeSpan.FromDays(1),
+                 })
+        {
+            var fresh = GameFactory.NewGame(content, T0, seed: 1UL);
+            fresh.Region.FindProject("proj.a")!.Status = ProjectStatus.Completed;
+            fresh.Region.FindProducer("prod.p")!.Unlocked = true;
+
+            OfflineAdvancer.TickProducers(fresh, content, T0.Add(elapsed), new List<SimulationEvent>());
+
+            long stored = fresh.Region.FindProducer("prod.p")!.StoredMilliUnits;
+            Assert.True(stored >= 0L, "negative store after " + elapsed);
+            Assert.InRange(stored, 0L, 1_000_000L * ProducerDefinition.MilliUnitsPerUnit);
+        }
     }
 }

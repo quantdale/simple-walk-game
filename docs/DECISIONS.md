@@ -1316,3 +1316,66 @@ rather than beside the code, precisely so they cannot reopen the hole.
 - **Still unclaimed:** whether a seed *should* eventually affect outcomes is a product
   decision for the first mechanic that needs randomness, not a code fix. Nothing here
   forecloses it; it only stops the repository from implying the mechanism is live today.
+
+---
+
+## D-058 — Content validation derives its numeric bounds from the simulation's real arithmetic, and checks itself
+
+**Status:** Accepted *(verified at the F-08 pass: 11 new cases in `ContentValidationTests`; `dotnet test` 397/397 — Domain 135, Infrastructure 48, Application 214 — green; all seven `docs/evidence/m4/pacing-*.txt` reports **byte-identical**; save-growth verified; `verify-architecture.sh` 11/0; guard suite 25/0)*
+
+**Decision:** `ContentValidator.MaxMilliUnitsPerDay` is no longer a hand-picked
+`1_000_000_000_000`. It is now **derived** from the production tick's formula by
+`ProducerArithmetic` (Domain, next to `ProducerDefinition`), and `MaxProducerInterval`
+itself moved into that helper so the simulation and the validator read ONE source.
+`ContentValidator.CheckNumericBoundsAgainstSimulation` re-derives the bound on every
+validation and reports a named violation if the published constant ever drifts from it.
+
+**The defect, restated.** `OfflineAdvancer.TickProducers` computes:
+
+```
+(cappedTicks / TicksPerDay) * rate  +  (cappedTicks % TicksPerDay) * rate / TicksPerDay
+```
+
+The sub-day remainder is strictly less than `TimeSpan.TicksPerDay` (8.64e11), so
+representability requires `rate ≤ long.MaxValue / (TicksPerDay − 1)` ≈ **1.07e7**. The old
+bound of 1e12 was therefore wrong by roughly **five orders of magnitude**: any rate
+between ~1.07e7 and 1e12 passed validation and then overflowed in production. C# arithmetic
+there is unchecked, so the product **wrapped** rather than threw, a wrapped value drove
+`StoredMilliUnits` **negative**, and `GameStateValidator` then failed the save closed on the
+next boot. A player's world became unloadable from a number content validation had
+explicitly approved. The old comment stated the correct intent — "keep products
+representable" — and simply asserted a number that did not achieve it.
+
+**Why a self-check, and why it is a real check.** A bound that merely *looks* right is not a
+bound. If someone hand-edits the constant, or the simulation's maximum interval changes,
+the two drift silently and validation starts approving content the simulation cannot
+represent — which is precisely the failure mode being fixed. The self-check also asserts
+**which term binds** (currently the sub-day remainder, by five orders of magnitude), so a
+future change to `MaxInterval` that flipped the binding term would be reported as a stale
+derivation rather than passing unnoticed.
+
+The check is exercised by a test that passes a deliberately perturbed published bound and
+asserts the violation names **both** values. `MaxMilliUnitsPerDay` is `static readonly`
+rather than `const` precisely because a compile-time constant cannot reference the
+simulation's interval, and hardcoding the number is the failure being removed.
+
+**Consequences:**
+- **The production tick formula was not touched.** The seven byte-identical pacing reports
+  are the proof, since every profile is driven day-by-day through the real pipeline. Task
+  3.3 is satisfied by evidence, not by assertion.
+- **No Region 1 value changed.** Shipped rates remain 1200 / 1500 / 2500 milli-units/day —
+  three orders of magnitude below the corrected bound, and roughly 2500× *below* the old
+  one. This was latent authoring risk, not a live defect, and the new bound does not change
+  any existing world's behaviour.
+- **Two validator rules are now demonstrably unreachable through the constructors.**
+  `ProducerDefinition` already rejected a non-positive capacity and `RegionDefinition` a
+  non-positive cap, so `ContentValidator`'s own `capacityUnits <= 0` and cap-positivity
+  checks can only fire on a definition that bypasses its constructor. They are retained as
+  defence in depth, and the tests now prove the CONSTRUCTOR guard that actually runs rather
+  than pretending the validator rule is reachable.
+- **Authoring bounds are now documented where a content author will find them**
+  (`WORLD_AND_CONTENT.md`), and `TECHNICAL_ARCHITECTURE.md` §23 records that the content
+  validator is the release gate for numeric representability, not only for references.
+- **Still unclaimed:** whether a producer rate near the corrected bound produces *sensible*
+  game behaviour is a balance question no representability test can answer. The bound is
+  "cannot overflow", not "is a good number".

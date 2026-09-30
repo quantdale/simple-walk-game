@@ -346,7 +346,54 @@ Before a content build is accepted:
 - localization keys resolve;
 - discoveries have valid triggers;
 - expedition reward references resolve;
-- Region 1 can be completed in deterministic simulation.
+- Region 1 can be completed in deterministic simulation;
+- every authored numeric value is representable by the production tick (see below).
+
+### 20.1 Numeric representability bounds (D-058)
+
+`ContentValidator` is the release gate for numeric representability, not only for
+reference integrity. A bound nobody pins is a bound nobody can trust, and a bound that
+merely *looks* right is not a bound at all — which is how the previous producer-rate limit
+came to be wrong by five orders of magnitude.
+
+**Producer rate is bounded by the tick's arithmetic, not by preference.**
+`OfflineAdvancer.TickProducers` computes earned output as
+
+```
+(cappedTicks / TicksPerDay) * rate  +  (cappedTicks % TicksPerDay) * rate / TicksPerDay
+```
+
+The sub-day remainder is strictly less than `TimeSpan.TicksPerDay` (8.64e11), so
+representability requires
+
+```
+rate <= long.MaxValue / (TimeSpan.TicksPerDay - 1)     // ~1.07e7 milli-units/day
+```
+
+The arithmetic is **unchecked**, so exceeding this does not throw — the product wraps, a
+wrapped value can drive `StoredMilliUnits` negative, and `GameStateValidator` then fails the
+save closed on the next boot. A player's world becomes unloadable from a rate validation
+explicitly approved.
+
+Any future content campaign must respect, and can read directly from the code:
+
+| Bound | Source of truth |
+|---|---|
+| producer `milliUnitsPerDay` | `ProducerArithmetic.MaxRepresentableMilliUnitsPerDay` |
+| maximum producer interval per tick | `ProducerArithmetic.MaxInterval` (currently 3650 days) |
+| producer `capacityUnits` | `long.MaxValue / ProducerDefinition.MilliUnitsPerUnit` |
+| combined project cost budget | `ContentValidator.MaxTotalVitalityCost` |
+| authored resource cap | positive, and its derived store capacity must be representable |
+
+`ContentValidator.CheckNumericBoundsAgainstSimulation` re-derives the rate bound on every
+validation and reports a named violation if the published constant ever drifts from the
+derivation, or if the binding term of the formula ever changes. **Do not edit the bound by
+hand** — change the simulation, and let the derivation follow.
+
+**These bounds are "cannot overflow", not "is a good number".** Whether a rate near the
+bound produces sensible game behaviour is a balance judgement, and Region 1's shipped
+rates (1200–2500 milli-units/day) sit about three orders of magnitude below it precisely
+because content is not authored against representability limits.
 
 ---
 

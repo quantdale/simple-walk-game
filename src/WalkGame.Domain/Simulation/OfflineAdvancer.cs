@@ -17,9 +17,11 @@ namespace WalkGame.Domain.Simulation
     {
         /// <summary>
         /// Suspicious elapsed intervals are capped so a wildly wrong clock cannot mint
-        /// unbounded production in one tick.
+        /// unbounded production in one tick. The value lives in
+        /// <see cref="ProducerArithmetic.MaxInterval"/> so the content validator derives its
+        /// representability bound from the same source rather than restating it (D-058).
         /// </summary>
-        public static readonly TimeSpan MaxProducerInterval = TimeSpan.FromDays(3650L);
+        public static readonly TimeSpan MaxProducerInterval = ProducerArithmetic.MaxInterval;
 
         public static void Advance(GameState game, RegionDefinition content, DateTimeOffset nowUtc, List<SimulationEvent> events)
         {

@@ -539,6 +539,17 @@ CI should eventually enforce or detect:
 - tests pass from clean checkout;
 - docs/checklists reflect evidence state.
 
+**The content validator is a NUMERIC release gate, not only a reference gate (D-058).**
+`ContentValidator` rejects content whose authored numbers the production tick cannot
+represent — most importantly producer rates, which are bounded by the tick's own arithmetic
+rather than by preference. That distinction matters: a validation rule that looks
+reasonable but does not match the code it is protecting is worse than no rule, because it
+certifies content that then bricks a save. The validator therefore (a) derives its
+representability bound from `ProducerArithmetic`, which the simulation also reads, so
+there is one source of truth, and (b) re-derives that bound on every validation and reports
+a named violation if the published constant drifts from it. See
+`docs/WORLD_AND_CONTENT.md` §20.1 for the derivations a content author must respect.
+
 **Implemented 2026-09-29 (D-047).** `scripts/verify-architecture.sh` now enforces the
 first two mechanically, and `scripts/verify-pacing-evidence.sh` partially covers the last:
 

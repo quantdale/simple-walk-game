@@ -12,6 +12,78 @@ using RegionId = WalkGame.Domain.Common.Id<WalkGame.Domain.Common.RegionIdKind>;
 namespace WalkGame.Domain.Regions
 {
     /// <summary>
+    /// The numeric limits a producer's authored values must respect, DERIVED from the
+    /// production tick's real arithmetic rather than chosen as round numbers (D-058).
+    ///
+    /// <c>OfflineAdvancer.TickProducers</c> computes earned output as:
+    ///
+    /// <code>
+    /// (cappedTicks / TicksPerDay) * MilliUnitsPerDay
+    ///     + (cappedTicks % TicksPerDay) * MilliUnitsPerDay / TicksPerDay
+    /// </code>
+    ///
+    /// Two products must stay representable, and C# arithmetic here is UNCHECKED, so an
+    /// overflow does not throw — it wraps, and a wrapped value can drive
+    /// <c>StoredMilliUnits</c> NEGATIVE, which <c>GameStateValidator</c> then rejects on
+    /// the next boot. The player's world becomes unloadable from a number content
+    /// validation explicitly approved.
+    ///
+    /// <list type="bullet">
+    /// <item>the <b>sub-day remainder</b> term: <c>cappedTicks % TicksPerDay</c> is
+    /// strictly less than <see cref="TimeSpan.TicksPerDay"/>, so
+    /// <c>rate ≤ long.MaxValue / (TicksPerDay − 1)</c>.</item>
+    /// <item>the <b>whole-day</b> term: <c>cappedTicks / TicksPerDay</c> is at most
+    /// <see cref="MaxInterval"/>.TotalDays, so
+    /// <c>rate ≤ long.MaxValue / MaxInterval.TotalDays</c>.</item>
+    /// </list>
+    ///
+    /// The sub-day term is by far the binding constraint, and
+    /// <see cref="SubDayRemainderBinds"/> records which one actually binds so the
+    /// validator's self-check can say so rather than assume it.
+    /// </summary>
+    public static class ProducerArithmetic
+    {
+        /// <summary>
+        /// Suspicious elapsed intervals are capped so a wildly wrong clock cannot mint
+        /// unbounded production in one tick. THIS IS THE SINGLE SOURCE OF TRUTH:
+        /// <c>OfflineAdvancer.MaxProducerInterval</c> references it, so changing the cap
+        /// cannot leave the validator's bound stale.
+        /// </summary>
+        public static readonly TimeSpan MaxInterval = TimeSpan.FromDays(3650L);
+
+        /// <summary><c>cappedTicks % TicksPerDay</c> is strictly less than this.</summary>
+        private static readonly long MaxSubDayRemainderTicks = TimeSpan.TicksPerDay - 1L;
+
+        /// <summary>Bound implied by the sub-day remainder term of the tick formula.</summary>
+        public static long SubDayTermBound => long.MaxValue / MaxSubDayRemainderTicks;
+
+        /// <summary>Bound implied by the whole-day term of the tick formula.</summary>
+        public static long WholeDayTermBound =>
+            MaxInterval.Ticks / TimeSpan.TicksPerDay == 0L
+                ? long.MaxValue
+                : long.MaxValue / (MaxInterval.Ticks / TimeSpan.TicksPerDay);
+
+        /// <summary>
+        /// The largest authored rate the production tick can represent without wrapping.
+        /// </summary>
+        public static long MaxRepresentableMilliUnitsPerDay { get; } =
+            Math.Min(SubDayTermBound, WholeDayTermBound);
+
+        /// <summary>
+        /// True when the sub-day remainder term is the binding constraint — the case this
+        /// content is authored for, asserted rather than assumed so a future change to
+        /// <see cref="MaxInterval"/> cannot silently flip which term matters.
+        /// </summary>
+        public static bool SubDayRemainderBinds => SubDayTermBound < WholeDayTermBound;
+
+        /// <summary>Re-derives the bound from first principles, for the validator self-check.</summary>
+        public static long DeriveMaxRepresentableMilliUnitsPerDay() =>
+            Math.Min(
+                long.MaxValue / (TimeSpan.TicksPerDay - 1L),
+                long.MaxValue / (MaxInterval.Ticks / TimeSpan.TicksPerDay));
+    }
+
+    /// <summary>
     /// Canonical restoration stages. Not every landmark uses all five, but content must
     /// define its progression explicitly; visuals derive from this state via bindings.
     /// </summary>
@@ -71,7 +143,6 @@ namespace WalkGame.Domain.Regions
         public long MilliUnitsPerDay { get; }
         public long CapacityUnits { get; }
         public string UnlockedByProjectId { get; }
-
         public ProducerDefinition(ProducerId id, string titleKey, Economy.ResourceType output, long milliUnitsPerDay, long capacityUnits, string unlockedByProjectId)
         {
             if (!id.IsValid)

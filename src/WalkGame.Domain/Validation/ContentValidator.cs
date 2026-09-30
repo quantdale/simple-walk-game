@@ -24,8 +24,69 @@ namespace WalkGame.Domain.Validation
         /// <summary>Sane upper bound on authored progression stages per axis.</summary>
         private const int MaxStagesPerArc = 10;
 
-        /// <summary>Producer rates multiply by up to MaxProducerInterval days; keep products representable.</summary>
-        private const long MaxMilliUnitsPerDay = 1_000_000_000_000L;
+        /// <summary>
+        /// The largest authored producer rate the production tick can represent without
+        /// wrapping a <see cref="long"/> (D-058). DERIVED from the tick's real arithmetic by
+        /// <see cref="ProducerArithmetic"/>, not chosen as a round number.
+        ///
+        /// The previous value here was 1e12, which was wrong by roughly five orders of
+        /// magnitude: <c>TickProducers</c> multiplies the sub-day remainder
+        /// (<c>&lt; TicksPerDay</c> ≈ 8.64e11) by the rate, so anything above ~1.07e7
+        /// overflowed. C# arithmetic there is unchecked, so the product wrapped instead of
+        /// throwing, and a wrapped value drove <c>StoredMilliUnits</c> NEGATIVE — which
+        /// <c>GameStateValidator</c> rejects on the next boot, making the player's world
+        /// unloadable from a rate this validator had explicitly approved.
+        ///
+        /// Declared `static readonly` rather than `const` because it is DERIVED: a
+        /// compile-time constant cannot reference the simulation's maximum interval, and
+        /// hardcoding the number is precisely the failure this change exists to remove.
+        /// </summary>
+        public static readonly long MaxMilliUnitsPerDay = ProducerArithmetic.MaxRepresentableMilliUnitsPerDay;
+
+        /// <summary>
+        /// Re-derives the representability bound from the simulation's own interval and the
+        /// integer range, and reports any disagreement with the published bound.
+        ///
+        /// This exists because a bound that merely *looks* right is not a bound. If the
+        /// published constant is ever edited by hand, or the simulation's maximum interval
+        /// changes, the two drift silently and the validator starts approving content the
+        /// simulation cannot represent. The check is cheap (once per content validation)
+        /// and turns that class of drift into a loud, named violation.
+        ///
+        /// Returns every problem found, so a single run reports all of them. The published
+        /// bound is a PARAMETER rather than a default so the self-check itself can be
+        /// exercised with a deliberately perturbed value; production passes
+        /// <see cref="MaxMilliUnitsPerDay"/>.
+        /// </summary>
+        public static IReadOnlyList<string> CheckNumericBoundsAgainstSimulation(
+            long publishedMaxMilliUnitsPerDay)
+        {
+            var problems = new List<string>();
+
+            long derived = ProducerArithmetic.DeriveMaxRepresentableMilliUnitsPerDay();
+            if (publishedMaxMilliUnitsPerDay != derived)
+            {
+                problems.Add(
+                    "Content validator producer-rate bound is out of step with the simulation: published "
+                    + publishedMaxMilliUnitsPerDay + ", derived " + derived
+                    + " (from MaxInterval " + ProducerArithmetic.MaxInterval
+                    + " and the sub-day remainder < " + TimeSpan.TicksPerDay + ").");
+            }
+
+            // Record WHICH term binds rather than assuming it. If a future change to
+            // MaxInterval made the whole-day term the tighter constraint, the
+            // sub-day-term reasoning in the docs and in ProducerArithmetic would be wrong
+            // and the validator would no longer be deriving from the real formula.
+            if (!ProducerArithmetic.SubDayRemainderBinds)
+            {
+                problems.Add(
+                    "Producer-rate bound is no longer bound by the sub-day remainder term ("
+                    + ProducerArithmetic.SubDayTermBound + ") but by the whole-day term ("
+                    + ProducerArithmetic.WholeDayTermBound + "); the documented derivation is stale.");
+            }
+
+            return problems;
+        }
 
         /// <summary>
         /// Every resource a producer can emit must have an explicit, positive, representable
@@ -204,7 +265,7 @@ namespace WalkGame.Domain.Validation
                 if (!projectIds.Contains(producer.UnlockedByProjectId))
                     violations.Add($"Producer '{producer.Id}' references missing unlock project '{producer.UnlockedByProjectId}'.");
                 if (producer.MilliUnitsPerDay > MaxMilliUnitsPerDay)
-                    violations.Add($"Producer '{producer.Id}' rate {producer.MilliUnitsPerDay} exceeds the safe representable maximum.");
+                    violations.Add($"Producer '{producer.Id}' rate {producer.MilliUnitsPerDay} exceeds the maximum representable rate {MaxMilliUnitsPerDay} (the production tick would overflow).");
                 if (producer.CapacityUnits > long.MaxValue / ProducerDefinition.MilliUnitsPerUnit)
                     violations.Add($"Producer '{producer.Id}' capacity is too large to represent safely.");
                 if (producer.CapacityUnits <= 0L)
@@ -257,6 +318,9 @@ namespace WalkGame.Domain.Validation
             // ---- Resource caps and secondary requirements (D-054). ----
             ValidateResourceCaps(content, violations);
             ValidateSecondaryRequirements(content, violations);
+
+            // ---- Self-check: the published bounds still match the simulation (D-058). ----
+            violations.AddRange(CheckNumericBoundsAgainstSimulation(MaxMilliUnitsPerDay));
 
             // ---- Reachability: entry path, no hidden deadlock, closure reachable. ----
             bool hasReachableEntry = false;
