@@ -8,9 +8,7 @@ namespace WalkGame.Domain.Common
         public const string AlreadyQueued = "project.already-queued";
         public const string NotQueued = "project.not-queued";
         public const string AlreadyCompleted = "project.already-completed";
-        public const string NotAvailable = "project.not-available";
         public const string ProjectAlreadyActive = "project.already-active";
-        public const string QueueEmpty = "queue.empty";
         public const string InvalidQueueOrder = "queue.invalid-order";
 
         /// <summary>
@@ -21,7 +19,15 @@ namespace WalkGame.Domain.Common
         public const string ResourceRequirementNotMet = "project.resource-requirement-not-met";
         public const string DiscoveryUnknown = "discovery.unknown";
         public const string DiscoveryNotUnlocked = "discovery.not-unlocked";
-        public const string InvalidArgument = "domain.invalid-argument";
+
+        // D-057: `NotAvailable`, `QueueEmpty` and `InvalidArgument` were removed. Each was
+        // declared here and returned by nothing, so a reader of this file reasonably
+        // concluded the system distinguished those conditions somewhere. None of their
+        // STRING values was ever persisted, transmitted, or used as a localisation key —
+        // verified by grep across docs/, scripts/ and the save/JSON paths before removal.
+        //
+        // `ErrorCodeCoverageTests` now fails the build if a declared code is returned by
+        // nothing, so this class cannot silently accumulate dead conditions again.
     }
 
     public sealed class DomainError
@@ -60,31 +66,9 @@ namespace WalkGame.Domain.Common
             ok ? Ok() : Fail(errorCode, message);
     }
 
-    public readonly struct DomainResult<T>
-    {
-        public bool IsSuccess { get; }
-        public T? Value { get; }
-        public DomainError? Error { get; }
-
-        private DomainResult(T value)
-        {
-            IsSuccess = true;
-            Value = value;
-            Error = null;
-        }
-
-        private DomainResult(DomainError error)
-        {
-            IsSuccess = false;
-            Value = default;
-            Error = error;
-        }
-
-        public static DomainResult<T> Ok(T value) => new DomainResult<T>(value);
-
-        public static DomainResult<T> Fail(string code, string message) =>
-            new DomainResult<T>(new DomainError(code, message));
-
-        public static DomainResult<T> Fail(DomainError error) => new DomainResult<T>(error);
-    }
+    // D-057: `DomainResult<T>` was removed. It had zero production and tool references; the
+    // only uses were two lines in its own unit test. It read as a supported shape for a
+    // value-returning use case that does not exist, which is a small lie about the
+    // contract. When a value-returning use case actually arrives it will choose its result
+    // type against a real requirement — see D-057.
 }

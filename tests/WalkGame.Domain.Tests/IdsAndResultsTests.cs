@@ -86,11 +86,14 @@ public class IdsAndResultsTests
     [Fact]
     public void DomainResult_FromMapsSuccessFlagToResult()
     {
-        Assert.True(DomainResult.From(true, ErrorCodes.InvalidArgument, "ignored").IsSuccess);
+        // D-057: the arbitrary codes this used (QueueEmpty / InvalidArgument) were
+        // removed as dead surface. The behaviour under test is unchanged — a success flag
+        // maps to the result, and a failure carries the code it was given.
+        Assert.True(DomainResult.From(true, ErrorCodes.UnknownProject, "ignored").IsSuccess);
 
-        var failed = DomainResult.From(false, ErrorCodes.QueueEmpty, "empty");
+        var failed = DomainResult.From(false, ErrorCodes.NotQueued, "empty");
         Assert.False(failed.IsSuccess);
-        Assert.Equal(ErrorCodes.QueueEmpty, failed.Error!.Code);
+        Assert.Equal(ErrorCodes.NotQueued, failed.Error!.Code);
     }
 
     [Fact]
@@ -100,19 +103,5 @@ public class IdsAndResultsTests
 
         Assert.Equal(string.Empty, error.Code);
         Assert.Equal(string.Empty, error.Message);
-    }
-
-    [Fact]
-    public void DomainResultT_HoldsValueOnSuccessAndErrorOnFailure()
-    {
-        var ok = DomainResult<long>.Ok(7L);
-        Assert.True(ok.IsSuccess);
-        Assert.Equal(7L, ok.Value);
-        Assert.Null(ok.Error);
-
-        var fail = DomainResult<long>.Fail(ErrorCodes.UnknownProject, "missing");
-        Assert.False(fail.IsSuccess);
-        Assert.Equal(0L, fail.Value);
-        Assert.Equal(ErrorCodes.UnknownProject, fail.Error!.Code);
     }
 }

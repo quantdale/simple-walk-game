@@ -172,6 +172,34 @@ Do not allow:
 - retrying an operation to roll again;
 - hidden random modifiers in activity conversion.
 
+### Dormant surface: canonical randomness has no consumer today (D-057)
+
+The policy above is correct and enforced. The **implementation** is currently inert, and
+that is recorded rather than papered over:
+
+- `DeterministicRng` is complete, persisted in `GameState.Rng`, round-tripped by the save
+  codec, printed by `dump` and unit-tested — and **nothing in `src/` or `tools/` draws
+  from it**. Grepping `NextUInt64|NextInt64|NextDouble` returns only the definitions.
+- Consequently `StartNewGame(ulong seed)` **cannot currently affect any outcome**. Two
+  profiles run with different seeds reach identical canonical state, and
+  `SeedDoesNotAffectCanonicalStateTests` pins exactly that.
+- A property test's use of the generator as a **data generator** is NOT canonical
+  randomness. `SeededProgressionPropertyTests` names its local `testDataRng` for this
+  reason and is the single most misreadable reference in the repository.
+
+Rules that follow from this, and they are the point of recording it:
+
+- **Do not add a random mechanic to justify the existing generator.** Inventing a feature
+  to excuse a dependency is worse than a documented unused one.
+- **The first canonical consumer must add an end-to-end determinism test** covering the
+  save/load round trip. That will be the first time `Rng` is read, the first time the
+  seed matters, and the first opportunity to regress determinism. It must also revisit
+  seed semantics deliberately rather than inheriting whatever the code happens to do.
+- A general rule this repository has now been bitten by three times: **a mechanism that
+  reads as live is not evidence that it is live.** Ask what a guarantee *protects*, and
+  whether any production path *exercises* it. Dormant surface gets a comment, a test, or
+  removal — never silence.
+
 ---
 
 ## 11. UI implementation rules

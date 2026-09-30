@@ -70,6 +70,13 @@ namespace WalkGame.Domain
         /// </summary>
         public IngestionOutcomeState? LastIngestionOutcome { get; set; }
 
+        /// <summary>
+        /// Persisted canonical RNG state. Seeded from the <c>StartNewGame</c> seed and
+        /// round-tripped by the save codec, but read by NO production code path today
+        /// (D-057): the seed currently cannot affect any outcome. Kept because the policy
+        /// is right and the first canonical consumer will need the state to survive a
+        /// save/load round trip. See <see cref="Randomness.DeterministicRng"/>.
+        /// </summary>
         public RngState Rng { get; set; }
     }
 

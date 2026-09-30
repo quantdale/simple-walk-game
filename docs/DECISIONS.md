@@ -281,9 +281,10 @@ Use the format:
 
 ## D-017 — Deterministic RNG for canonical outcomes
 
-**Status:** Accepted
+**Status:** Accepted *(POLICY kept; implementation inert — corrected by D-057, 2026-09-30)*
 
-**Decision:** Expedition/discovery outcomes that use randomness derive from persisted deterministic seeds/state.
+**Decision:** Any canonical outcome that uses randomness must derive from persisted
+deterministic seeds/state. Rendering-side randomness must never decide a reward.
 
 **Rationale:** Save/reload/retry must not reroll canonical results.
 
@@ -292,6 +293,30 @@ Use the format:
 - RNG is injected;
 - rendering randomness remains non-authoritative;
 - algorithm changes may require version consideration.
+
+**CORRECTION (D-057).** As originally written this read as a description of a *live*
+mechanism. It was not one. `DeterministicRng` is fully implemented (xoshiro256\*\* with
+SplitMix64 seeding, rejection-sampled `NextInt64`), persisted in `GameState.Rng`,
+round-tripped field by field by the save codec, printed by `dump`, and covered by eight
+unit tests — and **no production or tool code draws from it**. Grepping `src/` and
+`tools/` for `NextUInt64|NextInt64|NextDouble` returns only the definitions.
+
+The practical consequence is that **`StartNewGame(ulong seed)` cannot currently affect
+any outcome**: the seed is written to the save and read back, and that is all. Two
+profiles run with different seeds produce identical canonical state.
+
+The **policy is correct and is kept**. What was missing was a consumer, not a policy. The
+mechanism is retained as persisted infrastructure for the first canonical consumer, whose
+obligations are now stated explicitly: it must add an end-to-end determinism test
+covering the save/load round trip, because that will be the first time `Rng` is read, the
+first time the seed matters, and the first opportunity to regress determinism. The
+current inert behaviour is pinned by `SeedDoesNotAffectCanonicalStateTests` so that the
+first consumer must revisit seed semantics deliberately rather than silently redefining
+what a seed means.
+
+A property test's use of the generator as a **data generator** is not canonical
+randomness; `SeededProgressionPropertyTests` now names its local `testDataRng` and says
+so, because that file is the single most misreadable reference in the repository.
 
 ---
 
@@ -495,7 +520,8 @@ decisions, which is exactly the documentation-drift failure R-020 describes.)*
 **Consequences:**
 - reversal remainders are revenue-safe but must be visible in diagnostics forever;
 - a later positive correction after a clamped reversal credits against net-applied value, converging toward earned value;
-- correction transaction IDs derive from identity + revision + applied amount (tx-corr1 namespace) and cannot collide with first-credit IDs;
+- correction transaction IDs derive from identity + revision + applied amount (
+tx-corr1 namespace) and cannot collide with first-credit IDs;
 - sources without durable record IDs cannot express corrections (documented adapter requirement for Health Connect/HealthKit work).
 
 ---
@@ -1220,3 +1246,73 @@ explicitly (120 invested + 200 more = 320 in, 300 consumed, 20 banked, nothing s
   automatically) remains the job of `surface-ingestion-rejection-reasons` task 5.1, as that
   change specifies. This change only completed the explicit list, which the D-052 work had
   already extended to the three previously-unwatched surfaces.
+
+---
+
+## D-057 — Dormant surface is recorded, not wished away: the seed, the generic result, and three dead error codes
+
+**Status:** Accepted *(verified at the F-15/F-21 pass: `dotnet test` 386/386 — Domain 124, Infrastructure 48, Application 214 — green; all seven `docs/evidence/m4/pacing-*.txt` reports byte-identical; save-growth verified; `verify-architecture.sh` 11/0; guard suite 25/0)*
+
+**Decision:** Four pieces of surface that read as live but were not are resolved, and one
+guard is added so the class cannot regrow. The guiding rule: **dormant surface is
+recorded honestly, not wished away, and not justified by inventing a use for it.**
+
+1. **Canonical randomness is kept, and D-017 is corrected.** `DeterministicRng` remains —
+   the *policy* is right and the mechanism is genuinely needed by the first canonical
+   consumer. What changed is the honesty: D-017 no longer describes a live mechanism, the
+   type and the `GameState.Rng` field both state that no consumer exists today, and the
+   inert behaviour is pinned by a test. Task 1.4's prohibition was respected: the RNG was
+   **not** wired into any progression, content or simulation path. Adding a random
+   mechanic to justify existing code would have been inventing a feature to excuse a
+   dependency, which is strictly worse than a documented one.
+
+2. **`DomainResult<T>` is removed.** Zero production and tool references; the only uses were
+   two lines in its own unit test. It advertised a supported shape for a value-returning
+   use case that does not exist. When such a use case arrives it will choose its result
+   type against a real requirement, not inherit a guess. Removal (rather than retention)
+   was chosen because a type nobody uses is a claim the codebase cannot keep.
+
+3. **`ErrorCodes.NotAvailable`, `.QueueEmpty` and `.InvalidArgument` are removed.** Each was
+   declared and returned by nothing, so a reader of `Results.cs` reasonably concluded the
+   system distinguished those three conditions somewhere. Before removal it was confirmed
+   that **no persisted value, wire format or localisation key keys on any of the three
+   strings** — grepped across `docs/`, `scripts/` and the save/JSON paths. The
+   `DomainResult.From` test that used two of them as arbitrary codes now uses live codes;
+   the behaviour it pins is unchanged.
+
+4. **`ErrorCodeCoverageTests` prevents recurrence.** It reflects over `ErrorCodes` and fails
+   if any declared constant is referenced by no production path, reporting **all** unused
+   codes in one message so a single run lists everything to fix. An empty, reason-carrying
+   `ReservedAllowList` lets a platform adapter land a code ahead of the operation that
+   returns it without the guard blocking legitimate in-flight work — a conscious,
+   reviewable edit rather than a silent exemption.
+
+**The guards were proven to fail, and doing so is how their own failure modes were found.**
+
+| Guard | Healthy | Broken fixture | Result |
+|---|---|---|---|
+| `ErrorCodeCoverageTests` | green | an unused code added to `ErrorCodes` | **FAIL**, naming `ScratchProbeNeverReturned ("scratch.never-returned")` |
+| `UseCaseCoverageGuardTests` (D-056) | green | an untested public use case added to `GameSession` | **FAIL**, naming the member and the expected test directory |
+
+The D-056 guard's **first** proof attempt passed *vacuously*, because the guard test's own
+doc comment named the temporary probe and the guard scans the test sources — a guard
+satisfiable by a comment about the guard is not a guard. That self-reference is now
+documented in the guard itself, and both proof transcripts are recorded in this log
+rather than beside the code, precisely so they cannot reopen the hole.
+
+**Consequences:**
+- **No save schema change and no migration.** The removed types and codes were never
+  persisted, so no mature-save fixture was needed and no rollback consideration arises.
+  This is the direct payoff of confirming persistence-independence *before* removing.
+- All seven pacing reports and the save-growth series are unchanged, which is the expected
+  result of touching declarations that no code path reads — and is the evidence that the
+  removals were genuinely inert rather than subtly load-bearing.
+- `SeededProgressionPropertyTests` names its generator `testDataRng` and says in a
+  one-line comment that it is property-test INPUT, never canonical game randomness. The
+  rename is identifier-only; every assertion is unchanged and the suite is green.
+- The seed honesty test drives a 24-day profile through the **real** ingestion pipeline for
+  two different seeds and compares canonical state deeply with the RNG field removed, so
+  it asserts the player-visible claim rather than one incidental field.
+- **Still unclaimed:** whether a seed *should* eventually affect outcomes is a product
+  decision for the first mechanic that needs randomness, not a code fix. Nothing here
+  forecloses it; it only stops the repository from implying the mechanism is live today.

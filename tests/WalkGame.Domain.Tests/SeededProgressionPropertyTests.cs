@@ -22,6 +22,14 @@ namespace WalkGame.Domain.Tests;
 /// scenario is driven by an explicit seed; failures print the seed so the exact
 /// sequence can be reproduced deterministically. No floating point, no wall clock.
 ///
+/// THE `DeterministicRng` USED HERE IS A PROPERTY-TEST DATA GENERATOR, NOT CANONICAL
+/// GAME RANDOMNESS (D-057). It builds test INPUT — varied producer rates, absence
+/// lengths, partial-claim amounts. It is not seeded into a game, not persisted, and has
+/// no effect on canonical state; the local is named <c>testDataRng</c> so that cannot be
+/// misread. This file is the single most misreadable reference in the repository: the
+/// generator is real, fully tested, and persisted as <c>GameState.Rng</c>, and nothing
+/// in the product consumes it. See <see cref="WalkGame.Domain.Randomness.DeterministicRng"/>.
+///
 /// Core invariants exercised repeatedly over randomized-but-deterministic histories:
 ///   - balances never go negative and producer stores never exceed capacity;
 ///   - completed projects never become incomplete (completion is monotonic);
@@ -47,9 +55,9 @@ public sealed class SeededProgressionPropertyTests
 
         for (int scenario = 0; scenario < scenarioCount; scenario++)
         {
-            var rng = new DeterministicRng((ulong)scenario + 1UL);
-            long rateMilliPerDay = 500L + (long)(rng.NextUInt64() % 4_500UL);
-            int splits = 1 + (int)(rng.NextUInt64() % 7UL); // 1..7 ticks
+            var testDataRng = new DeterministicRng((ulong)scenario + 1UL);
+            long rateMilliPerDay = 500L + (long)(testDataRng.NextUInt64() % 4_500UL);
+            int splits = 1 + (int)(testDataRng.NextUInt64() % 7UL); // 1..7 ticks
 
             var content = SingleProducerContent(rateMilliPerDay, capacityUnits: 10_000L);
             var oneShot = UnlockedGame(content);
@@ -64,7 +72,7 @@ public sealed class SeededProgressionPropertyTests
                 bool last = split == splits - 1;
                 long slice = last || remaining <= 1
                     ? remaining
-                    : Math.Max(1L, rng.NextInt64(1, remaining));
+                    : Math.Max(1L, testDataRng.NextInt64(1, remaining));
                 remaining -= slice;
                 OfflineAdvancer.TickProducers(partitioned, content, T0.AddTicks(totalElapsedTicks - remaining), new List<SimulationEvent>());
             }
@@ -87,16 +95,16 @@ public sealed class SeededProgressionPropertyTests
     {
         for (int scenario = 0; scenario < 16; scenario++)
         {
-            var rng = new DeterministicRng(0xC0FFEEUL + (ulong)scenario);
+            var testDataRng = new DeterministicRng(0xC0FFEEUL + (ulong)scenario);
             const long capacityUnits = 5L;
             var content = SingleProducerContent(rateMilliPerDay: 2_000L, capacityUnits);
             var game = UnlockedGame(content);
 
-            int absenceCount = 3 + (int)(rng.NextUInt64() % 6UL);
+            int absenceCount = 3 + (int)(testDataRng.NextUInt64() % 6UL);
             var now = T0;
             for (int absence = 0; absence < absenceCount; absence++)
             {
-                now = now.AddDays(1 + rng.NextInt64(1, 400));
+                now = now.AddDays(1 + testDataRng.NextInt64(1, 400));
                 var events = new List<SimulationEvent>();
                 OfflineAdvancer.Advance(game, content, now, events);
 
@@ -118,7 +126,7 @@ public sealed class SeededProgressionPropertyTests
     {
         for (int scenario = 0; scenario < 20; scenario++)
         {
-            var rng = new DeterministicRng(0x5EEDUL + (ulong)scenario * 7919UL);
+            var testDataRng = new DeterministicRng(0x5EEDUL + (ulong)scenario * 7919UL);
             var content = ChainContent();
             var game = GameFactory.NewGame(content, T0, (ulong)scenario + 100UL);
             game.Queue.AutoAdvance = true;
@@ -140,9 +148,9 @@ public sealed class SeededProgressionPropertyTests
                             break;
                         }
 
-                now = now.AddHours(5 + rng.NextInt64(0, 40));
+                now = now.AddHours(5 + testDataRng.NextInt64(0, 40));
 
-                long amount = rng.NextInt64(0, 400);
+                long amount = testDataRng.NextInt64(0, 400);
                 var tx = RewardTx(txCounter++);
                 Assert.Equal(LedgerApplyOutcome.AppliedFirstTime,
                     game.Ledger.Apply(new RewardTransaction(tx, now, amount, "walk"), game.Resources));

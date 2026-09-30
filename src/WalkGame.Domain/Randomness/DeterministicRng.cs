@@ -16,6 +16,23 @@ namespace WalkGame.Domain.Randomness
     /// specified here so results are identical across .NET and Unity runtimes.
     /// Canonical randomness must come from persisted <see cref="RngState"/>; rendering-side
     /// randomness must never decide rewards.
+    ///
+    /// NO CANONICAL CONSUMER EXISTS TODAY (D-057). The generator is fully implemented,
+    /// persisted in <c>GameState.Rng</c>, round-tripped by the save codec and unit-tested
+    /// — but nothing in the product draws from it. The practical consequence is that
+    /// <c>StartNewGame(seed)</c> cannot currently affect any outcome: the seed is written
+    /// to the save and read back, and that is all. Two profiles run with different seeds
+    /// produce identical canonical state, and that property is pinned by
+    /// <c>SeedDoesNotAffectCanonicalStateTests</c>.
+    ///
+    /// The POLICY is kept and is still correct: canonical randomness is seeded, persisted,
+    /// and never generated in presentation code. What was missing was a consumer, not a
+    /// policy. The FIRST consumer must add an end-to-end determinism test covering the
+    /// save/load round trip, because that will be the first time <c>Rng</c> is read, the
+    /// first time the seed matters, and the first opportunity to regress determinism.
+    ///
+    /// A property test's use of this type as a data generator is NOT canonical randomness
+    /// and must never be read as such — see <c>SeededProgressionPropertyTests</c>.
     /// </summary>
     public sealed class DeterministicRng
     {
