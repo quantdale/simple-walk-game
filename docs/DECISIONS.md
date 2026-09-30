@@ -1090,3 +1090,68 @@ something, and only the second needs telling about — otherwise "nothing happen
   player is a balance judgement no headless test can settle; the seven profiles are
   unchanged, but a cap that binds at day ~300 tells us nothing about how it feels at day
   30. A UX pass on the capped-storage message is the M5 shell's call.
+
+---
+
+## D-055 — The durable return summary rotates per kind, items carry currency, and attention expires
+
+**Status:** Accepted *(verified at the F-05 pass: 13 new tests in `ReturnSummaryRotationTests`; `dotnet test` 364/364 — Domain 122, Infrastructure 48, Application 194 — green; all seven `docs/evidence/m4/pacing-*.txt` reports still reproduce **byte-for-byte**; `verify-architecture.sh` 11/0; save-growth verified; guard suite 25/0)*
+
+**Decision:** `ReturnSummaryComposer` retains items under a **per-kind bound table**
+(Transformation 5, ActionableDecision 3, Production 2, Notice 1, Aggregate 1 — summing to
+exactly the existing 12-item hard bound, which is unchanged). When a kind is full its own
+oldest item is retired, so newer facts of the same kind can appear. A lower-priority item is
+**never** promoted above a higher-priority one to make room. `PendingSummaryItemState`
+gains an additive `FirstCommittedAtUtc`; items carried over keep their **original** commit
+time. `GetHome()` claims attention only while the summary holds at least one **current**
+item, where current means committed within `ReturnSummaryReadModel.CurrencyThreshold` =
+**7 days**; `HasPendingSummary` stays true regardless, so a historical summary is still
+readable.
+
+**Rationale.** The summary only ever grew. Every batch merged new items into the pending
+ones, the merged list was sorted by kind, and the first 12 survived; nothing was ever
+removed except by an explicit acknowledgement. So for a player who does not tap "dismiss" —
+precisely the busy player this product is designed for — the summary saturated within
+roughly the first dozen region events, after which every new Transformation item was
+dropped in favour of the oldest ones and **no Production, Notice or Aggregate item was ever
+shown again**. The player who engaged least got the least useful information, and Home
+compounded it by claiming `RequiresAttention` whenever any summary existed.
+
+**The 7-day threshold.** Long enough that a player who opens the app most days still sees
+"something is new"; short enough that a summary left unacknowledged for a week stops
+shouting. The queue-idle-with-banked-Vitality branch is deliberately **not** gated by
+currency, so that signal's semantics are unchanged.
+
+**Consequences — three real defects found and fixed while implementing:**
+
+1. **The sort was never stable.** `Finalize` called `List<T>.Sort` with a kind-only
+   comparator and then claimed "insertion order within a kind" in a comment. `List.Sort` is
+   not stable, so presentation order within a kind was arbitrary while the code asserted
+   otherwise. The ordering is now explicit: kind ordinal, then input index.
+
+2. **An unsound validator rule was removed, not added.** Task 2.4 asked for a check that an
+   item's commit timestamp is not after the summary's generation timestamp. That comparison
+   **assumes a monotonic clock**, and this repository explicitly does not assume one
+   (`ACTIVITY_PIPELINE` §12; the backward-clock handling in D-053). Adding the check made
+   three acceptance suites fail closed on a perfectly valid state — booting a save with a
+   clock earlier than the save's own generation is a supported, tested scenario. This is
+   exactly the "unsound invariant that bricks mature saves" shape the validator exists to
+   prevent, so any comparison between two persisted timestamps is now treated as unsound and
+   item currency is carried for **presentation only**.
+
+3. **Currency had to be measured against *now*, not against the summary.** The first
+   implementation computed `IsCurrent` from the summary's own `GeneratedAtUtc`. A summary
+   that is not recomposed keeps its original generation time, so a month-old item reported
+   as brand new forever and the attention signal could never expire — the change would have
+   been inert. `FromState` now takes the reading instant and `GameSession` passes the
+   injected clock. Found by the Home attention test, not by inspection.
+
+- **No schema bump and no migration.** The new item field is additive and an absent value
+  decodes to "as current as the summary itself", which is correct: those items genuinely are
+  the most recent thing that happened to the player. A pre-D-055 save is never invalidated.
+- **No item text, event mapping, acknowledgement operation or canonical progression
+  changed.** All seven pacing reports — whose text includes summary output — are
+  byte-identical, which is direct evidence that nothing about what is *said* moved.
+- **Still open and not claimed:** whether 7 days is the right currency threshold, and
+  whether rendering historical items dimmed rather than absent is the right presentation,
+  are UX judgements. The mechanical properties are tested; the feel is the M5 shell's call.

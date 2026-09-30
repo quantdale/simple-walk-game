@@ -23,6 +23,14 @@ namespace WalkGame.Domain.Summaries
         public SummaryItemKind Kind { get; set; }
 
         public string Text { get; set; } = string.Empty;
+
+        /// <summary>
+        /// When this item was FIRST committed to the summary (D-055). Additive: an absent
+        /// value in an older save decodes to "as recent as the summary itself", i.e. every
+        /// item in a pre-existing save is treated as current. That is the correct default,
+        /// because those items genuinely are the most recent thing that happened.
+        /// </summary>
+        public DateTimeOffset FirstCommittedAtUtc { get; set; }
     }
 
     /// <summary>

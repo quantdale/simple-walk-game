@@ -1015,7 +1015,20 @@ namespace WalkGame.Application
             long banked = queueIdle ? vitality : 0L;
             var reason = HomeAttentionReason.None;
             bool requiresAttention = false;
+
+            // D-055: a pending summary only claims attention while it holds at least one
+            // CURRENT item. A summary whose every item is historical is still readable
+            // (HasPendingSummary stays true) but the app must stop permanently demanding
+            // attention for a frozen screen — that is what made the least-engaged player
+            // the one who got the least useful information.
+            bool summaryHasCurrentItem = false;
             if (game.PendingReturnSummary != null)
+            {
+                var summary = SnapshotSummary(game);
+                summaryHasCurrentItem = summary != null && summary.HasCurrentItems;
+            }
+
+            if (summaryHasCurrentItem)
             {
                 requiresAttention = true;
                 reason = HomeAttentionReason.PendingReturnSummary;
@@ -1633,10 +1646,15 @@ namespace WalkGame.Application
                 events, _content, game.PendingReturnSummary, _clock.UtcNow);
         }
 
-        private static ReturnSummaryReadModel? SnapshotSummary(GameState game) =>
+        /// <summary>
+        /// Projects the durable summary for presentation. Item currency is measured against
+        /// the injected clock NOW, not against the summary's own generation time, so an
+        /// un-recomposed summary still ages out of the attention signal (D-055).
+        /// </summary>
+        private ReturnSummaryReadModel? SnapshotSummary(GameState game) =>
             game.PendingReturnSummary == null
                 ? null
-                : ReturnSummaryReadModel.FromState(game.PendingReturnSummary);
+                : ReturnSummaryReadModel.FromState(game.PendingReturnSummary, _clock.UtcNow);
 
         private static List<string> FormatSummaryLines(PendingReturnSummaryState? summary)
         {

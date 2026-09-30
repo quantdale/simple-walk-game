@@ -19,6 +19,36 @@ namespace WalkGame.Application.Summaries
     {
         private const int NamedAvailableProjectLimit = 3;
 
+        /// <summary>
+        /// Per-kind retention bounds (D-055). These sum to exactly
+        /// <see cref="PendingReturnSummaryState.MaxItems"/> (12), and the rotation rule is
+        /// applied PER KIND: when a kind is full, its own oldest item is retired so a newer
+        /// fact of the same kind can appear. Without this the summary only ever grew, and
+        /// after roughly the first dozen region events every new Transformation item was
+        /// dropped in favour of the oldest ones and no Production, Notice or Aggregate item
+        /// was ever shown again — so the least-engaged player, who is exactly the player
+        /// this surface exists for, got the least useful information.
+        ///
+        /// A lower-priority item is NEVER promoted above a higher-priority one to make
+        /// room: a full Transformation bucket cannot push an Aggregate out.
+        /// </summary>
+        private static readonly (SummaryItemKind Kind, int Max)[] KindBounds =
+        {
+            (SummaryItemKind.Transformation, 5),
+            (SummaryItemKind.ActionableDecision, 3),
+            (SummaryItemKind.Production, 2),
+            (SummaryItemKind.Notice, 1),
+            (SummaryItemKind.Aggregate, 1),
+        };
+
+        private static int BoundFor(SummaryItemKind kind)
+        {
+            foreach (var (boundKind, max) in KindBounds)
+                if (boundKind == kind)
+                    return max;
+            return 0;
+        }
+
         public static PendingReturnSummaryState Compose(
             IEnumerable<SimulationEvent> events,
             RegionDefinition content,
@@ -30,7 +60,21 @@ namespace WalkGame.Application.Summaries
                 merged.AddRange(existing.Items);
 
             AppendEventItems(events, content, merged);
+            StampCurrency(merged, generatedAtUtc);
             return Finalize(merged, generatedAtUtc);
+        }
+
+        /// <summary>
+        /// Stamps every item that does not already carry a currency timestamp (D-055).
+        /// Items carried over from a previous composition keep their ORIGINAL first-commit
+        /// time, which is what makes rotation meaningful: an item that has been sitting in
+        /// the summary for a week is visibly older than one committed today.
+        /// </summary>
+        private static void StampCurrency(List<PendingSummaryItemState> items, DateTimeOffset generatedAtUtc)
+        {
+            foreach (var item in items)
+                if (item.FirstCommittedAtUtc == default)
+                    item.FirstCommittedAtUtc = generatedAtUtc;
         }
 
         /// <summary>Appends an operational notice (backup recovery, save warnings) to pending state.</summary>
@@ -40,7 +84,13 @@ namespace WalkGame.Application.Summaries
             var merged = new List<PendingSummaryItemState>();
             if (state != null)
                 merged.AddRange(state.Items);
-            merged.Add(new PendingSummaryItemState { Kind = SummaryItemKind.Notice, Text = noticeText });
+            merged.Add(new PendingSummaryItemState
+            {
+                Kind = SummaryItemKind.Notice,
+                Text = noticeText,
+                FirstCommittedAtUtc = generatedAtUtc,
+            });
+            StampCurrency(merged, generatedAtUtc);
             return Finalize(merged, generatedAtUtc);
         }
 
@@ -205,21 +255,76 @@ namespace WalkGame.Application.Summaries
 
         private static PendingReturnSummaryState Finalize(List<PendingSummaryItemState> merged, DateTimeOffset generatedAtUtc)
         {
-            // Stable priority sort: kind order, then insertion order within a kind.
-            var ordered = new List<PendingSummaryItemState>(merged);
-            ordered.Sort((a, b) => ((int)a.Kind).CompareTo((int)b.Kind));
+            // EXPLICIT stable ordering (D-055): kind ordinal first, then first-commit order
+            // within a kind. The previous code called List<T>.Sort with a kind-only
+            // comparator and then claimed "insertion order within a kind" in a comment —
+            // List.Sort is NOT stable, so the claim was false and the presentation order
+            // within a kind was arbitrary. Indexing the input makes the guarantee real
+            // without depending on a sort implementation detail.
+            var indexed = new List<(PendingSummaryItemState Item, int Index)>(merged.Count);
+            for (int i = 0; i < merged.Count; i++)
+                if (merged[i] != null)
+                    indexed.Add((merged[i], i));
+
+            indexed.Sort((a, b) =>
+            {
+                int byKind = ((int)a.Item.Kind).CompareTo((int)b.Item.Kind);
+                return byKind != 0 ? byKind : a.Index.CompareTo(b.Index);
+            });
 
             var state = new PendingReturnSummaryState { GeneratedAtUtc = generatedAtUtc };
             var seen = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var item in ordered)
+            var perKindCount = new Dictionary<SummaryItemKind, int>();
+
+            foreach (var (item, _) in indexed)
             {
-                if (item == null || string.IsNullOrWhiteSpace(item.Text))
+                if (string.IsNullOrWhiteSpace(item.Text))
                     continue;
                 if (!seen.Add(item.Kind + "|" + item.Text))
                     continue;
-                state.Items.Add(new PendingSummaryItemState { Kind = item.Kind, Text = item.Text });
-                if (state.Items.Count >= PendingReturnSummaryState.MaxItems)
-                    break;
+
+                // Per-kind bound: retire this kind's oldest retained item to make room.
+                int bound = BoundFor(item.Kind);
+                perKindCount.TryGetValue(item.Kind, out int held);
+                if (held >= bound)
+                {
+                    int index = state.Items.FindIndex(i => i.Kind == item.Kind);
+                    if (index >= 0)
+                        state.Items.RemoveAt(index); // oldest of THIS kind only
+                    else
+                        continue;
+                    held--;
+                }
+
+                // An item with no currency (a pre-D-055 save) is treated as current: it
+                // genuinely is the most recent thing that happened to the player.
+                var committedAt = item.FirstCommittedAtUtc == default
+                    ? generatedAtUtc
+                    : item.FirstCommittedAtUtc;
+
+                state.Items.Add(new PendingSummaryItemState
+                {
+                    Kind = item.Kind,
+                    Text = item.Text,
+                    FirstCommittedAtUtc = committedAt,
+                });
+                perKindCount[item.Kind] = held + 1;
+            }
+
+            // The per-kind sums already bound the total, but the hard bound is the
+            // documented contract and is enforced independently so a future KindBounds
+            // edit cannot silently exceed it.
+            if (state.Items.Count > PendingReturnSummaryState.MaxItems)
+            {
+                var excess = state.Items.Count - PendingReturnSummaryState.MaxItems;
+                for (int i = state.Items.Count - 1; i >= 0 && excess > 0; i--)
+                {
+                    if (state.Items[i].Kind == SummaryItemKind.Aggregate)
+                    {
+                        state.Items.RemoveAt(i);
+                        excess--;
+                    }
+                }
             }
 
             state.PrimaryNextAction = DerivePrimaryNextAction(state.Items);
@@ -245,7 +350,6 @@ namespace WalkGame.Application.Summaries
                     return;
             target.Add(new PendingSummaryItemState { Kind = kind, Text = text });
         }
-
         private static string Title(string? titleKey, string fallbackId) =>
             string.IsNullOrWhiteSpace(titleKey) ? fallbackId : titleKey;
     }

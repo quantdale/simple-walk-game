@@ -235,6 +235,19 @@ namespace WalkGame.Domain.Validation
                     foreach (var item in pendingSummary.Items)
                         if (item == null || string.IsNullOrWhiteSpace(item.Text))
                             violations.Add("Pending return summary contains an empty item.");
+
+                    // DELIBERATELY NOT VALIDATED (D-055): that an item's first-commit
+                    // timestamp is at or before the summary's own generation timestamp.
+                    // That comparison assumes a monotonic clock, and this repository
+                    // explicitly does NOT assume one: booting a save with a clock earlier
+                    // than the save's own generation is a supported, tested scenario
+                    // (ACTIVITY_PIPELINE §12 "the pipeline must not assume device time is
+                    // monotonic"; the backward-clock handling in D-053). Adding the check
+                    // made three acceptance tests fail closed on a perfectly valid state,
+                    // which is the exact "unsound invariant that bricks mature saves" shape
+                    // this validator exists to avoid. Any comparison between two persisted
+                    // timestamps is unsound without a monotonic clock, so the item currency
+                    // is carried for PRESENTATION only and is not a load-time invariant.
                 }
                 if (pendingSummary.GeneratedAtUtc == default)
                     violations.Add("Pending return summary has no generation timestamp.");
