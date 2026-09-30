@@ -462,3 +462,40 @@ last known-good SHA); snapshot unions of conflicting lineages in dedicated WIP c
 like `b12f52c`/`67368e3` did; reconcile in a deliberate, reviewed commit; add regression
 coverage for whatever allowed the incident. Prevention knowledge belongs in these docs,
 not in anyone's memory.
+
+---
+
+## 21. Changing authored content
+
+A change to the authored content graph — an ID, a name, a cost, a removal — is a change
+to the *meaning* of every save that references it. Canonical state fails CLOSED on unknown
+content, so an unreviewed content change does not degrade gracefully: it makes existing
+saves unloadable, and the one-generation backup holds the same invalid content so it fails
+too (D-059).
+
+Before changing authored content:
+
+- **Prefer keeping a stable ID.** Renaming a *title key* is free; renaming an *ID* is a
+  save-meaning change.
+- **If an ID must be retired, add a tombstone.** `ContentTombstone(id, reason,
+  retiredInContentVersion)` keeps an existing save's reference RESOLVABLE. The reason is
+  mandatory and non-empty: an unattributed silent removal is exactly the change this
+  mechanism exists to make reviewable.
+- **A tombstone grants nothing.** A retired project may not sit Active, a retired producer
+  may not unlock, a retired expedition may not be recorded as completed. "It still loads"
+  is not "it still works" — and it must not be.
+- **Bump `AuthoredContentVersion`** when authored meaning changes. It is recorded once, at
+  profile creation, and is how a save-newer-than-this-build is detected at boot.
+- **Run the content-drift gate.** `scripts/verify-content-compatibility.sh` proves the
+  shipped content still resolves mature saves, and it runs in CI. A content change that
+  breaks it fails the build; that is the point.
+
+```bash
+scripts/verify-content-compatibility.sh
+```
+
+Note the two version axes, because conflating them produces the wrong fix: the **payload
+schema** (`SchemaVersions`, migrated by the `ISaveMigration` chain) is the wire format; the
+**authored content version** (`AuthoredContentVersion`) is the graph the payload refers to,
+and is never migrated. If a save is rejected, check which axis rejected it before acting —
+`dotnet run --project tools/simulation -- validate --save <dir>` prints both.

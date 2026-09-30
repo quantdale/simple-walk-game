@@ -83,3 +83,6 @@ jobs:
 
       - name: Save-growth / performance-scenario determinism (PERFORMANCE_BUDGETS 15)
         run: scripts/verify-save-growth.sh
+
+      - name: Content-drift gate (shipped content still resolves mature saves)
+        run: scripts/verify-content-compatibility.sh

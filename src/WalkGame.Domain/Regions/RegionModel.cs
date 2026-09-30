@@ -206,6 +206,43 @@ namespace WalkGame.Domain.Regions
     /// Immutable content for one region. Definitions carry authoring data only;
     /// player-specific values live in <see cref="RegionState"/>.
     /// </summary>
+    /// <summary>
+    /// An authored content identifier that has been retired, and why (D-059).
+    ///
+    /// A tombstone is the explicit, reviewable record that a live definition was removed or
+    /// renamed. Existing saves that still reference the old identifier resolve to the
+    /// tombstone rather than failing closed, which is the difference between a content
+    /// change and the destruction of a mature profile.
+    ///
+    /// The tombstone grants nothing. It exists purely so a reference stays RESOLVABLE.
+    /// </summary>
+    public sealed class ContentTombstone
+    {
+        /// <summary>The retired identifier, exactly as older saves recorded it.</summary>
+        public string Id { get; }
+
+        /// <summary>Why it was retired. Required, non-empty, and reviewable.</summary>
+        public string Reason { get; }
+
+        /// <summary>Content version at which the identifier was retired, when known.</summary>
+        public int? RetiredInContentVersion { get; }
+
+        public ContentTombstone(string id, string reason, int? retiredInContentVersion = null)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                throw new ArgumentException("A content tombstone requires a stable identifier.", nameof(id));
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new ArgumentException(
+                    "Content tombstone '" + id + "' requires a non-empty reason.", nameof(reason));
+
+            Id = id;
+            Reason = reason;
+            RetiredInContentVersion = retiredInContentVersion;
+        }
+
+        public override string ToString() => "tombstone:" + Id + " (" + Reason + ")";
+    }
+
     public sealed class RegionDefinition
     {
         public RegionId Id { get; }
@@ -242,6 +279,28 @@ namespace WalkGame.Domain.Regions
         public long? ResourceCap(Economy.ResourceType type) =>
             ResourceCaps.TryGetValue(type, out var cap) ? cap : (long?)null;
 
+        /// <summary>
+        /// Identifiers that have been RETIRED from authored content, with the reason they
+        /// were retired (D-059). A save that still references a retired identifier resolves
+        /// to its tombstone instead of failing closed, so a content rename or removal does
+        /// not destroy a mature profile.
+        ///
+        /// A tombstone grants NOTHING: a retired project cannot complete, a retired producer
+        /// cannot unlock, and a retired discovery or expedition cannot award. It only stops
+        /// the reference from becoming unresolvable.
+        ///
+        /// Region 1's set is deliberately EMPTY: the mechanism and its guards are introduced
+        /// here, and nothing is retired.
+        /// </summary>
+        public IReadOnlyDictionary<string, ContentTombstone> Tombstones { get; }
+
+        /// <summary>The tombstone for an identifier, or null when it is not retired.</summary>
+        public ContentTombstone? FindTombstone(string id) =>
+            id != null && Tombstones.TryGetValue(id, out var tombstone) ? tombstone : null;
+
+        /// <summary>True when the identifier is retired rather than live.</summary>
+        public bool IsTombstoned(string id) => FindTombstone(id) != null;
+
         public RegionDefinition(RegionId id, string titleKey,
             IEnumerable<ProjectDefinition> projects,
             IEnumerable<LandmarkDefinition> landmarks,
@@ -252,7 +311,8 @@ namespace WalkGame.Domain.Regions
             RegionProgressionDefinition? ecologyProgression = null,
             RegionProgressionDefinition? settlementProgression = null,
             string? completionMilestoneProjectId = null,
-            IEnumerable<KeyValuePair<Economy.ResourceType, long>>? resourceCaps = null)
+            IEnumerable<KeyValuePair<Economy.ResourceType, long>>? resourceCaps = null,
+            IEnumerable<ContentTombstone>? tombstones = null)
         {
             if (!id.IsValid)
                 throw new ArgumentException("Region definition requires a valid ID.", nameof(id));
@@ -289,6 +349,25 @@ namespace WalkGame.Domain.Regions
                 }
             }
             ResourceCaps = new Dictionary<Economy.ResourceType, long>(caps);
+
+            var retired = new Dictionary<string, ContentTombstone>(StringComparer.Ordinal);
+            if (tombstones != null)
+            {
+                foreach (var tombstone in tombstones)
+                {
+                    if (tombstone == null)
+                        continue;
+                    if (string.IsNullOrWhiteSpace(tombstone.Id))
+                        throw new ArgumentException("A content tombstone requires a stable identifier.", nameof(tombstones));
+                    // A tombstone with no reason is an unattributed silent removal, which is
+                    // exactly the class of change this mechanism exists to make reviewable.
+                    if (string.IsNullOrWhiteSpace(tombstone.Reason))
+                        throw new ArgumentException(
+                            "Content tombstone '" + tombstone.Id + "' requires a non-empty reason.", nameof(tombstones));
+                    retired[tombstone.Id] = tombstone;
+                }
+            }
+            Tombstones = new Dictionary<string, ContentTombstone>(retired);
         }
 
         public ProjectDefinition? FindProject(string projectId)

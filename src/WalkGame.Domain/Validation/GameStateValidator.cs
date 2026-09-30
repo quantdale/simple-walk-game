@@ -75,8 +75,22 @@ namespace WalkGame.Domain.Validation
 
             foreach (var pair in state.Region.Projects)
             {
-                if (!knownProjectIds.Contains(pair.Key))
+                if (knownProjectIds.Contains(pair.Key))
+                    continue;
+
+                // D-059: a RETIRED identifier resolves to its tombstone instead of failing
+                // closed. Content was removed or renamed on purpose, and the save's
+                // reference is the record of that old content -- refusing it would destroy
+                // a mature profile for a change that was reviewed and intentional. The
+                // reference stays RESOLVABLE and grants NOTHING (see below).
+                var tombstone = content.FindTombstone(pair.Key);
+                if (tombstone == null)
                     violations.Add($"Runtime project '{pair.Key}' is unknown to content definitions.");
+                else if (pair.Value != null && pair.Value.Status == ProjectStatus.Active)
+                {
+                    // A retired project must not sit in the active slot granting progress.
+                    violations.Add($"Runtime project '{pair.Key}' is tombstoned ({tombstone.Reason}) but is still ACTIVE; a retired project cannot be completed.");
+                }
             }
 
             // Queue/status consistency.
@@ -131,7 +145,18 @@ namespace WalkGame.Domain.Validation
                 var definition = content.FindProducer(producer.ProducerId);
                 if (definition == null)
                 {
-                    violations.Add($"Producer runtime '{producer.ProducerId}' is unknown to content definitions.");
+                    // D-059: a retired producer resolves to its tombstone, but must not be
+                    // unlocked and must not hold produced output — otherwise retiring a
+                    // producer would leave it minting.
+                    var tombstone = content.FindTombstone(producer.ProducerId);
+                    if (tombstone == null)
+                    {
+                        violations.Add($"Producer runtime '{producer.ProducerId}' is unknown to content definitions.");
+                    }
+                    else if (producer.Unlocked)
+                    {
+                        violations.Add($"Producer '{producer.ProducerId}' is tombstoned ({tombstone.Reason}) but is unlocked; a retired producer cannot produce.");
+                    }
                     continue;
                 }
                 long storeCapacityMilliUnits = definition.CapacityUnits * ProducerDefinition.MilliUnitsPerUnit;
@@ -155,7 +180,11 @@ namespace WalkGame.Domain.Validation
                 var definition = content.FindDiscovery(pair.Key);
                 if (definition == null)
                 {
-                    violations.Add($"Discovery runtime '{pair.Key}' is unknown to content definitions.");
+                    // D-059: a retired discovery resolves to its tombstone and simply stops
+                    // being renderable content. It grants nothing, which is already true:
+                    // a discovery has no completion effect.
+                    if (content.FindTombstone(pair.Key) == null)
+                        violations.Add($"Discovery runtime '{pair.Key}' is unknown to content definitions.");
                     continue;
                 }
                 var discovery = pair.Value;
@@ -180,7 +209,17 @@ namespace WalkGame.Domain.Validation
                 var definition = content.FindExpedition(pair.Key);
                 if (definition == null)
                 {
-                    violations.Add($"Expedition runtime '{pair.Key}' is unknown to content definitions.");
+                    // D-059: a retired expedition resolves to its tombstone. It must not be
+                    // recorded as COMPLETED, because completion is what pays its reward.
+                    var tombstone = content.FindTombstone(pair.Key);
+                    if (tombstone == null)
+                    {
+                        violations.Add($"Expedition runtime '{pair.Key}' is unknown to content definitions.");
+                    }
+                    else if (pair.Value != null && pair.Value.CompletedAtUtc != null)
+                    {
+                        violations.Add($"Expedition '{pair.Key}' is tombstoned ({tombstone.Reason}) but is recorded as completed; a retired expedition cannot award.");
+                    }
                     continue;
                 }
                 var expedition = pair.Value;

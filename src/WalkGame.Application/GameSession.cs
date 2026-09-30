@@ -28,6 +28,17 @@ namespace WalkGame.Application
         NoSaveFound = 3,
         SaveUnreadable = 4,
         StateInvalid = 5,
+
+        /// <summary>
+        /// The save was written against a NEWER authored content version than this build
+        /// provides (D-059). Fails closed and is NOT rewritten: the save's meaning cannot
+        /// be reconstructed by a build that lacks the content it references.
+        ///
+        /// Distinct from every other outcome because it is not a file failure, not an
+        /// invariant failure, and not absence — it is a VERSION mismatch, and the correct
+        /// action is to upgrade the build, not to repair the save.
+        /// </summary>
+        ContentIncompatible = 6,
     }
 
     /// <summary>Why a boot had to fall back to the backup generation (never set when the
@@ -62,6 +73,40 @@ namespace WalkGame.Application
         /// documents a delete/move window in which the primary is transiently missing, and
         /// that is the class this value exists to name.</summary>
         RecoveredFromMissingPrimary = 7,
+
+        /// <summary>Save recorded against a newer content version than this build (D-059).</summary>
+        ContentIncompatible = 8,
+    }
+
+    /// <summary>
+    /// How a save's authored content version relates to the content being loaded with it
+    /// (D-059). Reported on every boot so drift is observable even when it is compatible.
+    ///
+    /// This is a DIFFERENT axis from the payload schema version: that is the wire format,
+    /// migrated by the ISaveMigration chain; this is the authored content graph the payload
+    /// refers to, which is never migrated. The two are reported independently, because a
+    /// save can be on a current schema and still reference retired content.
+    /// </summary>
+    public enum ContentCompatibility
+    {
+        /// <summary>The relationship could not be determined (neither side records a version).</summary>
+        Unknown = 0,
+
+        /// <summary>The save and the build author exactly the same content version.</summary>
+        ExactMatch = 1,
+
+        /// <summary>
+        /// The save is OLDER than the content version this build provides, and the
+        /// difference is within the supported compatibility range. Loadable; tombstones
+        /// exist precisely so this case does not destroy mature profiles.
+        /// </summary>
+        CompatibleOlder = 2,
+
+        /// <summary>
+        /// The save is newer than this build's content version. Fails closed: this build
+        /// cannot know what the newer content meant, and guessing is how a profile is lost.
+        /// </summary>
+        NewerThanBuild = 3,
     }
 
     /// <summary>Structured failure category of the last failed boot decode attempt.</summary>
@@ -227,6 +272,9 @@ namespace WalkGame.Application
         private SaveRecoveryCause _lastBootRecoveryCause = SaveRecoveryCause.None;
         private CodecFailureCategory _lastBootCodecFailure = CodecFailureCategory.None;
         private IReadOnlyList<string> _lastBootAppliedMigrations = Array.Empty<string>();
+        private ContentCompatibility _lastContentCompatibility = ContentCompatibility.Unknown;
+        private int? _lastSaveContentVersion;
+        private int _lastBuildContentVersion;
 
         public GameSession(ISaveStore store, ISaveCodec codec, IClock clock, RegionDefinition content)
             : this(store, codec, clock, content, preferencesStore: null, connectionPort: null)
@@ -350,7 +398,12 @@ namespace WalkGame.Application
             {
                 primaryDecode = DecodeAndValidate(primary.EnvelopeBytes);
                 if (primaryDecode.Value.State != null)
+                {
+                    var primaryIncompatible = RejectIfContentIsNewer(primaryDecode.Value.State);
+                    if (primaryIncompatible != null)
+                        return primaryIncompatible;
                     return FinishBoot(primaryDecode.Value.State, SaveRecoveryCause.None);
+                }
             }
 
             // The primary is unavailable for ANY reason — absent, unreadable, or corrupt —
@@ -363,6 +416,9 @@ namespace WalkGame.Application
                 backupDecode = DecodeAndValidate(backup.EnvelopeBytes);
                 if (backupDecode.Value.State != null)
                 {
+                    var backupIncompatible = RejectIfContentIsNewer(backupDecode.Value.State);
+                    if (backupIncompatible != null)
+                        return backupIncompatible;
                     return FinishBoot(
                         backupDecode.Value.State,
                         primaryAbsent ? SaveRecoveryCause.PrimaryMissing : SaveRecoveryCause.PrimaryDamaged);
@@ -415,6 +471,47 @@ namespace WalkGame.Application
                 || existing == null)
                 return false;
             return record.Revision <= existing.LastRevision;
+        }
+
+        /// <summary>
+        /// Classifies the save's authored content version against this build's, and fails
+        /// closed when the save is NEWER (D-059).
+        ///
+        /// Returns null when the save may proceed, in which case the classification has
+        /// already been captured for diagnostics. A save that is older, or exactly equal,
+        /// always proceeds: that is the whole point of recording the version, and tombstones
+        /// are what keep an older save's retired references resolvable.
+        /// </summary>
+        private StartResult? RejectIfContentIsNewer(GameState state)
+        {
+            int buildVersion = _content.ContentVersion;
+            int? recorded = state.AuthoredContentVersion;
+
+            if (recorded == null || recorded.Value == buildVersion)
+                _lastContentCompatibility = ContentCompatibility.ExactMatch;
+            else if (recorded.Value < buildVersion)
+                _lastContentCompatibility = ContentCompatibility.CompatibleOlder;
+            else
+                _lastContentCompatibility = ContentCompatibility.NewerThanBuild;
+
+            _lastSaveContentVersion = recorded;
+            _lastBuildContentVersion = buildVersion;
+
+            if (_lastContentCompatibility != ContentCompatibility.NewerThanBuild)
+                return null;
+
+            // `recorded` is provably non-null here -- an absent version classifies as
+            // ExactMatch -- but stated explicitly rather than left to a null-conditional
+            // that would print nothing in the one case a player must read.
+            int saveVersion = recorded ?? buildVersion;
+
+            // Fail closed, and do NOT rewrite: this build cannot know what the newer
+            // authored content meant, and silently "fixing" the save is how a profile is lost.
+            CaptureBootOutcome(DiagnosticsBootOutcome.ContentIncompatible, recoveredFromBackup: false);
+            return new StartResult(StartStatus.ContentIncompatible,
+                detail: "Save was written against content version " + saveVersion
+                        + " but this build provides content version " + buildVersion
+                        + ". Update the game to continue; the save has not been changed.");
         }
 
         /// <summary>The decode error of a generation that failed INVARIANT validation (not
@@ -1462,6 +1559,9 @@ namespace WalkGame.Application
                 lastBootCodecFailure: _lastBootCodecFailure,
                 appliedMigrationsAtBoot: _lastBootAppliedMigrations,
                 schemaVersion: game?.SchemaVersion ?? 0,
+                contentCompatibility: _lastContentCompatibility,
+                saveContentVersion: _lastSaveContentVersion,
+                buildContentVersion: _lastBuildContentVersion,
                 regionId: game?.Region.RegionId ?? string.Empty,
                 ingestionCheckpointUtc: game?.IngestionCheckpointUtc ?? DateTimeOffset.MinValue,
                 checkpointWatermarkAgeDays: watermarkAgeDays,

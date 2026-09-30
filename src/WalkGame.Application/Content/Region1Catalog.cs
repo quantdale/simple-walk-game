@@ -105,6 +105,37 @@ namespace WalkGame.Application.Content
 
         public static RegionDefinition Create() => CachedInstance;
 
+        /// <summary>
+        /// Builds the shipped Region 1 content with an ADDITIONAL tombstone set layered on.
+        /// The parameterless overload above returns a shared cached instance and is what
+        /// production uses; this one exists so tests can prove the tombstone mechanism
+        /// against the real content graph without mutating the shipped catalog.
+        ///
+        /// Additive: passing no tombstones is exactly the shipped content.
+        /// </summary>
+        public static RegionDefinition Create(IEnumerable<ContentTombstone>? tombstones)
+        {
+            if (tombstones == null)
+                return CachedInstance;
+
+            var authored = CachedInstance;
+            var all = new List<ContentTombstone>(authored.Tombstones.Values);
+            foreach (var tombstone in tombstones)
+                all.Add(tombstone);
+
+            return new RegionDefinition(
+                authored.Id, authored.TitleKey,
+                authored.Projects, authored.Landmarks, authored.Producers,
+                contentVersion: authored.ContentVersion,
+                discoveries: authored.Discoveries,
+                expeditions: authored.Expeditions,
+                ecologyProgression: authored.EcologyProgression,
+                settlementProgression: authored.SettlementProgression,
+                completionMilestoneProjectId: authored.CompletionMilestoneProjectId,
+                resourceCaps: authored.ResourceCaps,
+                tombstones: all);
+        }
+
         private static RegionDefinition Build()
         {
             var projects = new List<ProjectDefinition>

@@ -501,6 +501,51 @@ Content assets are renamed/reorganized and save references no longer resolve.
 - no array-index identity;
 - mature-save fixtures across content updates.
 
+**D-059 update (automated verified):** the "tombstone/migration policy" mitigation above
+did not exist, and nothing detected drift before it destroyed a profile.
+`RegionDefinition.ContentVersion` was set to 2 and read by **nothing** — a grep found only
+the declaration and the constructor call.
+
+The failure was specific and unrecoverable. Canonical state fails CLOSED on unknown
+content, which is correct and is exactly what makes a rename dangerous: rename one project
+or drop one discovery an existing save unlocked, and every existing save fails validation
+on boot, both generations are unreadable, and the one-generation backup holds the same
+invalid content so it fails too.
+
+Now implemented and verified:
+
+- **the version is recorded** — `GameState.AuthoredContentVersion`, set at creation and
+  never rewritten, additive so no schema bump or migration was needed;
+- **boot gates on it** — the save↔content relationship is classified on every boot
+  (`ExactMatch` / `CompatibleOlder` / `NewerThanBuild`), and a save NEWER than the build
+  fails closed with a distinct outcome and is never rewritten;
+- **tombstones exist** — a retired identifier resolves to an authored `ContentTombstone`
+  instead of becoming an unresolvable reference, and grants NOTHING: a retired project may
+  not sit Active, a retired producer may not unlock, a retired expedition may not be
+  recorded as completed. Region 1's tombstone set is deliberately empty;
+- **drift is gated in CI** — `scripts/verify-content-compatibility.sh` proves the shipped
+  content validates and that mature saves at five ages all resolve against it, and is
+  wired into `ci.yml` (a script CI does not call is not a gate, per D-049). The gate was
+  proven to fail on a deliberately drifted fixture before being trusted.
+
+**Covered headlessly:** exact-match, compatible-older and newer-than-build classification;
+fail-closed without rewriting; the additive absent-field contract; tombstone resolution,
+the no-grant rules for project/producer/expedition, and that an unknown identifier still
+fails closed; every tombstone content rule; the two version axes reported independently;
+and the CI gate end to end over 15 workflow steps.
+
+**Still unmitigated and honestly recorded:**
+
+- A drift that shipped through an **intermediate** build — a profile created against a
+  version then retired without a tombstone — is **detected and refused, not recovered**. The
+  mechanism prevents the next drift; it cannot reconstruct meaning this build does not
+  have.
+- **Detecting drift is not preventing it.** Tombstone discipline is a human review
+  obligation. The gate catches the consequence; `AGENT_EXECUTION_GUIDE.md` now states the
+  authoring rule so the cause is addressed where it is made.
+- Real-device migration behaviour is untouched by this and remains device-blocked
+  (`KI-002`).
+
 ---
 
 ## R-019 — Notification design becomes manipulative

@@ -45,6 +45,31 @@ public sealed class SaveCodecRoundtripTests
     }
 
     [Fact]
+    public void Decode_SaveWithoutTheAuthoredContentVersion_LoadsAsUnknown()
+    {
+        // Additive-field contract: a save written before the field existed must decode
+        // cleanly with the value ABSENT, not fail. That is what removed the need for a
+        // schema bump and an ISaveMigration.
+        var codec = NewCodec();
+        byte[] encoded = codec.Encode(MutatedNewGame(), T0);
+
+        var envelope = EnvelopeOf(encoded);
+        var payload = JsonNode.Parse(Convert.FromBase64String(
+            envelope["payloadBase64"]!.GetValue<string>()))!.AsObject();
+        payload.Remove("authoredContentVersion");
+
+        byte[] payloadBytes = JsonSerializer.SerializeToUtf8Bytes(payload, ProbeOptions);
+        envelope["payloadBase64"] = Convert.ToBase64String(payloadBytes);
+        envelope["payloadSha256Base64"] = Convert.ToBase64String(Hash(payloadBytes));
+
+        var result = codec.Decode(Serialize(envelope));
+
+        Assert.Equal(CodecStatus.Ok, result.Status);
+        Assert.NotNull(result.State);
+        Assert.Null(result.State!.AuthoredContentVersion);
+    }
+
+    [Fact]
     public void Decode_FlippedPayloadCharacter_ReportsChecksumMismatch()
     {
         var codec = NewCodec();
@@ -187,6 +212,13 @@ public sealed class SaveCodecRoundtripTests
     private static void AssertEquivalentState(GameState expected, GameState actual)
     {
         Assert.Equal(expected.SchemaVersion, actual.SchemaVersion);
+
+        // D-059: the authored content version round-trips. It is the field that makes a
+        // content rename detectable at boot instead of silently bricking a profile, so it
+        // must not be dropped by the codec.
+        Assert.Equal(expected.AuthoredContentVersion, actual.AuthoredContentVersion);
+        Assert.NotNull(actual.AuthoredContentVersion);
+
         Assert.Equal(expected.CreatedAtUtc, actual.CreatedAtUtc);
         Assert.Equal(expected.LastAdvancedUtc, actual.LastAdvancedUtc);
 
@@ -280,4 +312,19 @@ public sealed class SaveCodecRoundtripTests
     private static JsonObject EnvelopeOf(byte[] encoded) => JsonNode.Parse(encoded)!.AsObject();
 
     private static byte[] Serialize(JsonObject envelope) => JsonSerializer.SerializeToUtf8Bytes(envelope);
+
+    // The payload must be re-serialized with the SAME naming policy the codec uses, or
+    // every property would come back PascalCase and the save would fail to decode for a
+    // reason unrelated to the field under test.
+    private static readonly JsonSerializerOptions ProbeOptions = new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        WriteIndented = false,
+    };
+
+    private static byte[] Hash(byte[] bytes)
+    {
+        using var sha = System.Security.Cryptography.SHA256.Create();
+        return sha.ComputeHash(bytes);
+    }
 }

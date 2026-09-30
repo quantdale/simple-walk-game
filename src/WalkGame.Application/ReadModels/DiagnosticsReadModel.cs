@@ -40,6 +40,20 @@ namespace WalkGame.Application.ReadModels
 
         public int SchemaVersion { get; }
 
+        /// <summary>
+        /// How the save's AUTHORED content version relates to this build's (D-059). A
+        /// separate axis from <see cref="SchemaVersion"/>, which is the payload wire format.
+        /// Reported independently because a save can be on a current schema and still
+        /// reference retired content.
+        /// </summary>
+        public ContentCompatibility ContentCompatibility { get; }
+
+        /// <summary>Authored content version the loaded save was created against, when recorded.</summary>
+        public int? SaveContentVersion { get; }
+
+        /// <summary>Authored content version this build provides.</summary>
+        public int BuildContentVersion { get; }
+
         public string RegionId { get; }
 
         /// <summary>Durable reconciliation watermark: latest activity end trusted so far.</summary>
@@ -75,6 +89,9 @@ namespace WalkGame.Application.ReadModels
             CodecFailureCategory lastBootCodecFailure,
             IReadOnlyList<string> appliedMigrationsAtBoot,
             int schemaVersion,
+            ContentCompatibility contentCompatibility,
+            int? saveContentVersion,
+            int buildContentVersion,
             string regionId,
             DateTimeOffset ingestionCheckpointUtc,
             long? checkpointWatermarkAgeDays,
@@ -93,6 +110,9 @@ namespace WalkGame.Application.ReadModels
             LastBootCodecFailure = lastBootCodecFailure;
             AppliedMigrationsAtBoot = appliedMigrationsAtBoot;
             SchemaVersion = schemaVersion;
+            ContentCompatibility = contentCompatibility;
+            SaveContentVersion = saveContentVersion;
+            BuildContentVersion = buildContentVersion;
             RegionId = regionId;
             IngestionCheckpointUtc = ingestionCheckpointUtc;
             CheckpointWatermarkAgeDays = checkpointWatermarkAgeDays;

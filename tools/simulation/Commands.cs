@@ -616,6 +616,14 @@ internal static class Cli
         if (sourceFile != PrimaryFileName)
             Console.WriteLine($"WARN: primary save did not decode; showing {sourceFile} contents.");
 
+        // D-059: the authored content version the profile was created against, so a
+        // reviewer can see drift without decoding the payload by hand.
+        int buildVersion = Region1Catalog.Create().ContentVersion;
+        Console.WriteLine("authored content version: "
+            + (state.AuthoredContentVersion?.ToString() ?? "unrecorded")
+            + " (this build: " + buildVersion + ", "
+            + DescribeContentCompatibility(state.AuthoredContentVersion, buildVersion) + ")");
+
         Out.Dump(state);
         return 0;
     }
@@ -649,10 +657,26 @@ internal static class Cli
             return 2;
         }
 
-        var violations = GameStateValidator.Validate(decoded.State!, Region1Catalog.Create());
+        var content = Region1Catalog.Create();
+        var violations = GameStateValidator.Validate(decoded.State!, content);
         foreach (var violation in violations)
             Console.WriteLine("VIOLATION: " + violation);
-        Console.WriteLine($"validate: schema=v{decoded.SourceSchemaVersion} violations={violations.Count}");
+
+        // D-059: the authored content version is a SEPARATE axis from the payload schema
+        // version, and reporting only the schema made a retired-identifier failure look
+        // like a schema problem. A release reviewer must see both.
+        int? saveContent = decoded.State!.AuthoredContentVersion;
+        string contentVerdict = DescribeContentCompatibility(saveContent, content.ContentVersion);
+
+        Console.WriteLine(
+            $"validate: schema=v{decoded.SourceSchemaVersion} violations={violations.Count} " +
+            $"contentVersion={(saveContent?.ToString() ?? "unrecorded")}/{content.ContentVersion} " +
+            $"content={contentVerdict}");
+        if (contentVerdict == "NEWER-THAN-BUILD")
+            Console.Error.WriteLine(
+                "ERROR: save was written against a newer content version; this build cannot load it safely.");
+        foreach (var tombstone in content.Tombstones.Values)
+            Console.WriteLine($"content-tombstone: {tombstone}");
 
         bool selftestOk = true;
         if (a.Has("--selftest"))
@@ -665,6 +689,13 @@ internal static class Cli
         }
 
         return violations.Count > 0 || !selftestOk ? 2 : 0;
+    }
+
+    /// <summary>Human-readable content-compatibility verdict for the validate/dump output.</summary>
+    private static string DescribeContentCompatibility(int? saveVersion, int buildVersion)
+    {
+        if (saveVersion == null || saveVersion.Value == buildVersion) return "EXACT-MATCH";
+        return saveVersion.Value < buildVersion ? "COMPATIBLE-OLDER" : "NEWER-THAN-BUILD";
     }
 
     // ------------------------------------------------------------- usage

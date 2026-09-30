@@ -192,6 +192,53 @@ namespace WalkGame.Domain.Validation
             }
         }
 
+        /// <summary>
+        /// A retired identifier must be RETIRED: if it is also a live definition, the
+        /// tombstone is dead weight and, worse, a live reference silently resolving to
+        /// "retired" would grant nothing for content that is supposed to be playable. A
+        /// live project may not also list a tombstoned identifier as a prerequisite, because
+        /// a live chain that depends on retired content is not completable.
+        /// </summary>
+        private static void ValidateTombstones(
+            RegionDefinition content,
+            HashSet<string> projectIds,
+            List<string> violations)
+        {
+            if (content.Tombstones.Count == 0)
+                return;
+
+            var liveIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var project in content.Projects) liveIds.Add(project.Id.Value);
+            foreach (var landmark in content.Landmarks) liveIds.Add(landmark.Id.Value);
+            foreach (var producer in content.Producers) liveIds.Add(producer.Id.Value);
+            foreach (var discovery in content.Discoveries) liveIds.Add(discovery.Id.Value);
+            foreach (var expedition in content.Expeditions) liveIds.Add(expedition.Id.Value);
+
+            foreach (var pair in content.Tombstones)
+            {
+                string id = pair.Key;
+                var tombstone = pair.Value;
+
+                if (string.IsNullOrWhiteSpace(tombstone.Reason))
+                    violations.Add($"Content tombstone '{id}' has no reason.");
+                if (liveIds.Contains(id))
+                    violations.Add($"Identifier '{id}' is both a live definition and a content tombstone; a tombstone must only cover RETIRED content.");
+            }
+
+            foreach (var project in content.Projects)
+            {
+                foreach (var prerequisite in project.Prerequisites)
+                {
+                    if (content.IsTombstoned(prerequisite.Value))
+                    {
+                        violations.Add(
+                            $"Live project '{project.Id}' lists tombstoned prerequisite '{prerequisite.Value}'; " +
+                            "a live chain cannot depend on retired content.");
+                    }
+                }
+            }
+        }
+
         public static List<string> Validate(RegionDefinition? content)
         {
             var violations = new List<string>();
@@ -318,6 +365,9 @@ namespace WalkGame.Domain.Validation
             // ---- Resource caps and secondary requirements (D-054). ----
             ValidateResourceCaps(content, violations);
             ValidateSecondaryRequirements(content, violations);
+
+            // ---- Retired content identifiers (D-059). ----
+            ValidateTombstones(content, projectIds, violations);
 
             // ---- Self-check: the published bounds still match the simulation (D-058). ----
             violations.AddRange(CheckNumericBoundsAgainstSimulation(MaxMilliUnitsPerDay));

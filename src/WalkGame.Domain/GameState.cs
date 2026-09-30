@@ -78,6 +78,22 @@ namespace WalkGame.Domain
         /// save/load round trip. See <see cref="Randomness.DeterministicRng"/>.
         /// </summary>
         public RngState Rng { get; set; }
+
+        /// <summary>
+        /// The authored content version this profile was CREATED against, not the version
+        /// it was last written with (D-059). Recording the creation version is what makes
+        /// a content rename detectable on boot instead of silently bricking a profile.
+        ///
+        /// Additive: absence in an older save decodes to null, which is evaluated as the
+        /// OLDEST supported content version. That is the safe direction — an unknown
+        /// version is treated as possibly-old, so the compatibility rules apply rather
+        /// than a false "exact match".
+        ///
+        /// This is a DIFFERENT axis from <see cref="SchemaVersions"/>: that is the payload
+        /// wire format, migrated by the ISaveMigration chain; this is the authored content
+        /// graph the payload refers to, which is never migrated.
+        /// </summary>
+        public int? AuthoredContentVersion { get; set; }
     }
 
     /// <summary>Deterministic factory for fresh games.</summary>
@@ -92,6 +108,10 @@ namespace WalkGame.Domain
                 CreatedAtUtc = nowUtc,
                 LastAdvancedUtc = nowUtc,
                 Rng = new DeterministicRng(seed).Snapshot(),
+                // Recorded ONCE, at creation. Later commits must never update it: it is
+                // the version this profile's meaning was established against, and rewriting
+                // it would silently launder a content break as "always compatible".
+                AuthoredContentVersion = content.ContentVersion,
             };
 
             game.Region.RegionId = content.Id.Value;

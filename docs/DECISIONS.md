@@ -1379,3 +1379,73 @@ simulation's interval, and hardcoding the number is the failure being removed.
 - **Still unclaimed:** whether a producer rate near the corrected bound produces *sensible*
   game behaviour is a balance question no representability test can answer. The bound is
   "cannot overflow", not "is a good number".
+
+---
+
+## D-059 — Saves are gated against the authored content version they were created for, and retired IDs resolve to authored tombstones
+
+**Status:** Accepted *(verified at the F-04 pass: 21 new cases (19 `ContentVersionGateTests` + 2 codec round-trip); `dotnet test` 417/417 — Domain 135, Infrastructure 49, Application 233 — green; all seven pacing reports byte-identical; save-growth verified; `verify-architecture.sh` **12**/0 (rule 6 discovered the new CI-invoked script); `verify-ci-steps.sh` **13 ok / 0 failed / 2 hosted-only SKIP** over 15 steps; guard suite 25/0)*
+
+**Decision:** Three things, none of which is a schema migration.
+
+1. **`GameState.AuthoredContentVersion`** records the content version the profile was
+   **created** against, set once by `GameFactory.NewGame` and never rewritten. Additive:
+   absence decodes to `null` and is evaluated as the OLDEST supported version, so no
+   `SchemaVersions` bump and no `ISaveMigration` were needed.
+2. **Boot classifies the save↔content relationship** as `ExactMatch`, `CompatibleOlder`,
+   or `NewerThanBuild`, reported on every boot. A save **newer** than the build fails
+   closed with a distinct `StartStatus.ContentIncompatible` /
+   `DiagnosticsBootOutcome.ContentIncompatible` and is **never rewritten**.
+3. **Authored tombstones** (`ContentTombstone`) let a retired identifier stay
+   RESOLVABLE instead of becoming an unresolvable reference. Region 1's set is
+   deliberately **empty** — the mechanism and its guards are introduced, and nothing is
+   retired.
+
+**The two version axes are different things.** `SchemaVersions` is the **payload wire
+format**, migrated by the `ISaveMigration` chain. `AuthoredContentVersion` is the
+**authored content graph the payload refers to**, which is never migrated. They are
+reported independently and a test pins that: a save on a *current* schema but authored
+against a *newer* content version is rejected with `ContentIncompatible` and carries
+**no** codec failure and **no** migrations. Conflating them would misreport a content
+break as a schema problem, and the corrective action — "migrate the payload" — is the
+wrong one.
+
+**Why this was urgent.** `RegionDefinition.ContentVersion` existed, was set to 2, and was
+read by **nothing**. Canonical state fails CLOSED on unknown content — correct behaviour,
+and precisely what makes a content rename dangerous. Rename one project or drop one
+discovery, and every existing save fails validation on boot, both generations are
+unreadable, and the one-generation backup holds the same invalid content so it fails too.
+R-018 listed four mitigations; two were enforced, the tombstone policy did not exist, and
+**nothing detected the drift before it destroyed a profile.**
+
+**A tombstone grants NOTHING.** "Resolves" must not mean "still works". A tombstoned
+project may not sit Active, a tombstoned producer may not unlock or hold output, and a
+tombstoned expedition may not be recorded as completed — each is a distinct violation, and
+each is covered. An identifier that is neither live nor tombstoned **still fails closed**,
+so tombstones cannot become a general escape hatch for unknown content.
+
+**Consequences:**
+- **A content-drift gate now exists and runs in CI.** `scripts/verify-content-compatibility.sh`
+  proves the shipped content validates and that mature saves generated at five different
+  ages all decode and resolve against it, reporting each save's authored content version.
+  It is wired into `ci.yml` deliberately: `verify-ci-steps.sh` executes the workflow
+  verbatim (D-049), so a script CI does not call is not a gate. `verify-architecture.sh`
+  rule 6 automatically picked it up and raised the architecture count from 11 to 12 by
+  checking its exec bit and LF line endings — the rule working as designed on a new script.
+- **The gate was proven to fail on a deliberately drifted fixture** (a save referencing
+  `proj.renamed-away`), and its diagnostics were IMPROVED as a result: the first proof
+  reported only "no verdict", which would have sent a reader hunting for a harness bug
+  instead of a content break. It now surfaces the actual validator line.
+- `validate` reports `contentVersion=<save>/<build> content=<verdict>` alongside the schema
+  version and violation count, and prints the shipped tombstone set; `dump` prints the
+  recorded authored content version. Reporting only the schema made a retired-identifier
+  failure look like a schema problem.
+- `Region1Catalog.Create(IEnumerable<ContentTombstone>?)` was added so tests can prove the
+  mechanism against the real content graph. The parameterless overload production uses is
+  untouched, and passing no tombstones is exactly the shipped content.
+- **Still unmitigated and honestly recorded:** a drift that shipped through an
+  *intermediate* build — a profile created against a version that was then retired without
+  a tombstone — is detected at boot but cannot be recovered, only refused. And detecting
+  drift is not the same as preventing it; the tombstone discipline is a human review
+  obligation, which is why the gate exists and why `AGENT_EXECUTION_GUIDE.md` now states
+  the rule.
