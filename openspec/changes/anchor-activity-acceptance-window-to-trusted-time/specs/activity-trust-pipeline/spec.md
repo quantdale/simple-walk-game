@@ -107,9 +107,31 @@ fails any eligibility rule SHALL be rejected with a distinct reason and SHALL
 NOT reverse value, SHALL NOT change the processed-record row, and SHALL NOT
 advance the reconciliation watermark.
 
+There is exactly ONE documented exception to that sameness: the quantity rules
+do not apply to a deletion marker. A marker carries no activity by definition,
+so requiring a positive quantity would reject every deletion ever issued and
+silently disable the correction policy. Every OTHER eligibility rule — provenance,
+unit, temporal extent, and both acceptance-window bounds — applies to markers
+unchanged. (D-053 records this as a deliberate departure from the original task
+list.)
+
 A deletion marker that is eligible SHALL advance the reconciliation watermark
 only to its own end, consistent with the rule that the watermark records the
 latest activity end durably trusted and never moves backwards.
+
+#### Scenario: A deletion marker's quantity is not judged as activity
+
+- **WHEN** an otherwise well-formed deletion marker carries a quantity of zero
+- **THEN** it is not rejected under the zero-quantity or negative-quantity rules
+- **THEN** it is judged on its provenance, unit, temporal extent and window
+  bounds like any other record
+
+#### Scenario: A marker outside the acceptance window is still rejected
+
+- **WHEN** a well-formed deletion marker falls outside the trusted acceptance
+  window
+- **THEN** it is rejected under the corresponding window reason
+- **THEN** no value is reversed and the watermark does not move
 
 #### Scenario: A malformed deletion marker changes nothing
 

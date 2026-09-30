@@ -7,22 +7,38 @@ that keep the economy deterministic, integral and non-negative.
 
 ## ADDED Requirements
 
-### Requirement: Every resource has an explicit, authored, validated cap
+### Requirement: Every produced resource has an explicit, authored, validated
+cap
 
-Every resource the region content can produce SHALL have an explicit cap
-authored in the region content definition. A resource with no authored cap SHALL
-be a content validation failure at authoring time, not an unbounded default at
+Every resource a region content can produce SHALL have an explicit cap authored
+in the region content definition. A resource with no authored cap SHALL be a
+content validation failure at authoring time, not an unbounded default at
 runtime.
+
+The activity-derived progression resource is EXEMPT and SHALL NOT be capped.
+Activity-derived credit is earned by the player's real movement and is spent
+against authored project costs; it has no producer store to park refused units
+in, so a cap would silently discard earned walking credit. The cap requirement
+is scoped to producer-fed and expedition-fed resources. (D-054 records this as a
+deliberate departure from the original task list.)
 
 Caps SHALL be positive and representable, and applying a cap SHALL never leave a
 balance above that cap.
 
-#### Scenario: A resource without an authored cap is rejected at validation
+#### Scenario: A produced resource without an authored cap is rejected at
+validation
 
-- **WHEN** region content is validated and a resource its producers can emit has
-  no authored cap
+- **WHEN** region content is validated and a producer-fed or expedition-fed
+  resource it can emit has no authored cap
 - **THEN** validation reports a violation naming that resource
 - **THEN** the content is not accepted
+
+#### Scenario: Capping the activity-derived resource is rejected
+
+- **WHEN** region content declares a cap for the activity-derived progression
+  resource
+- **THEN** validation reports a violation naming that resource and the reason it
+  must not be capped
 
 #### Scenario: A non-positive or unrepresentable cap is rejected at validation
 

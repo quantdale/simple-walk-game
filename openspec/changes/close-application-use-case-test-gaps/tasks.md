@@ -89,7 +89,7 @@
 - [x] 6.5 `tests/guards/run-guard-tests.sh` — green.
 - [x] 6.6 `openspec validate close-application-use-case-test-gaps --strict`
       passes.
-- [ ] 6.7 `git status` clean apart from intended files; writer lease released.
+- [x] 6.7 `git status` clean apart from intended files; writer lease released.
 
 ---
 

@@ -99,7 +99,7 @@
 - [x] 6.5 `scripts/verify-architecture.sh` — 11 passed, 0 failed.
 - [x] 6.6 `tests/guards/run-guard-tests.sh` — green.
 - [x] 6.7 `openspec validate rotate-durable-return-summary --strict` passes.
-- [ ] 6.8 `git status` clean apart from intended files; writer lease released.
+- [x] 6.8 `git status` clean apart from intended files; writer lease released.
 
 ---
 

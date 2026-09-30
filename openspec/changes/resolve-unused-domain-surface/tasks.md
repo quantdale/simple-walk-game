@@ -87,7 +87,7 @@
   content change).
 - [x] 7.5 `tests/guards/run-guard-tests.sh` — green.
 - [x] 7.6 `openspec validate resolve-unused-domain-surface --strict` passes.
-- [ ] 7.7 `git status` clean apart from intended files; writer lease released.
+- [x] 7.7 `git status` clean apart from intended files; writer lease released.
 
 ---
 

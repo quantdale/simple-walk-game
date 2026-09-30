@@ -8,6 +8,45 @@
 narrative**; each change's `proposal.md` / `design.md` / `tasks.md` is the
 authoritative execution detail. Do not implement from this document alone.
 
+---
+
+## 0. Application status (updated 2026-09-30)
+
+An apply session implemented **10 of the 15 changes** on `main`
+(`df68574` … `d21e83b`). Independent review verified the applied work by
+re-running the evidence rather than reading its comments: the two P0
+reproductions were re-executed and both now behave correctly, and every gate is
+green. Test count grew 295 → 418.
+
+| Applied | Findings | Verdict |
+|---|---|---|
+| `pin-build-toolchain-and-centralize-packages` | F-12 | Verified: SDK pinned, settings declared once, warnings-as-errors live at 0 warnings. |
+| `recover-save-from-backup-when-primary-is-missing` | F-01, F-10 | **P0 fixed** — re-ran the original destruction; the 8-day world survived (`created:` unchanged, `recovered from backup`). |
+| `anchor-activity-acceptance-window-to-trusted-time` | F-02, F-03, F-09 | **P0 fixed** — 17 tests incl. a real 30-day backlog credited in one batch, exactly-once on replay. |
+| `bound-secondary-resource-economy` | F-06 | Caps bind (Materials 400, Knowledge 300 confirmed); two requirements on different chains; affordability gate correctly **stops** rather than skipping. Vitality deliberately uncapped (D-054). |
+| `rotate-durable-return-summary` | F-05 | Unstable `List<T>.Sort` correctly replaced with a total comparator. |
+| `align-content-validator-with-simulation-overflow-bounds` | F-08 | Bound now *derived* from the simulation's own arithmetic, with a drift self-check. |
+| `gate-saves-against-authored-content-version` | F-04 | Compatibility classification + tombstones + a CI content-drift gate. |
+| `close-application-use-case-test-gaps` | F-11, F-17 | `ReorderQueue` / `DequeueProject` covered; enumeration and error-code guards added. |
+| `resolve-unused-domain-surface` | F-15, F-21 | Decisions recorded; seed-honesty and dormant-surface guards added. |
+| `harden-simulation-cli-integrity-selftest` | F-16 | Self-test reads/writes the same key; exit-code mapping exhaustive. |
+
+**Not yet applied (5 changes, correctly left as specified future work):**
+
+| Change | Findings | State |
+|---|---|---|
+| `compact-activity-and-reward-ledgers` | F-07 | Open. Growth still linear (10 KB@d7 → 395 KB@d730). |
+| `surface-ingestion-rejection-reasons` | F-14 | Open. Per-reason rejection breakdown still non-durable. |
+| `define-post-completion-evergreen-state` | F-20 | Open — **still a live P1**. Re-confirmed after the apply session: `balances: vitality=60650` with 19/19 projects complete, and `GetHome()` still reports `RequiresAttention` with no completion condition. |
+| `close-inactivity-pacing-shortfall` | F-19, F-13 | Open. A weekday-only player still cannot finish (16,420 vs 19,400). The incorrect "≈686 steps/Vitality" figure therefore also remains in `ROADMAP.md`, `RISK_REGISTER.md` R-013 and `DECISIONS.md` D-046. |
+| `extend-ci-and-release-automation` | F-18 | Open. No coverage gate, dependency check, or release workflow yet. |
+
+**Release qualification remains blocked** by `KI-001` (hosted CI billing) and
+`KI-002` (no Unity editor) regardless of how much of this plan ships. Both are
+external dependencies, not engineering work in this repository.
+
+---
+
 > This document is deliberately **not** named `docs/MASTER_PLAN.md`. That file is
 > the product vision and milestone program, is referenced by `README.md` and
 > `docs/ROADMAP.md`, and is correct as written. This is the engineering plan.

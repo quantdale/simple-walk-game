@@ -24,9 +24,16 @@
 #
 # Usage:
 #   scripts/verify-content-compatibility.sh                 # full gate
-#   scripts/verify-content-compatibility.sh --with-fixtures # also validate every
-#                                                        # save file passed as an
-#                                                        # extra argument
+#   scripts/verify-content-compatibility.sh --with-fixtures -- <save files...>
+#                                                        # also validate each named save
+#   scripts/verify-content-compatibility.sh --self-test    # prove the fixture
+#                                                        # path REJECTS a bad save
+#
+# --self-test exists because a gate nobody has watched fail is not a gate. This
+# repository has already shipped one unproven gate (verify-architecture.sh rule 6
+# exists for that reason). It plants a deliberately corrupt save BESIDE a valid one --
+# the exact arrangement that made the fixture path a false pass before 2026-09-30 -- and
+# requires the gate to REJECT it. A regression to the old behaviour fails the self-test.
 #
 # Exit codes:
 #   0  shipped content and every mature save resolve cleanly
@@ -118,20 +125,68 @@ for spec in "low 12" "moderate 40" "high 80" "irregular 60" "weekend-heavy 50"; 
     esac
 done
 
+if [ "${1:-}" = "--self-test" ]; then
+    echo "== fixture-path self-test: the gate MUST reject a corrupt save =="
+    # A valid save and a corrupt one in the SAME directory. Before the isolation fix the
+    # corrupt one reported "violations=0 ... EXACT-MATCH" because the validator was handed
+    # the directory and read the valid save.json instead.
+    st_dir="$WORK/selftest-fixtures"
+    mkdir -p "$st_dir"
+    st_clock="$st_dir/clock"
+    dotnet run --project tools/simulation --no-build -- new --save "$st_clock" \
+        --seed 7 --at 2026-08-20T08:00:00Z >/dev/null 2>&1 || true
+    printf 'not-a-save-at-all' > "$st_dir/corrupt.json"
+
+    if bash "$0" --with-fixtures "$st_dir/corrupt.json" >"$WORK/selftest.log" 2>&1; then
+        echo "SELF-TEST FAIL: the gate accepted a corrupt save fixture." >&2
+        sed 's/^/      | /' "$WORK/selftest.log" >&2
+        echo "SELF-TEST FAIL: a gate that cannot fail is not a gate." >&2
+        exit 1
+    fi
+    echo "  PASS: a corrupt save fixture is REJECTED (the gate can fail)"
+
+    # The converse half: a real save must still be accepted, so the self-test cannot be
+    # satisfied by simply rejecting everything.
+    if bash "$0" --with-fixtures "$st_clock/save.json" >"$WORK/selftest-good.log" 2>&1; then
+        echo "  PASS: a valid save fixture is still accepted (no over-rejection)"
+    else
+        echo "SELF-TEST FAIL: the gate rejected a VALID save fixture." >&2
+        sed 's/^/      | /' "$WORK/selftest-good.log" >&2
+        exit 1
+    fi
+
+    echo ""
+    echo "CONTENT COMPATIBILITY SELF-TEST: passed"
+    exit 0
+fi
+
 # ---------------------------------------------------------------------------
 # 3. Optional: any extra save files the caller wants checked.
 # ---------------------------------------------------------------------------
 if [ "${1:-}" = "--with-fixtures" ] && [ "${#}" -gt 1 ]; then
     echo "== caller-supplied save fixtures =="
     shift
+    # Each fixture is staged into its OWN isolated directory as save.json.
+    #
+    # This must not be `dirname "$save"`. The validator reads save.json (then falls back
+    # to save.backup.json) FROM THE DIRECTORY IT IS GIVEN, so validating a fixture's
+    # parent directory validates whatever unrelated save happens to sit there. A corrupt
+    # fixture sitting next to any valid save then reported
+    # "violations=0 ... EXACT-MATCH" and exited 0 -- a false PASS on precisely the
+    # unresolvable-save condition this gate exists to detect. Proven during review on
+    # 2026-09-30; isolation is the fix.
+    fixture_index=0
     for save in "$@"; do
         if [ ! -f "$save" ]; then
             note_fail "$save: file not found — the gate cannot check a fixture it cannot read"
             continue
         fi
-        dir="$(dirname "$save")"
+        fixture_index=$((fixture_index + 1))
+        isolate="$WORK/fixture-$fixture_index"
+        mkdir -p "$isolate"
+        cp "$save" "$isolate/save.json"
         output="$(dotnet run --project tools/simulation --no-build -- \
-            validate --save "$dir" 2>&1 || true)"
+            validate --save "$isolate" 2>&1 || true)"
         verdict="$(printf '%s\n' "$output" | grep '^validate:' || true)"
         if [ -z "$verdict" ]; then
             # Boot refused the save, which is exactly the content-drift failure this gate

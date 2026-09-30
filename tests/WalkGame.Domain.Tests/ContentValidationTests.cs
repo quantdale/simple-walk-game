@@ -230,6 +230,43 @@ public class ContentValidationTests
     }
 
     [Fact]
+    public void Vitality_MayNotBeCapped_AndTheViolationNamesTheResource()
+    {
+        // D-054: Vitality is the activity-derived progression resource and is deliberately
+        // exempt from the cap rule. GameFactory applies EVERY authored cap to a fresh
+        // balance, so an authored Vitality cap would validate clean and then silently clamp
+        // real walking credit away -- the exact data-loss defect the exemption prevents.
+        // Fail closed at authoring time instead of trusting a future campaign to remember.
+        var capped = Region(
+            new[] { P("proj.a", 100L) },
+            producers: new[]
+            {
+                new ProducerDefinition(new ProducerId("prod.p"), "P",
+                    ResourceType.Materials, 1_000L, 100L, "proj.a"),
+            },
+            resourceCaps: new[]
+            {
+                new KeyValuePair<ResourceType, long>(ResourceType.Materials, 500L),
+                new KeyValuePair<ResourceType, long>(ResourceType.Vitality, 10_000L),
+            });
+
+        var violations = ContentValidator.Validate(capped);
+        Assert.Contains(violations, v => v.Contains("Vitality") && v.Contains("forbidden"));
+
+        // Control: the same region WITHOUT the Vitality cap is clean, so the rule above is
+        // what rejects it and not some unrelated violation.
+        var uncapped = Region(
+            new[] { P("proj.a", 100L) },
+            producers: new[]
+            {
+                new ProducerDefinition(new ProducerId("prod.p"), "P",
+                    ResourceType.Materials, 1_000L, 100L, "proj.a"),
+            },
+            resourceCaps: new[] { new KeyValuePair<ResourceType, long>(ResourceType.Materials, 500L) });
+        Assert.Empty(ContentValidator.Validate(uncapped));
+    }
+
+    [Fact]
     public void ResourceCap_MustBePositive_AndEveryViolationNamesTheResource()
     {
         var badCap = new RegionDefinition(

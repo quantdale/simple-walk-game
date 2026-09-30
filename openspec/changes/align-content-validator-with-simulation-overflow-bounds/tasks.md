@@ -84,7 +84,7 @@
 - [x] 6.6
   `openspec validate align-content-validator-with-simulation-overflow-bounds --strict`
   passes.
-- [ ] 6.7 `git status` clean apart from intended files; writer lease released.
+- [x] 6.7 `git status` clean apart from intended files; writer lease released.
 
 ---
 

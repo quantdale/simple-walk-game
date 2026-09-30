@@ -119,7 +119,7 @@
 - [x] 6.4 `tests/guards/run-guard-tests.sh` — green.
 - [x] 6.5 `openspec validate anchor-activity-acceptance-window-to-trusted-time --strict`
   passes.
-- [ ] 6.6 `git status` clean apart from intended files; writer lease released.
+- [x] 6.6 `git status` clean apart from intended files; writer lease released.
 
 ---
 

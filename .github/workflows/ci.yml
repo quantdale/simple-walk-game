@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Repository identity guard (GITHUB_REPOSITORY must equal the declared slug)
+      - name: Repository identity guard (declared slug must match)
         run: scripts/assert-repo-identity.sh
 
       - name: Setup .NET
@@ -33,7 +33,7 @@ jobs:
       - name: Test
         run: dotnet test SimpleWalkGame.sln --no-build
 
-      - name: Architecture fitness checks (dependency direction, engine-free domain)
+      - name: Architecture fitness checks (layering, engine-free)
         run: scripts/verify-architecture.sh
 
       - name: Build smoke (Release publish produces a runnable artifact)
@@ -44,19 +44,26 @@ jobs:
       - name: Simulation smoke (deterministic loop + tamper selftest)
         run: |
           SAVES=$(mktemp -d)
-          dotnet run --project tools/simulation --no-build -- new --save "$SAVES" --seed 7 --at 2026-08-20T08:00:00Z
-          dotnet run --project tools/simulation --no-build -- simulate --save "$SAVES" --days 5 --start 2026-08-20T08:00:00Z > /dev/null
-          dotnet run --project tools/simulation --no-build -- validate --save "$SAVES" --selftest
+          dotnet run --project tools/simulation --no-build -- new \
+            --save "$SAVES" --seed 7 --at 2026-08-20T08:00:00Z
+          dotnet run --project tools/simulation --no-build -- simulate \
+            --save "$SAVES" --days 5 --start 2026-08-20T08:00:00Z \
+            > /dev/null
+          dotnet run --project tools/simulation --no-build -- validate \
+            --save "$SAVES" --selftest
           rm -rf "$SAVES"
 
       - name: Exactly-once acceptance (walk, then replay must credit zero)
         run: |
           SAVES=$(mktemp -d)
-          dotnet run --project tools/simulation --no-build -- walk --save "$SAVES" --days 16 \
-            --steps-per-day 20000 --at 2026-08-20T08:00:00Z
-          # The replayed window must be recognised as 16 duplicates and credit nothing.
-          dotnet run --project tools/simulation --no-build -- walk --save "$SAVES" --days 16 \
-            --steps-per-day 20000 --at 2026-08-20T08:00:00Z --replay \
+          dotnet run --project tools/simulation --no-build -- walk \
+            --save "$SAVES" --days 16 --steps-per-day 20000 \
+            --at 2026-08-20T08:00:00Z
+          # The replayed window must be recognised as 16 duplicates and
+          # credit nothing.
+          dotnet run --project tools/simulation --no-build -- walk \
+            --save "$SAVES" --days 16 --steps-per-day 20000 \
+            --at 2026-08-20T08:00:00Z --replay \
             | tee "$RUNNER_TEMP/replay.txt"
           grep -q "vitality credited: 0" "$RUNNER_TEMP/replay.txt"
           grep -q "duplicate records ignored: 16" "$RUNNER_TEMP/replay.txt"
@@ -65,8 +72,9 @@ jobs:
       - name: Long-horizon offline simulation (365 app-closed days)
         run: |
           SAVES=$(mktemp -d)
-          dotnet run --project tools/simulation --no-build -- longhaul --save "$SAVES" --days 365 \
-            --seed 7 --at 2026-08-20T08:00:00Z
+          dotnet run --project tools/simulation --no-build -- longhaul \
+            --save "$SAVES" --days 365 --seed 7 \
+            --at 2026-08-20T08:00:00Z
           rm -rf "$SAVES"
 
       - name: Hook installer is idempotent
@@ -78,11 +86,14 @@ jobs:
       - name: Guard proof suite (identity / lease / pre-push race)
         run: tests/guards/run-guard-tests.sh
 
-      - name: Pacing evidence reproducibility (all seven GAME_SYSTEMS 13 profiles)
+      - name: Pacing evidence reproducibility (seven profiles)
         run: scripts/verify-pacing-evidence.sh
 
-      - name: Save-growth / performance-scenario determinism (PERFORMANCE_BUDGETS 15)
+      - name: Save-growth / scenario determinism
         run: scripts/verify-save-growth.sh
 
-      - name: Content-drift gate (shipped content still resolves mature saves)
+      - name: Content-drift gate (shipped content still resolves saves)
         run: scripts/verify-content-compatibility.sh
+
+      - name: Content-drift gate self-test (prove it can fail)
+        run: scripts/verify-content-compatibility.sh --self-test

@@ -123,7 +123,7 @@
 - [x] 7.3 `scripts/verify-architecture.sh` — 11 passed, 0 failed.
 - [x] 7.4 `tests/guards/run-guard-tests.sh` — green.
 - [x] 7.5 `openspec validate bound-secondary-resource-economy --strict` passes.
-- [ ] 7.6 `git status` clean apart from intended files; writer lease released.
+- [x] 7.6 `git status` clean apart from intended files; writer lease released.
 
 ---
 

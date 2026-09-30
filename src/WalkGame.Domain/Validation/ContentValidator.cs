@@ -98,7 +98,18 @@ namespace WalkGame.Domain.Validation
         {
             foreach (var cap in content.ResourceCaps)
             {
-                if (cap.Value <= 0L)
+                // Vitality is the activity-derived progression resource and is deliberately
+                // NOT cappable (D-054). GameFactory applies every authored cap to a fresh
+                // balance, so an authored Vitality cap would not merely be wrong in intent --
+                // it would silently clamp real walking credit away, which is the exact
+                // data-loss defect the exemption exists to prevent. Fail closed at authoring
+                // time rather than trusting a future campaign to remember.
+                if (cap.Key == Economy.ResourceType.Vitality)
+                    violations.Add(
+                        $"Resource cap for {cap.Key} is forbidden: Vitality is activity-derived, is spent " +
+                        "against authored project costs, and has no producer store to park refused units in, " +
+                        "so a cap would silently discard earned walking credit (D-054).");
+                else if (cap.Value <= 0L)
                     violations.Add($"Resource cap for {cap.Key} must be positive, but is {cap.Value}.");
 
                 // The producer store capacity a cap implies must stay representable, and

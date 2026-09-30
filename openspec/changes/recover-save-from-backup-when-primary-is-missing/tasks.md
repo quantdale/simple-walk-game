@@ -96,5 +96,5 @@
 
 - [x] 5.1 `openspec validate recover-save-from-backup-when-primary-is-missing --strict`
   passes.
-- [ ] 5.2 `git status` is clean apart from the intended files, and
+- [x] 5.2 `git status` is clean apart from the intended files, and
   `scripts/writer-lease.sh release` has been run.

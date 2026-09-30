@@ -116,7 +116,7 @@
 - [x] 8.6 `tests/guards/run-guard-tests.sh` — green.
 - [x] 8.7 `openspec validate gate-saves-against-authored-content-version --strict`
   passes.
-- [ ] 8.8 `git status` clean apart from intended files; writer lease released.
+- [x] 8.8 `git status` clean apart from intended files; writer lease released.
 
 ---
 
