@@ -182,7 +182,7 @@ public sealed class M4Region1AcceptanceTests : IDisposable
         RunIdenticalScript(_tempB.Path);
         byte[] bytesB = File.ReadAllBytes(Path.Combine(_tempB.Path, "save.json"));
         if (!bytesB.AsSpan().SequenceEqual(completionBytesA))
-            Assert.True(false, "identical inputs must produce byte-identical saves");
+            Assert.Fail("identical inputs must produce byte-identical saves");
     }
 
     private static void RunIdenticalScript(string directory)

@@ -1,0 +1,25 @@
+<Project>
+
+  <!--
+    Production-layer build settings (quantdale/simple-walk-game).
+
+    MSBuild resolves the NEAREST Directory.Build.props walking up from a project
+    directory and stops there, so this file shadows the repository-root file for
+    everything under src/. The root file is therefore imported explicitly below —
+    that is what keeps a single declarations site for the shared settings.
+
+    Why the production layers are pinned to C# 9.0 while the CLI and test projects
+    are not: the three libraries target netstandard2.1 and polyfill
+    IsExternalInit precisely so that C# 9 init-only setters compile; raising the
+    language version here would silently widen the surface the engine-free,
+    package-free core is allowed to use, which is the property
+    scripts/verify-architecture.sh exists to protect.
+  -->
+
+  <Import Project="../Directory.Build.props" />
+
+  <PropertyGroup>
+    <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+
+</Project>

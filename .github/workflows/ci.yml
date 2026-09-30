@@ -21,7 +21,11 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          # The toolchain is pinned in global.json (OpenSpec change
+          # pin-build-toolchain-and-centralize-packages). setup-dotnet installs
+          # exactly the version global.json resolves to under its rollForward
+          # policy, so CI and a clean local checkout build the same tree.
+          global-json-file: global.json
 
       - name: Build (clean, warnings visible)
         run: dotnet build SimpleWalkGame.sln

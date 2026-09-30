@@ -25,6 +25,13 @@
 # "Permission denied". That exact latent breakage was introduced and shipped once
 # already; this rule makes it fail locally instead.
 #
+# The netstandard2.1 half of rules 1-3 was reworked to read the EFFECTIVE MSBuild
+# property instead of grepping a csproj, when the shared settings moved into
+# Directory.Build.props. It was re-proved against a broken fixture exactly the way
+# rule 6 was: a scratch copy of WalkGame.Domain.csproj with the target moved to
+# net9.0 makes the rule fail, and a probe of a project that is legitimately
+# net9.0 proves the reader is not returning a constant.
+#
 # Exit codes:
 #   0  every rule holds
 #   1  at least one architectural rule was violated
@@ -55,6 +62,45 @@ allowed_refs() {
 
 # csproj files for a project, by project name.
 proj_file() { echo "src/$1/$1.csproj"; }
+
+# Reads a property as MSBuild actually computes it for a project, rather than
+# grepping one file for a literal.
+#
+# Why this is not a grep: build settings are declared once in
+# Directory.Build.props / src/Directory.Build.props, so the file a property is
+# written in is an implementation detail, not the contract. The contract is the
+# EFFECTIVE value. (scripts/verify-architecture.sh previously grepped
+# <TargetFramework>netstandard2.1</TargetFramework> straight out of each csproj,
+# which would have silently stopped checking anything the moment the property
+# moved — a gate that silently stops checking is worse than no gate.)
+#
+# Fails closed: if the SDK is absent, the project cannot be evaluated, or the
+# answer is empty, it prints nothing and returns non-zero, and the caller
+# records a FAIL. It never prints a value it did not read from MSBuild.
+effective_prop() {
+    prop="$2"
+    if ! command -v dotnet >/dev/null 2>&1; then
+        return 1
+    fi
+    out="$(dotnet msbuild "$1" "-getProperty:$prop" 2>/dev/null | tr -d '\r' | sed -n '1p')"
+    [ -n "$out" ] || return 1
+    echo "$out"
+}
+
+# The effective-property reader is itself a rule: if it cannot evaluate, or it
+# reports netstandard2.1 for a project that is legitimately net9.0, then the
+# netstandard2.1 rule below would pass for the wrong reason and a production
+# layer moved to net9.0 would sail through. Proved to fail by pointing the
+# reader at tests/WalkGame.Domain.Tests (net9.0 by design) and by moving
+# src/WalkGame.Domain to net9.0 in a scratch copy.
+PROBE="tests/WalkGame.Domain.Tests/WalkGame.Domain.Tests.csproj"
+if [ ! -f "$PROBE" ]; then
+    bad "self-check probe $PROBE is missing; the effective-property rule cannot be trusted"
+elif ! probe_tfm="$(effective_prop "$PROBE" TargetFramework)"; then
+    bad "self-check: 'dotnet msbuild -getProperty' is unavailable or failed; the netstandard2.1 rule would pass vacuously"
+elif [ "$probe_tfm" = "netstandard2.1" ]; then
+    bad "self-check is vacuous: $PROBE reports netstandard2.1, so the reader is not reading real values"
+fi
 
 # Strips // and /// comments so prose like "no separate code path." cannot be
 # mistaken for a Path. call site.
@@ -91,8 +137,14 @@ for layer in WalkGame.Domain WalkGame.Application WalkGame.Infrastructure; do
     fi
 
     # Every core project must stay engine-free at the framework level too.
-    if ! grep -q '<TargetFramework>netstandard2.1</TargetFramework>' "$file"; then
-        bad "$layer is not targeting netstandard2.1"
+    # Read as the EFFECTIVE target framework: it may be declared in the csproj or
+    # inherited from src/Directory.Build.props, and both are legitimate. What is
+    # not legitimate is a core layer that is not netstandard2.1 — proved against a
+    # deliberately broken fixture (see "rule 1-3" note at the end of this file).
+    if ! tfm="$(effective_prop "$file" TargetFramework)"; then
+        bad "$layer: could not read the effective TargetFramework via 'dotnet msbuild -getProperty' (no dotnet CLI, or the project failed to evaluate); the netstandard2.1 rule was NOT checked and must not be assumed to hold"
+    elif [ "$tfm" != "netstandard2.1" ]; then
+        bad "$layer is targeting ${tfm}, not netstandard2.1"
     fi
 done
 

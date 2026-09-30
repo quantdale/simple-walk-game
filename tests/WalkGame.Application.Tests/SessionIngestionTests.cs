@@ -81,7 +81,7 @@ public sealed class SessionIngestionTests : IDisposable
         Assert.Equal(20L, home.ActiveProjectInvested);
 
         var persisted = DecodePersisted();
-        Assert.Equal(1, persisted.State!.Ledger.Records.Count);
+        Assert.Single(persisted.State!.Ledger.Records);
         Assert.Equal(2, persisted.State.ProcessedRecords.Count);
     }
 
@@ -157,7 +157,7 @@ public sealed class SessionIngestionTests : IDisposable
         // Nothing partially advanced on disk: old valid state, zero ingestion side effects.
         var afterFailure = DecodeState(_temp.Path);
         Assert.Equal(0, afterFailure.ProcessedRecords.Count);
-        Assert.Equal(0, afterFailure.Ledger.Records.Count);
+        Assert.Empty(afterFailure.Ledger.Records);
         Assert.Equal(default, afterFailure.IngestionCheckpointUtc);
         Assert.Equal(0L, afterFailure.Resources.Get(ResourceType.Vitality));
 
@@ -170,7 +170,7 @@ public sealed class SessionIngestionTests : IDisposable
         var final = DecodePersisted();
         Assert.Equal(CodecStatus.Ok, final.Status);
         Assert.Equal(20L, final.State!.Resources.Get(ResourceType.Vitality));
-        Assert.Equal(1, final.State.Ledger.Records.Count);
+        Assert.Single(final.State.Ledger.Records);
         Assert.Equal(2, final.State.ProcessedRecords.Count);
     }
 
@@ -207,7 +207,7 @@ public sealed class SessionIngestionTests : IDisposable
         Assert.Equal(0L, result.VitalityCredited);
 
         var persisted = DecodePersisted();
-        Assert.Equal(0, persisted.State!.Ledger.Records.Count);
+        Assert.Empty(persisted.State!.Ledger.Records);
         Assert.Equal(1, persisted.State.ProcessedRecords.Count);
 
         var replay = session.IngestActivityBatch(new[] { tiny });
@@ -234,7 +234,7 @@ public sealed class SessionIngestionTests : IDisposable
 
         var persisted = DecodePersisted();
         Assert.Equal(0, persisted.State!.ProcessedRecords.Count);
-        Assert.Equal(0, persisted.State.Ledger.Records.Count);
+        Assert.Empty(persisted.State.Ledger.Records);
         Assert.Equal(default, persisted.State.IngestionCheckpointUtc);
         Assert.Equal(0L, persisted.State.Resources.Get(ResourceType.Vitality));
     }
@@ -417,7 +417,7 @@ public sealed class SessionIngestionTests : IDisposable
 
         var persisted = DecodePersisted();
         Assert.Equal(0, persisted.State!.ProcessedRecords.Count);
-        Assert.Equal(0, persisted.State.Ledger.Records.Count);
+        Assert.Empty(persisted.State.Ledger.Records);
     }
 
     private static NormalizedActivityRecord Valid(

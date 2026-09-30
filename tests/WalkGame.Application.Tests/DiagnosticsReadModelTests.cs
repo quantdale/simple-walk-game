@@ -138,7 +138,7 @@ public sealed class DiagnosticsReadModelTests : IDisposable
         var onboarding = session.GetOnboarding();
 
         Assert.DoesNotContain(LeakMarker, status.Status.ToString());
-        Assert.False(home.ToString()!.Contains(LeakMarker));
+        Assert.DoesNotContain(LeakMarker, home.ToString()!);
         foreach (var model in new object?[] { settings, onboarding })
             if (model?.ToString()?.Contains(LeakMarker) == true)
                 Assert.Fail("leak via ToString");

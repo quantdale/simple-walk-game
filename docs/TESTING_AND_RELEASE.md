@@ -362,12 +362,14 @@ Executable headless verification (run from the repository root; CI executes the 
 commands in `.github/workflows/ci.yml`):
 
 ```bash
-dotnet --version                                   # toolchain visible (9.x today)
-dotnet build SimpleWalkGame.sln                    # clean, zero errors
-dotnet test SimpleWalkGame.sln                     # all suites green (156 as of M3)
+dotnet --version                                   # toolchain visible; see global.json for the pin
+dotnet build SimpleWalkGame.sln --no-incremental   # clean, zero errors, zero warnings
+dotnet test SimpleWalkGame.sln                     # all suites green (295 as of the F-12 hardening pass)
 scripts/assert-repo-identity.sh                    # exit 0 = right repository
 scripts/install-git-hooks.sh                       # core.hooksPath=.githooks, idempotent
+scripts/verify-architecture.sh                     # layering / engine-freedom gate, 11 assertions
 tests/guards/run-guard-tests.sh                    # guard proof suite, 25 assertions
+scripts/verify-ci-steps.sh                         # executes every ci.yml run: step locally
 
 # deterministic simulation smoke + tamper selftest:
 SAVES=$(mktemp -d)
@@ -389,6 +391,39 @@ Windows users without Git Bash may run the PowerShell twins
 (`scripts\assert-repo-identity.ps1`, `scripts\writer-lease.ps1`,
 `scripts\install-git-hooks.ps1`); the proof suite itself requires a POSIX shell
 (Git Bash on Windows).
+
+### Pinned toolchain version (checkable, since 2026-09-30)
+
+"Documented toolchain version" above is satisfied by a **machine-checkable** pin
+rather than by prose. The authority is `global.json` at the repository root:
+
+```json
+{ "sdk": { "version": "9.0.100", "rollForward": "latestFeature", "allowPrerelease": false } }
+```
+
+| Property | Value | Meaning |
+|---|---|---|
+| pinned baseline | `9.0.100` | the .NET 9 SDK, feature band 1 |
+| `rollForward` | `latestFeature` | a newer feature band or patch of **9.0** is accepted; a different major/minor is a hard, self-explanatory failure |
+| `allowPrerelease` | `false` | preview SDKs are excluded, so analyzer diagnostics cannot change between runs |
+
+`dotnet --version` inside the checkout reports the SDK `global.json` actually
+resolves to, which is the value to record in release evidence. It is **not**
+necessarily the pinned baseline: a machine with 9.0.300 legitimately reports
+9.0.300, and that is the intended behaviour of `latestFeature`.
+
+CI installs the same pin via `actions/setup-dotnet` with `global-json-file: global.json`
+rather than a hardcoded `9.0.x`, so the runner and a clean local checkout resolve one
+toolchain. `scripts/verify-ci-steps.sh` asserts that coupling in both directions and
+fails loudly if `global.json` is missing, if the workflow stops declaring it, or if no
+installed SDK satisfies the pin — a silently relaxed pin would let the local gate certify
+a build on an SDK that CI never uses. All three failure modes were exercised against a
+deliberately broken fixture before the assertion was trusted.
+
+Shared build settings are declared once in `Directory.Build.props` (universal:
+nullable + warnings-as-errors) with `src/Directory.Build.props` layering the production
+C# 9.0 language pin on top, and package versions are declared once in
+`Directory.Packages.props` (central package management). See D-051.
 
 ---
 
@@ -449,7 +484,7 @@ A failure must be treated as a real blocker or explicitly quarantined with owner
 
 | # | Target gate | Status |
 |---|---|---|
-| 1 | formatting/static checks | **Not adopted.** `dotnet build` runs with warnings visible. A `dotnet format --verify-no-changes` gate was deliberately NOT added: it fails against the existing tree and adopting it would force mass reformatting churn across files unrelated to any risk, which this repository's campaign policy forbids. See the build-warning baseline note below. |
+| 1 | formatting/static checks | **Not adopted** as a *style/format* gate. `dotnet format --verify-no-changes` was deliberately NOT added: it fails against the existing tree and adopting it would force mass reformatting churn across files unrelated to any risk, which this repository's campaign policy forbids. **However**, the compiler/analyzer *warnings* policy is now enforced for every project (`TreatWarningsAsErrors=true`, `Directory.Build.props`): `dotnet build --no-incremental` is 0 errors, 0 warnings. See the build warning policy note below. |
 | 2–4 | domain / application / persistence tests | **Implemented** — `dotnet test SimpleWalkGame.sln` (295 tests). |
 | 5 | content validation | **Implemented** — the `validate` simulation step runs `GameStateValidator` against `Region1Catalog`; the same validator is a release gate enforced at session construction. |
 | 6 | architecture dependency checks | **Implemented** — `scripts/verify-architecture.sh`, added 2026-09-29. Enforces that Domain references nothing and stays on `netstandard2.1`, Application references only Domain, Infrastructure references only Application + Domain, no engine namespace appears anywhere in `src/`, and Domain/Application perform no filesystem access (comments stripped first so prose cannot false-positive). This is the countermeasure for R-017. |
@@ -463,22 +498,42 @@ Additional gates implemented 2026-09-29 that were not in the original target lis
 - **Long-horizon offline simulation** — `longhaul --days 365` (TESTING_AND_RELEASE §7 offline simulation was documented but not run in CI).
 - **Performance-scenario / save-growth determinism** — `scripts/verify-save-growth.sh`, added 2026-09-29. Runs the PERFORMANCE_BUDGETS §19 headless scenarios twice and requires the deterministic size/count lines to match, discharging §15's "CI simulation should report save-size growth" obligation. Wall-clock is deliberately **not** gated.
 
-### Build warning baseline (corrected 2026-09-29)
+### Build warning policy (enforced, since 2026-09-30)
 
-An incremental `dotnet build` reports **0 warnings**, which is misleading: the test projects
-are not recompiled, so their analyzer warnings are never re-emitted. A clean
-`dotnet build --no-incremental` reports the true baseline:
+**There is no longer a warning baseline to carry.** `TreatWarningsAsErrors=true` is set
+once, for every project, in `Directory.Build.props`, with no `NoWarn` and no
+`WarningsAsErrors` exemptions:
 
-- **production code (`src/`, `tools/`): 0 warnings**;
-- **test code: 8 pre-existing xUnit analyzer warnings** — 6x `xUnit2013` (`Assert.Equal` on a
-  collection size), 1x `xUnit2020` (`Assert.True` on a collection), 1x `xUnit2009`
-  (`Assert.False` on a collection), in `SessionIngestionTests`, `M4Region1AcceptanceTests`
-  and `DiagnosticsReadModelTests`.
+```bash
+dotnet build SimpleWalkGame.sln --no-incremental   # 0 errors, 0 warnings
+```
 
-These predate this work; `docs/evidence/m5-h1/OUTCOME.md` records them as deliberately left
-untouched, and they were left in place rather than churned. **Do not cite "0 warnings" as a
-property of this repository without specifying `--no-incremental`** — an earlier campaign
-commit message did exactly that and was wrong.
+This replaces the earlier arrangement in which the policy was explicit `false` in
+`WalkGame.Application.csproj` and implicit `false` elsewhere, and in which a clean
+`--no-incremental` build still emitted **8 xUnit analyzer warnings** (6x `xUnit2013`,
+1x `xUnit2020`, 1x `xUnit2009`, in `SessionIngestionTests`, `M4Region1AcceptanceTests`
+and `DiagnosticsReadModelTests`).
+
+Those 8 were **fixed, not suppressed** — each was an assertion *shape* problem
+(`Assert.Equal(0, collection.Count)` → `Assert.Empty`/`Assert.Single`,
+`Assert.True(false, msg)` → `Assert.Fail(msg)`,
+`Assert.False(s.Contains(x))` → `Assert.DoesNotContain(x, s)`). Every fix makes the
+assertion strictly stronger; none changes what any test asserts. The test count and
+every outcome are identical before and after (295 passed, 0 failed, before and after).
+The policy was then proved live: a deliberately unused local in a scratch file makes
+`dotnet build` fail with `CS0219` as an **error**, and the scratch file was removed.
+
+Consequences worth stating plainly:
+
+- `dotnet build` — with or without `--no-incremental` — now means the same thing, so the
+  previous warning that "0 warnings" must never be cited without `--no-incremental`
+  no longer applies to new work. It remains true of **older commits**: evidence recorded
+  before this change must keep its `--no-incremental` qualifier.
+- A new analyzer warning in a test is now a build failure, which is the point: a test
+  warning is how a test rots, and unenforced warnings accumulate.
+- `dotnet format` remains deliberately **not** adopted as a gate (row 1 of the table
+  above). That decision is unchanged; this policy is a compiler/analyzer policy, not a
+  style gate, and it introduced no reformatting churn.
 
 ### Hosted CI availability (external blocker, observed 2026-09-29)
 

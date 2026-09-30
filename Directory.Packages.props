@@ -1,0 +1,35 @@
+<Project>
+
+  <!--
+    Central package version management for quantdale/simple-walk-game.
+
+    Every package version in the repository is declared here, once. Individual
+    projects reference packages WITHOUT a Version attribute; a version on a
+    PackageReference is an error (NETSDK1206) rather than a warning, so the three
+    test projects cannot drift apart silently.
+
+    Versions are pinned, not upgraded, by this file. Do not bump a version here as
+    part of a change that is not explicitly about that dependency: keeping the
+    pin honest is the point. The one intentional exception is where an
+    OpenSpec change names the upgrade (see openspec change
+    pin-build-toolchain-and-centralize-packages, task 2.1: "Do not change any
+    version").
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>false</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Infrastructure save codec. Sole runtime dependency of the whole product. -->
+    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
+
+    <!-- Shared test stack: identical in all three test projects. -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+  </ItemGroup>
+
+</Project>

@@ -830,3 +830,45 @@ decisions, which is exactly the documentation-drift failure R-020 describes.)*
 - tooling/process items KI-007 (fixture hook env coupling) and KI-008 (stranded writer leases from killed foreground suites) join the backlog with evidence;
 - when the runtime/device lanes unblock, both documents require a second pass; until then they bound every privacy claim to the headless code;
 - evidence: `docs/PRIVACY_REVIEW.md`, `docs/KNOWN_ISSUES.md`.
+
+---
+
+## D-051 — The build toolchain is pinned, shared settings are declared once, and a warning is an error
+
+**Status:** Accepted *(verified at the F-12 hardening pass: `dotnet build --no-incremental` 0 errors / 0 warnings; `dotnet test` 295/295 unchanged; `scripts/verify-architecture.sh` 11 passed / 0 failed with the netstandard2.1 rule proven to fail on a broken fixture; `scripts/verify-ci-steps.sh` 12 ok / 0 warned / 0 failed / 2 hosted-only SKIP)*
+
+**Decision:** three repository-root files become the single declarations site for the
+build toolchain. `global.json` pins the SDK to `9.0.100` with `rollForward: latestFeature`
+and `allowPrerelease: false`; `Directory.Build.props` carries the universal settings
+(`Nullable`, `TreatWarningsAsErrors=true`, `WarningLevel`, `Deterministic`) and is imported
+explicitly by `src/Directory.Build.props`, which layers the production C# 9.0 language pin
+on top; `Directory.Packages.props` enables central package management and declares every
+package version once. `ci.yml` installs the pin with `actions/setup-dotnet`'s
+`global-json-file:` instead of a hardcoded `9.0.x`, and `scripts/verify-ci-steps.sh`
+asserts that the local SDK satisfies `global.json` — failing loudly if the pin file is
+missing, if the workflow stops declaring it, or if no installed SDK satisfies it. The eight
+pre-existing xUnit analyzer warnings were **fixed** (assertion shape only) and the
+warnings-as-errors policy was then switched on for every project, with no `NoWarn` and no
+exemptions.
+
+**Rationale:** §14 requires a "documented toolchain version" and it was satisfied only by
+prose ("9.x today"), which is not checkable. With hosted CI blocked (KI-001), local
+reproducibility is currently the *only* reproducibility story this repository has, so an
+unpinned SDK and a build where "0 warnings" depended on incremental caching were not
+acceptable debt. The policy ordering matters and was deliberate: the warnings-as-errors
+switch was only turned on *after* the eight known warnings were genuinely fixed, because
+suppressing them to make a policy satisfiable is exactly the failure mode the
+unenforced-warnings arrangement had already produced. `latestFeature` rather than an exact
+pin keeps onboarding honest — a contributor without the exact patch builds fine, while a
+contributor on a different major gets a self-explanatory refusal instead of a subtly
+different binary.
+
+**Consequences:**
+- each shared setting now has exactly one declarations site; adding a `Version` to any `PackageReference` is an error (`NETSDK1206`), so the three test projects can no longer drift apart;
+- `dotnet build` means the same thing with and without `--no-incremental` for new commits. The old caveat ("never cite 0 warnings without `--no-incremental`") remains true of **evidence recorded before this change** and was left in place there deliberately;
+- **the architecture gate was rewritten, not left alone.** It previously grepped `<TargetFramework>netstandard2.1</TargetFramework>` out of each csproj, so centralising the property would have silently hollow-passed the rule on all three layers. It now reads the **effective** MSBuild property (`dotnet msbuild <proj> -getProperty:TargetFramework`), fails closed if that read is unavailable, and self-checks the reader against a project that is legitimately `net9.0`. Proven by two broken fixtures: moving `WalkGame.Domain` to `net9.0` in the csproj fails the rule, and moving it to `net9.0` via `src/Directory.Build.props` (csproj emptied of the property) fails it identically — which is the case a grep would have missed. The healthy count remains 11 passed / 0 failed;
+- `TargetFramework` deliberately stays local to each production csproj. It is the one property whose declaration site is itself part of the architecture contract, and keeping it visible keeps the gate simple and honest; `LangVersion` did not survive the same reasoning because the net9.0 projects legitimately need C# 10+ syntax (file-scoped namespaces in the test suite);
+- `TreatWarningsAsErrors` applies to the test projects too. An alternative that gated production only was rejected as a needless asymmetry: a warning in a test is precisely how a test rots;
+- `dotnet format` remains deliberately **not** adopted as a style gate. The eleven over-length lines in `ci.yml` are pre-existing (identical count before and after this change, zero introduced) and the `run:` bodies cannot be reflowed without changing what CI executes, which is the exact drift `verify-ci-steps.sh` exists to prevent. That decision is not reopened here and is recorded rather than silently ignored;
+- the eight analyzer fixes are recorded in `docs/evidence/quality/CAMPAIGN-2026-09-30.md`;
+- a fully hermetic build (container-pinned toolchain) is still disproportionate for a single-developer-quality repository and stays on the deferred list.

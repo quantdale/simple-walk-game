@@ -21,13 +21,23 @@ Credentials, API keys, signing material, account logins, licensed assets, and ot
 
 **Required machine tools**
 - Git
-- .NET SDK capable of building `SimpleWalkGame.sln`
+- **.NET SDK satisfying the pin in `global.json`** (baseline `9.0.100`, `rollForward: latestFeature`, `allowPrerelease: false`) — see below
 - PowerShell and/or Bash for repository guard scripts
 
 **Task-dependent / optional tools**
 - Unity 6 LTS editor for the next presentation/runtime campaign
 - Android Studio/SDK/JDK for Android device integration
 - macOS/Xcode for iOS/HealthKit integration
+
+**Resolving the pinned SDK.** The toolchain is pinned in `global.json` at the repository
+root. `rollForward: latestFeature` means: any .NET 9 SDK on a feature band **>= 1** is
+acceptable (9.0.100, 9.0.300, …), and a different major/minor is refused with an explicit
+message. Preview SDKs are excluded. Inside the checkout, `dotnet --version` reports the
+SDK the pin resolves to; outside it, `dotnet --list-sdks` shows what is installed. If the
+build fails with "requested SDK version not found", install a .NET 9 SDK (9.0.100 or any
+later 9.0.x) — do not edit `global.json` to fit whatever happens to be installed, and do
+not change `.github/workflows/ci.yml` without `global.json`, because CI installs the pin
+via `global-json-file` and `scripts/verify-ci-steps.sh` asserts that the two still agree.
 
 
 ## 3. Agent setup
@@ -43,10 +53,17 @@ Credentials, API keys, signing material, account logins, licensed assets, and ot
 ## 4. Bootstrap
 
 ```bash
-dotnet --info
+dotnet --version                                  # must resolve via global.json (a 9.0.x SDK)
+dotnet --list-sdks                                # installed SDKs, if the above refuses
 dotnet restore SimpleWalkGame.sln
 ./scripts/assert-repo-identity.sh
 ```
+
+Package versions are pinned centrally in `Directory.Packages.props`; `dotnet restore`
+reads them from there, so do not add a `Version` attribute to any `PackageReference`
+(NETSDK1206). Shared compiler settings live in `Directory.Build.props` (and
+`src/Directory.Build.props` for the production layers' C# 9.0 pin) — declare new
+settings there rather than per project, so there is exactly one declarations site.
 
 Before any write session, obey the repository's single-writer lease/worktree rules. Missing Unity must remain an explicit environment blocker for Unity-specific milestones.
 

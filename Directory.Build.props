@@ -1,0 +1,41 @@
+<Project>
+
+  <!--
+    Universal build settings for quantdale/simple-walk-game.
+
+    Every project in the repository (three production libraries, the headless
+    simulation CLI, and the three xUnit test projects) inherits this file. Each
+    setting is declared EXACTLY ONCE here; the per-project files carry only what
+    is genuinely project-specific (TargetFramework, OutputType, ImplicitUsings,
+    IsPackable, ProjectReference, PackageReference).
+
+    Scope rules, deliberately narrow:
+      * TargetFramework is NOT set here. The three production layers must stay on
+        netstandard2.1 (an architecture rule, see scripts/verify-architecture.sh)
+        while the CLI and the test projects target net9.0. Each project therefore
+        declares its own, which also keeps the architecture gate's grep honest.
+      * LangVersion is NOT set here either. The production layers are pinned to
+        C# 9.0 (see src/Directory.Build.props) because they must compile for
+        netstandard2.1 with a polyfilled IsExternalInit; the net9.0 projects need
+        the SDK default, which admits C# 10+ syntax the test suite already uses
+        (file-scoped namespaces).
+
+    Warnings policy: a warning is an error, everywhere, with no exclusions. It was
+    explicit-false in one production csproj and implicit-false in the others before
+    this file existed, so a new analyzer or compiler warning passed silently. The
+    eight pre-existing xUnit analyzer warnings were fixed (assertion shape, not
+    assertion meaning) rather than suppressed before the policy was switched on.
+    See docs/DECISIONS.md (D-051) and openspec change
+    pin-build-toolchain-and-centralize-packages.
+  -->
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>5</WarningLevel>
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+</Project>
