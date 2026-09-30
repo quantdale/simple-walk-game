@@ -161,7 +161,49 @@ public sealed class SessionPersistenceHardeningTests : IDisposable
                 IsDeletion: true),
         });
 
+        // RE-SCOPED for D-053 (eligibility-then-policy split). A deletion marker is now
+        // judged by the SAME eligibility rules as an ordinary record BEFORE it may touch
+        // durable state, and a missing provider namespace is one of those rules. So this
+        // marker is now REJECTED with a named reason rather than silently "ignored".
+        //
+        // Note this is a documented departure from the change's design.md, which suggested
+        // an empty namespace would remain an "ignored" policy outcome. The SPEC is
+        // normative and says a deletion marker with "a missing provider namespace" is
+        // "rejected under the corresponding eligibility reason", so the spec wins. Both
+        // classifications are equally safe (neither reverses value nor moves the
+        // watermark); the spec's is strictly more informative because it names the reason.
+        Assert.Equal(1, result.Rejected);
+        Assert.Equal(1, result.RejectionCounts[nameof(ActivityValidationStatus.EmptyProvider)]);
+        Assert.Equal(0, result.DeletionsIgnored);
+        Assert.Equal(0, result.DeletionsApplied);
+        Assert.Equal(0L, result.VitalityCredited);
+    }
+
+    [Fact]
+    public void EligibleDeletionMarker_ForAnUncreditedRecord_RemainsAnIgnoredPolicyOutcome()
+    {
+        // The other half of the split, so the two classifications stay distinguishable: a
+        // marker that PASSES eligibility but names a logical record this pipeline never
+        // credited is a POLICY outcome, counted as an ignored deletion, not a rejection.
+        var session = StartNewSession();
+
+        var result = session.IngestActivityBatch(new List<NormalizedActivityRecord>
+        {
+            new NormalizedActivityRecord(
+                ProviderNamespace: "fixture",
+                SourceRecordId: "never-credited",
+                Category: ActivityCategory.Walking,
+                Unit: ActivityUnits.Steps,
+                Quantity: 0L,
+                StartUtc: TestSessions.T0.AddMinutes(-30),
+                EndUtc: TestSessions.T0.AddMinutes(-10),
+                Revision: 2,
+                IsDeletion: true),
+        });
+
+        Assert.Equal(0, result.Rejected);
         Assert.Equal(1, result.DeletionsIgnored);
+        Assert.Equal(0, result.DeletionsApplied);
         Assert.Equal(0L, result.VitalityCredited);
     }
 

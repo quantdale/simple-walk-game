@@ -359,7 +359,12 @@ public sealed class ActivityRedTeamTests : IDisposable
             Record("junk-zero", 0L, startUtc: start),
             new NormalizedActivityRecord(Provider, "junk-unit", ActivityCategory.Walking, "meters", 100L, start, start.AddMinutes(30)),
             Record("junk-future", 900L, startUtc: T0.AddHours(24 * 40), endUtc: T0.AddHours(24 * 40).AddMinutes(30)),
-            Record("junk-stale", 900L, startUtc: T0.AddDays(-40), endUtc: T0.AddDays(-40).AddMinutes(30)),
+            // Stale/hostile old history. Must sit OUTSIDE the trusted window's floor, not
+            // merely "a while ago": the floor is 45 days (D-053), so a record 40 days old
+            // is legitimately eligible now and would correctly be accepted. 120 days is
+            // outside the floor for every batch of this scenario, including after the
+            // watermark has advanced to the newest reference record.
+            Record("junk-stale", 900L, startUtc: T0.AddDays(-120), endUtc: T0.AddDays(-120).AddMinutes(30)),
             Record("junk-window", 900L, startUtc: start.AddHours(2), endUtc: start), // end <= start
         };
     }

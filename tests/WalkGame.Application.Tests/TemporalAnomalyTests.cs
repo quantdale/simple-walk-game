@@ -32,37 +32,54 @@ public sealed class TemporalAnomalyTests : IDisposable
     public void Dispose() => _temp.Dispose();
 
     // ------------------------------------------------------------------
-    // Horizon/skew boundaries are inclusive exactly as documented (D-030).
+    // Horizon/skew boundaries are inclusive exactly as documented (D-053,
+    // superseding D-030's wall-clock constants). Both edges are re-derived
+    // from the policy constants rather than hard-coded, so the test cannot
+    // drift away from the rule it is supposed to pin.
     // ------------------------------------------------------------------
 
     [Fact]
     public void HorizonAndSkewBoundaries_AreDecidedExactlyAtTheDocumentedEdges()
     {
-        Bootstrap();
-        var session = Session(T0.AddDays(20));
-        session.Continue();
+        // With no trusted progress yet, the window anchors to "now", so both edges are
+        // exactly: now − floor, and now + skew. Re-derived from the policy constants
+        // rather than hard-coded, so the test cannot drift from the rule it pins.
+        var now = T0.AddDays(20);
+        var floor = ActivityValidationPolicy.TrustedWindowFloor;
+        var skew = ActivityValidationPolicy.MaxFutureSkew;
+        var windowStart = now - floor;
+        var windowEnd = now + skew;
 
-        var results = session.IngestActivityBatch(new[]
+        // A SEPARATE fresh profile per case. Accepting the edge records advances the
+        // durable watermark, which would move the window for any later batch on the same
+        // profile; that advancement is real, intended behaviour and is covered by the
+        // trusted-time tests, but it would make this test assert something other than
+        // boundary inclusivity.
+        using var atEdgeDir = new TempDirectory();
+        var atEdge = TestSessions.Create(atEdgeDir.Path, new ManualClock(now));
+        atEdge.StartNewGame(7UL);
+
+        var results = atEdge.IngestActivityBatch(new[]
         {
-            // Ends EXACTLY at now − 14d: inside the documented inclusive boundary.
-            Record("edge-horizon-exact", 100L,
-                startUtc: T0.AddDays(5), endUtc: T0.AddDays(6)),
-            // Ends EXACTLY at now + 10m: inside the documented skew allowance.
-            Record("edge-future-exact", 200L,
-                startUtc: T0.AddDays(19).AddMinutes(30), endUtc: T0.AddDays(20).AddMinutes(10)),
+            // Ends EXACTLY at the lower bound: inside the documented inclusive boundary.
+            Record("edge-horizon-exact", 100L, startUtc: windowStart.AddMinutes(-30), endUtc: windowStart),
+            // Ends EXACTLY at the upper bound: inside the documented skew allowance.
+            Record("edge-future-exact", 200L, startUtc: windowEnd.AddMinutes(-30), endUtc: windowEnd),
         });
 
         Assert.Equal(2, results.Accepted);
         Assert.Equal(0, results.Rejected);
 
-        var rejected = session.IngestActivityBatch(new[]
+        using var pastEdgeDir = new TempDirectory();
+        var pastEdge = TestSessions.Create(pastEdgeDir.Path, new ManualClock(now));
+        pastEdge.StartNewGame(7UL);
+
+        var rejected = pastEdge.IngestActivityBatch(new[]
         {
-            // One tick past the horizon edge.
-            Record("beyond-horizon", 300L,
-                startUtc: T0.AddDays(5).AddSeconds(-1), endUtc: T0.AddDays(6).AddTicks(-1)),
-            // One tick past the future-skew edge.
-            Record("beyond-skew", 400L,
-                startUtc: T0.AddDays(19).AddMinutes(31), endUtc: T0.AddDays(20).AddMinutes(10).AddTicks(1)),
+            // One tick past the lower-bound edge.
+            Record("beyond-horizon", 300L, startUtc: windowStart.AddMinutes(-30), endUtc: windowStart.AddTicks(-1)),
+            // One tick past the upper-bound edge.
+            Record("beyond-skew", 400L, startUtc: windowEnd.AddMinutes(-30), endUtc: windowEnd.AddTicks(1)),
         });
 
         Assert.Equal(0, rejected.Accepted);
@@ -260,6 +277,15 @@ public sealed class TemporalAnomalyTests : IDisposable
         var state = DecodeState(_temp.Path);
         Assert.Equal(checkpointForward, state.IngestionCheckpointUtc); // watermark never regresses
         Assert.True(state.LastAdvancedUtc >= checkpointForward - TimeSpan.FromDays(14));
+
+        // D-053: the window's UPPER bound must also not move below the already-trusted
+        // end, otherwise a backward clock jump would shrink the window and start
+        // rejecting the player's own recent history as future-dated.
+        var backwardTrusted = new TrustedTime(
+            T0.AddDays(3), checkpointForward, checkpointForward);
+        Assert.True(backwardTrusted.WindowEndUtc >= checkpointForward,
+            "upper bound must not fall below the latest trusted record end");
+        Assert.True(backwardTrusted.WindowEndUtc <= checkpointForward + TimeSpan.FromMinutes(10));
 
         // Forward again: the skipped-time world resumes; the replayed old record stays
         // an exactly-once no-op while the legitimately new record keeps its credit.

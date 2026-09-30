@@ -84,19 +84,56 @@ Additional activity categories should be added only after their conversion seman
 
 Eligibility rules must be versioned and testable.
 
+Every received record — **including deletion markers** — is judged by the same
+eligibility rules before it may alter durable state (D-053). The one documented
+exception is that the *quantity* rules do not apply to a deletion marker, because a
+marker carries no activity by definition; applying `ZeroQuantity` to a marker would
+reject every deletion ever issued and silently disable the correction policy.
+
 Potential checks:
 
 - supported category;
-- non-negative values;
+- non-negative values *(ordinary records only; a deletion marker has no quantity)*;
 - sane timestamp ordering;
 - supported units;
 - valid source provenance;
-- not marked deleted;
-- not outside permitted reconciliation horizon;
+- *(deletion markers are validated, not exempted — see above)*;
+- inside the **trusted acceptance window** (see below);
 - within bounded plausibility rules;
 - not already committed.
 
 Plausibility checks must protect data integrity without pretending the app can perfectly identify fraud.
+
+### 5.1 The acceptance window is anchored to trusted time (D-053)
+
+The window is **not** "a fixed interval either side of the device's current clock".
+It is computed per batch from a `TrustedTime` reference carrying the injected clock, the
+latest activity end already durably trusted, and the durable reconciliation watermark:
+
+| Bound | Value |
+|---|---|
+| lower | earlier of (watermark, latest trusted end) − `TrustedWindowFloor` (**45 days**), falling back to `now` when the profile has no trusted progress at all |
+| upper | later of (watermark, latest trusted end, now) + `MaxFutureSkew` (**10 minutes**) |
+
+This replaced the previous wall-clock `ReconciliationHorizon` of 14 days before "now"
+(D-030). Both old anchors were wrong for the situations the product is built for:
+
+- a player returning after a holiday had their **entire** provider backlog rejected,
+  because every record was older than "now − 14 days";
+- a device clock merely **minutes** fast made every record look future-dated, so
+  crediting stopped entirely with no player-visible explanation.
+
+The window still bounds history: a record ending more than 45 days *before the last
+already-trusted record end* is still rejected as `OutsideHorizon`, and a record genuinely
+ahead of every trusted reference by more than 10 minutes is still `FutureTimestamp`. The
+change is that the reference point is durable trusted progress rather than wall clock, so
+the window **slides forward as the player progresses**.
+
+A record the pipeline has **already durably trusted** is reported as a duplicate rather
+than a rejection even when it falls outside the window, so replaying a long horizon
+reports "already credited" instead of "activity refused". That carve-out is guarded by a
+revision check: an out-of-window record carrying a **higher** revision is still rejected,
+so it can never reach the correction path and mint a delta.
 
 ---
 
@@ -204,6 +241,18 @@ Rules:
 - late valid data should receive credit once;
 - return summaries should distinguish newly processed historical activity from “activity performed since last launch” when confusion would result.
 
+**The reconciliation window is anchored to trusted time, not to the device clock** (§5.1,
+D-053). A returning player is the normal case, not an edge case: an absence of any
+length is creditable, because the lower bound tracks the last already-trusted record end
+rather than "14 days ago". The bound that remains is the 45-day floor *before* that
+trusted end, which is what stops a hostile or misconfigured source from dumping
+arbitrary old history.
+
+The reconciliation watermark records "latest activity end durably trusted". It is
+monotonic and never regresses, including under a backward clock movement. It is evidence
+of how far the pipeline has trusted its sources; making it a **driver** of scheduled
+query windows is the platform adapter's job (M7) and is deliberately out of scope here.
+
 ---
 
 ## 11. Corrections and deletions
@@ -239,6 +288,19 @@ Test:
 - records with future timestamps;
 - records spanning midnight;
 - long inactivity periods.
+
+**The device clock is not trusted for eligibility** (D-053). Both window bounds are
+anchored to durable trusted progress as well as the clock, specifically so that:
+
+- a clock running **fast** degrades the anti-future bound instead of disabling crediting
+  entirely (a fast clock is the common case, not an exotic one);
+- a clock moving **backward** never pulls the upper bound below the already-trusted record
+  end, so a player's own recent history is never rejected as future-dated, and the
+  watermark never regresses.
+
+A record genuinely ahead of every trusted reference by more than the 10-minute skew
+allowance is still rejected. A forward clock jump during absence credits only what the
+source actually reported: the pipeline never mints Vitality that no record described.
 
 Canonical source timestamps should be normalized consistently. UI may render local time separately.
 

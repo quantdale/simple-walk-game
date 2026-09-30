@@ -402,6 +402,21 @@ namespace WalkGame.Application
             return new StartResult(StartStatus.SaveUnreadable, detail: reason);
         }
 
+        /// <summary>
+        /// True when the processed-record ledger already holds this logical record at a
+        /// revision at least as high as the one delivered, so processing it could only be
+        /// a no-op. Pure lookup, no state change.
+        /// </summary>
+        private static bool IsAlreadyTrustedNoOp(GameState game, NormalizedActivityRecord record)
+        {
+            if (string.IsNullOrWhiteSpace(record.ProviderNamespace))
+                return false; // no computable identity; nothing was ever trusted under it
+            if (!game.ProcessedRecords.TryGet(ActivityIdentity.Compute(record), out var existing)
+                || existing == null)
+                return false;
+            return record.Revision <= existing.LastRevision;
+        }
+
         /// <summary>The decode error of a generation that failed INVARIANT validation (not
         /// integrity/version/migration/decode), or null when it did not fail that way.</summary>
         private static string? StateValidationDetail(DecodeAndValidateOutcome? outcome)
@@ -448,6 +463,16 @@ namespace WalkGame.Application
         /// checkpoint advance in the same state transition as the rewards they describe,
         /// persisted atomically once at the end, so a crash can never leave a checkpoint
         /// that outruns credited rewards.
+        ///
+        /// ELIGIBILITY IS EVALUATED FIRST FOR EVERY RECORD, deletion markers included
+        /// (D-053). Previously the `IsDeletion` branch preceded validation entirely, so a
+        /// malformed marker could reverse value and push the durable watermark arbitrarily
+        /// far forward without ever being checked. The deletion handler's remaining checks
+        /// (unknown logical record, stale revision) are POLICY decisions and stay there.
+        ///
+        /// The window is anchored to trusted time, not to the raw device clock: see
+        /// <see cref="TrustedTime"/>. A returning player's whole backlog is credited, and a
+        /// device clock that is merely fast no longer disables crediting.
         /// </summary>
         public IngestResult IngestActivityBatch(IReadOnlyList<NormalizedActivityRecord> records)
         {
@@ -464,22 +489,55 @@ namespace WalkGame.Application
             long vitalityTotal = 0L;
             DateTimeOffset maxTrustedEndUtc = game.IngestionCheckpointUtc;
 
+            // Computed ONCE per batch, never per record: a per-record recomputation would
+            // make validation O(n) in retained history, which the save-growth evidence
+            // shows reaching ~19,000 entries by day 730. ProcessedRecordEntry does not
+            // persist the record's own end (schema v2), so the maximum end the processed
+            // ledger implies IS the durable watermark — the pipeline already maintains it as
+            // the latest end of any record it has ever trusted. The two fields are kept
+            // separate so a future schema that stores per-record ends needs no API change.
+            var trustedTime = new TrustedTime(
+                nowUtc,
+                latestTrustedEndUtc: game.IngestionCheckpointUtc,
+                reconciliationWatermarkUtc: game.IngestionCheckpointUtc);
+
             foreach (var record in records)
             {
+                // 1. Eligibility, for EVERY record. A record that fails here changes no
+                //    durable state: it does not reverse value, does not touch the
+                //    processed-record row, and does not advance the watermark.
+                var status = ActivityValidationPolicy.Validate(record, trustedTime);
+                if (status != ActivityValidationStatus.Valid)
+                {
+                    // One carve-out, and it is safe in both directions: a record this
+                    // pipeline has ALREADY durably trusted is an exactly-once no-op
+                    // whatever the window says, so it is counted as a duplicate and
+                    // dropped rather than reported as a rejection. Without this, replaying
+                    // a long horizon would report the oldest days as "OutsideHorizon" and
+                    // the flagship exactly-once evidence would read as refused activity.
+                    //
+                    // The revision guard is what makes this incapable of minting value: an
+                    // out-of-window record carrying a HIGHER revision would otherwise reach
+                    // the correction path and credit a delta. It is rejected like any other
+                    // new out-of-window record, so an old record can only ever be a no-op.
+                    if (IsAlreadyTrustedNoOp(game, record))
+                    {
+                        duplicates++;
+                        continue;
+                    }
+
+                    rejected++;
+                    string key = status.ToString();
+                    rejectionCounts[key] = rejectionCounts.TryGetValue(key, out int n) ? n + 1 : 1;
+                    continue;
+                }
+
+                // 2. Dispatch. Deletion markers are only reachable once eligible.
                 if (record.IsDeletion)
                 {
                     ProcessDeletion(game, record, nowUtc, events,
                         ref deletionsApplied, ref deletionsIgnored, ref staleRevisions,
                         ref dupTransactions, ref vitalityTotal, ref maxTrustedEndUtc);
-                    continue;
-                }
-
-                var status = ActivityValidationPolicy.Validate(record, nowUtc);
-                if (status != ActivityValidationStatus.Valid)
-                {
-                    rejected++;
-                    string key = status.ToString();
-                    rejectionCounts[key] = rejectionCounts.TryGetValue(key, out int n) ? n + 1 : 1;
                     continue;
                 }
 
@@ -691,6 +749,10 @@ namespace WalkGame.Application
         /// Deletion policy: reverse remaining credited value conservatively (clamped to
         /// balance), mark the row deleted by zeroing it, or count an ignored marker.
         /// Deletion records are never eligible for crediting.
+        ///
+        /// Reached ONLY after the record passed <see cref="ActivityValidationPolicy.Validate"/>
+        /// (D-053). The checks below are POLICY decisions, not eligibility decisions, and are
+        /// counted as such in the batch diagnostics.
         /// </summary>
         private void ProcessDeletion(
             GameState game,
@@ -702,7 +764,11 @@ namespace WalkGame.Application
         {
             if (string.IsNullOrWhiteSpace(record.ProviderNamespace))
             {
-                deletionsIgnored++; // nothing identifiable to reverse; counted diagnostically.
+                // Defence in depth: eligibility rejects an empty provider namespace before
+                // reaching here, so this is unreachable through IngestActivityBatch. It is
+                // retained because ProcessDeletion is also reachable from a caller that
+                // has not validated, and silently reversing nothing is the safe default.
+                deletionsIgnored++;
                 return;
             }
 

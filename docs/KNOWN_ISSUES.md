@@ -37,6 +37,7 @@ this repository got wrong and then fixed.
 | ID | Sev | Issue | Closed by | Evidence |
 |---|---|---|---|---|
 | KI-009 | Critical *(was)* | A **missing primary save slot** was reported as "no save found" and the healthy backup generation was never read. Because the store promotes a generation with a delete-then-move pair, an absent primary is reachable (a crash between those two steps). Any composition root treating "no save" as a fresh profile replaced the player's world with a new empty one. **This item was never in the register** despite being a Critical-class data-loss path in the flagship product invariant — which is itself the finding recorded in the note below. | D-052 / OpenSpec change `recover-save-from-backup-when-primary-is-missing` | 8 new application-layer regression tests (`SessionMissingPrimaryRecoveryTests`); CLI reproduction before/after in `docs/evidence/save-recovery/CAMPAIGN-2026-09-30.md` |
+| KI-010 | High *(was)* | **A returning player's entire activity backlog was rejected.** The acceptance window was anchored to the raw device clock (`now − 14 days`), so a player coming back after a holiday lost every record the provider handed them — the activity that earned the most goodwill silently disappeared. A device clock merely *minutes* fast additionally made every record look future-dated and stopped crediting altogether, with no player-visible explanation. Neither scenario had any test coverage. | D-053 / OpenSpec change `anchor-activity-acceptance-window-to-trusted-time` | 17 new tests in `TrustedTimeWindowTests` (30-day and 45-day absences, fast clock, clock jump, backward clock, hostile dump, deletion-marker eligibility, boundary edges, accounting identity); `docs/evidence/trust-window/CAMPAIGN-2026-09-30.md` |
 
 ## Note on this register
 
@@ -50,7 +51,14 @@ Two consequences, recorded so the same gap does not reopen:
 
 1. A mitigation existing is not the same as a mitigation being *exercised*. `WriteAtomicPreservingBackup`
    (D-040) protected the healthy generation perfectly — on a code path no caller took.
-   Future audits must ask what a guarantee protects, not only whether it is implemented.
+   `ActivityValidationPolicy`'s 14-day reconciliation horizon bounded old history correctly
+   while rejecting the product's own central case (D-053). Future audits must ask what a
+   guarantee protects, not only whether it is implemented.
 2. Boot-reachable filesystem states are product defects even when the filesystem layer is
    correct. The application-layer test gap is what let this survive a campaign that
    specifically covered crash-during-promotion.
+3. A named acceptance scenario that deliberately exercises *none* of the behaviour it is
+   named for is a coverage gap wearing a test's clothes. `Scenario05_ThirtyDayReturn`
+   returned after 30 days and ingested nothing during the absence, so "the provider hands
+   back the whole backlog on return" — the single most important ingest scenario for an
+   offline-first game — was untested in the entire suite until D-053.

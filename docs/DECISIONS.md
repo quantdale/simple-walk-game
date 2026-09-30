@@ -918,3 +918,98 @@ none. That is why the new tests are application-layer, driving `Continue()`.
 - no store write sequence, no save schema, no envelope framing, no migration chain was touched. Rollback is a plain revert;
 - multi-generation history and a write-ahead journal remain **deferred**, not open: they reduce the probability of the state, whereas this change makes the state recoverable. Recorded in the master plan's deferred list so the next agent does not re-investigate;
 - `docs/KNOWN_ISSUES.md` gains a "Closed" section and an explicit note that the register held **no entry** for this Critical-class data-loss path despite it being present, reproducible and unrecoverable. A register that cannot hold a Critical defect is itself the finding.
+
+---
+
+## D-053 — The activity acceptance window is anchored to trusted time, and deletion markers obey the same eligibility rules
+
+**Status:** Accepted *(supersedes D-030's constants and reference point; verified at the F-02/F-03/F-09 pass: 17 new tests in `TrustedTimeWindowTests`, `dotnet test` 322/322 — Domain 105, Infrastructure 48, Application 169 — green; all seven `docs/evidence/m4/pacing-*.txt` reports still reproduce **byte-for-byte**; `verify-architecture.sh` 11/0; save-growth verified; guard suite 25/0)*
+
+**Decision:** `ActivityValidationPolicy.Validate` now takes a `TrustedTime` reference
+instead of a bare `nowUtc`, and stays `static`, side-effect free and **O(1) per record**
+with no dependency on `GameState` — required, because `verify-architecture.sh` rule 5
+keeps Domain free of ambient state. `TrustedTime` is computed **once per batch** in
+`IngestActivityBatch` and carries the injected clock, the latest durably trusted record
+end, and the reconciliation watermark. The window is:
+
+| Bound | Value |
+|---|---|
+| lower | `min(watermark, latest trusted end)` − **`TrustedWindowFloor` = 45 days**, falling back to `now` when a profile has no trusted progress at all |
+| upper | `max(now, watermark, latest trusted end)` + `MaxFutureSkew` = 10 minutes |
+
+The eligibility-first restructure also applies the **same eligibility rules to deletion
+markers**, which previously bypassed validation entirely and could push the watermark
+arbitrarily far forward. `DeletionsIgnored` / `StaleRevisionsIgnored` are retained as
+*policy* outcomes (unknown logical record, stale revision); eligibility failures are now
+*rejections* with a named reason.
+
+**Rationale:** D-030's window was anchored to raw device wall clock, and both of its
+anchors were wrong for the situations this product exists for. A player returning after a
+holiday had their **entire** provider backlog rejected as `OutsideHorizon` (F-02) — the
+14-day bound was introduced to protect the offline-first thesis (D-003/D-004) and instead
+destroyed it. A device clock **minutes** fast made every record future-dated and stopped
+crediting altogether, with no player-visible explanation (F-03); `GAME_SYSTEMS.md` §15
+already required not to rely solely on device wall clock. The problem was never the width
+of the constants: a wider fixed window is still wrong for a fast clock and still too narrow
+for a 45-day absence. **The anchor was the defect.**
+
+**The 45-day floor — how it was chosen.** It answers "how far *before* the last thing we
+trusted will we still believe a record?". It comfortably exceeds the longest absence the
+product treats as normal (a 30-day return is the acceptance case, `MASTER_PLAN` §10) and
+stays far below unbounded device history. It does **not** bound the length of an absence:
+records *after* the last trusted end are inside the window regardless of how far back that
+trusted end is, which is precisely what makes a 30- or 45-day absence creditable.
+
+**Why both bounds use `min`/`max` rather than a single anchor.** The lower bound takes the
+*earlier* durable marker so a watermark pushed forward by a late deletion cannot silently
+expose older history; the upper bound takes the *later* so a fast clock degrades the
+anti-future bound instead of disabling crediting, and so a backward clock jump can never
+pull the bound below the already-trusted end. The watermark itself remains monotonic and
+never regresses.
+
+**Consequences:**
+- **`ReconciliationHorizon` (14 days) is retained as a name only** and is no longer used by
+  validation, so the historical decision stays locatable in review while the value it
+  described is not silently resurrected. `TrustedWindowFloor` is the live constant.
+- **Two re-scoped tests, neither deleted.** `RecordBeyondReconciliationHorizon_IsRejectedWithoutSideEffects`
+  now uses a 60-day-old record, because a 15-day-old record is *correctly accepted* under
+  the new window — keeping the old fixture would have turned an anti-abuse requirement into
+  a dead test. A companion test asserts the other half: a 30-day-old record **is** accepted.
+  `ActivityRedTeamTests`' `junk-stale` fixture moved from −40 to −120 days for the same
+  reason. `TemporalAnomalyTests.HorizonAndSkewBoundaries` now re-derives both edges from
+  the policy constants and uses a fresh profile per case, because accepting an edge record
+  advances the watermark and would otherwise move the window mid-test.
+- **An already-trusted out-of-window record is reported as a duplicate, not a rejection**,
+  guarded by a revision check. Without it, replaying a long horizon would report the
+  oldest days as `OutsideHorizon` and the flagship exactly-once evidence
+  (`M4Region1AcceptanceTests`) would read as refused activity. The revision guard is what
+  makes it incapable of minting value: an out-of-window record with a **higher** revision
+  is still rejected, so it can never reach the correction path.
+- **A deletion marker skips exactly one eligibility rule: the quantity checks.** A marker
+  carries no activity by definition and every well-formed marker in this repository has
+  `Quantity == 0`; applying `ZeroQuantity` would reject every deletion ever issued and
+  silently disable the correction policy — the opposite of "the same eligibility rules".
+  Provenance, unit, temporal extent and both window bounds all still apply.
+- **This departs from the change's own `design.md` in one place.** The design suggested a
+  deletion marker with an empty provider namespace would remain an "ignored" *policy*
+  outcome; the change's **spec** says a marker with "a missing provider namespace" is
+  "rejected under the corresponding eligibility reason". The spec is normative, so the spec
+  wins. Both classifications are equally safe (neither reverses value nor moves the
+  watermark) and the spec's is strictly more informative. Recorded here rather than
+  diverging silently, per the master plan's rule 11.
+- **The batch accounting identity is now asserted in a test** with every counter exercised
+  at once: `accepted + rejected + duplicates + corrections + deletionsApplied +
+  deletionsIgnored + staleRevisions == total received`. Per-reason counts remain **on the
+  result object only**; persisting them is the follow-up diagnostics change and is
+  explicitly out of scope here.
+- `DateTimeOffset` arithmetic is not saturating, and `MinValue − 45d` throws. `TrustedTime`
+  guards both operations against the distance available to the representable limit, so a
+  profile whose trusted progress sits at the minimum degrades to "reject everything"
+  instead of throwing during validation. (Found by the new tests, not by inspection.)
+- **No conversion, clamp, dedup identity, correction policy or save schema changed.** All
+  seven byte-reproducible pacing reports are unchanged, which is the strongest available
+  evidence that the window change did not perturb simulation behaviour.
+- Still **open and not claimed**: real Health Connect / HealthKit backlog-on-reconnect
+  behaviour and backfill limits are the M7 adapter lane and remain device-blocked
+  (`KI-002`). The reconciliation watermark is still *evidence*, not a driver of scheduled
+  query windows; making it a driver is the adapter's job and stays deferred.

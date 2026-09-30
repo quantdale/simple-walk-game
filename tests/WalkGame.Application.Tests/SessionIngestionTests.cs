@@ -405,19 +405,49 @@ public sealed class SessionIngestionTests : IDisposable
     {
         var session = StartNewSession();
 
+        // RE-SCOPED for D-053. The intent is unchanged — a record outside the trusted
+        // window is rejected, changes no state, and does not move the watermark — but
+        // "outside" no longer means "more than 14 days before now". The window is anchored
+        // to trusted progress (falling back to now for a profile with none) less a 45-day
+        // floor, so a record must now be more than 45 days old to fall outside. The old
+        // 15-day fixture is INSIDE the new window and is correctly accepted; keeping it
+        // would have turned an anti-abuse requirement into a dead test.
         var ancient = new NormalizedActivityRecord(
             "fixture", "ancient", ActivityCategory.Walking,
             ActivityUnits.Steps, 9000L,
-            T0.AddDays(-15).AddMinutes(-30), T0.AddDays(-15));
+            T0.AddDays(-60).AddMinutes(-30), T0.AddDays(-60));
         var result = session.IngestActivityBatch(new[] { ancient });
 
         Assert.Equal(1, result.Rejected);
         Assert.Equal(1, result.RejectionCounts["OutsideHorizon"]);
         Assert.Equal(0, result.Accepted);
+        Assert.Equal(0L, result.VitalityCredited);
 
         var persisted = DecodePersisted();
         Assert.Equal(0, persisted.State!.ProcessedRecords.Count);
         Assert.Empty(persisted.State.Ledger.Records);
+        // The watermark must not move: a rejected record is not trusted progress.
+        Assert.Equal(default, persisted.State.IngestionCheckpointUtc);
+    }
+
+    [Fact]
+    public void RecordInsideTheTrustedWindowFloor_IsAccepted_EvenWhenOlderThanTheOldFourteenDayHorizon()
+    {
+        // The other half of the re-scope above, and the actual F-02 fix: a record that the
+        // OLD wall-clock horizon would have rejected is now correctly accepted.
+        var session = StartNewSession();
+
+        var thirtyDaysOld = new NormalizedActivityRecord(
+            "fixture", "just-inside", ActivityCategory.Walking,
+            ActivityUnits.Steps, 9000L,
+            T0.AddDays(-30).AddMinutes(-30), T0.AddDays(-30));
+
+        var result = session.IngestActivityBatch(new[] { thirtyDaysOld });
+
+        Assert.Equal(1, result.Accepted);
+        Assert.Equal(0, result.Rejected);
+        Assert.Equal(90L, result.VitalityCredited);
+        Assert.Equal(1, DecodePersisted().State!.ProcessedRecords.Count);
     }
 
     private static NormalizedActivityRecord Valid(

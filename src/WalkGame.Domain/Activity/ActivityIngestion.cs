@@ -47,19 +47,124 @@ namespace WalkGame.Domain.Activity
     }
 
     /// <summary>
+    /// The trusted reference the acceptance window is evaluated against (D-053).
+    ///
+    /// The window used to be anchored to the RAW device clock ("now minus 14 days",
+    /// "now plus 10 minutes"). Both anchors are wrong for the two situations this
+    /// product is built for: a returning player has a provider backlog that is entirely
+    /// older than 14 days, and a device whose clock runs slightly fast makes every
+    /// record look future-dated so crediting stops entirely.
+    ///
+    /// This value carries the durable evidence the pipeline already owns, so validation
+    /// stays a pure, O(1)-per-record function with no dependency on the state aggregate
+    /// (scripts/verify-architecture.sh rule 5 keeps Domain free of ambient state). It is
+    /// computed ONCE per ingestion batch and threaded through every record.
+    /// </summary>
+    public readonly struct TrustedTime
+    {
+        /// <summary>Clock time injected by the host for this batch.</summary>
+        public DateTimeOffset NowUtc { get; }
+
+        /// <summary>Latest activity end the pipeline has already durably trusted.</summary>
+        public DateTimeOffset LatestTrustedEndUtc { get; }
+
+        /// <summary>Durable reconciliation watermark (monotonic; never regresses).</summary>
+        public DateTimeOffset ReconciliationWatermarkUtc { get; }
+
+        public TrustedTime(DateTimeOffset nowUtc, DateTimeOffset latestTrustedEndUtc,
+            DateTimeOffset reconciliationWatermarkUtc)
+        {
+            NowUtc = nowUtc;
+            LatestTrustedEndUtc = latestTrustedEndUtc;
+            ReconciliationWatermarkUtc = reconciliationWatermarkUtc;
+
+            // LOWER bound: the EARLIER of the two durable trusted markers, less the floor.
+            // Anchored to progress rather than to wall clock, so it slides forward as the
+            // player progresses and a whole absence-long backlog stays inside it. With no
+            // trusted progress at all (a profile that has never ingested a record) the
+            // anchor falls back to "now", which is what keeps a brand-new profile from
+            // inheriting the device's entire history.
+            bool haveTrustedProgress =
+                latestTrustedEndUtc != default || reconciliationWatermarkUtc != default;
+            DateTimeOffset lowerAnchor = haveTrustedProgress
+                ? (latestTrustedEndUtc <= reconciliationWatermarkUtc
+                    ? latestTrustedEndUtc
+                    : reconciliationWatermarkUtc)
+                : nowUtc;
+
+            // UPPER bound: the LATER of now and both durable markers, plus the skew
+            // allowance. Taking the max is what stops a merely-fast device clock from
+            // disabling crediting, and what stops a backward clock jump from moving the
+            // bound below the already-trusted end (the watermark still never regresses).
+            DateTimeOffset upperAnchor = nowUtc;
+            if (latestTrustedEndUtc > upperAnchor) upperAnchor = latestTrustedEndUtc;
+            if (reconciliationWatermarkUtc > upperAnchor) upperAnchor = reconciliationWatermarkUtc;
+
+            // DateTimeOffset arithmetic is NOT saturating: `DateTimeOffset.MinValue - 45d`
+            // throws. Guard the subtraction itself, then clamp the sum as well, so a
+            // profile whose trusted progress sits at the representable minimum degrades to
+            // "reject everything" instead of throwing during validation.
+            WindowStartUtc = SafeSubtract(lowerAnchor, ActivityValidationPolicy.TrustedWindowFloor);
+            WindowEndUtc = SafeAdd(upperAnchor, ActivityValidationPolicy.MaxFutureSkew);
+        }
+
+        /// <summary>Inclusive lower bound: records ending before this are OutsideHorizon.</summary>
+        public DateTimeOffset WindowStartUtc { get; }
+
+        /// <summary>Inclusive upper bound: records ending after this are FutureTimestamp.</summary>
+        public DateTimeOffset WindowEndUtc { get; }
+
+        // DateTimeOffset arithmetic is NOT saturating: `MinValue - 45d` throws. Guard the
+        // operation itself against the distance available to the representable limit, so a
+        // profile whose trusted progress sits at the minimum degrades to "reject
+        // everything" instead of throwing during validation.
+        private static DateTimeOffset SafeSubtract(DateTimeOffset value, TimeSpan amount) =>
+            amount >= value - DateTimeOffset.MinValue
+                ? DateTimeOffset.MinValue
+                : value - amount;
+
+        private static DateTimeOffset SafeAdd(DateTimeOffset value, TimeSpan amount) =>
+            amount >= DateTimeOffset.MaxValue - value
+                ? DateTimeOffset.MaxValue
+                : value + amount;
+    }
+
+    /// <summary>
     /// Validation and bounding rules for normalized records. Deterministic given the
-    /// injected clock; pathological quantities are clamped (not dropped) so a glitched
-    /// source value cannot create unbounded rewards while honest large values still count.
+    /// trusted-time reference; pathological quantities are clamped (not dropped) so a
+    /// glitched source value cannot create unbounded rewards while honest large values
+    /// still count.
     /// </summary>
     public static class ActivityValidationPolicy
     {
-        /// <summary>Records ending more than this far in the future are rejected as suspicious.</summary>
+        /// <summary>
+        /// Compared against the trusted reference's UPPER bound, which is the later of the
+        /// current time and the latest already-trusted record end. Comparing against a
+        /// durable trusted mark rather than the raw device clock is what stops a clock that
+        /// is merely minutes fast from making every record future-dated (F-03), while a
+        /// source that pre-mints activity genuinely ahead of all trusted progress is still
+        /// rejected.
+        /// </summary>
         public static readonly TimeSpan MaxFutureSkew = TimeSpan.FromMinutes(10);
 
         /// <summary>
-        /// Bounded historical reconciliation window (ACTIVITY_PIPELINE §10): records older
-        /// than this relative to "now" are rejected instead of trusted, so a stale or
-        /// hostile source dump cannot re-open arbitrarily old history.
+        /// How far BEFORE the last already-trusted record end the pipeline will still
+        /// believe a record, compared against the trusted reference's LOWER bound (the
+        /// earlier of the watermark and the latest trusted end, less this floor).
+        ///
+        /// Supersedes the old wall-clock `ReconciliationHorizon` of 14 days, which was the
+        /// reason an entire returning player's backlog was rejected (F-02). Anchoring to
+        /// durable trusted progress is what makes an absence of any length creditable; the
+        /// floor is what keeps it bounded. 45 days comfortably exceeds the longest absence
+        /// the product treats as normal (30-day return is the acceptance case, MASTER_PLAN
+        /// §10) and is far below unbounded device history. See D-053.
+        /// </summary>
+        public static readonly TimeSpan TrustedWindowFloor = TimeSpan.FromDays(45);
+
+        /// <summary>
+        /// Deprecated wall-clock name for the old 14-day constant, retained only so the
+        /// historical decision (D-030) can be located in code review. It is NOT used by
+        /// validation any more: the window is anchored to trusted time, not to wall clock.
         /// </summary>
         public static readonly TimeSpan ReconciliationHorizon = TimeSpan.FromDays(14);
 
@@ -73,7 +178,7 @@ namespace WalkGame.Domain.Activity
             return MaxStepsPerRecord;
         }
 
-        public static ActivityValidationStatus Validate(NormalizedActivityRecord record, DateTimeOffset nowUtc)
+        public static ActivityValidationStatus Validate(NormalizedActivityRecord record, TrustedTime trustedTime)
         {
             if (record == null) throw new ArgumentNullException(nameof(record));
 
@@ -83,21 +188,41 @@ namespace WalkGame.Domain.Activity
                 return ActivityValidationStatus.UnsupportedCategory;
             if (!string.Equals(record.Unit, ActivityUnits.Steps, StringComparison.Ordinal))
                 return ActivityValidationStatus.UnsupportedUnit;
-            if (record.Quantity == 0L)
-                return ActivityValidationStatus.ZeroQuantity;
-            if (record.Quantity < 0L)
-                return ActivityValidationStatus.NegativeQuantity;
+
+            // A DELETION MARKER is judged by the same eligibility rules, with exactly one
+            // documented exception: the quantity rules do not apply, because a marker
+            // carries no activity by definition and every well-formed marker in this
+            // repository has Quantity == 0. Applying ZeroQuantity to a marker would reject
+            // every deletion ever issued and silently disable the correction policy, which
+            // is the opposite of "the same eligibility rules". The checks that DO apply are
+            // provenance, unit, the temporal extent, and both window bounds.
+            if (!record.IsDeletion)
+            {
+                if (record.Quantity == 0L)
+                    return ActivityValidationStatus.ZeroQuantity;
+                if (record.Quantity < 0L)
+                    return ActivityValidationStatus.NegativeQuantity;
+            }
+
             if (record.StartUtc == default
                 || record.EndUtc == default
                 || record.EndUtc <= record.StartUtc)
                 return ActivityValidationStatus.MalformedTimestamps;
-            if (record.EndUtc > nowUtc + MaxFutureSkew)
+            if (record.EndUtc > trustedTime.WindowEndUtc)
                 return ActivityValidationStatus.FutureTimestamp;
-            if (record.EndUtc < nowUtc - ReconciliationHorizon)
+            if (record.EndUtc < trustedTime.WindowStartUtc)
                 return ActivityValidationStatus.OutsideHorizon;
 
             return ActivityValidationStatus.Valid;
         }
+
+        /// <summary>
+        /// Convenience overload for callers with no durable trusted progress to anchor to
+        /// (a profile that has never ingested a record). The window then falls back to
+        /// "now" as its anchor, so a brand-new profile is bounded exactly as before.
+        /// </summary>
+        public static ActivityValidationStatus Validate(NormalizedActivityRecord record, DateTimeOffset nowUtc) =>
+            Validate(record, new TrustedTime(nowUtc, default, default));
     }
 
     /// <summary>

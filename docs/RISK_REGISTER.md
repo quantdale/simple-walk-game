@@ -78,12 +78,54 @@ Checkpoint handling, provider delay, permission transitions, or errors cause leg
 
 ### Mitigation
 
-- bounded reconciliation window;
+- bounded reconciliation window (anchored to trusted time, D-053);
 - source health diagnostics;
 - late-record handling;
 - checkpoint sequencing;
 - retryable failures;
 - player-facing stale/source states.
+
+**D-053 update (automated verified):** the "bounded reconciliation window" mitigation above
+existed but was anchored to the wrong reference, which made it **worse than no bound** for
+the product's own central case. It compared record ends against raw device wall clock
+("14 days before now", "10 minutes after now"), so:
+
+- a player returning after a holiday had their **entire** provider backlog rejected as
+  `OutsideHorizon` — the activity that earned the most goodwill silently disappeared, in
+  direct contradiction of the offline-first thesis (D-003/D-004) the 14-day bound was
+  introduced to protect; and
+- a device clock merely **minutes** fast made every record look future-dated, so crediting
+  stopped **entirely** with no player-visible explanation (F-03).
+
+Neither scenario had any coverage: `M5H1ShellAcceptanceTests.Scenario05` returns after 30
+days but deliberately ingests **nothing** during the absence, so the realistic "provider
+hands back the whole backlog on return" case was untested anywhere in the suite.
+
+Closed by D-053: the window is now computed per batch from a `TrustedTime` reference
+(§5.1 of `ACTIVITY_PIPELINE.md`) carrying the injected clock, the latest durably trusted
+record end, and the reconciliation watermark. The lower bound tracks trusted progress less
+a 45-day floor, so an absence of any length is creditable; the upper bound is the later of
+clock and trusted progress plus a 10-minute skew, so a fast clock degrades the anti-future
+bound instead of disabling crediting. The bound is not removed: a record more than 45 days
+before the last trusted end is still `OutsideHorizon`, and a genuinely future-dated record
+is still `FutureTimestamp`. Deletion markers now obey the same eligibility rules (F-09);
+previously they bypassed validation entirely and could push the watermark arbitrarily far
+forward.
+
+**Covered headlessly (verified this pass):** 30-day and 45-day absences with the whole
+backlog delivered in one batch, credited exactly once and re-crediting nothing on replay;
+a 2-hour-fast and a 3-day-jump device clock; a backward clock movement; a 1-month forward
+clock jump crediting only what the source reported; a hostile far-old dump mixed with
+in-window records; malformed, future-dated and out-of-window deletion markers; and the
+per-batch accounting identity with every counter exercised.
+
+**Still device-blocked and honestly unclaimed:** real Health Connect / HealthKit provider
+behaviour — whether a given platform actually returns a full backlog on reconnect, what
+its backfill limits are, and how it behaves across a permission revocation or a device
+clock correction. That is the M7 adapter lane and cannot be verified from this repository
+(`KI-002`). Per-reason rejection counts are still **not persisted**; the breakdown is
+produced and returned on the result object but has no durable path until the follow-up
+diagnostics change.
 
 ---
 
