@@ -1155,3 +1155,68 @@ currency, so that signal's semantics are unchanged.
 - **Still open and not claimed:** whether 7 days is the right currency threshold, and
   whether rendering historical items dimmed rather than absent is the right presentation,
   are UX judgements. The mechanical properties are tested; the feel is the M5 shell's call.
+
+---
+
+## D-056 — Every public use case is covered, and an enumeration guard stops the next gap shipping
+
+**Status:** Accepted *(verified at the F-11/F-17 pass: `dotnet test` 383/383 — Domain 122, Infrastructure 48, Application 213 — green; `git diff --stat -- src tools` **empty** (no production file modified by this change); `verify-architecture.sh` 11/0; guard suite 25/0)*
+
+**Decision:** Two of `GameSession`'s public mutating operations — `ReorderQueue` and
+`DequeueProject` — had **zero** test references anywhere in the repository. Both mutate and
+persist durable queue state, and they are exactly the two operations a drag-to-reorder
+queue UI and an "un-queue" button would wire up first. Both are now covered, and a
+**reflection-based enumeration guard** fails the build if any public, parameterless,
+non-void, non-mutating operation on `GameSession` has no reference anywhere under
+`tests/`. `ReturnSummaryComposer.WithNotice` gained direct tests that assert its output as
+*content* rather than as a count.
+
+**Rationale.** Writing tests for the two known gaps fixes those two and nothing else. A
+gap nobody looks for is a gap that grows, and this repository has now hit the same class of
+gap twice — a store-level guarantee no application-layer caller exercised (D-052), and a
+mechanism that was tested in isolation but unreachable in the product (D-054). The guard
+is the part that generalises. It reads only names and source text: it never **invokes** an
+operation, so it cannot mutate durable state or throw for the wrong reason.
+
+**The guard was proven to fail, and its first failure mode was found by doing that.**
+
+| Step | Result |
+|---|---|
+| Healthy tree | guard green |
+| A public parameterless non-void use case added to `GameSession`, untested | **guard FAILED**: `- UntestedPublicUseCaseProbe (HomeReadModel UntestedPublicUseCaseProbe()) — expected a test in tests/WalkGame.Application.Tests/` |
+| Probe removed | guard green again |
+
+**The self-reference hole.** The first proof attempt *passed* — vacuously — because the
+guard test's own XML doc comment named the probe, and the guard scans the test sources.
+A guard that can be satisfied by a comment about the guard is not a guard. The probe's
+name was removed from the test file and the proof was re-run, and the transcript is
+recorded in this decision log rather than beside the code precisely so that it cannot
+reintroduce the hole.
+
+**Two real behaviours pinned that the task list had wrong.** Task 2.3 described
+`DequeueProject` on an *Active* project as "entry removed from the queue; status
+unchanged". The actual contract is that it is **refused** with `NotQueued`, because
+activation has already removed the project from the queue. That is the better contract —
+an Active project holds invested Vitality, and refusing the call is what stops that money
+being orphaned — so the test pins the real behaviour and the discrepancy is recorded here
+rather than "fixed" to match the prose. Task 2.4's "returns to the unallocated bank" is
+similarly only true once the queue is idle; while a project is Active the Vitality is
+correctly held as that project's progress, and the test asserts that conservation
+explicitly (120 invested + 200 more = 320 in, 300 consumed, 20 banked, nothing stranded).
+
+**Consequences:**
+- **No production code was modified.** `git diff --stat -- src tools` is empty, which is
+  itself the evidence that the tests describe the system as it is rather than reshaping it
+  to fit the tests.
+- The Region 1 content graph has exactly **one** entry project, so three projects cannot be
+  enqueued through the public API without completing a chain. The queue tests therefore seed
+  canonical state directly. That is a property of the shipped content, not a workaround
+  for a defect, and it is worth knowing before a second chain is authored.
+- The guard's exclusion rules are prefix-based (`Set*`, `Enqueue*`, `Dequeue*`, `Activate*`,
+  `Reorder*`, `Mark*`, `Advance*`, `Acknowledge*`, plus the boot/ingest entry points) plus
+  an explicit, reason-carrying `AllowList`. A consciously untested operation is therefore a
+  reviewable edit rather than a silent exemption.
+- The durable, reflection-driven no-leak sweep (every read model walked
+  automatically) remains the job of `surface-ingestion-rejection-reasons` task 5.1, as that
+  change specifies. This change only completed the explicit list, which the D-052 work had
+  already extended to the three previously-unwatched surfaces.
