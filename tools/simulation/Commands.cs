@@ -576,7 +576,10 @@ internal static class Cli
     public static int Ack(string[] tokens)
     {
         var a = new SimArgs(tokens);
-        var session = CreateSession(NewSystemClock(), a.SaveDir);
+        // A path whose PARENT cannot exist is a usage mistake, not "no save found"
+        // (D-060). `new`, `scenarios` and `bench` deliberately do not take this path.
+        string saveDir = a.RequireReadableSaveDir();
+        var session = CreateSession(NewSystemClock(), saveDir);
         var boot = Boot(session, allowFreshStart: false, freshSeed: 0);
         if (boot.ExitCode != 0)
             return boot.ExitCode;
@@ -601,13 +604,16 @@ internal static class Cli
     public static int Dump(string[] tokens)
     {
         var a = new SimArgs(tokens);
-        var session = CreateSession(NewSystemClock(), a.SaveDir);
+        // A path whose PARENT cannot exist is a usage mistake, not "no save found"
+        // (D-060). `new`, `scenarios` and `bench` deliberately do not take this path.
+        string saveDir = a.RequireReadableSaveDir();
+        var session = CreateSession(NewSystemClock(), saveDir);
         var boot = Boot(session, allowFreshStart: false, freshSeed: 0);
         if (boot.ExitCode != 0)
             return boot.ExitCode;
 
         var codec = NewCodec();
-        GameState? state = DecodeForInspection(a.SaveDir, codec, out string sourceFile);
+        GameState? state = DecodeForInspection(saveDir, codec, out string sourceFile);
         if (state == null)
         {
             Console.Error.WriteLine("ERROR: neither primary nor backup save could be decoded.");
@@ -631,7 +637,10 @@ internal static class Cli
     public static int Validate(string[] tokens)
     {
         var a = new SimArgs(tokens);
-        var session = CreateSession(NewSystemClock(), a.SaveDir);
+        // A path whose PARENT cannot exist is a usage mistake, not "no save found"
+        // (D-060). `new`, `scenarios` and `bench` deliberately do not take this path.
+        string saveDir = a.RequireReadableSaveDir();
+        var session = CreateSession(NewSystemClock(), saveDir);
         var boot = Boot(session, allowFreshStart: false, freshSeed: 0);
         if (boot.ExitCode != 0)
             return boot.ExitCode;
@@ -640,7 +649,7 @@ internal static class Cli
         byte[] primaryBytes;
         try
         {
-            primaryBytes = File.ReadAllBytes(Path.Combine(a.SaveDir, PrimaryFileName));
+            primaryBytes = File.ReadAllBytes(Path.Combine(saveDir, PrimaryFileName));
         }
         catch (IOException ex)
         {
@@ -807,12 +816,28 @@ internal static class Cli
             StartStatus.NoSaveFound => "ERROR: no save found (run 'new' first).",
             StartStatus.SaveUnreadable => "ERROR: save unreadable: " + (start.Detail ?? "unknown reason"),
             StartStatus.StateInvalid => "ERROR: save state failed validation: " + (start.Detail ?? "unknown reason"),
-            _ => "ERROR: " + (start.Detail ?? "save state invalid."),
+            StartStatus.ContentIncompatible => "ERROR: save is incompatible with this build's content: "
+                + (start.Detail ?? "content version mismatch"),
+            // NewGameCreated is handled above; Loaded and RecoveredFromBackup return early.
+            // These arms exist so that adding a StartStatus member COMPILES LOUDLY rather
+            // than silently falling into a generic message (D-060). A documented value with
+            // no arm is a defect, not a default.
+            StartStatus.NewGameCreated => "ERROR: internal: NewGameCreated reached the boot failure path.",
+            StartStatus.Loaded => "ERROR: internal: Loaded reached the boot failure path.",
+            StartStatus.RecoveredFromBackup => "ERROR: internal: RecoveredFromBackup reached the boot failure path.",
+            _ => "ERROR: unclassified boot outcome: " + start.Status + ".",
         });
-        // Exit 2 is the documented "domain/validation failure" code. Before this change
+        // Exit 2 is the documented "domain/validation failure" code. Before D-052
         // StartStatus.StateInvalid was never produced, so a data-integrity failure exited 3
         // ("save missing/unreadable") and the 2 branch was dead code.
-        return new BootOutcome(start.Status == StartStatus.StateInvalid ? 2 : 3, start);
+                // Exit 2 is the documented "domain/validation failure" code: a state that violates a
+        // documented invariant, or content this build cannot represent. Everything else is
+        // exit 3, "save missing/unreadable".
+        int exitCode = start.Status == StartStatus.StateInvalid
+            || start.Status == StartStatus.ContentIncompatible
+            ? 2
+            : 3;
+        return new BootOutcome(exitCode, start);
     }
 
     private static void AutoQueueIfIdle(GameSession session, IReadOnlyList<string> catalogOrder)
@@ -858,10 +883,34 @@ internal static class Cli
 
     private static bool IntegritySelfTest(ISaveCodec codec, byte[] primaryEnvelope)
     {
+        // Read the payload through WHICHEVER key is actually present, then write it back
+        // through THAT SAME KEY. The previous version read `payloadBase64 ?? PayloadBase64`
+        // but always assigned `payloadBase64`, so a PascalCase envelope gained a SECOND
+        // key differing only in case. That is a malformed document, and the self-test
+        // reported MalformedEnvelope -- a false release-blocker from the tool whose whole
+        // job is to prove integrity (D-060).
         JsonNode? root = JsonNode.Parse(primaryEnvelope);
-        JsonNode? payloadNode = root?["payloadBase64"] ?? root?["PayloadBase64"];
-        if (payloadNode == null)
+        string? payloadKey = null;
+        JsonNode? payloadNode = null;
+        if (root != null)
+        {
+            foreach (string candidate in new[] { "payloadBase64", "PayloadBase64" })
+            {
+                JsonNode? found = root[candidate];
+                if (found != null)
+                {
+                    payloadKey = candidate;
+                    payloadNode = found;
+                    break;
+                }
+            }
+        }
+
+        if (root == null || payloadKey == null || payloadNode == null)
+        {
+            Console.Error.WriteLine("  integrity-selftest: envelope has no recognisable payload property.");
             return false;
+        }
 
         byte[] payload;
         try
@@ -870,16 +919,39 @@ internal static class Cli
         }
         catch (FormatException)
         {
+            Console.Error.WriteLine("  integrity-selftest: payload property is not valid base64.");
             return false;
         }
         if (payload.Length == 0)
+        {
+            Console.Error.WriteLine("  integrity-selftest: payload is empty; nothing to tamper with.");
             return false;
+        }
 
+        // Minimal, deterministic tamper: flip exactly one byte of the DECODED payload and
+        // re-encode it. The stored checksum is deliberately left alone, which is what the
+        // integrity check is supposed to notice.
         payload[0] ^= 0xFF;
-        root!["payloadBase64"] = JsonValue.Create(Convert.ToBase64String(payload));
+        root[payloadKey] = JsonValue.Create(Convert.ToBase64String(payload));
         byte[] tamperedEnvelope = Encoding.UTF8.GetBytes(root.ToJsonString());
 
-        return codec.Decode(tamperedEnvelope).Status == CodecStatus.ChecksumMismatch;
+        var observed = codec.Decode(tamperedEnvelope);
+
+        // Report what was observed AND what was expected. "Tamper not detected" and "tamper
+        // detected but classified as something else" are completely different failures, and
+        // a bare false does not distinguish them.
+        if (observed.Status != CodecStatus.ChecksumMismatch)
+        {
+            Console.Error.WriteLine(
+                "  integrity-selftest: expected " + CodecStatus.ChecksumMismatch
+                + " after tampering '" + payloadKey + "', but the codec reported "
+                + observed.Status + (observed.Detail == null ? "" : " (" + observed.Detail + ")") + ".");
+            return false;
+        }
+
+        Console.WriteLine("  integrity-selftest: tampering '" + payloadKey
+            + "' produced " + CodecStatus.ChecksumMismatch + " as expected.");
+        return true;
     }
 
     private static DateTimeOffset TruncateToHour(DateTimeOffset instant) =>

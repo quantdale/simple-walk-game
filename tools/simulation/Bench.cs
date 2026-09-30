@@ -105,7 +105,7 @@ internal static class Bench
                 var dailySession = new GameSession(NewStore(), NewCodec(), clock, content);
                 var start = dailySession.Continue();
                 if (start.Status != StartStatus.Loaded && start.Status != StartStatus.NewGameCreated)
-                    throw new InvalidOperationException("bench boot failed: " + start.Status);
+                    throw CliScenarioException.FromBoot("bench boot", start.Status);
                 _ = dailySession.IngestFromSource(new SyntheticWalkingSource(8000), clock.UtcNow.AddDays(-1), clock.UtcNow);
             }
             sw.Stop();
@@ -121,5 +121,5 @@ internal static class Bench
     }
 
     private static GameState DecodePrimary(ISaveCodec codec, byte[] envelope) =>
-        codec.Decode(envelope).State ?? throw new InvalidOperationException("bench could not decode prepared save");
+        codec.Decode(envelope).State ?? throw new CliScenarioException(3, "bench could not decode the prepared save.");
 }

@@ -26,6 +26,14 @@ catch (CliUsageException ex)
 {
     return Cli.Usage(ex.Message);
 }
+catch (CliScenarioException ex)
+{
+    // An EXPECTED verb failure, with its own documented exit code. It must not fall through
+    // to the catch-all below: exit 4 is documented as "unexpected error", and reporting a
+    // known scenario failure that way sends a reader looking for a bug in the tool (D-060).
+    Console.Error.WriteLine("ERROR: " + ex.Message);
+    return ex.ExitCode;
+}
 catch (Exception ex)
 {
     Console.Error.WriteLine("ERROR: " + ex);

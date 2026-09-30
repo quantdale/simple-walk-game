@@ -1449,3 +1449,71 @@ so tombstones cannot become a general escape hatch for unknown content.
   drift is not the same as preventing it; the tombstone discipline is a human review
   obligation, which is why the gate exists and why `AGENT_EXECUTION_GUIDE.md` now states
   the rule.
+
+---
+
+## D-060 — The CLI's integrity self-test writes through the key it read, and expected failures carry their own exit code
+
+**Status:** Accepted *(verified at the F-16 pass: `dotnet test` 417/417 green; every exit code confirmed end to end by hand; `verify-ci-steps.sh` green including the simulation-smoke step that runs `validate --selftest`; `verify-architecture.sh` 12/0; guard suite 25/0)*
+
+**Decision:** `IntegritySelfTest` now determines the payload property name actually
+present and reassigns through **that same name**, reports the observed and expected decode
+status **separately**, and keeps the tamper minimal (one flipped byte of the decoded
+payload). Expected verb failures moved from `InvalidOperationException` to
+`CliScenarioException`, which carries a documented exit code; exit 4 "unexpected error" is
+reserved for a genuine defect in the tool. A user-supplied `--save` whose **parent**
+directory does not exist is now a usage error (exit 1), not "no save found" (exit 3).
+
+**The defect.** The self-test read `root?["payloadBase64"] ?? root?["PayloadBase64"]` but
+always **assigned** `payloadBase64`. On a PascalCase envelope that added a *second* key
+differing only in case, producing a duplicate-key document, which the codec classified as
+`MalformedEnvelope` — not `ChecksumMismatch`. A **false release-blocker from the tool whose
+entire purpose is to prove integrity.** The failing branch was dead today only because
+`SaveJson` always writes camelCase; dead-until-casing-changed is exactly the state a latent
+defect sits in.
+
+**Proven, and the proof had to be at the logic level.** A PascalCase envelope cannot reach
+the self-test through the CLI: `validate` boots first, boot cannot decode it, and the
+successful backup boot rewrites `save.json` in camelCase before the self-test reads it. So
+the defect was proven where it actually lives, in the write-back keying:
+
+| implementation | tampered document's keys |
+|---|---|
+| OLD (always `payloadBase64`) | `SchemaVersion, SavedAtUtc, PayloadSha256Base64, PayloadBase64, payloadBase64` — **five** |
+| NEW (through the observed key) | `SchemaVersion, SavedAtUtc, PayloadSha256Base64, PayloadBase64` — **four** |
+
+**The exit-code contract, verified end to end.**
+
+| scenario | outcome | exit |
+|---|---|---|
+| missing save | `NoSaveFound` | 3 |
+| corrupt save, no backup | `SaveUnreadable` (malformed envelope) | 3 |
+| payload tampered, checksum left stale | `SaveUnreadable` (integrity check failed) | 3 |
+| content tampered, checksum recomputed, invariant violated | `StateInvalid` | 2 |
+| unknown verb / missing flag / bad `--save` parent | usage | 1 |
+| valid save; `dump`; `validate --selftest` | ok | 0 |
+
+The two tamper rows are the same act with different outcomes, and that is correct: the
+checksum is an **integrity** check against corruption, while `GameStateValidator` is the
+**invariant** gate. Conflating them would make one of the two exits unreachable.
+
+**One observation recorded rather than absorbed.** A save rewritten wholesale with its
+checksum recomputed passes validation — inflating the Vitality balance yields
+`violations=0`. That is the **documented threat model**, not a new defect:
+`PRIVACY_REVIEW.md` states the save is "plaintext JSON (base64 payload, SHA-256 for
+*integrity only*)", and `KI-006` already records the save as plaintext at the application
+layer. Adding an authenticity mechanism (a signature or MAC over the payload) is a
+security-design change the roadmap does not ask for, so it belongs with the open `KI-006`
+product/security decision rather than being smuggled in here.
+
+**Consequences:**
+- `StartStatus.ContentIncompatible` (D-059) maps to exit **2** alongside `StateInvalid`:
+  both mean "this build cannot safely represent or validate this save".
+- Every `StartStatus` now has an explicit switch arm, including the three that return
+  early, so a new member is *noticed* rather than silently falling into a generic message.
+- `Ack`, `Dump` and `Validate` validate the `--save` parent. `New` deliberately does not
+  (it creates the directory), and `scenarios`/`bench` create their own work subdirectories;
+  both are confirmed unaffected.
+- `--selftest` output now states which key was tampered and what the codec reported, so a
+  failure distinguishes "tamper not detected" from "tamper detected but classified as
+  something else" — two completely different faults that a bare `false` conflates.

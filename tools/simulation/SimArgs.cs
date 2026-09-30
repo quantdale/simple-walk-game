@@ -1,10 +1,37 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 
 internal sealed class CliUsageException : Exception
 {
     public CliUsageException(string message) : base(message) { }
+}
+
+/// <summary>
+/// An EXPECTED failure of a verb: the scenario or benchmark could not be driven, and the
+/// reason is known and reportable. Carries its own documented exit code so it does not
+/// surface as exit 4 "unexpected error", which is reserved for a genuine defect in the
+/// tool itself (D-060).
+/// </summary>
+internal sealed class CliScenarioException : Exception
+{
+    /// <summary>Exit code: 2 = domain/validation failure, 3 = save missing/unreadable.</summary>
+    public int ExitCode { get; }
+
+    public CliScenarioException(int exitCode, string message) : base(message)
+    {
+        ExitCode = exitCode;
+    }
+
+    /// <summary>Maps a boot failure onto the documented exit codes.</summary>
+    public static CliScenarioException FromBoot(string what, WalkGame.Application.StartStatus status)
+    {
+        int code = status == WalkGame.Application.StartStatus.StateInvalid
+            ? 2
+            : 3;
+        return new CliScenarioException(code, what + " failed: " + status);
+    }
 }
 
 internal sealed class SimArgs
@@ -72,6 +99,28 @@ internal sealed class SimArgs
         _values.TryGetValue(flag, out var value) ? value : string.Empty;
 
     public string SaveDir => Require(Save);
+
+    /// <summary>
+    /// Validates a user-supplied save directory whose contents are only READ: the PARENT
+    /// must already exist, so a mistyped path is reported as a usage error (exit 1) rather
+    /// than as "no save found" (exit 3) — a path that cannot exist and a path with no save
+    /// in it are different mistakes and deserve different messages (D-060).
+    ///
+    /// Deliberately NOT applied to `new`, which legitimately creates the directory, nor to
+    /// `scenarios`/`bench`, which create their own work subdirectories.
+    /// </summary>
+    public string RequireReadableSaveDir()
+    {
+        string dir = SaveDir;
+        // GetDirectoryName is nullable only for a root path, which GetFullPath never
+        // returns here; the empty check is kept so the message degrades gracefully.
+        string? parent = Path.GetDirectoryName(Path.GetFullPath(dir));
+        if (string.IsNullOrEmpty(parent) || !Directory.Exists(parent))
+            throw new CliUsageException(
+                $"--save parent directory does not exist: '{parent ?? dir}'. "
+                + "Create it first, or use 'new' to create a save.");
+        return dir;
+    }
 
     public long Long(string flag)
     {

@@ -64,7 +64,7 @@ internal static class Scenarios
         var grower = NewSession(growClock, matureDir);
         var started = grower.StartNewGame(seed: seed);
         if (started.Status != StartStatus.NewGameCreated && started.Status != StartStatus.Loaded)
-            throw new InvalidOperationException("scenario 1 setup failed: " + started.Status);
+            throw CliScenarioException.FromBoot("scenario 1 setup", started.Status);
         for (int day = 1; day <= maturityDays; day++)
         {
             growClock.Advance(TimeSpan.FromDays(1));
@@ -80,7 +80,7 @@ internal static class Scenarios
         var coldStart = coldSession.Continue();
         coldSw.Stop();
         if (coldStart.Status != StartStatus.Loaded)
-            throw new InvalidOperationException("scenario 1 cold boot failed: " + coldStart.Status);
+            throw CliScenarioException.FromBoot("scenario 1 cold boot", coldStart.Status);
         Console.WriteLine(
             $"SCENARIO-RESULT id=cold-boot-mature-save days={maturityDays} bootMs={coldSw.Elapsed.TotalMilliseconds:F2} " +
             $"status={coldStart.Status} saveBytes={matureBytes}");
@@ -99,7 +99,7 @@ internal static class Scenarios
         var resumed = NewSession(new ManualClock(awayClockUtc), returnDir);
         var resumedStart = resumed.Continue();
         if (resumedStart.Status != StartStatus.Loaded)
-            throw new InvalidOperationException("scenario 2 resume failed: " + resumedStart.Status);
+            throw CliScenarioException.FromBoot("scenario 2 resume", resumedStart.Status);
         // One aggregated 7-day batch: 7 records, ~7x a normal day.
         var sevenDays = returnClock.UtcNow.AddDays(7);
         var batchIngest = resumed.IngestFromSource(new SyntheticWalkingSource(StepsPerDay), returnClock.UtcNow, sevenDays);
@@ -158,7 +158,7 @@ internal static class Scenarios
             resumeClock.Advance(TimeSpan.FromDays(1));
             var again = NewSession(new ManualClock(resumeClock.UtcNow), resumeDir);
             if (again.Continue().Status != StartStatus.Loaded)
-                throw new InvalidOperationException("scenario 8 resume cycle failed at " + cycle);
+                throw new CliScenarioException(3, "scenario 8 resume cycle failed at cycle " + cycle + ".");
             _ = again.IngestFromSource(new SyntheticWalkingSource(StepsPerDay), resumeClock.UtcNow.AddDays(-1), resumeClock.UtcNow);
             var homeState = again.GetHome();
             if (homeState.ActiveProjectId == null && homeState.Queued.Count == 0)
