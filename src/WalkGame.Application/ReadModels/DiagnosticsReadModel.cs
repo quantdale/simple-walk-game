@@ -22,6 +22,16 @@ namespace WalkGame.Application.ReadModels
         /// <summary>True when boot succeeded only via the backup generation (D-040 path).</summary>
         public bool RecoveredFromBackup { get; }
 
+        /// <summary>
+        /// WHY the backup generation was used, when one was.
+        /// <see cref="SaveRecoveryCause.None"/> whenever the primary loaded cleanly.
+        /// Distinguishes "the primary slot was absent" (a crash between the store's delete
+        /// and move steps, or a deleted file) from "the primary slot was present but
+        /// damaged" — two different support stories that both present to the caller as
+        /// <c>RecoveredFromBackup == true</c>.
+        /// </summary>
+        public SaveRecoveryCause BootRecoveryCause { get; }
+
         /// <summary>Structured category of the last failed decode attempt during boot.</summary>
         public CodecFailureCategory LastBootCodecFailure { get; }
 
@@ -61,6 +71,7 @@ namespace WalkGame.Application.ReadModels
             DateTimeOffset generatedAtUtc,
             DiagnosticsBootOutcome bootOutcome,
             bool recoveredFromBackup,
+            SaveRecoveryCause bootRecoveryCause,
             CodecFailureCategory lastBootCodecFailure,
             IReadOnlyList<string> appliedMigrationsAtBoot,
             int schemaVersion,
@@ -78,6 +89,7 @@ namespace WalkGame.Application.ReadModels
             GeneratedAtUtc = generatedAtUtc;
             BootOutcome = bootOutcome;
             RecoveredFromBackup = recoveredFromBackup;
+            BootRecoveryCause = bootRecoveryCause;
             LastBootCodecFailure = lastBootCodecFailure;
             AppliedMigrationsAtBoot = appliedMigrationsAtBoot;
             SchemaVersion = schemaVersion;

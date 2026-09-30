@@ -149,7 +149,7 @@ public sealed class MatureSaveMigrationTests : IDisposable
 
         var result = BootDamaged(damaged);
 
-        AssertStartUnreadableAndUntouched(result, damaged);
+        AssertStateInvalidAndUntouched(result, damaged);
     }
 
     [Fact]
@@ -170,15 +170,28 @@ public sealed class MatureSaveMigrationTests : IDisposable
             PayloadSurgery.WrapPayload(payload, SchemaVersions.Current, T0.AddDays(daysDriven)));
 
         var result = BootDamaged(File.ReadAllBytes(Path.Combine(_temp.Path, "save.json")));
-        Assert.Equal(StartStatus.SaveUnreadable, result.Status);
+        AssertStateInvalidAndUntouched(result);
         Assert.Contains("unknown", result.Detail, StringComparison.OrdinalIgnoreCase);
     }
-    private void AssertStartUnreadableAndUntouched(StartResult result, byte[] damagedPrimary)
+
+    /// <summary>
+    /// Fails closed AND reports the precise class. These payloads decode cleanly and then
+    /// fail <see cref="WalkGame.Domain.Validation.GameStateValidator"/> with an unknown
+    /// content id, so the outcome is <see cref="StartStatus.StateInvalid"/> — "the file is
+    /// fine, the contents are not" — and NOT the unreadable/corrupt class. Before the
+    /// F-01 change these asserted SaveUnreadable, which is the misclassification this
+    /// change exists to remove (the CLI returned exit 3, "save missing/unreadable", for a
+    /// data-integrity failure).
+    /// </summary>
+    private void AssertStateInvalidAndUntouched(StartResult result, byte[]? damagedPrimary = null)
     {
-        Assert.Equal(StartStatus.SaveUnreadable, result.Status);
+        Assert.Equal(StartStatus.StateInvalid, result.Status);
         Assert.False(string.IsNullOrEmpty(result.Detail));
-        Assert.True(damagedPrimary.AsSpan().SequenceEqual(
-            File.ReadAllBytes(Path.Combine(_temp.Path, "save.json"))));
+        if (damagedPrimary != null)
+        {
+            Assert.True(damagedPrimary.AsSpan().SequenceEqual(
+                File.ReadAllBytes(Path.Combine(_temp.Path, "save.json"))));
+        }
     }
 
     /// <summary>Boots a fresh session over the current directory contents.</summary>

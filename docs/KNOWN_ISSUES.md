@@ -27,3 +27,30 @@ campaign accepts something open; entries are removed only with evidence.
   it does not lower severity.
 - Medium items must each carry an explicit pre-release disposition decision;
   Low items may ship with documented rationale.
+
+## Closed
+
+Items closed by a campaign, retained so a reviewer can see what was open and what closed
+it. A closed item is never deleted: the register's value is partly the history of what
+this repository got wrong and then fixed.
+
+| ID | Sev | Issue | Closed by | Evidence |
+|---|---|---|---|---|
+| KI-009 | Critical *(was)* | A **missing primary save slot** was reported as "no save found" and the healthy backup generation was never read. Because the store promotes a generation with a delete-then-move pair, an absent primary is reachable (a crash between those two steps). Any composition root treating "no save" as a fresh profile replaced the player's world with a new empty one. **This item was never in the register** despite being a Critical-class data-loss path in the flagship product invariant — which is itself the finding recorded in the note below. | D-052 / OpenSpec change `recover-save-from-backup-when-primary-is-missing` | 8 new application-layer regression tests (`SessionMissingPrimaryRecoveryTests`); CLI reproduction before/after in `docs/evidence/save-recovery/CAMPAIGN-2026-09-30.md` |
+
+## Note on this register
+
+Between the M8-H1 campaign and the 2026-09-30 repository audit, this register contained
+**no entry for a Critical-class data-loss defect** that was simultaneously present,
+reproducible, and unrecoverable. The defect was real and the store's own comments
+described the reachable state that triggered it; what was missing was any mechanism that
+would have surfaced it to a release reviewer.
+
+Two consequences, recorded so the same gap does not reopen:
+
+1. A mitigation existing is not the same as a mitigation being *exercised*. `WriteAtomicPreservingBackup`
+   (D-040) protected the healthy generation perfectly — on a code path no caller took.
+   Future audits must ask what a guarantee protects, not only whether it is implemented.
+2. Boot-reachable filesystem states are product defects even when the filesystem layer is
+   correct. The application-layer test gap is what let this survive a campaign that
+   specifically covered crash-during-promotion.

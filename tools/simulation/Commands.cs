@@ -748,7 +748,12 @@ internal static class Cli
             case StartStatus.Loaded:
                 return new BootOutcome(0, start);
             case StartStatus.RecoveredFromBackup:
-                Console.WriteLine("WARN: latest primary save was damaged; recovered from backup.");
+                // Name the cause: "the primary file was missing" and "the primary file was
+                // damaged" are different support stories that both land here.
+                Console.WriteLine(session.GetDiagnostics().BootRecoveryCause
+                    == SaveRecoveryCause.PrimaryMissing
+                    ? "WARN: latest primary save was missing; recovered from backup."
+                    : "WARN: latest primary save was damaged; recovered from backup.");
                 return new BootOutcome(0, start);
             default:
                 break;
@@ -770,8 +775,12 @@ internal static class Cli
         {
             StartStatus.NoSaveFound => "ERROR: no save found (run 'new' first).",
             StartStatus.SaveUnreadable => "ERROR: save unreadable: " + (start.Detail ?? "unknown reason"),
+            StartStatus.StateInvalid => "ERROR: save state failed validation: " + (start.Detail ?? "unknown reason"),
             _ => "ERROR: " + (start.Detail ?? "save state invalid."),
         });
+        // Exit 2 is the documented "domain/validation failure" code. Before this change
+        // StartStatus.StateInvalid was never produced, so a data-integrity failure exited 3
+        // ("save missing/unreadable") and the 2 branch was dead code.
         return new BootOutcome(start.Status == StartStatus.StateInvalid ? 2 : 3, start);
     }
 

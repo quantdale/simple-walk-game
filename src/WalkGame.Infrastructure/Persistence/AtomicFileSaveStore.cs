@@ -21,6 +21,16 @@ namespace WalkGame.Infrastructure.Persistence
     /// the most recent healthy generation recoverable from backup. A known-bad primary is
     /// never promoted into the backup slot, so recovering can never trade the last valid
     /// generation for garbage.
+    ///
+    /// Recovery requires the APPLICATION layer to honour the guarantee above, and it does:
+    /// <c>GameSession.Continue</c> addresses both generations independently and reports
+    /// "no save found" only when BOTH are absent. That matters most for the ABSENT-primary
+    /// case produced by <see cref="ReplaceFile"/> — a crash between its delete and move
+    /// steps leaves the primary transiently missing. Before the F-01 change the boot flow
+    /// returned "no save found" on that state without ever reading this class's healthy
+    /// backup, and any composition root treating "no save" as a fresh profile destroyed
+    /// the player's world. A store-level guarantee is not a guarantee until its caller
+    /// exercises it, which is why the recovery tests live in the application suite.
     /// </summary>
     public sealed class AtomicFileSaveStore : ISaveStore
     {
@@ -75,7 +85,10 @@ namespace WalkGame.Infrastructure.Persistence
 
         /// <summary>
         /// netstandard2.1 lacks File.Move(overwrite). Delete+Move keeps the safety contract:
-        /// a crash between the two steps leaves the previous generation in backup.
+        /// a crash between the two steps leaves the previous generation in backup — and
+        /// leaves the primary slot ABSENT in the meantime. The application boot flow probes
+        /// the backup on absence, not only on a decode failure, so this window is recoverable
+        /// rather than reported as "no save found".
         /// </summary>
         private static void ReplaceFile(string sourcePath, string destinationPath)
         {

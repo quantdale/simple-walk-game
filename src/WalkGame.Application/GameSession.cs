@@ -30,6 +30,22 @@ namespace WalkGame.Application
         StateInvalid = 5,
     }
 
+    /// <summary>Why a boot had to fall back to the backup generation (never set when the
+    /// primary loaded cleanly). Reported in diagnostics so a support engineer can tell a
+    /// crash-window primary loss apart from a damaged primary — and from a player who
+    /// deliberately deleted the file, which looks identical from the store's side.</summary>
+    public enum SaveRecoveryCause
+    {
+        /// <summary>The primary generation loaded; no recovery happened.</summary>
+        None = 0,
+
+        /// <summary>The primary slot existed but failed integrity, version, migration or decode.</summary>
+        PrimaryDamaged = 1,
+
+        /// <summary>The primary slot was absent from storage entirely.</summary>
+        PrimaryMissing = 2,
+    }
+
         /// <summary>Boot outcome classification for the support diagnostics projection.</summary>
     public enum DiagnosticsBootOutcome
     {
@@ -40,6 +56,12 @@ namespace WalkGame.Application
         NoSaveFound = 4,
         SaveUnreadable = 5,
         StateInvalid = 6,
+
+        /// <summary>The primary slot was ABSENT and the backup generation was used. Distinct
+        /// from <see cref="RecoveredFromBackup"/> (primary present but damaged): the store
+        /// documents a delete/move window in which the primary is transiently missing, and
+        /// that is the class this value exists to name.</summary>
+        RecoveredFromMissingPrimary = 7,
     }
 
     /// <summary>Structured failure category of the last failed boot decode attempt.</summary>
@@ -202,6 +224,7 @@ namespace WalkGame.Application
         // Boot evidence for the support diagnostics projection (bounded, privacy-safe).
         private DiagnosticsBootOutcome _lastBootOutcome = DiagnosticsBootOutcome.NeverBooted;
         private bool _lastBootRecoveredFromBackup;
+        private SaveRecoveryCause _lastBootRecoveryCause = SaveRecoveryCause.None;
         private CodecFailureCategory _lastBootCodecFailure = CodecFailureCategory.None;
         private IReadOnlyList<string> _lastBootAppliedMigrations = Array.Empty<string>();
 
@@ -292,45 +315,100 @@ namespace WalkGame.Application
         /// <summary>
         /// Boot flow: locate save → validate integrity → fall back to backup → migrate →
         /// validate invariants → advance offline systems → persist → return summary.
+        ///
+        /// Recovery policy (the application layer owns it, per the <see cref="ISaveStore"/>
+        /// port contract): BOTH generations are addressed independently, and
+        /// <see cref="StartStatus.NoSaveFound"/> is reported only when BOTH are absent.
+        /// An earlier version returned NoSaveFound the moment the primary was absent, which
+        /// orphaned the healthy backup and let any composition root that treats "no save" as
+        /// a fresh profile destroy the player's world (F-01).
+        ///
+        /// This matters because <c>AtomicFileSaveStore.ReplaceFile</c> promotes the previous
+        /// generation with a delete-then-move pair — the store's own comment documents that a
+        /// crash between the two steps leaves the primary transiently absent. That state is
+        /// real, reachable, and was classified as "no save exists" by the caller.
+        ///
+        /// Classification is exhaustive and non-overlapping. Every <see cref="StartStatus"/>
+        /// value is produced by exactly one of these boot conditions, and the value is
+        /// surfaced unchanged through the diagnostics projection and the CLI exit code:
+        ///
+        ///   both generations absent ........... NoSaveFound  (no write performed)
+        ///   a generation decoded + validated .. Loaded
+        ///   only the backup decoded ........... RecoveredFromBackup
+        ///   decoded, but state violates an
+        ///     invariant ...................... StateInvalid
+        ///   present but unreadable/integrity/
+        ///     version/migration failure ...... SaveUnreadable
         /// </summary>
         public StartResult Continue()
         {
             var primary = SafeReadPrimary();
-            if (primary.Outcome == SaveReadOutcome.NotFound)
+            bool primaryAbsent = primary.Outcome == SaveReadOutcome.NotFound;
+
+            DecodeAndValidateOutcome? primaryDecode = null;
+            if (primary.EnvelopeBytes != null)
+            {
+                primaryDecode = DecodeAndValidate(primary.EnvelopeBytes);
+                if (primaryDecode.Value.State != null)
+                    return FinishBoot(primaryDecode.Value.State, SaveRecoveryCause.None);
+            }
+
+            // The primary is unavailable for ANY reason — absent, unreadable, or corrupt —
+            // so the backup generation is probed. Absence is not a special case: it is the
+            // state the store's own delete/move promotion window can leave behind.
+            DecodeAndValidateOutcome? backupDecode = null;
+            var backup = SafeReadBackup();
+            if (backup.EnvelopeBytes != null)
+            {
+                backupDecode = DecodeAndValidate(backup.EnvelopeBytes);
+                if (backupDecode.Value.State != null)
+                {
+                    return FinishBoot(
+                        backupDecode.Value.State,
+                        primaryAbsent ? SaveRecoveryCause.PrimaryMissing : SaveRecoveryCause.PrimaryDamaged);
+                }
+            }
+
+            // Both generations absent is the ONLY state that means "no save exists". No write
+            // is performed on this path: a genuinely fresh profile must not be created by a
+            // boot that found nothing.
+            if (primaryAbsent && backup.Outcome == SaveReadOutcome.NotFound)
             {
                 CaptureBootOutcome(DiagnosticsBootOutcome.NoSaveFound, recoveredFromBackup: false);
                 return new StartResult(StartStatus.NoSaveFound);
             }
 
-            string? primaryDecodeDetail = null;
-            if (primary.EnvelopeBytes != null)
+            // A save that decodes but violates a documented invariant is a data-integrity
+            // failure, not a file failure. It is reported as its own class so composition
+            // roots, diagnostics and the CLI stop collapsing it into "corrupt".
+            string? validationDetail = StateValidationDetail(primaryDecode) ?? StateValidationDetail(backupDecode);
+            if (validationDetail != null)
             {
-                var decodedPrimary = DecodeAndValidate(primary.EnvelopeBytes);
-                if (decodedPrimary.State != null)
-                    return FinishBoot(decodedPrimary.State, recoveredFromBackup: false);
-                primaryDecodeDetail = decodedPrimary.Error;
-            }
-
-            string? backupDecodeDetail = null;
-            var backup = SafeReadBackup();
-            if (backup.EnvelopeBytes != null)
-            {
-                var decodedBackup = DecodeAndValidate(backup.EnvelopeBytes);
-                if (decodedBackup.State != null)
-                    return FinishBoot(decodedBackup.State, recoveredFromBackup: true);
-                backupDecodeDetail = decodedBackup.Error;
+                CaptureBootOutcome(DiagnosticsBootOutcome.StateInvalid, recoveredFromBackup: false);
+                return new StartResult(StartStatus.StateInvalid, detail: validationDetail);
             }
 
             // Surface the specific failure reason (integrity, version, migration,
-            // validation) instead of a generic unreadable-save message.
+            // validation) instead of a generic unreadable-save message. Primary detail wins
+            // over backup detail; an absent primary contributes no detail of its own, so an
+            // absent-primary-plus-corrupt-backup still reports the backup's specific failure.
             string reason =
-                primaryDecodeDetail ??
-                backupDecodeDetail ??
+                primaryDecode?.Error ??
+                backupDecode?.Error ??
                 primary.Detail ??
                 backup.Detail ??
                 "Save data could not be read.";
             CaptureBootOutcome(DiagnosticsBootOutcome.SaveUnreadable, recoveredFromBackup: false);
             return new StartResult(StartStatus.SaveUnreadable, detail: reason);
+        }
+
+        /// <summary>The decode error of a generation that failed INVARIANT validation (not
+        /// integrity/version/migration/decode), or null when it did not fail that way.</summary>
+        private static string? StateValidationDetail(DecodeAndValidateOutcome? outcome)
+        {
+            if (!outcome.HasValue)
+                return null;
+            return outcome.Value.FailedStateValidation ? outcome.Value.Error : null;
         }
 
         /// <summary>
@@ -1275,6 +1353,7 @@ namespace WalkGame.Application
                 generatedAtUtc: nowUtc,
                 bootOutcome: _lastBootOutcome,
                 recoveredFromBackup: _lastBootRecoveredFromBackup,
+                bootRecoveryCause: _lastBootRecoveryCause,
                 lastBootCodecFailure: _lastBootCodecFailure,
                 appliedMigrationsAtBoot: _lastBootAppliedMigrations,
                 schemaVersion: game?.SchemaVersion ?? 0,
@@ -1298,10 +1377,12 @@ namespace WalkGame.Application
             return detail.Length <= 300 ? detail : detail.Substring(0, 300);
         }
 
-        private void CaptureBootOutcome(DiagnosticsBootOutcome outcome, bool recoveredFromBackup)
+        private void CaptureBootOutcome(DiagnosticsBootOutcome outcome, bool recoveredFromBackup,
+            SaveRecoveryCause cause = SaveRecoveryCause.None)
         {
             _lastBootOutcome = outcome;
             _lastBootRecoveredFromBackup = recoveredFromBackup;
+            _lastBootRecoveryCause = recoveredFromBackup ? cause : SaveRecoveryCause.None;
         }
 
         private static CodecFailureCategory MapCodecFailure(CodecStatus status)
@@ -1381,12 +1462,19 @@ namespace WalkGame.Application
             return false;
         }
 
-        private StartResult FinishBoot(GameState state, bool recoveredFromBackup)
+        private StartResult FinishBoot(GameState state, SaveRecoveryCause cause)
         {
+            bool recoveredFromBackup = cause != SaveRecoveryCause.None;
             _state = state;
             CaptureBootOutcome(
-                recoveredFromBackup ? DiagnosticsBootOutcome.RecoveredFromBackup : DiagnosticsBootOutcome.Loaded,
-                recoveredFromBackup);
+                cause switch
+                {
+                    SaveRecoveryCause.PrimaryMissing => DiagnosticsBootOutcome.RecoveredFromMissingPrimary,
+                    SaveRecoveryCause.PrimaryDamaged => DiagnosticsBootOutcome.RecoveredFromBackup,
+                    _ => DiagnosticsBootOutcome.Loaded,
+                },
+                recoveredFromBackup,
+                cause);
 
             var events = new List<SimulationEvent>();
             OfflineAdvancer.Advance(state, _content, _clock.UtcNow, events);
@@ -1396,8 +1484,7 @@ namespace WalkGame.Application
             ComposePendingSummary(state, events);
             if (recoveredFromBackup)
                 state.PendingReturnSummary = ReturnSummaryComposer.WithNotice(
-                    state.PendingReturnSummary, _clock.UtcNow,
-                    "Your latest save was damaged; the most recent healthy backup was restored.");
+                    state.PendingReturnSummary, _clock.UtcNow, RecoveryNotice(cause));
 
             string? saveWarning = null;
             try
@@ -1430,6 +1517,19 @@ namespace WalkGame.Application
                 lines,
                 SnapshotSummary(state));
         }
+
+        /// <summary>
+        /// Calm, non-technical, cause-accurate recovery notice. "Damaged" would be untrue
+        /// when the primary file was simply missing, and an inaccurate notice on a recovery
+        /// is how a player concludes their world was corrupted and starts over.
+        /// </summary>
+        private static string RecoveryNotice(SaveRecoveryCause cause) => cause switch
+        {
+            SaveRecoveryCause.PrimaryMissing =>
+                "Your most recent save could not be found; the last healthy backup was restored.",
+            _ =>
+                "Your latest save was damaged; the most recent healthy backup was restored.",
+        };
 
         /// <summary>Merges committed events into the durable pending summary. Skipped when
         /// nothing happened, so an idle operation never touches the existing summary.</summary>
@@ -1466,18 +1566,20 @@ namespace WalkGame.Application
                 // Recorded monotonically: a later successful BACKUP decode must not erase
                 // the evidence that the primary failed (that failure caused the recovery).
                 _lastBootCodecFailure = MapCodecFailure(decoded.Status);
-                return new DecodeAndValidateOutcome(null, DescribeDecodeFailure(decoded));
+                return new DecodeAndValidateOutcome(null, DescribeDecodeFailure(decoded),
+                    failedStateValidation: false);
             }
 
             var violations = GameStateValidator.Validate(decoded.State, _content);
             if (violations.Count > 0)
             {
                 _lastBootCodecFailure = CodecFailureCategory.StateValidationFailed;
-                return new DecodeAndValidateOutcome(null, "Save state failed validation: " + string.Join("; ", violations));
+                return new DecodeAndValidateOutcome(null, "Save state failed validation: " + string.Join("; ", violations),
+                    failedStateValidation: true);
             }
 
             _lastBootAppliedMigrations = decoded.AppliedMigrations;
-            return new DecodeAndValidateOutcome(decoded.State, null);
+            return new DecodeAndValidateOutcome(decoded.State, null, failedStateValidation: false);
         }
 
         private static string DescribeDecodeFailure(DecodeResult decoded) =>
@@ -1544,10 +1646,17 @@ namespace WalkGame.Application
         public GameState? State { get; }
         public string? Error { get; }
 
-        public DecodeAndValidateOutcome(GameState? state, string? error)
+        /// <summary>True when the envelope decoded cleanly and canonical state failed
+        /// <see cref="GameStateValidator"/> instead. Distinguishes "the file is fine, the
+        /// contents are not" from every file-level failure, which is what lets boot report
+        /// <see cref="StartStatus.StateInvalid"/> rather than folding it into unreadable.</summary>
+        public bool FailedStateValidation { get; }
+
+        public DecodeAndValidateOutcome(GameState? state, string? error, bool failedStateValidation)
         {
             State = state;
             Error = error;
+            FailedStateValidation = failedStateValidation;
         }
     }
 }

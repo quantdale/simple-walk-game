@@ -129,6 +129,30 @@ Interrupted writes, schema changes, bugs, or storage failures make a mature worl
 
 **M8-H1 update (automated verified):** recovery re-commits can no longer displace the last healthy generation with a corrupt primary (`WriteAtomicPreservingBackup`, D-040); access failures and decode reasons are diagnosed instead of crashing or masquerading as "no save"; hostile-path matrix in `docs/evidence/m8-h1/PERSISTENCE_RECOVERY.md`.
 
+**F-01 update (automated verified, D-052):** the M8-H1 mitigation above was
+*incomplete*, and the gap was a total-loss path. The store layer had always kept a
+healthy backup, and `WriteAtomicPreservingBackup` protected it — but the **application**
+boot flow returned "no save found" the instant the primary slot was absent, without ever
+reading that backup. Because `AtomicFileSaveStore.ReplaceFile` promotes a generation with a
+delete-then-move pair, an absent primary is a *reachable* state (a crash between the two
+steps), not a hypothetical. Any composition root treating "no save" as a fresh profile
+then started a brand-new empty world and overwrote the only surviving copy.
+
+This risk was open at **Critical** impact with a working mitigation that was never
+exercised on the path that mattered, and no register entry recorded it (see the note under
+`docs/KNOWN_ISSUES.md` "Rules"). Closed by D-052: `GameSession.Continue` now addresses both
+generations independently and reports absence only when BOTH are absent. Reproduced
+end-to-end through the committed CLI before and after; the post-fix run preserves 20 days
+of progress (6 completed items, 40 Materials) where the pre-fix run reset the world.
+
+**Residual:** recovery is the safe default, so a *deliberately* deleted primary now looks
+like a crash to the player. The distinction is available to support via
+`DiagnosticsReadModel.BootRecoveryCause` (`PrimaryMissing` vs `PrimaryDamaged`) and the
+distinct `DiagnosticsBootOutcome.RecoveredFromMissingPrimary` value; it is not surfaced
+to the player as an error, which is the intended trade. Multi-generation history and a
+write-ahead journal remain deferred (disproportionate at this scale) and are recorded in
+the master plan's deferred list, not as open mitigations of this risk.
+
 ## R-006 — Migration duplicates or invalidates activity rewards
 
 **Impact:** Critical  

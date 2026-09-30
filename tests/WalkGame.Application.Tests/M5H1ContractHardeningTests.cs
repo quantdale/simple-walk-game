@@ -299,13 +299,20 @@ public sealed class M5H1ContractHardeningTests : IDisposable
             new ThrowingRecordSource(new IOException(Marker)),
             TestSessions.T0, TestSessions.T0.AddHours(1)));
 
-        // Player-facing surfaces (status/onboarding/settings/home/projects):
+        // Player-facing surfaces. The list is EXHAUSTIVE by construction: every public
+        // use case that returns a read model appears below. GetDiscoveries,
+        // GetExpeditions and GetPendingReturnSummary were missing and are added here —
+        // a leak sweep with an unwatched surface is the one test that cannot catch the
+        // class of defect it exists to catch.
         Assert.DoesNotContain(Marker, Describe(session.GetActivityStatus()));
         Assert.DoesNotContain(Marker, Describe(session.GetOnboarding()));
         Assert.DoesNotContain(Marker, Describe(session.GetSettings()));
         Assert.DoesNotContain(Marker, Describe(session.GetHome()));
         Assert.DoesNotContain(Marker, Describe(session.GetProjects()));
         Assert.DoesNotContain(Marker, Describe(session.GetRegion()));
+        Assert.DoesNotContain(Marker, Describe(session.GetDiscoveries()));
+        Assert.DoesNotContain(Marker, Describe(session.GetExpeditions()));
+        Assert.DoesNotContain(Marker, Describe(session.GetPendingReturnSummary()));
 
         // Diagnostics may carry adapter technical detail, but bounded and gated there.
         var diagText = Describe(session.GetDiagnostics());
@@ -315,7 +322,13 @@ public sealed class M5H1ContractHardeningTests : IDisposable
         Assert.True((session.GetDiagnostics().ConnectionTechnicalDetail?.Length ?? 0) <= 300);
     }
 
-    private static string Describe(object model)
+    /// <summary>
+    /// Reflection walk over every string-typed property: stronger than ToString().
+    /// Accepts null so a surface that legitimately returns nothing (an absent pending
+    /// return summary) can be swept too — that surface is exactly the one whose absence
+    /// from the sweep let a leak class go unwatched.
+    /// </summary>
+    private static string Describe(object? model)
     {
         // Reflection walk over every string-typed property: stronger than ToString().
         var builder = new StringBuilder();

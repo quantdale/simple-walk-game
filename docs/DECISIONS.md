@@ -872,3 +872,49 @@ different binary.
 - `dotnet format` remains deliberately **not** adopted as a style gate. The eleven over-length lines in `ci.yml` are pre-existing (identical count before and after this change, zero introduced) and the `run:` bodies cannot be reflowed without changing what CI executes, which is the exact drift `verify-ci-steps.sh` exists to prevent. That decision is not reopened here and is recorded rather than silently ignored;
 - the eight analyzer fixes are recorded in `docs/evidence/quality/CAMPAIGN-2026-09-30.md`;
 - a fully hermetic build (container-pinned toolchain) is still disproportionate for a single-developer-quality repository and stays on the deferred list.
+
+---
+
+## D-052 — Boot addresses both save generations before concluding no save exists, and the outcome taxonomy is exhaustive
+
+**Status:** Accepted *(verified at the F-01 pass: 8 new application-layer regression tests; CLI reproduction before/after; `dotnet test` 303/303 — Domain 105, Infrastructure 48, Application 150 — green; `verify-architecture.sh` 11/0; pacing evidence 7 reproduced / 0 drifted; save-growth verified; guard suite 25/0)*
+
+**Decision:** `GameSession.Continue()` addresses the primary and backup generations
+**independently**. `StartStatus.NoSaveFound` is produced only when **both** probes classify
+as absent, and that path performs no write. A decodable backup is preferred over reporting
+absence for **every** reason the primary is unavailable, including the primary file being
+absent entirely. The cause is then modelled, not the symptom: a new
+`SaveRecoveryCause` (`None` / `PrimaryDamaged` / `PrimaryMissing`) and a new
+`DiagnosticsBootOutcome.RecoveredFromMissingPrimary` distinguish a crash-window primary
+loss from a damaged primary, while `StartStatus` deliberately gains no new value — to a
+caller, recovering a world is recovering a world, and the finer distinction belongs in the
+support projection. In the same pass `StartStatus.StateInvalid` and
+`DiagnosticsBootOutcome.StateInvalid` were wired up for the decoded-but-invariant-violating
+case, making every declared outcome value reachable and the taxonomy non-overlapping;
+`tools/simulation` now returns exit 2 (documented "domain/validation failure") for that
+case instead of 3 ("save missing/unreadable"). Recovery commits continue to route through
+the existing `ISaveStore.WriteAtomicPreservingBackup`; no store method was added. The
+recovery notice is parameterised on the cause, because "your latest save was damaged" is
+untrue when the file was simply missing, and an inaccurate notice on a recovery is how a
+player concludes their world was corrupted and starts over.
+
+**Rationale:** the store had been correct all along — `AtomicFileSaveStore.ReplaceFile`
+promotes a generation with a delete-then-move pair and its own comment documents that a
+crash between the two steps leaves the previous generation in backup, leaving the primary
+**transiently absent**. That is a reachable state, and the boot flow classified it as "no
+save exists" without reading the healthy backup. Any composition root treating "no save" as
+a fresh profile then overwrote the only surviving copy: total loss of the player's world,
+in the flagship product invariant. The deepest lesson is not the missing `if`; it is that
+**a mitigation existing is not a mitigation being exercised**. `WriteAtomicPreservingBackup`
+(D-040) protected the last healthy generation perfectly — on a code path no caller took,
+and a store-layer test asserted the exact on-disk state while the application layer had
+none. That is why the new tests are application-layer, driving `Continue()`.
+
+**Consequences:**
+- the behaviour change is visible and deliberate: an invalid-state save now exits 2, not 3. `MatureSaveMigrationTests` asserted the old misclassification for two payload-surgery cases (an unknown content id decodes cleanly, then fails validation) and was updated to the precise class — the fail-closed and untouched-bytes assertions were kept unchanged;
+- a *deliberately* deleted primary now presents to a player as a recovery rather than an error. That is the correct default for a game whose promise is "your world is never destroyed", and the distinction is available to support via `BootRecoveryCause` / `RecoveredFromMissingPrimary`;
+- the player-facing no-leak sweep is now exhaustive by construction — `GetDiscoveries`, `GetExpeditions` and `GetPendingReturnSummary` were unwatched, i.e. the one test whose purpose is preventing a leak class had three unwatched surfaces (F-17);
+- boot-outcome evidence stays in the session object rather than being persisted: a second write during a recovering boot is the wrong trade, and no other session would ever read it;
+- no store write sequence, no save schema, no envelope framing, no migration chain was touched. Rollback is a plain revert;
+- multi-generation history and a write-ahead journal remain **deferred**, not open: they reduce the probability of the state, whereas this change makes the state recoverable. Recorded in the master plan's deferred list so the next agent does not re-investigate;
+- `docs/KNOWN_ISSUES.md` gains a "Closed" section and an explicit note that the register held **no entry** for this Critical-class data-loss path despite it being present, reproducible and unrecoverable. A register that cannot hold a Critical defect is itself the finding.
