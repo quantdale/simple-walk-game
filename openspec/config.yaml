@@ -1,0 +1,111 @@
+schema: spec-driven
+
+context: |
+  Repository quantdale/simple-walk-game ("Simple Walk Game").
+
+  An offline-first ambient fitness game in which real-world walking is
+  the primary gameplay input and a persistent restoration world is the
+  progress display. No backend, no network code, no analytics, no
+  accounts.
+
+  STACK AND LAYOUT
+  .NET 9 SDK, C# 9. All three production libraries target
+  netstandard2.1; test projects and the headless CLI target net9.0.
+
+  src/WalkGame.Domain is pure rules, state and simulation. It has no
+  project references, no NuGet packages, no filesystem access and no
+  engine namespace.
+
+  src/WalkGame.Application holds use-case orchestration and read
+  models. It references Domain only and performs no filesystem access.
+
+  src/WalkGame.Infrastructure implements the ports: save codec, atomic
+  file store, local preferences store, migrations, system clock and
+  fixture reader. It references Application and Domain. Its only
+  runtime NuGet dependency is System.Text.Json 8.0.5.
+
+  tools/simulation is the headless CLI, assembly WalkGame.SimCli.
+  Verbs: new, credit, advance, simulate, walk, profile, longhaul,
+  bench, scenarios, ack, dump, validate.
+
+  tests/ holds three xUnit projects. Current green baseline is
+  Domain 105, Infrastructure 48, Application 142, for 295 total.
+
+  scripts/, .githooks/ and tests/guards/ hold repository guard,
+  writer-lease, CI-step reproduction and architecture-fitness tooling.
+
+  LOAD-BEARING INVARIANTS. Breaking any of these is a P0.
+  Determinism: same inputs plus same seed give the same canonical
+  final state. All time comes from an injected IClock. All
+  time-dependent math is integer-only.
+  Exactly-once crediting: durable record identity plus durable
+  reward-transaction identity, both persisted in the same atomic
+  commit as the rewards they describe.
+  Durable dedup state may never outrun durable reward state. This is
+  re-checked on load by GameStateValidator.
+  Conservative correction and reversal: balances never go negative,
+  completed world content is never destroyed, and unclawed reversals
+  are durably counted in UnappliedReversalVitality.
+  Every committed mutation is persisted atomically before presentation.
+  Fail closed: unknown content IDs and newer save schemas never
+  silently rewrite or reset a save.
+
+  AUTHORITATIVE SOURCE-OF-TRUTH DOCUMENTS
+  docs/PRODUCT_SPEC.md and docs/MASTER_PLAN.md hold the product
+  vision and milestone program. docs/ROADMAP.md,
+  docs/TECHNICAL_ARCHITECTURE.md, docs/ACTIVITY_PIPELINE.md and
+  docs/GAME_SYSTEMS.md hold engineering contracts. docs/UX_DESIGN.md,
+  docs/WORLD_AND_CONTENT.md and docs/PERFORMANCE_BUDGETS.md hold
+  product-surface contracts. docs/TESTING_AND_RELEASE.md,
+  docs/DECISIONS.md, docs/RISK_REGISTER.md, docs/KNOWN_ISSUES.md and
+  docs/PRIVACY_REVIEW.md hold process and evidence. AGENTS.md and
+  docs/AGENT_EXECUTION_GUIDE.md bind every agent session.
+
+  REPOSITORY WORKING RULES FOR IMPLEMENTATION SESSIONS
+  Run scripts/assert-repo-identity.sh before any write. Exit code 86
+  means the wrong repository: stop and report, never repair.
+  Acquire the single-writer lease with scripts/writer-lease.sh acquire
+  before the first write and release it on completion. Never pass
+  --force.
+  git push --force, git reset --hard and git clean -fdx are forbidden
+  without explicit human-operator authorization.
+  Committed evidence under docs/evidence/ is byte-reproducible and is
+  gated by scripts/verify-pacing-evidence.sh and
+  scripts/verify-save-growth.sh. Changing balance numbers, conversion
+  rules or authored content invalidates that evidence and requires
+  regenerating it inside the same change.
+  Documentation must always distinguish aspaced from verified and must
+  never describe unverified behavior as shipped. See R-020.
+
+  KNOWN ENVIRONMENTAL CONSTRAINT
+  Hosted GitHub Actions runs are externally blocked by account
+  billing; every run reports zero steps executed.
+  scripts/verify-ci-steps.sh reproduces the whole CI gate locally and
+  is the only available CI evidence until that blocker clears.
+
+  CONVENTIONS FOR THESE PROPOSALS
+  P0 means data loss, corruption or catastrophic reliability. P1 means
+  major correctness, security, reliability or product quality. P2
+  means important hardening, testing, performance or maintainability.
+  P3 means polish, tooling or documentation.
+  This repository started with no specs under openspec/specs/. Each
+  capability is therefore introduced by the first change needing it,
+  and later changes must reuse that existing path rather than
+  inventing a near-duplicate name.
+  Anything that changes authored content numbers, conversion rules or
+  the save schema requires a registered ISaveMigration plus a
+  mature-save fixture test.
+
+rules:
+  proposal:
+    - Cite concrete evidence: paths, symbols, test names, command output.
+    - State explicitly what is out of scope.
+    - State compatibility implications and any dependency on other changes.
+  design:
+    - Name the files, types and existing patterns to preserve or change.
+    - Reuse existing domain machinery instead of adding a parallel path.
+    - Respect the layering that scripts/verify-architecture.sh enforces.
+  tasks:
+    - Order tasks by dependency and end with a real verification task.
+    - Name the test file each new test belongs in.
+    - List the existing tests that must keep passing.

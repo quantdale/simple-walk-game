@@ -12,6 +12,29 @@ Do not skip foundational milestones to make the repository look visually advance
 
 ---
 
+## Where the next implementation work is specified
+
+Milestones above describe **what** the product becomes. The engineering work
+needed to make the current tree correct, complete and release-shaped is
+specified separately and takes precedence for any session that is not building
+new product surface:
+
+- [`docs/IMPLEMENTATION_MASTER_PLAN.md`](IMPLEMENTATION_MASTER_PLAN.md) — the
+  audit findings register, the current-state assessment, the phased roadmap, the
+  dependency order, the parallel workstreams, the repository-level Definition of
+  Done, and the instructions for the implementation agent.
+- [`openspec/changes/`](../openspec/changes) — the canonical execution
+  specification: one OpenSpec change per coherent engineering change, each with
+  its own proposal, behavioural spec deltas, design and ordered task list.
+  Validate with `openspec validate --changes --strict`.
+
+Milestone status and evidence state are unchanged by that plan. In particular,
+**release qualification remains blocked** by `KI-001` (hosted CI billing) and
+`KI-002` (no Unity editor) regardless of how much of the implementation plan
+ships; those are external dependencies, not engineering work.
+
+---
+
 # M0 — Product and engineering contract
 
 ## Goal
