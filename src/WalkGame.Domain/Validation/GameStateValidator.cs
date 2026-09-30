@@ -38,6 +38,14 @@ namespace WalkGame.Domain.Validation
             {
                 if (pair.Value < 0L)
                     violations.Add($"Resource '{pair.Key}' has negative balance {pair.Value}.");
+
+                // A balance above the authored cap is reported, NEVER clamped (D-054).
+                // Clamping on load would silently discard a player's progress and hide a
+                // content change that reduced a cap under a live save; failing closed is
+                // the posture every other invariant here already takes.
+                long? cap = content.ResourceCap(pair.Key);
+                if (cap.HasValue && pair.Value > cap.Value)
+                    violations.Add($"Resource '{pair.Key}' balance {pair.Value} exceeds the content cap {cap.Value}.");
             }
 
             var knownProjectIds = new HashSet<string>(StringComparer.Ordinal);

@@ -98,13 +98,27 @@ namespace WalkGame.Domain.Simulation
     {
         public string ProducerId { get; }
         public long MilliUnitsGained { get; }
+
+        /// <summary>The producer's own bounded pending store filled up, so surplus elapsed time produced nothing.</summary>
         public bool HitCapacity { get; }
 
-        public ProducerProduced(DateTimeOffset atUtc, string producerId, long milliUnitsGained, bool hitCapacity) : base(atUtc)
+        /// <summary>
+        /// The produced RESOURCE is at its authored cap (D-054), so output could not be
+        /// delivered and is waiting in the producer's pending store. Distinct from
+        /// <see cref="HitCapacity"/>: that one means the store is full, this one means the
+        /// balance is full. Both keep the player's output, but only this one is relieved by
+        /// the player spending resource — and it is the one a player needs told about,
+        /// because otherwise "nothing happened" and "your output is waiting" look identical.
+        /// </summary>
+        public bool HitResourceCap { get; }
+
+        public ProducerProduced(DateTimeOffset atUtc, string producerId, long milliUnitsGained,
+            bool hitCapacity, bool hitResourceCap = false) : base(atUtc)
         {
             ProducerId = producerId ?? string.Empty;
             MilliUnitsGained = milliUnitsGained;
             HitCapacity = hitCapacity;
+            HitResourceCap = hitResourceCap;
         }
     }
 

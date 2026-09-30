@@ -900,15 +900,32 @@ namespace WalkGame.Application
                 return DomainResult.Fail(ErrorCodes.ProjectAlreadyActive,
                     $"'{game.Queue.ActiveProjectId}' is already active; only one project can be active.");
 
+            var definition = _content.FindProject(projectId);
             var runtime = game.Region.FindProject(projectId);
-            if (runtime == null || runtime.Status != ProjectStatus.Queued)
+            if (definition == null || runtime == null || runtime.Status != ProjectStatus.Queued)
                 return DomainResult.Fail(ErrorCodes.NotQueued, $"Project '{projectId}' is not queued.");
+
+            // D-054: a secondary-resource requirement gates activation, all-or-nothing.
+            // Checked BEFORE the queue is mutated so a failure consumes nothing and leaves
+            // the active slot and the queue exactly as they were. The shortfall is named so
+            // the shell can tell the player exactly what to go and produce.
+            foreach (var requirement in definition.ResourceCosts)
+            {
+                long held = game.Resources.Get(requirement.Key);
+                if (held < requirement.Value)
+                {
+                    return DomainResult.Fail(
+                        ErrorCodes.ResourceRequirementNotMet,
+                        $"'{definition.TitleKey}' needs {requirement.Value} {requirement.Key} to begin; you have {held}.");
+                }
+            }
 
             if (!game.Queue.QueuedProjectIds.Remove(projectId))
                 return DomainResult.Fail(ErrorCodes.NotQueued, $"Project '{projectId}' is not queued.");
 
             runtime.Status = ProjectStatus.Active;
             game.Queue.ActiveProjectId = projectId;
+            OfflineAdvancer.ConsumeRequirements(game, definition);
 
             var events = new List<SimulationEvent>
             {
@@ -1058,7 +1075,9 @@ namespace WalkGame.Application
                     runtime.VitalityInvested,
                     runtime.Status,
                     queuedPositions.ContainsKey(definition.Id.Value) ? position : (int?)null,
-                    prerequisites));
+                    prerequisites,
+                    definition.ResourceCosts,
+                    OfflineAdvancer.CanAffordRequirements(game, definition)));
             }
 
             return new ProjectsReadModel(game.Queue.AutoAdvance, game.Queue.ActiveProjectId, rows);
@@ -1082,6 +1101,8 @@ namespace WalkGame.Application
             foreach (var definition in _content.Producers)
             {
                 var runtime = game.Region.FindProducer(definition.Id.Value);
+                long cap = _content.ResourceCap(definition.Output) ?? long.MaxValue;
+                long held = game.Resources.Get(definition.Output);
                 producers.Add(new RegionReadModel.ProducerRow(
                     definition.Id.Value,
                     definition.TitleKey,
@@ -1090,7 +1111,12 @@ namespace WalkGame.Application
                     definition.CapacityUnits,
                     runtime?.Unlocked ?? false,
                     runtime?.StoredMilliUnits ?? 0L,
-                    runtime?.TotalProducedMilliUnits ?? 0L));
+                    runtime?.TotalProducedMilliUnits ?? 0L,
+                    resourceCapUnits: cap,
+                    // "Capped" and "idle" are different things and the shell has to be able
+                    // to tell them apart: a capped producer has produced plenty and is
+                    // holding it in its pending store (D-054).
+                    capacityLimited: runtime?.Unlocked == true && cap != long.MaxValue && held >= cap));
             }
 
             int completed = 0;

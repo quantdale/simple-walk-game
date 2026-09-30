@@ -53,7 +53,8 @@ namespace WalkGame.Application.Summaries
             int duplicates = 0;
             long vitalityCredited = 0L;
             long producerMilliDelivered = 0L;
-            string? cappedProducerId = null;
+            string? resourceCappedProducerId = null;
+            string? storeCappedProducerId = null;
             bool clockSkew = false;
             int availableNamed = 0;
             int availableExtra = 0;
@@ -97,8 +98,10 @@ namespace WalkGame.Application.Summaries
 
                     case ProducerProduced produced:
                         producerMilliDelivered += produced.MilliUnitsGained;
-                        if (produced.HitCapacity)
-                            cappedProducerId = produced.ProducerId;
+                        if (produced.HitResourceCap)
+                            resourceCappedProducerId = produced.ProducerId;
+                        else if (produced.HitCapacity)
+                            storeCappedProducerId = produced.ProducerId;
                         break;
 
                     case ActivityCredited credited:
@@ -169,10 +172,23 @@ namespace WalkGame.Application.Summaries
                 AddDeduped(merged, SummaryItemKind.Production,
                     $"Producers delivered {producerMilliDelivered / ProducerDefinition.MilliUnitsPerUnit:N0} units.");
 
-            if (cappedProducerId != null)
+            if (resourceCappedProducerId != null)
+            {
+                // States plainly that nothing was lost, and how it comes back: the surplus is
+                // waiting in the producer's store and flushes on its own once the player
+                // spends some. Without this line a capped producer is indistinguishable from
+                // one that simply did not run (D-054).
                 AddDeduped(merged, SummaryItemKind.Production,
-                    Title(content.FindProducer(cappedProducerId)?.TitleKey, cappedProducerId)
+                    Title(content.FindProducer(resourceCappedProducerId)?.TitleKey, resourceCappedProducerId)
+                    + " is at its storage cap; the surplus is waiting and returns on its own. Nothing was lost.");
+            }
+
+            if (storeCappedProducerId != null)
+            {
+                AddDeduped(merged, SummaryItemKind.Production,
+                    Title(content.FindProducer(storeCappedProducerId)?.TitleKey, storeCappedProducerId)
                     + " storage filled; surplus time created no waste.");
+            }
 
             if (completions > 1)
                 AddDeduped(merged, SummaryItemKind.Transformation, $"{completions} restoration projects are complete.");

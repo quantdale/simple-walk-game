@@ -89,6 +89,15 @@ namespace WalkGame.Domain
 
             game.Region.RegionId = content.Id.Value;
 
+            // Apply the authored resource caps to a FRESH game (D-054). Caps live in
+            // content, not state: they are a property of the region the player is playing,
+            // and deriving them from content means a content update re-derives them instead
+            // of leaving a stale per-save copy. Existing saves pick the caps up at load
+            // through the balance-within-cap invariant in GameStateValidator, which reports
+            // a violation rather than silently clamping.
+            foreach (var cap in content.ResourceCaps)
+                game.Resources.SetCap(cap.Key, cap.Value);
+
             foreach (var project in content.Projects)
             {
                 bool entryProject = project.Prerequisites.Count == 0;

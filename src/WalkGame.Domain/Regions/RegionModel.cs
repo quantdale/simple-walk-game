@@ -158,6 +158,19 @@ namespace WalkGame.Domain.Regions
         /// <summary>The project whose completion is the explicit region closure milestone; null when the region has no closure yet.</summary>
         public string? CompletionMilestoneProjectId { get; }
 
+        /// <summary>
+        /// Authored per-resource storage caps, in whole units (D-054). Every resource a
+        /// producer in this region can emit MUST appear here with a positive, representable
+        /// cap; a missing cap is a content-validation failure rather than an unbounded
+        /// runtime default. Read-only, and never inferred: an absent entry means "no cap
+        /// authored", which validation rejects.
+        /// </summary>
+        public IReadOnlyDictionary<Economy.ResourceType, long> ResourceCaps { get; }
+
+        /// <summary>Authored cap for a resource, or null when the region authors none.</summary>
+        public long? ResourceCap(Economy.ResourceType type) =>
+            ResourceCaps.TryGetValue(type, out var cap) ? cap : (long?)null;
+
         public RegionDefinition(RegionId id, string titleKey,
             IEnumerable<ProjectDefinition> projects,
             IEnumerable<LandmarkDefinition> landmarks,
@@ -167,7 +180,8 @@ namespace WalkGame.Domain.Regions
             IEnumerable<ExpeditionDefinition>? expeditions = null,
             RegionProgressionDefinition? ecologyProgression = null,
             RegionProgressionDefinition? settlementProgression = null,
-            string? completionMilestoneProjectId = null)
+            string? completionMilestoneProjectId = null,
+            IEnumerable<KeyValuePair<Economy.ResourceType, long>>? resourceCaps = null)
         {
             if (!id.IsValid)
                 throw new ArgumentException("Region definition requires a valid ID.", nameof(id));
@@ -191,6 +205,19 @@ namespace WalkGame.Domain.Regions
             EcologyProgression = ecologyProgression ?? RegionProgressionDefinition.Empty();
             SettlementProgression = settlementProgression ?? RegionProgressionDefinition.Empty();
             CompletionMilestoneProjectId = completionMilestoneProjectId;
+
+            var caps = new Dictionary<Economy.ResourceType, long>();
+            if (resourceCaps != null)
+            {
+                foreach (var pair in resourceCaps)
+                {
+                    if (pair.Value <= 0L)
+                        throw new ArgumentException(
+                            "Resource cap for " + pair.Key + " must be positive.", nameof(resourceCaps));
+                    caps[pair.Key] = pair.Value;
+                }
+            }
+            ResourceCaps = new Dictionary<Economy.ResourceType, long>(caps);
         }
 
         public ProjectDefinition? FindProject(string projectId)

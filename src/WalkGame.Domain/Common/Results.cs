@@ -12,6 +12,13 @@ namespace WalkGame.Domain.Common
         public const string ProjectAlreadyActive = "project.already-active";
         public const string QueueEmpty = "queue.empty";
         public const string InvalidQueueOrder = "queue.invalid-order";
+
+        /// <summary>
+        /// The project's secondary-resource requirement is not met (D-054). Distinct from
+        /// a Vitality shortfall, which is not an error at all: Vitality banks until it is
+        /// affordable. A secondary requirement is a gate the player must choose to satisfy.
+        /// </summary>
+        public const string ResourceRequirementNotMet = "project.resource-requirement-not-met";
         public const string DiscoveryUnknown = "discovery.unknown";
         public const string DiscoveryNotUnlocked = "discovery.not-unlocked";
         public const string InvalidArgument = "domain.invalid-argument";

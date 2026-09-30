@@ -117,10 +117,10 @@ namespace WalkGame.Domain.Simulation
                 hitResourceCap = appliedUnits < deliverableWholeUnits;
             }
 
-            if (deliveredMilliUnits > 0L || hitStoreCapacity)
+            if (deliveredMilliUnits > 0L || hitStoreCapacity || hitResourceCap)
             {
                 events.Add(new ProducerProduced(nowUtc, runtime.ProducerId, deliveredMilliUnits,
-                    hitStoreCapacity || hitResourceCap));
+                    hitStoreCapacity, hitResourceCap));
             }
         }
 
@@ -192,15 +192,61 @@ namespace WalkGame.Domain.Simulation
                 return;
 
             string nextProjectId = queue.QueuedProjectIds[0];
-            queue.QueuedProjectIds.RemoveAt(0);
 
             var nextRuntime = game.Region.FindProject(nextProjectId);
             if (nextRuntime == null || nextRuntime.Status != ProjectStatus.Queued)
+            {
+                queue.QueuedProjectIds.RemoveAt(0);
+                return;
+            }
+
+            // D-054: a secondary-resource requirement gates ACTIVATION. The head of the
+            // queue is checked and, when it cannot be met, the scan STOPS: promoting a
+            // later project would let the player skip past the one they queued first, and
+            // Vitity would then be spent on something they did not choose. Vitality keeps
+            // banking in the meantime, which is the whole point of the offline-first model.
+            var nextDefinition = content.FindProject(nextProjectId);
+            if (nextDefinition != null && !CanAffordRequirements(game, nextDefinition))
                 return;
 
+            queue.QueuedProjectIds.RemoveAt(0);
             nextRuntime.Status = ProjectStatus.Active;
             queue.ActiveProjectId = nextProjectId;
+
+            // Consume the requirement all-or-nothing, BEFORE any Vitality is streamed into
+            // the project, so a project is never left half-funded. The affordability check
+            // above already proved this succeeds; TryConsume cannot fail here.
+            if (nextDefinition != null)
+                ConsumeRequirements(game, nextDefinition);
+
             events.Add(new ProjectBecameActive(nowUtc, nextProjectId));
+        }
+
+        /// <summary>True when every secondary-resource cost of a project is currently met.</summary>
+        public static bool CanAffordRequirements(GameState game, ProjectDefinition definition)
+        {
+            if (definition == null) throw new ArgumentNullException(nameof(definition));
+            if (game == null) throw new ArgumentNullException(nameof(game));
+
+            foreach (var requirement in definition.ResourceCosts)
+                if (game.Resources.Get(requirement.Key) < requirement.Value)
+                    return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Deducts a project's secondary-resource requirement, all-or-nothing. Callers must
+        /// have established affordability first; this re-checks and consumes nothing if the
+        /// balance moved underneath them, so a partial deduction is not representable.
+        /// </summary>
+        public static bool ConsumeRequirements(GameState game, ProjectDefinition definition)
+        {
+            if (!CanAffordRequirements(game, definition))
+                return false;
+
+            foreach (var requirement in definition.ResourceCosts)
+                game.Resources.TryConsume(requirement.Key, requirement.Value);
+            return true;
         }
 
         private static void CompleteProject(GameState game, RegionDefinition content, ProjectState projectState, DateTimeOffset nowUtc, List<SimulationEvent> events)

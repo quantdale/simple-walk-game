@@ -140,7 +140,12 @@ public class ProducerSimulationTests
         // The 7 surplus units are parked in the producer's bounded store, not destroyed.
         Assert.Equal(7000L, runtime.StoredMilliUnits);
         var produced = Assert.Single(events.OfType<ProducerProduced>());
-        Assert.True(produced.HitCapacity);
+        // D-054 split the old conflated flag: this surplus is parked because the RESOURCE is
+        // at its cap, not because the producer's own store filled up. The distinction is what
+        // lets the return summary tell a player "your output is waiting, spend some to free it"
+        // rather than the much less useful "surplus time created no waste".
+        Assert.True(produced.HitResourceCap);
+        Assert.False(produced.HitCapacity);
         Assert.Equal(5000L, produced.MilliUnitsGained);
     }
 

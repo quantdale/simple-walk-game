@@ -27,6 +27,110 @@ namespace WalkGame.Domain.Validation
         /// <summary>Producer rates multiply by up to MaxProducerInterval days; keep products representable.</summary>
         private const long MaxMilliUnitsPerDay = 1_000_000_000_000L;
 
+        /// <summary>
+        /// Every resource a producer can emit must have an explicit, positive, representable
+        /// authored cap. A missing cap used to be a silent runtime default of
+        /// <see cref="long.MaxValue"/>, which is how the cap/parking machinery in
+        /// <c>OfflineAdvancer</c> became unreachable in production (D-054).
+        /// </summary>
+        private static void ValidateResourceCaps(RegionDefinition content, List<string> violations)
+        {
+            foreach (var cap in content.ResourceCaps)
+            {
+                if (cap.Value <= 0L)
+                    violations.Add($"Resource cap for {cap.Key} must be positive, but is {cap.Value}.");
+
+                // The producer store capacity a cap implies must stay representable, and
+                // the cap must be able to hold at least one whole unit of output.
+                if (cap.Value > long.MaxValue / ProducerDefinition.MilliUnitsPerUnit)
+                    violations.Add($"Resource cap for {cap.Key} is too large to represent safely.");
+            }
+
+            foreach (var producer in content.Producers)
+            {
+                if (!content.ResourceCaps.ContainsKey(producer.Output))
+                {
+                    violations.Add(
+                        $"Producer '{producer.Id}' emits {producer.Output} but the region authors no cap for it; " +
+                        "every produced resource must declare an explicit cap.");
+                }
+            }
+        }
+
+        /// <summary>
+        /// A secondary-resource requirement that the region's own producers can never
+        /// supply within the cap is a content authoring failure: it would make a project
+        /// permanently unactivatable, and if that project is on the path to the closure
+        /// milestone the region becomes uncompletable. Both rules name project and resource.
+        /// </summary>
+        private static void ValidateSecondaryRequirements(RegionDefinition content, List<string> violations)
+        {
+            // Head-room available for a resource across the design horizon: the authored
+            // cap minus what the region's own producers of that resource can deliver in
+            // MaxRequirementHorizonDays. Expedition grants are not counted here because an
+            // expedition is a bonus, not a guaranteed source; a requirement that only an
+            // expedition can satisfy is still satisfiable, so counting producers alone is
+            // the conservative check.
+            const long MaxRequirementHorizonDays = 400L;
+
+            foreach (var project in content.Projects)
+            {
+                foreach (var requirement in project.ResourceCosts)
+                {
+                    var resource = requirement.Key;
+                    var cost = requirement.Value;
+
+                    long cap = content.ResourceCap(resource) ?? long.MaxValue;
+                    if (cost > cap)
+                    {
+                        violations.Add(
+                            $"Project '{project.Id}' requires {cost} {resource}, which exceeds the region's " +
+                            $"authored cap of {cap} {resource}; the project could never be activated.");
+                        continue;
+                    }
+
+                    if (resource == Economy.ResourceType.Vitality)
+                        continue; // Vitality is unbounded by design: it is the activity sink.
+
+                    long producedUnits = 0L;
+                    bool anyProducer = false;
+                    foreach (var producer in content.Producers)
+                    {
+                        if (producer.Output != resource)
+                            continue;
+                        anyProducer = true;
+                        // What the region can actually DELIVER inside the horizon is its
+                        // production rate, not its store size: parked units flush
+                        // repeatedly over time, so total deliverable is bounded by
+                        // (whole units/day × horizon), not by capacity. Integer division
+                        // matches the simulation's own whole-unit delivery, so the check
+                        // cannot disagree with what a tick will really produce.
+                        long unitsPerDay = producer.MilliUnitsPerDay / ProducerDefinition.MilliUnitsPerUnit;
+                        long perHorizon = unitsPerDay > long.MaxValue / MaxRequirementHorizonDays
+                            ? long.MaxValue
+                            : unitsPerDay * MaxRequirementHorizonDays;
+                        producedUnits = producedUnits > long.MaxValue - perHorizon
+                            ? long.MaxValue
+                            : producedUnits + perHorizon;
+                    }
+
+                    if (!anyProducer)
+                    {
+                        violations.Add(
+                            $"Project '{project.Id}' requires {cost} {resource} but the region authors no producer for {resource}.");
+                        continue;
+                    }
+
+                    if (producedUnits < cost)
+                    {
+                        violations.Add(
+                            $"Project '{project.Id}' requires {cost} {resource} but the region's producers can " +
+                            $"supply only {producedUnits} {resource} within the {MaxRequirementHorizonDays}-day design horizon.");
+                    }
+                }
+            }
+        }
+
         public static List<string> Validate(RegionDefinition? content)
         {
             var violations = new List<string>();
@@ -149,6 +253,10 @@ namespace WalkGame.Domain.Validation
             // ---- Progression arcs: strictly ascending, resolvable, bounded. ----
             ValidateArc(content.EcologyProgression, projectIds, "ecology", MaxStagesPerArc, violations);
             ValidateArc(content.SettlementProgression, projectIds, "settlement", MaxStagesPerArc, violations);
+
+            // ---- Resource caps and secondary requirements (D-054). ----
+            ValidateResourceCaps(content, violations);
+            ValidateSecondaryRequirements(content, violations);
 
             // ---- Reachability: entry path, no hidden deadlock, closure reachable. ----
             bool hasReachableEntry = false;

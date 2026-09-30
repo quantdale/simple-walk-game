@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using WalkGame.Domain.Economy;
 using WalkGame.Domain.Projects;
 
 namespace WalkGame.Application.ReadModels
@@ -36,6 +37,15 @@ namespace WalkGame.Application.ReadModels
 
             public IReadOnlyList<string> PrerequisiteIds { get; }
 
+            /// <summary>Authored secondary-resource costs, consumed when the project is
+            /// activated (D-054). Empty for the common case.</summary>
+            public IReadOnlyDictionary<ResourceType, long> ResourceCosts { get; }
+
+            /// <summary>True when every secondary cost of this project is currently met.
+            /// Purely informational: a project with an unmet requirement is not activatable,
+            /// and auto-advance stalls at it rather than skipping past it.</summary>
+            public bool RequirementsAffordable { get; }
+
             public ProjectRow(
                 string projectId,
                 string titleKey,
@@ -43,7 +53,9 @@ namespace WalkGame.Application.ReadModels
                 long vitalityInvested,
                 ProjectStatus status,
                 int? queuedPosition,
-                IReadOnlyList<string> prerequisiteIds)
+                IReadOnlyList<string> prerequisiteIds,
+                IReadOnlyDictionary<ResourceType, long>? resourceCosts = null,
+                bool requirementsAffordable = true)
             {
                 ProjectId = projectId;
                 TitleKey = titleKey;
@@ -52,7 +64,13 @@ namespace WalkGame.Application.ReadModels
                 Status = status;
                 QueuedPosition = queuedPosition;
                 PrerequisiteIds = prerequisiteIds;
+                ResourceCosts = resourceCosts ?? new Dictionary<ResourceType, long>();
+                RequirementsAffordable = requirementsAffordable;
             }
+
+            /// <summary>Secondary cost for a resource, or 0 when this project does not require it.</summary>
+            public long ResourceCost(ResourceType type) =>
+                ResourceCosts.TryGetValue(type, out var value) ? value : 0L;
         }
     }
 }

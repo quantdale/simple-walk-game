@@ -26,9 +26,16 @@ public class ContentValidationTests
     private static RegionDefinition Region(
         ProjectDefinition[] projects,
         LandmarkDefinition[]? landmarks = null,
-        ProducerDefinition[]? producers = null) =>
+        ProducerDefinition[]? producers = null,
+        IEnumerable<KeyValuePair<ResourceType, long>>? resourceCaps = null) =>
         new(new RegionId("region.test"), "Test Region",
-            projects, landmarks ?? Array.Empty<LandmarkDefinition>(), producers ?? Array.Empty<ProducerDefinition>());
+            projects, landmarks ?? Array.Empty<LandmarkDefinition>(), producers ?? Array.Empty<ProducerDefinition>(),
+            resourceCaps: resourceCaps);
+
+    /// <summary>Cap every resource any of the given producers emits, so a test fixture that
+    /// is not testing caps still satisfies the "every produced resource declares a cap" rule.</summary>
+    private static IEnumerable<KeyValuePair<ResourceType, long>> CapsFor(params ResourceType[] resources) =>
+        resources.Select(r => new KeyValuePair<ResourceType, long>(r, 10_000L));
 
     [Fact]
     public void ValidGraph_HasZeroViolations()
@@ -38,7 +45,8 @@ public class ContentValidationTests
             new[] { L("land.gate",
                 new LandmarkStageDefinition(RestorationStage.Stabilized, "proj.a"),
                 new LandmarkStageDefinition(RestorationStage.Functional, "proj.c")) },
-            new[] { Pr("prod.mill", "proj.b") });
+            new[] { Pr("prod.mill", "proj.b") },
+            CapsFor(ResourceType.Materials));
 
         var violations = ContentValidator.Validate(content);
 

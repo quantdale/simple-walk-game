@@ -32,6 +32,39 @@ namespace WalkGame.Application.Content
         public const int AuthoredContentVersion = 2;
 
         /// <summary>
+        /// Authored per-resource storage caps for Region 1, in whole units (D-054).
+        ///
+        /// These caps BIND. Measured over a 730-day `longhaul` run with this content, the
+        /// balances settle at exactly Materials 400 and Knowledge 300 — i.e. both resources
+        /// reach their cap and stay there, because production outruns consumption. That is
+        /// the point: before this change `GetCap` returned <c>long.MaxValue</c> for every
+        /// resource, so both currencies grew without bound and the whole
+        /// "park the surplus and flush it later" mechanism in `OfflineAdvancer` was
+        /// unreachable dead code. A bound that a real profile actually reaches is a real
+        /// bound; the surplus is not lost, it waits in the producer's pending store and
+        /// flushes automatically when the player spends some.
+        ///
+        /// The values are chosen round and well below the region total Vitality cost, so
+        /// the currencies read as scarce maintenance inputs rather than as a second
+        /// progress bar.
+        ///
+        /// Vitality is deliberately ABSENT. Capping it would be a data-loss bug, not a
+        /// balance: <c>RewardLedger.Apply</c> ignores the value <c>balances.Add</c> returns
+        /// and records the FULL transaction amount in the ledger, and Vitality has no
+        /// producer store to park refused units in. A Vitality cap would therefore
+        /// silently discard real walking credit. The cap requirement is scoped to resources
+        /// a producer can emit, and no producer emits Vitality. See D-054.
+        /// </summary>
+        private static readonly KeyValuePair<ResourceType, long>[] AuthoredResourceCaps =
+        {
+            new KeyValuePair<ResourceType, long>(ResourceType.Materials, 400L),
+            new KeyValuePair<ResourceType, long>(ResourceType.Knowledge, 300L),
+        };
+
+        private static KeyValuePair<ResourceType, long> Cost(ResourceType resource, long units) =>
+            new KeyValuePair<ResourceType, long>(resource, units);
+
+        /// <summary>
         /// The authored catalog is a deterministic immutable content graph (every
         /// definition is constructor-frozen), so building it once per process removes
         /// pure duplicate work from session construction — sessions are created on every
@@ -103,7 +136,15 @@ namespace WalkGame.Application.Content
                     descriptionKey: "Roof, bench and tool the workshop that the valley builds with."),
                 new ProjectDefinition(new ProjectId(RestoreMarketHall), "Restore the market hall", 950L,
                     prerequisites: new[] { new ProjectId(BuildWorkshop) },
-                    descriptionKey: "Raise the market hall where the community trades and gathers."),
+                    descriptionKey: "Raise the market hall where the community trades and gathers.",
+                    // D-054: first secondary-resource requirement. Materials come from the
+                    // workshop-salvage crew, which this project itself unlocks, so the
+                    // requirement is always self-supplying from the point the player can
+                    // reach it. It teaches the mechanic without ever gating the chain.
+                    // Sized empirically: 40 is the largest value that leaves ALL SEVEN
+                    // committed pacing profiles byte-identical (60 pushed the settlement
+                    // chain out by up to 6 days on the pathological profile). See D-054.
+                    resourceCosts: new[] { Cost(ResourceType.Materials, 40L) }),
                 new ProjectDefinition(new ProjectId(WireSettlementPower), "Wire settlement power", 1250L,
                     prerequisites: new[] { new ProjectId(RestoreMarketHall), new ProjectId(LayWaterLines) },
                     descriptionKey: "Run the mill race generator and light the streets warm."),
@@ -141,7 +182,16 @@ namespace WalkGame.Application.Content
                     descriptionKey: "Regear the dome and mount the survey telescope."),
                 new ProjectDefinition(new ProjectId(CalibrateSurveyRig), "Calibrate the survey rig", 700L,
                     prerequisites: new[] { new ProjectId(RefitObservatoryDome), new ProjectId(BuildWorkshop) },
-                    descriptionKey: "Align instruments and benches for a full valley survey."),
+                    descriptionKey: "Align instruments and benches for a full valley survey.",
+                    // D-054: second secondary-resource requirement, on a DIFFERENT chain
+                    // and a DIFFERENT currency from the market hall. The observatory archive
+                    // (the region's only Knowledge producer) is unlocked by this project's
+                    // own prerequisite, so the requirement is self-supplying too — it makes
+                    // Knowledge a decision without ever making the region uncompletable.
+                    // Sized empirically alongside the Materials requirement: 20 is the
+                    // largest value that leaves all seven committed pacing profiles
+                    // byte-identical (40 pushed the research chain out by up to 9 days).
+                    resourceCosts: new[] { Cost(ResourceType.Knowledge, 20L) }),
                 new ProjectDefinition(new ProjectId(CompleteValleySurvey), "Complete the valley survey", 1200L,
                     prerequisites: new[] { new ProjectId(CalibrateSurveyRig), new ProjectId(WetlandBoardwalk), new ProjectId(PlantWoodlandUnderstory) },
                     descriptionKey: "Map every recovered mile: the act that closes Region 1's restoration."),
@@ -307,7 +357,8 @@ namespace WalkGame.Application.Content
                 expeditions: expeditions,
                 ecologyProgression: ecologyArc,
                 settlementProgression: settlementArc,
-                completionMilestoneProjectId: CompleteValleySurvey);
+                completionMilestoneProjectId: CompleteValleySurvey,
+                resourceCaps: AuthoredResourceCaps);
         }
     }
 }

@@ -1013,3 +1013,80 @@ never regresses.
   behaviour and backfill limits are the M7 adapter lane and remain device-blocked
   (`KI-002`). The reconciliation watermark is still *evidence*, not a driver of scheduled
   query windows; making it a driver is the adapter's job and stays deferred.
+
+---
+
+## D-054 — Secondary resources carry authored caps and a real consumption decision
+
+**Status:** Accepted *(verified at the F-06 pass: 29 new tests — 17 in `SecondaryResourceEconomyTests` (Domain), 12 in `SecondaryResourceEconomyIntegrationTests` (Application); `dotnet test` 351/351 — Domain 122, Infrastructure 48, Application 181 — green; all seven `docs/evidence/m4/pacing-*.txt` reports still reproduce **byte-for-byte**; `verify-architecture.sh` 11/0; save-growth verified; guard suite 25/0)*
+
+**Decision:** Region content gains two pieces of economy contract. (1) A per-resource
+**cap** map on `RegionDefinition`, applied by `GameFactory.NewGame`, with
+`ContentValidator` rejecting (a) any resource a producer can emit that has no authored cap,
+(b) a non-positive cap, and (c) a cap whose derived store capacity is unrepresentable.
+`GameStateValidator` reports a balance above its content cap and **never clamps it on
+load** — the same fail-closed posture every other invariant takes. (2) An optional
+per-resource **requirement** on `ProjectDefinition`, consumed all-or-nothing via
+`TryConsume` when the project is *activated*, before any Vitality is streamed. Activation
+with an unmet requirement returns a new stable code
+`project.resource-requirement-not-met` naming the resource and the shortfall, and consumes
+nothing. Auto-advance checks the head of the queue and **stops** rather than promoting a
+later project past it, so Vitality keeps banking.
+
+**Authored Region 1 values:** caps **Materials 400 / Knowledge 300**; requirements
+**Restore Market Hall 40 Materials** (settlement chain) and **Calibrate Survey Rig 20
+Knowledge** (research chain) — two distinct chains, two distinct currencies.
+
+**Why 400/300 and 40/20 — measured, not guessed.** Both caps were run to a 730-day
+`longhaul`: Materials settles at exactly 400 and Knowledge at exactly 300, i.e. **both
+caps bind**, because production outruns consumption. A cap a real profile never reaches
+would be decoration. The requirement sizes were chosen empirically against the committed
+pacing evidence: 60 Materials / 40 Knowledge pushed the settlement chain out by up to 6
+days and the research chain by up to 9 (high 97→101, pathological 29→38) and drifted
+**five of seven** profiles. At **40 / 20 all seven profiles reproduce byte-for-byte**, so
+the mechanic is real (a player must wait for production) and the balance cost is zero.
+
+**Vitality is deliberately NOT capped — a documented departure from the task list.**
+Task 1.5 asked for a Vitality cap "at or above the maximum balances the committed evidence
+produces". Implementing it would have been a **data-loss bug**, not a balance:
+`RewardLedger.Apply` *ignores* the value `balances.Add` returns and records the **full**
+transaction amount in the ledger, and Vitality has no producer store to park refused units
+in. A Vitality cap would therefore silently discard real walking credit — the exact defect
+class this campaign exists to remove. The cap requirement is scoped to resources a producer
+can emit, and no producer emits Vitality. Recorded here rather than implemented.
+
+**The real defect, restated.** The cap/parking machinery was fully implemented, fully
+tested (`ProducerSimulationTests` proved parking and zero-elapsed flush both work), and
+**completely unreachable in production**: `SetCap` had zero call sites outside tests, so
+`GetCap` always returned `long.MaxValue`, so the `hitResourceCap` branch never fired and
+two currencies grew forever with nothing to spend them on. The `ProducerProduced` event
+also conflated "the producer's own store filled" with "the resource is at its cap"; the two
+are now separate flags, because only the second is relieved by the player spending
+something, and only the second needs telling about — otherwise "nothing happened" and
+"your output is waiting" look identical.
+
+**Consequences:**
+- **No pacing evidence was regenerated.** The change anticipated it, but sizing the
+  requirements empirically made it unnecessary. All seven reports are byte-identical,
+  which is strong evidence the mechanic was added without perturbing balance.
+- `EnsureActiveSlot` now removes the queue entry only after the affordability check, so a
+  stalled project is not silently dequeued.
+- `ProjectRow.RequirementsAffordable` and `ProducerRow.CapacityLimited` are computed from
+  canonical state at read time and are pure projections; the shell renders, the domain
+  decides.
+- The requirement is a gate the player *chooses* to satisfy. Vitality is not: a Vitality
+  shortfall is not an error, it banks until affordable. Keeping those two visibly
+  different is deliberate.
+- Content validation now requires that a requirement be satisfiable from the region's own
+  production within the 400-day design horizon, so a project cannot be authored
+  permanently unactivatable. The check uses production *rate*, not store size: parked units
+  flush repeatedly, so total deliverable is bounded by rate × horizon.
+- `ProducerSimulationTests.Tick_ResourceCapExhausted_ParksSurplus_InBoundedStore` now
+  asserts `HitResourceCap` rather than the old conflated `HitCapacity`; the parking and
+  flush assertions are unchanged.
+- `docs/RISK_REGISTER.md` R-014 and `docs/GAME_SYSTEMS.md` §3/§6 updated. No new
+  `KNOWN_ISSUES` entry: nothing open was invalidated.
+- **Still open and not claimed:** whether a cap value is the right *number* for a real
+  player is a balance judgement no headless test can settle; the seven profiles are
+  unchanged, but a cap that binds at day ~300 tells us nothing about how it feels at day
+  30. A UX pass on the capped-storage message is the M5 shell's call.

@@ -100,6 +100,14 @@ namespace WalkGame.Application.ReadModels
             /// <summary>Total units ever delivered to canonical balances.</summary>
             public long TotalProducedMilliUnits { get; }
 
+            /// <summary>Authored cap for the resource this producer emits (D-054).</summary>
+            public long ResourceCapUnits { get; }
+
+            /// <summary>True when this producer's resource is at its cap, so output is parked
+            /// rather than delivered. Lets the shell tell "capped" apart from "idle": a
+            /// capped producer has produced plenty and is holding it, not doing nothing.</summary>
+            public bool CapacityLimited { get; }
+
             public ProducerRow(
                 string producerId,
                 string titleKey,
@@ -108,7 +116,9 @@ namespace WalkGame.Application.ReadModels
                 long capacityUnits,
                 bool unlocked,
                 long storedMilliUnits,
-                long totalProducedMilliUnits)
+                long totalProducedMilliUnits,
+                long resourceCapUnits = long.MaxValue,
+                bool capacityLimited = false)
             {
                 ProducerId = producerId;
                 TitleKey = titleKey;
@@ -118,6 +128,8 @@ namespace WalkGame.Application.ReadModels
                 Unlocked = unlocked;
                 StoredMilliUnits = storedMilliUnits;
                 TotalProducedMilliUnits = totalProducedMilliUnits;
+                ResourceCapUnits = resourceCapUnits;
+                CapacityLimited = capacityLimited;
             }
         }
     }

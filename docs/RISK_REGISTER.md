@@ -387,6 +387,37 @@ The economy becomes a conventional resource-management game where players no lon
 - each currency requires unique purpose;
 - no premium-currency architecture in MVP core.
 
+**D-054 update (automated verified):** the "each currency requires unique purpose"
+mitigation was **aspirational** until this change — it was a sentence in this register with
+nothing behind it. The unmitigated form was literally in the build: Materials and Knowledge
+had **no consumer and no cap**. `ResourceBalances.SetCap` existed with zero call sites
+outside tests, so `GetCap` always returned `long.MaxValue`; nothing ever called
+`TryConsume` for either currency; and the entire "park the refused surplus and flush it
+later" mechanism — which `ProducerSimulationTests` proved worked — was unreachable dead
+code. `GAME_SYSTEMS.md` §3 listed "optional secondary-resource requirements" as a project
+schema field and `ProjectDefinition` had no such field, so project costs were Vitality-only
+and **no resource-allocation decision existed anywhere in the game**.
+
+Now: Region 1 authors **Materials 400 / Knowledge 300** caps, both of which *bind* over a
+730-day run (measured, not asserted), and two projects carry real requirements — Restore
+Market Hall 40 Materials (settlement chain) and Calibrate Survey Rig 20 Knowledge
+(research chain). The currencies now carry a decision, the cap machinery is reachable in
+production, and refused output is retained and released automatically rather than lost.
+Vitality remains dominant and is deliberately **uncapped** (capping it would silently
+discard real walking credit — see D-054).
+
+**Covered headlessly:** cap application and the over-cap-on-load invariant, all-or-nothing
+requirement consumption, the activation failure path and its stable error code, auto-advance
+stalling at an unaffordable head of queue while Vitality banks, parking and no-elapsed-time
+flush, no-waste on a full store, requirement satisfiability validation, and the read-model
+and summary projections that make the pressure explainable.
+
+**Still unmitigated / not claimed:** whether a cap is the right *number* for a real player
+is a balance judgement no headless test can settle — the seven pacing profiles are
+byte-identical, but a cap that binds around day 300 says nothing about how it feels at day
+30. Whether the new choice *improves* the activity-to-world relationship rather than adding
+a side-resource chore is a UX judgement, and is the M5 shell's call, not this repository's.
+
 ---
 
 ## R-015 — Automation removes all meaningful choice

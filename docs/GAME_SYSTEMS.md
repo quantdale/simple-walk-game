@@ -65,8 +65,7 @@ Each project should have:
 - completion state;
 - optional stages;
 - canonical world effects;
-- optional producer effects;
-- discovery/unlock effects;
+- optional producer effects;- discovery/unlock effects;
 - presentation references;
 - content version.
 
@@ -190,6 +189,50 @@ Do not add a resource merely because a conventional city-builder has one.
 - transaction reasons should be diagnosable;
 - cap behavior must be explicit;
 - failed operations may not partially consume resources.
+
+### Authored caps and secondary requirements (D-054)
+
+The schema fields above are now **real**, and the invariants above are **enforced**.
+
+**Caps are authored, never defaulted.** `RegionDefinition` carries a per-resource cap map
+applied when a new game is created. A resource that any producer in the region can emit
+**must** have an authored cap, or content validation fails — an absent cap is a content
+error, not an unbounded runtime default. Caps must be positive and representable. A loaded
+state whose balance exceeds its content cap is **reported as a validation violation, not
+clamped**: clamping on load would silently discard a player's progress and hide a content
+change that reduced a cap under a live save.
+
+**Vitality is deliberately uncapped.** Capping it would be a data-loss bug rather than a
+balance: `RewardLedger.Apply` ignores the value `balances.Add` returns and records the full
+transaction amount, and Vitality has no producer store to park refused units in. The cap
+rule is scoped to resources a producer can emit, and no producer emits Vitality.
+
+**Secondary requirements gate ACTIVATION, not queueing.** A project may declare secondary
+resource costs. They are consumed **all-or-nothing** at the moment the project becomes
+active, before any Vitality is streamed into it, so a project is never left half-funded.
+Attempting to activate an unaffordable project fails with
+`project.resource-requirement-not-met`, names the resource and the shortfall, and consumes
+nothing.
+
+A Vitality shortfall is **not** an error: Vitality banks until the project is affordable.
+A secondary-resource shortfall **is** a gate the player must choose to satisfy. Keeping
+those two visibly different is deliberate — one is patience, the other is a choice.
+
+**Auto-advance never skips an unaffordable head of queue.** When the head of the queue
+cannot be activated, auto-advance stops rather than promoting a later project, so Vitality
+keeps banking instead of being spent on something the player did not choose.
+
+**Parking and flush.** Output a cap refuses is held in the producing unit's own bounded
+pending store and released automatically into the balance as soon as space frees. The
+player is **never** required to claim production, and surplus elapsed time beyond the
+store's capacity creates no waste. A full store plus further elapsed time discards no
+fractional remainder.
+
+**Pressure must be explainable.** The read models report each producer's cap and whether it
+is `CapacityLimited`, and each project's requirement costs and whether they are
+`RequirementsAffordable`. The return summary states explicitly that parked output was not
+lost. "No production happened" and "production happened but is waiting" are different
+things and must never look the same to a player.
 
 ---
 
