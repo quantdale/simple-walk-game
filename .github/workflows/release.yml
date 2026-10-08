@@ -1,0 +1,72 @@
+name: release
+
+# Tag-triggered release lane for quantdale/simple-walk-game.
+#
+# Everything hosted here is deliberately thin: the release ARTIFACT (the CLI) is
+# published, and the release EVIDENCE package is assembled by a script that
+# reads the documents this repository already maintains. TESTING_AND_RELEASE.md
+# section 18 lists what the package must contain -- commit SHA, build/version,
+# test results, known issues by severity, privacy review, clean-clone result,
+# remaining unverified claims -- and until now assembling it was a manual act,
+# which is precisely the kind of manual step that gets skipped under release
+# pressure.
+#
+# The release gate does NOT re-run the CI body: it depends on `ci` succeeding for
+# the tagged commit, so the two can never disagree about what "green" means.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Repository identity guard (declared slug must match)
+        run: scripts/assert-repo-identity.sh
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Verify the release gate is green for this commit
+        run: |
+          # A tag on a commit whose CI never ran is not a release candidate.
+          # `gh` is preinstalled on GitHub-hosted runners.
+          SHA="${{ github.sha }}"
+          if ! gh api "repos/${{ github.repository }}/actions/runs?head_sha=${SHA}" \
+                --jq '.workflow_runs[] | select(.name == "ci") | .conclusion' \
+             | grep -q success; then
+            echo "ERROR: no successful 'ci' run for ${SHA}; a release requires a green gate" >&2
+            exit 1
+          fi
+
+      - name: Build the release artifact (version-stamped)
+        run: |
+          dotnet publish tools/simulation -c Release -o "$RUNNER_TEMP/simcli"
+          test -x "$RUNNER_TEMP/simcli/WalkGame.SimCli"
+
+      - name: Assemble the release evidence package
+        run: |
+          # The package is assembled from the repository's own maintained documents,
+          # not from prose typed at release time.
+          scripts/assemble-release-evidence.sh \
+            --output "$RUNNER_TEMP/release-evidence" \
+            --tag "${{ github.ref_name }}" \
+            --commit "${{ github.sha }}"
+
+      - name: Publish the evidence package as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-evidence
+          path: ${{ runner.temp }}/release-evidence
+          if-no-files-found: error

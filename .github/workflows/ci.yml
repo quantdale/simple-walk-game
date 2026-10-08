@@ -97,3 +97,9 @@ jobs:
 
       - name: Content-drift gate self-test (prove it can fail)
         run: scripts/verify-content-compatibility.sh --self-test
+
+      - name: Coverage floor (loss detector, not a quality target)
+        run: scripts/verify-coverage-floor.sh 55
+
+      - name: Dependency health (known advisories + runtime-surface claim)
+        run: scripts/verify-dependency-health.sh

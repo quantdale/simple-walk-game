@@ -82,6 +82,26 @@ dotnet test SimpleWalkGame.sln
 ./tests/guards/run-guard-tests.sh
 ```
 
+Because hosted CI is blocked (KI-001), the **release gate itself** is only reproducible
+locally. Reproduce it the same way CI does — every `run:` step of
+`.github/workflows/ci.yml`, in order:
+
+```bash
+scripts/verify-ci-steps.sh
+```
+
+That includes the pacing-evidence, save-growth, content-drift, coverage-floor and
+dependency-health gates. Skipping it means committing without executing the gate the
+repository claims is green; the D-049 property ("the workflow file is the single source of
+truth") only holds if somebody runs the thing that reads the workflow file.
+
+For a release candidate specifically, work from `docs/RELEASE_CHECKLIST.md` and assemble the
+evidence package rather than typing one:
+
+```bash
+scripts/assemble-release-evidence.sh --output <dir>
+```
+
 A fresh machine is **development-ready** when all applicable non-external gates pass. Hardware/device/signing/account gates may remain explicitly blocked when repository state already classifies them that way.
 
 ## 7. Fresh-agent instruction

@@ -1725,3 +1725,59 @@ only to print an age in whole days, which floors to zero — so "polled three ho
 
 **Still unverified:** the runtime/device lanes (KI-002) — a support engineer cannot yet SEE
 this projection in a shell that exists.
+
+---
+
+## D-064 — The coverage floor, the dependency gate and the release lane are gates, not aspirations
+
+**Status:** Accepted (2026-10-09) — implements OpenSpec change
+`extend-ci-and-release-automation` (F-18).
+
+**The defect was coverage, but the class is "a claim nothing enforces".**
+`coverlet.collector` was referenced by all three test projects and invoked by no command in the
+repository; there was no dependency advisory check, no SBOM/inventory, no Dependabot config, no
+tag-triggered release lane, and no tooling for the release evidence package
+(TESTING_AND_RELEASE §18), which was assembled by hand. The test suite that found two P0
+data-loss defects had no aggregate measurement behind it.
+
+**Decisions:**
+
+1. **The floor is deliberately LOW, and its value is measured, not aspirational.** The measured
+   aggregate is 59.51% (Domain 88.63%, Application 71.20%, Infrastructure 25.58% — the
+   infrastructure layer's low rate is honest and is not a target this change sets). The floor is
+   **55%**: comfortably under the measurement so tooling or instrumentation drift cannot fail the
+   gate, and far above "the suites stopped running", which is the failure this catches. A quality
+   target belongs in a reviewed change, not in a CI constant.
+2. **Every gate is a `run:` step in `ci.yml`.** That is the D-049 property that makes
+   `scripts/verify-ci-steps.sh` able to execute the whole gate locally; a gate in a script CI
+   never calls is not a gate. Both new scripts are therefore reached only from workflow steps.
+3. **The dependency gate enforces the runtime-surface CLAIM, not just the advisories.**
+   `scripts/verify-dependency-health.sh` fails when `dotnet list package --vulnerable` reports an
+   advisory AND when the shipped projects resolve anything other than exactly one third-party
+   package — because PRIVACY_REVIEW §2 documents exactly that, and a documented property nothing
+   checks is a property that drifts.
+4. **No full SBOM, and the reason is recorded.** A CycloneDX document needs a new third-party
+   tool, and this change's non-goals forbid adding dependencies for tooling's sake. The gate emits
+   the resolved inventory as machine-readable JSON instead, which is the smallest honest
+   substitute: it is a real artifact, produced on every run.
+5. **No new analyzer, declined with a reason.** The compiler plus the xUnit analyzers are
+   enforced at warnings-as-errors, the runtime surface is one first-party package whose input
+   path is a typed DTO validated on load, and adopting a full CA rule set would produce a large
+   churn of findings without new information about this codebase. Revisit if the save path grows
+   an untrusted surface.
+6. **The release lane is thin and never re-judges green.** `release.yml` is tag-triggered,
+   requires a successful `ci` run for the tagged SHA, publishes the CLI, and assembles the
+   evidence package by script. It does not re-run the CI body, so the two cannot disagree about
+   what "green" means. Dependabot gives the four test-side packages an update path.
+7. **`docs/RELEASE_CHECKLIST.md` is a committed, checkable document.** §18's package contents are
+   now rows with evidence, and the claims that cannot be established locally are rows labelled
+   UNVERIFIED with the reason — a package that quietly drops its open blockers is worse than one
+   that lists them.
+
+**Consequences:** `verify-ci-steps.sh` is now wired into ONBOARDING's baseline verification, so
+the gate runs by default rather than by recall (the KI-008 short-lived-shell hazard applies: run
+it detached for long sessions).
+
+**Still unverified:** hosted CI (KI-001) and every runtime lane (KI-002). The new workflows have
+never executed on GitHub; they are validated by executing the same step bodies locally through
+the existing reproducer.

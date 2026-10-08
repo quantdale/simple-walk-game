@@ -1,0 +1,31 @@
+# Dependabot: an automated update path for the four test-side third-party packages.
+#
+# The runtime surface is deliberately one first-party package and is enforced as a
+# property by scripts/verify-dependency-health.sh. The TEST-side packages have no
+# such constraint and previously had no update path at all, which is how a
+# repository ends up discovering an advisory by reading about it.
+#
+# Grouping keeps the diff reviewable: one grouped pull request per ecosystem
+# instead of four unrelated ones, and no auto-merge anywhere.
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+    groups:
+      xunit:
+        patterns:
+          - "xunit*"
+          - "coverlet*"
+          - "Microsoft.NET.Test.Sdk"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"

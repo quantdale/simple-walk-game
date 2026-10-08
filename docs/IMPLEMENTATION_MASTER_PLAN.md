@@ -31,7 +31,9 @@ six-week absence went from never-closing to day 376 (D-062). The pacing harness 
 FAILS on a shortfall instead of reporting one. Test count 437 → 453.
 A fourth session applied `surface-ingestion-rejection-reasons` (F-14/F-17) on 2026-10-09: the per-reason rejection breakdown is durable (keyed by enum ordinal), source health is classified from durable fetch timestamps instead of a watermark age that floored to zero, and the no-leak sweep enumerates surfaces by reflection (D-063). Test count 453 → 465.
 
-Remaining unapplied: 2 changes (F-07, F-18 — see below).
+A fifth session applied `extend-ci-and-release-automation` (F-18) on 2026-10-09: a coverage floor (measured, deliberately low, as a loss detector), a dependency gate that enforces the documented one-runtime-package claim, Dependabot, a thin tag-triggered release lane, a scripted release-evidence assembler and a committed release checklist (D-064). The two new workflows are validated by executing their step bodies locally; hosted CI remains blocked (KI-001).
+
+Remaining unapplied: 1 change (F-07 — see below).
 
 | Applied | Findings | Verdict |
 |---|---|---|
@@ -49,12 +51,12 @@ Remaining unapplied: 2 changes (F-07, F-18 — see below).
 | `define-post-completion-evergreen-state` | F-20 | **P1 fixed** (D-061, 2026-10-08) — the audited permanent alarm (`RequiresAttention` + "queue the next restoration project" with 19/19 complete and 60,650 Vitality banked) is replaced by an explicit `RegionComplete` conclusion with `RequiresAttention = false`; continued activity is consumed by the authored Evergreen Tending program, so the unspent balance is bounded by one cycle. All seven pacing reports still reproduce byte-for-byte; architecture, save-growth and guard gates green. |
 | `close-inactivity-pacing-shortfall` | F-19, F-13 | **P1 fixed** (D-062, 2026-10-09) — closure is an authored criterion (`ClosureCriterionDefinition`, validated for majority and reachability, enforced by `GameStateValidator`, reported by `profile` which now exits 2 naming unfinished chains); the M4-authored roster was rebalanced 19,400 → 15,350 Vitality with the five seed definitions verbatim; every balanced profile closes inside its documented target (inactivity: never → day 376, 6/6 chains); reports state requested AND eligible activity, which also corrects the wrong "≈686 steps/Vitality" figure. |
 
-**Not yet applied (2 changes, correctly left as specified future work):**
+**Not yet applied (1 change, correctly left as specified future work):**
 
 | Change | Findings | State |
 |---|---|---|
 | `compact-activity-and-reward-ledgers` | F-07 | Open. Growth still linear (10 KB@d7 → 395 KB@d730). |
-| `extend-ci-and-release-automation` | F-18 | Open. No coverage gate, dependency check, or release workflow yet. |
+| `extend-ci-and-release-automation` | F-18 | **P3 fixed** (D-064, 2026-10-09) — coverage floor at 55% (deliberately low; measured aggregate 59.51%), a dependency gate that fails on a known advisory AND on a runtime surface other than the documented single first-party package, Dependabot for the test-side packages, a thin tag-triggered release lane, a scripted release-evidence assembler, and a committed release checklist. The new workflows are validated by executing their step bodies locally; hosted CI remains blocked (KI-001). |
 
 **Release qualification remains blocked** by `KI-001` (hosted CI billing) and
 `KI-002` (no Unity editor) regardless of how much of this plan ships. Both are
