@@ -1,16 +1,19 @@
 [dev] started fresh game seed=42
 --- profile report: inactivity ---
 pattern steps/day: weekdays 4000/9000 alternating, weekends silent, days 100-144 entirely silent
-region completed: NO (horizon reached)
-days simulated: 400  horizon: 400
-activity ingested: 1,642,000 steps / 16,420 vitality (exactly-once pipeline)
-silent days (no record returned): 147
-foreground decisions: 16 (one queue choice per idle stop; auto-advance on)
-queue-empty days: 0
+region completed: yes on day 376
+closure criterion: met (6/6 chains)
+days simulated: 376  horizon: 400
+activity requested: 1,538,000 steps
+activity eligible: 1,538,000 steps (after bounded-quantity handling)
+effective ratio: 100.0 eligible steps/vitality (credited 15,380 vitality)
+silent days (no record returned): 139
+foreground decisions: 19 (one queue choice per idle stop; auto-advance on)
+queue-empty days: 1
 producer capped-store days: 0
-chains (vitality): trail=1400, water=2350, settlement=3700, wetland=4150, forest=5000, research=2800
-per-chain completion day: trail=30, water=80, settlement=206, wetland=296, forest=incomplete, research=incomplete
-discovery pacing: disc.old-millstone@d5, disc.lookout-fire-lens@d30, disc.intake-plate-stamp@d46, disc.reservoir-time-capsule@d61, disc.workshop-ledger@d159, disc.market-mural@d180, disc.grid-archive-map@d206, disc.sedge-first-flush@d264, disc.crane-return@d278, disc.heron-roost-boards@d296, disc.understory-orchids@d318
-expeditions: exp.source-to-sound(avail d16, done d30), exp.river-run(avail d80, done d-), exp.valley-transect(avail d-, done d-)
+chains (vitality): trail-access=1000, water-system=1750, settlement-community=2900, wetland-recovery=3450, woodland=4550, research=1700
+per-chain completion day: trail-access=22, water-system=59, settlement-community=169, wetland-recovery=242, woodland=340, research=376
+discovery pacing: disc.old-millstone@d5, disc.lookout-fire-lens@d22, disc.intake-plate-stamp@d38, disc.reservoir-time-capsule@d46, disc.workshop-ledger@d92, disc.market-mural@d152, disc.grid-archive-map@d169, disc.sedge-first-flush@d222, disc.crane-return@d232, disc.heron-roost-boards@d242, disc.understory-orchids@d254, disc.dome-star-chart@d352, disc.survey-baseline-stone@d376
+expeditions: exp.source-to-sound(avail d12, done d22), exp.river-run(avail d59, done d340), exp.valley-transect(avail d362, done d362)
 final arcs: ecology 4/4, settlement 4/4
 validator-clean: yes

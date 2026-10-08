@@ -193,6 +193,19 @@ namespace WalkGame.Application
         public int DuplicateTransactionsIgnored { get; }
         public long VitalityCredited { get; }
 
+        /// <summary>
+        /// Steps the pipeline treated as ELIGIBLE: the requested quantity after the
+        /// bounded-quantity clamp, summed over the records this batch trusted.
+        ///
+        /// The requested total and this total are different numbers whenever clamping
+        /// fires, and the difference is exactly what a reader needs to see: the clamp
+        /// discards surplus VOLUME, it does not reduce the credit rate. Reporting only the
+        /// requested total under an "activity ingested" label is how a whole documentation
+        /// section came to state a conversion rate that was off by a factor of seven
+        /// (D-062, F-13).
+        /// </summary>
+        public long EligibleSteps { get; }
+
         /// <summary>Cumulative reversals policy refused because the balance was too low.</summary>
         public long UnappliedReversalVitality { get; }
 
@@ -209,7 +222,8 @@ namespace WalkGame.Application
             int staleRevisionsIgnored, int quantityClamped, int duplicateTransactionsIgnored,
             long vitalityCredited, long unappliedReversalVitality,
             bool saved, IReadOnlyDictionary<string, int> rejectionCounts,
-            IReadOnlyList<string> summaryLines, ReturnSummaryReadModel? summary)
+            IReadOnlyList<string> summaryLines, ReturnSummaryReadModel? summary,
+            long eligibleSteps = 0L)
         {
             TotalReceived = totalReceived;
             Accepted = accepted;
@@ -222,6 +236,7 @@ namespace WalkGame.Application
             QuantityClamped = quantityClamped;
             DuplicateTransactionsIgnored = duplicateTransactionsIgnored;
             VitalityCredited = vitalityCredited;
+            EligibleSteps = eligibleSteps;
             UnappliedReversalVitality = unappliedReversalVitality;
             Saved = saved;
             RejectionCounts = rejectionCounts;
@@ -583,7 +598,7 @@ namespace WalkGame.Application
             int total = records.Count;
             int accepted = 0, rejected = 0, duplicates = 0, clamped = 0, dupTransactions = 0;
             int corrections = 0, deletionsApplied = 0, deletionsIgnored = 0, staleRevisions = 0;
-            long vitalityTotal = 0L;
+            long vitalityTotal = 0L, eligibleStepsTotal = 0L;
             DateTimeOffset maxTrustedEndUtc = game.IngestionCheckpointUtc;
 
             // Computed ONCE per batch, never per record: a per-record recomputation would
@@ -659,6 +674,7 @@ namespace WalkGame.Application
                 long eligibleSteps = ActivityValidationPolicy.ClampQuantity(record.Category, record.Quantity);
                 if (eligibleSteps != record.Quantity)
                     clamped++;
+                eligibleStepsTotal += eligibleSteps;
 
                 long vitality = StepConversionRuleV1.ConvertSteps(eligibleSteps);
 
@@ -723,7 +739,8 @@ namespace WalkGame.Application
                 clamped, dupTransactions, vitalityTotal,
                 game.ProcessedRecords.UnappliedReversalVitality,
                 saved, rejectionCounts,
-                FormatSummaryLines(game.PendingReturnSummary), SnapshotSummary(game));
+                FormatSummaryLines(game.PendingReturnSummary), SnapshotSummary(game),
+                eligibleStepsTotal);
         }
 
         /// <summary>

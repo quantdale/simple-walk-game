@@ -248,7 +248,9 @@ Streak loss, overflowing producers, expiring rewards, or world decay makes retur
 - welcoming return summary;
 - seven-/thirty-day return acceptance scenarios.
 
-**Evidence so far (automated verified):** unallocated Vitality banks indefinitely while queues are empty or automation is off; producer overflow is no-waste bounded parking (D-032); the return summary is durable, welcoming, priority-ordered and survives restarts without nagging (D-033). Long-absence production bounds are explicitly tested; M8-H1 adds a 4,000-day absence test and measured 400-day-absence simulation completing Region 1 cleanly (`TemporalAnomalyTests`, `docs/evidence/m8-h1/LONG_HORIZON.md`). Seven-/thirty-day UX scenarios remain open until presentation exists.
+**Evidence so far (automated verified):** unallocated Vitality banks indefinitely while queues are empty or automation is off; producer overflow is no-waste bounded parking (D-032); the return summary is durable, welcoming, priority-ordered and survives restarts without nagging (D-033). Long-absence production bounds are explicitly tested; M8-H1 adds a 4,000-day absence test and measured 400-day-absence simulation completing Region 1 cleanly (`TemporalAnomalyTests`, `docs/evidence/m8-h1/LONG_HORIZON.md`).
+
+**Evidence so far (2026-10-09, D-062):** the intermittent-engagement shape this risk names is closed headlessly. A weekday-only player with a six-week absence reaches closure on day 376 with all six restoration chains complete, every authored project finished, both arcs final and a valid durable state — measured through the real trust pipeline and pinned by `RegionPacingContractTests`. Seven-/thirty-day UX scenarios remain open until presentation exists (KI-002).
 
 ---
 
@@ -387,6 +389,23 @@ Simulate:
 Balance against distributions, not one daily step target.
 
 **Status update (2026-09-29, D-046):** all seven profiles named by GAME_SYSTEMS §13 are now executable with committed, SHA-256-reproducible evidence under `docs/evidence/m4/`. The `pathological` profile shows the D-030 clamp reducing effective credit to ≈686 steps/Vitality against the nominal 100. The `inactivity` profile exposes a genuine balance finding: a player who walks only on weekdays and takes a six-week break restores both region arcs to 4/4 but **cannot finish the forest or research chains within 400 days** — the exact quitting-spiral shape this risk describes. Status remains **Open** until that shortfall is a deliberate balance decision, not a silent re-tune.
+
+**Status update (2026-10-09, D-062):** the balance half of this risk is discharged. The
+M4-authored roster was rebalanced 19,400 → 15,350 Vitality with the original seed definitions
+preserved verbatim, closure became an authored criterion, and every profile the region is
+balanced against now closes inside its documented target — including the weekday-only profile
+with a six-week absence (day 376, all six chains complete). The pacing harness now FAILS on a
+shortfall instead of reporting one, so an unfinishable profile can no longer be committed as
+evidence. Two things stay OPEN and are named rather than hidden: the `low` profile (3,000
+steps/day sustained) remains a documented long tail by explicit exemption, and whether the
+rebalanced curve FEELS right for engaged players is a product judgement the measurements
+cannot settle.
+
+**Correction recorded (2026-10-09, D-062 / F-13):** the "≈686 steps/Vitality" figure stated
+here for the `pathological` profile was wrong. Recomputed from the committed evidence: 3,184,633
+requested steps, 2,184,633 eligible after the clamp, 21,844 Vitality credited — **100.0 eligible
+steps per Vitality**, exactly the documented rate. The clamp discards surplus volume, not
+credit.
 
 ---
 

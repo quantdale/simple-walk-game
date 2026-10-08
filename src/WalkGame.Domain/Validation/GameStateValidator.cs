@@ -62,7 +62,17 @@ namespace WalkGame.Domain.Validation
                 }
 
                 if (runtime.VitalityInvested < 0L || runtime.VitalityInvested > definition.VitalityCost)
-                    violations.Add($"Project '{definition.Id}' invested vitality out of bounds: {runtime.VitalityInvested}/{definition.VitalityCost}.");
+                {
+                    // A project funded under a HIGHER authored cost (D-062: the v2 → v3
+                    // rebalance) is legacy over-funding, and it is only sound for a COMPLETED
+                    // project: an incomplete project holding more than its cost would be
+                    // unspendable, while a completed one is simply a record of what the
+                    // restoration actually cost that player. Refusing the state here would
+                    // fail a mature profile closed on the very definitions it was earned
+                    // against — the data-loss shape this validator exists to prevent.
+                    if (runtime.Status != ProjectStatus.Completed || runtime.VitalityInvested <= definition.VitalityCost)
+                        violations.Add($"Project '{definition.Id}' invested vitality out of bounds: {runtime.VitalityInvested}/{definition.VitalityCost}.");
+                }
 
                 if (runtime.Status == ProjectStatus.Completed && runtime.CompletedAtUtc == null)
                     violations.Add($"Completed project '{definition.Id}' has no completion timestamp.");
@@ -259,6 +269,28 @@ namespace WalkGame.Domain.Validation
             else if (state.Region.RegionCompletedAtUtc != null)
             {
                 violations.Add("Region has a completion timestamp but is not marked completed.");
+            }
+
+            // Closure must satisfy the AUTHORED criterion, whichever route produced it
+            // (D-062). A completion that no route explains is corruption, and it is exactly the
+            // kind of flag that would otherwise silently redefine the ending's meaning.
+            if (state.Region.IsCompleted)
+            {
+                var criterion = content.ClosureCriterion;
+                if (criterion != null && !content.MeetsClosureCriterion(state.Region))
+                {
+                    violations.Add(
+                        "Region is marked completed but its authored closure criterion is not satisfied: milestone '"
+                        + criterion.MilestoneProjectId + "' is incomplete and "
+                        + content.ChainsComplete(state.Region) + " of " + content.Chains.Count
+                        + " chains are complete against a requirement of " + criterion.MinimumChainsComplete + ".");
+                }
+                else if (criterion == null && !content.MeetsClosureCriterion(state.Region))
+                {
+                    violations.Add(
+                        "Region is marked completed but its closure milestone project '"
+                        + (content.CompletionMilestoneProjectId ?? "(none authored)") + "' is not completed.");
+                }
             }
 
             // Post-completion program progress (D-061). The state is additive and derived from

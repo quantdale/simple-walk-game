@@ -480,20 +480,38 @@ namespace WalkGame.Domain.Simulation
             return true;
         }
 
-        /// <summary>Detects the closure milestone exactly once; post-completion state never resets.</summary>
+        /// <summary>
+        /// Detects the closure criterion exactly once; post-completion state never resets.
+        ///
+        /// The primary route is the authored closure milestone. The alternative route is a
+        /// strong majority of the authored chains (D-062) — the remedy for a player whose
+        /// activity cannot fund the whole roster, who previously reached the horizon with two
+        /// chains permanently out of reach.
+        /// </summary>
         private static void EvaluateRegionCompletion(GameState game, RegionDefinition content, DateTimeOffset nowUtc, List<SimulationEvent> events)
         {
-            string? milestoneId = content.CompletionMilestoneProjectId;
-            if (string.IsNullOrEmpty(milestoneId) || game.Region.IsCompleted)
+            if (game.Region.IsCompleted)
+                return;
+            if (!content.MeetsClosureCriterion(game.Region))
                 return;
 
-            var milestone = game.Region.FindProject(milestoneId);
-            if (milestone == null || milestone.Status != ProjectStatus.Completed)
-                return;
+            string milestoneId = content.ClosureCriterion?.MilestoneProjectId
+                ?? content.CompletionMilestoneProjectId
+                ?? string.Empty;
+
+            // Record WHICH route closed the region: the milestone restores the whole roster,
+            // the majority-of-chains route leaves at most one chain as optional depth.
+            bool alternative = false;
+            var criterion = content.ClosureCriterion;
+            if (criterion != null && content.HasAlternativeClosureRoute)
+            {
+                var milestone = game.Region.FindProject(criterion.MilestoneProjectId);
+                alternative = milestone == null || milestone.Status != ProjectStatus.Completed;
+            }
 
             game.Region.IsCompleted = true;
             game.Region.RegionCompletedAtUtc = nowUtc;
-            events.Add(new RegionCompleted(nowUtc, milestoneId));
+            events.Add(new RegionCompleted(nowUtc, milestoneId, alternative));
         }
 
         /// <summary>Promotes Locked projects whose prerequisites are all Completed.</summary>

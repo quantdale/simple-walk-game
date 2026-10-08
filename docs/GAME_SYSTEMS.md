@@ -445,6 +445,31 @@ Before balancing content manually, the project should include deterministic simu
 
 Balance should be evaluated across weeks of simulated play.
 
+> **Implemented (D-062, automated verified):** the seven §13 profiles run through the real trust
+> pipeline via `tools/simulation profile` with committed, byte-reproducible reports under
+> `docs/evidence/m4/`. Closure is an AUTHORED CRITERION — the Complete Valley Survey milestone,
+> whose prerequisite closure spans the six authored restoration chains — not an implicit
+> resource total, and the harness reports closure against it. Each profile carries a documented
+> target, and a profile that must close and does not FAILS the run (exit 2, naming the
+> unfinished chains) so an unfinishable profile can no longer be committed as acceptable
+> evidence.
+>
+> | profile | closure | documented target |
+> |---|---:|---|
+> | high | day 77 | ≤120 |
+> | moderate | day 192 | ≤300 |
+> | irregular | day 109 | ≤250 |
+> | weekend-heavy | day 158 | ≤300 |
+> | pathological | day 22 | ≤400 |
+> | inactivity | day 376 | ≤400 |
+> | low | exempt | documented long tail |
+>
+> Every report states the activity the source REQUESTED and the activity that was ELIGIBLE after
+> bounded-quantity handling, plus the achieved effective ratio, because those are different
+> numbers whenever the clamp fires and conflating them produced a conversion-rate figure that
+> was wrong by roughly a factor of seven. The `low` exemption is an explicit recorded decision
+> (D-039 re-affirmed in D-062), not a silent pass.
+
 ---
 
 ## 14. Randomness policy

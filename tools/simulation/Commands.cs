@@ -8,6 +8,7 @@ using System.Text.Json.Nodes;
 using WalkGame.Application;
 using WalkGame.Application.Content;
 using WalkGame.Application.Development;
+using WalkGame.Application.Pacing;
 using WalkGame.Application.Persistence;
 using WalkGame.Application.ReadModels;
 using WalkGame.Domain;
@@ -237,7 +238,7 @@ internal static class Cli
         var expeditionCompletedDay = new Dictionary<string, int>();
         int decisions = 0, queueEmptyDays = 0, cappedProducerDays = 0;
         int silentDays = 0;
-        long totalSteps = 0, vitalityCredited = 0;
+        long totalSteps = 0, eligibleStepsTotal = 0, vitalityCredited = 0;
         int day = 0;
         bool completed = false;
 
@@ -259,6 +260,7 @@ internal static class Cli
             {
                 var ingest = dailySession.IngestFromSource(new SyntheticWalkingSource(steps), windowStart, windowEnd);
                 totalSteps += steps;
+                eligibleStepsTotal += ingest.EligibleSteps;
                 vitalityCredited += Math.Max(0L, ingest.VitalityCredited);
             }
             else
@@ -306,32 +308,47 @@ internal static class Cli
             ? new List<string> { "save could not be decoded" }
             : GameStateValidator.Validate(finalState, content);
 
-        string closureId = content.CompletionMilestoneProjectId ?? string.Empty;
+        string closureId = content.ClosureCriterion?.MilestoneProjectId ?? content.CompletionMilestoneProjectId ?? string.Empty;
+        bool criterionMet = finalState != null && content.MeetsClosureCriterion(finalState.Region);
+        int chainsComplete = finalState != null ? content.ChainsComplete(finalState.Region) : 0;
         Console.WriteLine($"--- profile report: {profileName} ---");
         if (pacing.PositionalPattern != null)
             Console.WriteLine($"pattern steps/day: {string.Join(",", pacing.PositionalPattern)}");
         else
             Console.WriteLine($"pattern steps/day: {pacing.Description}");
+
+        // Closure is reported against the AUTHORED CRITERION, never inferred from a resource
+        // total (D-062).
         Console.WriteLine($"region completed: {(completed ? "yes" : "NO (horizon reached)")}" +
             (projectCompletionDay.TryGetValue(closureId, out int closureDay) ? $" on day {closureDay}" : string.Empty));
+        Console.WriteLine($"closure criterion: {(criterionMet ? "met" : "NOT MET")} ({chainsComplete}/{content.Chains.Count} chains)");
         Console.WriteLine($"days simulated: {day}  horizon: {horizon}");
-        Console.WriteLine($"activity ingested: {totalSteps:N0} steps / {vitalityCredited:N0} vitality (exactly-once pipeline)");
+
+        // Requested and eligible activity are DIFFERENT numbers whenever bounded-quantity
+        // handling fires, and the ratio must be derivable from the two figures printed here.
+        // The previous single "activity ingested" line carried the pre-clamp total, which is
+        // how a documentation section came to state a conversion rate roughly seven times the
+        // real one (D-062 / F-13).
+        Console.WriteLine($"activity requested: {totalSteps:N0} steps");
+        Console.WriteLine($"activity eligible: {eligibleStepsTotal:N0} steps (after bounded-quantity handling)");
+        Console.WriteLine($"effective ratio: {RatioText(eligibleStepsTotal, vitalityCredited)} eligible steps/vitality (credited {vitalityCredited:N0} vitality)");
         if (pacing.AllowsSilentDays)
             Console.WriteLine($"silent days (no record returned): {silentDays}");
         Console.WriteLine($"foreground decisions: {decisions} (one queue choice per idle stop; auto-advance on)");
         Console.WriteLine($"queue-empty days: {queueEmptyDays}");
         Console.WriteLine($"producer capped-store days: {cappedProducerDays}");
-        Console.WriteLine("chains (vitality): " + string.Join(", ", ChainVitality(content).Select(kv => kv.Key + "=" + kv.Value)));
-        Console.WriteLine("per-chain completion day: " + string.Join(", ", ChainVitality(content).Select(kv =>
+        Console.WriteLine("chains (vitality): " + string.Join(", ", content.Chains.Select(c =>
+            ChainLabel(c.Id) + "=" + c.ProjectIds.Sum(id => content.FindProject(id)?.VitalityCost ?? 0L))));
+        Console.WriteLine("per-chain completion day: " + string.Join(", ", content.Chains.Select(c =>
         {
             int last = 0;
             bool all = true;
-            foreach (var memberId in ChainMembers(kv.Key))
+            foreach (var memberId in c.ProjectIds)
             {
                 if (!projectCompletionDay.TryGetValue(memberId, out int memberDay)) { all = false; break; }
                 last = Math.Max(last, memberDay);
             }
-            return kv.Key + "=" + (all ? last.ToString() : "incomplete");
+            return ChainLabel(c.Id) + "=" + (all ? last.ToString() : "incomplete");
         })));
         Console.WriteLine("discovery pacing: " + string.Join(", ", discoveryDay.OrderBy(kv => kv.Value).ThenBy(kv => kv.Key, StringComparer.Ordinal).Select(kv => kv.Key + "@d" + kv.Value)));
         Console.WriteLine("expeditions: " + string.Join(", ", content.Expeditions.Select(e =>
@@ -345,8 +362,21 @@ internal static class Cli
             Console.WriteLine($"final arcs: ecology {finalState.Region.EcologyStage}/{content.EcologyProgression.Stages.Count}, settlement {finalState.Region.SettlementStage}/{content.SettlementProgression.Stages.Count}");
         Console.WriteLine("validator-clean: " + (violations.Count == 0 ? "yes" : "NO — " + string.Join("; ", violations)));
 
+        // A profile that must close and did not is a BALANCE FAILURE, not a report line. The
+        // shortfall sat open for a whole milestone precisely because the harness reported it
+        // and then exited 0 (D-062).
+        if (PacingContract.IsBalanceDefect(profileName, completed, day, horizon))
+        {
+            Console.WriteLine(
+                $"BALANCE DEFECT: profile '{profileName}' did not close within its documented horizon; "
+                + "incomplete chains: "
+                + PacingContract.IncompleteChainLabels(content, projectCompletionDay));
+            return 2;
+        }
+
         return violations.Count == 0 ? 0 : 2;
     }
+
 
     /// <summary>
     /// M8-H1 long-horizon harness (campaign workstream F/H): drives Region 1 through
@@ -548,28 +578,15 @@ internal static class Cli
             target[key] = day;
     }
 
-    private static string[] ChainMembers(string chain) => chain switch
-    {
-        "trail" => new[] { "proj.clear-trailhead", "proj.rebuild-trail-bridges", "proj.open-lookout" },
-        "water" => new[] { "proj.river-intake", "proj.clear-reservoir", "proj.lay-water-lines" },
-        "settlement" => new[] { "proj.build-workshop", "proj.restore-market-hall", "proj.wire-settlement-power" },
-        "wetland" => new[] { "proj.wetland-drainage", "proj.replant-native-sedges", "proj.build-nesting-islets", "proj.wetland-boardwalk" },
-        "forest" => new[] { "proj.clear-fallen-timber", "proj.plant-woodland-understory", "proj.canopy-walkway" },
-        "research" => new[] { "proj.refit-observatory-dome", "proj.calibrate-survey-rig", "proj.complete-valley-survey" },
-        _ => Array.Empty<string>(),
-    };
+    /// <summary>Chain label for reports: "chain.trail-access" prints as "trail-access".</summary>
+    private static string ChainLabel(string chainId) => PacingContract.Label(chainId);
 
-    private static List<KeyValuePair<string, long>> ChainVitality(WalkGame.Domain.Regions.RegionDefinition content)
+    /// <summary>Effective eligible-steps-per-vitality, or "n/a" when nothing was credited.</summary>
+    private static string RatioText(long eligibleSteps, long vitalityCredited)
     {
-        var rows = new List<KeyValuePair<string, long>>();
-        foreach (var chain in new[] { "trail", "water", "settlement", "wetland", "forest", "research" })
-        {
-            long sum = 0L;
-            foreach (var memberId in ChainMembers(chain))
-                sum += content.FindProject(memberId)?.VitalityCost ?? 0L;
-            rows.Add(new KeyValuePair<string, long>(chain, sum));
-        }
-        return rows;
+        if (vitalityCredited <= 0L)
+            return "n/a";
+        return (eligibleSteps / (double)vitalityCredited).ToString("0.0");
     }
 
     /// <summary>Acknowledges (dismisses) the pending return summary; idempotent.</summary>

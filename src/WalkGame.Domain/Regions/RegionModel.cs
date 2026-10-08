@@ -278,6 +278,87 @@ namespace WalkGame.Domain.Regions
         public string? CompletionMilestoneProjectId { get; }
 
         /// <summary>
+        /// Authored restoration chains (D-062): the named groups of projects that progress
+        /// together. One grouping shared by the closure criterion, the pacing harnesses and
+        /// the region surface — the CLI used to carry its own copy of this table.
+        /// </summary>
+        public IReadOnlyList<RestorationChainDefinition> Chains { get; }
+
+        /// <summary>
+        /// What "the region is finished" MEANS (D-062): the authored closure criterion, or null
+        /// for a region whose closure is not yet defined. Closure was previously defined
+        /// implicitly by the roster's total Vitality cost, which made the ending brittle
+        /// against any change to costs, conversion or content — the shape that left a
+        /// weekday-only player permanently short.
+        /// </summary>
+        public ClosureCriterionDefinition? ClosureCriterion { get; }
+
+        /// <summary>
+        /// True when the authored closure criterion offers a genuine alternative to the
+        /// closure milestone. A criterion requiring every chain is the milestone route.
+        /// </summary>
+        public bool HasAlternativeClosureRoute =>
+            ClosureCriterion != null
+            && ClosureCriterion.MinimumChainsComplete < Chains.Count;
+
+        /// <summary>
+        /// Chains that are complete in this state, or null when the region authors no chains.
+        /// </summary>
+        public int ChainsComplete(RegionState state)
+        {
+            if (Chains.Count == 0)
+                return 0;
+            int complete = 0;
+            foreach (var chain in Chains)
+                if (IsChainComplete(state, chain))
+                    complete++;
+            return complete;
+        }
+
+        /// <summary>True when every project in the chain is completed.</summary>
+        public static bool IsChainComplete(RegionState state, RestorationChainDefinition chain)
+        {
+            foreach (var projectId in chain.ProjectIds)
+            {
+                var project = state.FindProject(projectId);
+                if (project == null || project.Status != WalkGame.Domain.Projects.ProjectStatus.Completed)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// True when the state satisfies the region's closure rule. Deriving this from authored
+        /// content — rather than from a resource total — is the whole point: the ending is a
+        /// property of the product, not of the roster's arithmetic.
+        ///
+        /// A region that authors no criterion falls back to its closure milestone project, so
+        /// content written before the criterion existed keeps its exact meaning.
+        /// </summary>
+        public bool MeetsClosureCriterion(RegionState state)
+        {
+            var criterion = ClosureCriterion;
+            if (criterion == null)
+            {
+                string? legacyMilestone = CompletionMilestoneProjectId;
+                if (string.IsNullOrEmpty(legacyMilestone))
+                    return false;
+                var legacy = state.FindProject(legacyMilestone);
+                return legacy != null && legacy.Status == WalkGame.Domain.Projects.ProjectStatus.Completed;
+            }
+
+            if (Chains.Count == 0)
+                return false;
+
+            var milestone = state.FindProject(criterion.MilestoneProjectId);
+            if (milestone != null && milestone.Status == WalkGame.Domain.Projects.ProjectStatus.Completed)
+                return true;
+
+            return HasAlternativeClosureRoute && ChainsComplete(state) >= criterion.MinimumChainsComplete;
+        }
+
+
+        /// <summary>
         /// Authored per-resource storage caps, in whole units (D-054). Every resource a
         /// producer in this region can emit MUST appear here with a positive, representable
         /// cap; a missing cap is a content-validation failure rather than an unbounded
@@ -346,7 +427,9 @@ namespace WalkGame.Domain.Regions
             string? completionMilestoneProjectId = null,
             IEnumerable<KeyValuePair<Economy.ResourceType, long>>? resourceCaps = null,
             IEnumerable<ContentTombstone>? tombstones = null,
-            IEnumerable<PostCompletionProgramDefinition>? postCompletionPrograms = null)
+            IEnumerable<PostCompletionProgramDefinition>? postCompletionPrograms = null,
+            IEnumerable<RestorationChainDefinition>? chains = null,
+            ClosureCriterionDefinition? closureCriterion = null)
         {
             if (!id.IsValid)
                 throw new ArgumentException("Region definition requires a valid ID.", nameof(id));
@@ -417,6 +500,19 @@ namespace WalkGame.Domain.Regions
             _postCompletionProgramIds = new HashSet<string>(StringComparer.Ordinal);
             foreach (var program in PostCompletionPrograms)
                 _postCompletionProgramIds.Add(program.Id);
+
+            var chainList = new List<RestorationChainDefinition>();
+            if (chains != null)
+            {
+                foreach (var chain in chains)
+                {
+                    if (chain == null)
+                        throw new ArgumentException("A restoration chain entry is null.", nameof(chains));
+                    chainList.Add(chain);
+                }
+            }
+            Chains = chainList.AsReadOnly();
+            ClosureCriterion = closureCriterion;
         }
 
         public ProjectDefinition? FindProject(string projectId)

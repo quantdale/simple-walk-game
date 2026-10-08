@@ -15,22 +15,27 @@ using RegionId = WalkGame.Domain.Common.Id<WalkGame.Domain.Common.RegionIdKind>;
 namespace WalkGame.Application.Content
 {
     /// <summary>
-     /// Region 1 — Millbrook Valley: the authored M4 content contract (content version 2,
-     /// D-036). Six interdependent restoration chains, six landmarks, three bounded
-     /// producers, thirteen provenance-bearing discoveries, three deterministic expedition
-     /// routes, region-level ecology/settlement arcs, the Complete Valley Survey closure
-     /// milestone with a stable post-completion evergreen state, and the authored
-     /// post-completion program that gives continued activity a use (D-061).
+    /// Region 1 — Millbrook Valley: the authored M4 content contract.
     ///
-    /// The original M1/M3 development-seed definitions (projects, their costs and
-    /// prerequisites, landmark stage triggers and the workshop salvage producer) are
-    /// preserved verbatim: durable saves and the M3 acceptance proof depend on them.
+    /// Content version 3 (D-062): the M4-authored costs were rebalanced to close the measured
+    /// weekday-only shortfall, and closure is now authored as a criterion rather than inferred
+    /// from the roster's total cost. The five original M1/M3 development-seed definitions are
+    /// still preserved VERBATIM (their costs, prerequisites, the landmark stage triggers and
+    /// the workshop salvage producer) — the rebalance found its lever entirely in the
+    /// M4-authored projects. Content version 2 remains readable: a save recorded against it
+    /// classifies as CompatibleOlder (D-059) and keeps its whole history.
+    ///
+    /// Six interdependent restoration chains, six landmarks, three bounded producers,
+    /// thirteen provenance-bearing discoveries, three deterministic expedition routes,
+    /// region-level ecology/settlement arcs, the Complete Valley Survey closure criterion,
+    /// the authored post-completion program that gives continued activity a use (D-061), and
+    /// the six named restoration chains the criterion is measured against (D-062).
     /// Presentation binds to canonical state through the keys below plus the documented
     /// bindings in docs/WORLD_AND_CONTENT.md §12; no Unity assets are defined here.
     /// </summary>
     public static class Region1Catalog
     {
-        public const int AuthoredContentVersion = 2;
+        public const int AuthoredContentVersion = 3;
 
         /// <summary>
         /// Authored per-resource storage caps for Region 1, in whole units (D-054).
@@ -107,6 +112,14 @@ namespace WalkGame.Application.Content
         // ---- Post-completion content (D-061) ----
         private const string EvergreenTending = "care.evergreen-tending";
 
+        // ---- Restoration chains (D-062) ----
+        private const string TrailChain = "chain.trail-access";
+        private const string WaterChain = "chain.water-system";
+        private const string SettlementChain = "chain.settlement-community";
+        private const string WetlandChain = "chain.wetland-recovery";
+        private const string ForestChain = "chain.woodland";
+        private const string ResearchChain = "chain.research";
+
         public static RegionDefinition Create() => CachedInstance;
 
         /// <summary>
@@ -148,10 +161,10 @@ namespace WalkGame.Application.Content
                 // Trail access
                 new ProjectDefinition(new ProjectId(ClearTrailHead), "Clear the old trailhead", 300L,
                     descriptionKey: "Cut back overgrowth and clear debris so the valley can be entered safely."),
-                new ProjectDefinition(new ProjectId(RebuildTrailBridges), "Rebuild the trail bridges", 450L,
+                new ProjectDefinition(new ProjectId(RebuildTrailBridges), "Rebuild the trail bridges", 300L,
                     prerequisites: new[] { new ProjectId(ClearTrailHead) },
                     descriptionKey: "Replace collapsed crossings so the high routes are passable again."),
-                new ProjectDefinition(new ProjectId(OpenLookout), "Open the ridge lookout", 650L,
+                new ProjectDefinition(new ProjectId(OpenLookout), "Open the ridge lookout", 400L,
                     prerequisites: new[] { new ProjectId(RebuildTrailBridges) },
                     descriptionKey: "Clear and secure the fire lookout above the treeline."),
 
@@ -159,10 +172,10 @@ namespace WalkGame.Application.Content
                 new ProjectDefinition(new ProjectId(RiverIntake), "Restore the river intake", 800L,
                     prerequisites: new[] { new ProjectId(ClearTrailHead) },
                     descriptionKey: "Free the intake works and get clean water moving again."),
-                new ProjectDefinition(new ProjectId(ClearReservoir), "Clear the old reservoir", 700L,
+                new ProjectDefinition(new ProjectId(ClearReservoir), "Clear the old reservoir", 400L,
                     prerequisites: new[] { new ProjectId(RiverIntake) },
                     descriptionKey: "Dredge silt and repair the reservoir basin."),
-                new ProjectDefinition(new ProjectId(LayWaterLines), "Lay water lines to the hub", 850L,
+                new ProjectDefinition(new ProjectId(LayWaterLines), "Lay water lines to the hub", 550L,
                     prerequisites: new[] { new ProjectId(ClearReservoir) },
                     descriptionKey: "Run piping from the reservoir down to the settlement hub."),
 
@@ -170,7 +183,7 @@ namespace WalkGame.Application.Content
                 new ProjectDefinition(new ProjectId(BuildWorkshop), "Rebuild the settlement workshop", 1500L,
                     prerequisites: new[] { new ProjectId(RiverIntake) },
                     descriptionKey: "Roof, bench and tool the workshop that the valley builds with."),
-                new ProjectDefinition(new ProjectId(RestoreMarketHall), "Restore the market hall", 950L,
+                new ProjectDefinition(new ProjectId(RestoreMarketHall), "Restore the market hall", 650L,
                     prerequisites: new[] { new ProjectId(BuildWorkshop) },
                     descriptionKey: "Raise the market hall where the community trades and gathers.",
                     // D-054: first secondary-resource requirement. Materials come from the
@@ -181,7 +194,7 @@ namespace WalkGame.Application.Content
                     // committed pacing profiles byte-identical (60 pushed the settlement
                     // chain out by up to 6 days on the pathological profile). See D-054.
                     resourceCosts: new[] { Cost(ResourceType.Materials, 40L) }),
-                new ProjectDefinition(new ProjectId(WireSettlementPower), "Wire settlement power", 1250L,
+                new ProjectDefinition(new ProjectId(WireSettlementPower), "Wire settlement power", 750L,
                     prerequisites: new[] { new ProjectId(RestoreMarketHall), new ProjectId(LayWaterLines) },
                     descriptionKey: "Run the mill race generator and light the streets warm."),
 
@@ -189,21 +202,21 @@ namespace WalkGame.Application.Content
                 new ProjectDefinition(new ProjectId(WetlandDrainage), "Drain and replant the east wetland", 2200L,
                     prerequisites: new[] { new ProjectId(RiverIntake) },
                     descriptionKey: "Undo the failed drainage scheme and let the marsh breathe."),
-                new ProjectDefinition(new ProjectId(ReplantNativeSedges), "Replant native sedges", 500L,
+                new ProjectDefinition(new ProjectId(ReplantNativeSedges), "Replant native sedges", 300L,
                     prerequisites: new[] { new ProjectId(WetlandDrainage) },
                     descriptionKey: "Reinforce the banks with native sedge beds."),
-                new ProjectDefinition(new ProjectId(BuildNestingIslets), "Build crane nesting islets", 650L,
+                new ProjectDefinition(new ProjectId(BuildNestingIslets), "Build crane nesting islets", 400L,
                     prerequisites: new[] { new ProjectId(ReplantNativeSedges) },
                     descriptionKey: "Anchor safe nesting islands for returning cranes."),
-                new ProjectDefinition(new ProjectId(WetlandBoardwalk), "Raise the wetland boardwalk", 800L,
+                new ProjectDefinition(new ProjectId(WetlandBoardwalk), "Raise the wetland boardwalk", 550L,
                     prerequisites: new[] { new ProjectId(WetlandDrainage), new ProjectId(RebuildTrailBridges) },
                     descriptionKey: "Span the reeds with a quiet boardwalk route."),
 
                 // Woodland
-                new ProjectDefinition(new ProjectId(ClearFallenTimber), "Clear the fallen timber", 400L,
+                new ProjectDefinition(new ProjectId(ClearFallenTimber), "Clear the fallen timber", 200L,
                     prerequisites: new[] { new ProjectId(ClearTrailHead) },
                     descriptionKey: "Open the storm-felled grove paths and make the wood safe."),
-                new ProjectDefinition(new ProjectId(PlantWoodlandUnderstory), "Plant the woodland understory", 600L,
+                new ProjectDefinition(new ProjectId(PlantWoodlandUnderstory), "Plant the woodland understory", 350L,
                     prerequisites: new[] { new ProjectId(ClearFallenTimber) },
                     descriptionKey: "Reintroduce ferns, shrubs and young hardwoods beneath the canopy."),
 
@@ -213,10 +226,10 @@ namespace WalkGame.Application.Content
                     descriptionKey: "Bridge the grove crowns with the valley's signature walkway."),
 
                 // Research
-                new ProjectDefinition(new ProjectId(RefitObservatoryDome), "Refit the observatory dome", 900L,
+                new ProjectDefinition(new ProjectId(RefitObservatoryDome), "Refit the observatory dome", 550L,
                     prerequisites: new[] { new ProjectId(OpenLookout) },
                     descriptionKey: "Regear the dome and mount the survey telescope."),
-                new ProjectDefinition(new ProjectId(CalibrateSurveyRig), "Calibrate the survey rig", 700L,
+                new ProjectDefinition(new ProjectId(CalibrateSurveyRig), "Calibrate the survey rig", 500L,
                     prerequisites: new[] { new ProjectId(RefitObservatoryDome), new ProjectId(BuildWorkshop) },
                     descriptionKey: "Align instruments and benches for a full valley survey.",
                     // D-054: second secondary-resource requirement, on a DIFFERENT chain
@@ -228,7 +241,7 @@ namespace WalkGame.Application.Content
                     // largest value that leaves all seven committed pacing profiles
                     // byte-identical (40 pushed the research chain out by up to 9 days).
                     resourceCosts: new[] { Cost(ResourceType.Knowledge, 20L) }),
-                new ProjectDefinition(new ProjectId(CompleteValleySurvey), "Complete the valley survey", 1200L,
+                new ProjectDefinition(new ProjectId(CompleteValleySurvey), "Complete the valley survey", 650L,
                     prerequisites: new[] { new ProjectId(CalibrateSurveyRig), new ProjectId(WetlandBoardwalk), new ProjectId(PlantWoodlandUnderstory) },
                     descriptionKey: "Map every recovered mile: the act that closes Region 1's restoration."),
             };
@@ -402,6 +415,42 @@ namespace WalkGame.Application.Content
                     descriptionKey: "Keep the restored valley flourishing: every completed tending cycle is one more season the cranes, the water and the woodlane hold."),
             };
 
+            // ---- Restoration chains and the closure criterion (D-062) ----
+            var chains = new List<RestorationChainDefinition>
+            {
+                new RestorationChainDefinition(TrailChain, "Trail Access",
+                    new[] { ClearTrailHead, RebuildTrailBridges, OpenLookout }),
+                new RestorationChainDefinition(WaterChain, "Water System",
+                    new[] { RiverIntake, ClearReservoir, LayWaterLines }),
+                new RestorationChainDefinition(SettlementChain, "Settlement Community",
+                    new[] { BuildWorkshop, RestoreMarketHall, WireSettlementPower }),
+                new RestorationChainDefinition(WetlandChain, "Wetland Recovery",
+                    new[] { WetlandDrainage, ReplantNativeSedges, BuildNestingIslets, WetlandBoardwalk }),
+                new RestorationChainDefinition(ForestChain, "Woodland",
+                    new[] { ClearFallenTimber, PlantWoodlandUnderstory, CanopyWalkway }),
+                new RestorationChainDefinition(ResearchChain, "Research",
+                    new[] { RefitObservatoryDome, CalibrateSurveyRig, CompleteValleySurvey }),
+            };
+
+            // Closure is authored as a criterion, not inferred from the roster's total cost.
+            //
+            // The criterion requires the whole valley: the survey milestone is the primary
+            // route, and its prerequisite closure spans all six chains, so the authored minimum
+            // is all six of them. A WEAKER alternative (five of six, or four of six) was
+            // authored, measured, and rejected: with the five-seed definitions frozen and the
+            // conversion rate fixed, a weekday-only player can fund the whole rebalanced
+            // roster, and a five-chain route closes the region BEFORE the survey for players
+            // who can afford it — the ending the contract is written about, skipped.
+            //
+            // Measured at the time of authoring (see docs/DECISIONS.md D-062): the
+            // weekday-only profile completes the sixth chain the same week the fifth one lands,
+            // so the weaker route buys nothing and costs the survey.
+            var closureCriterion = new ClosureCriterionDefinition(
+                CompleteValleySurvey,
+                minimumChainsComplete: chains.Count,
+                "Complete the valley survey",
+                descriptionKey: "Map every recovered mile: the act that closes Region 1's restoration.");
+
             return new RegionDefinition(
                 new RegionId("region.millbrook-valley"),
                 "Millbrook Valley",
@@ -415,7 +464,9 @@ namespace WalkGame.Application.Content
                 settlementProgression: settlementArc,
                 completionMilestoneProjectId: CompleteValleySurvey,
                 resourceCaps: AuthoredResourceCaps,
-                postCompletionPrograms: postCompletionPrograms);
+                postCompletionPrograms: postCompletionPrograms,
+                chains: chains,
+                closureCriterion: closureCriterion);
         }
     }
 }

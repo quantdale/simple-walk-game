@@ -197,9 +197,18 @@ namespace WalkGame.Domain.Simulation
     {
         public string MilestoneProjectId { get; }
 
-        public RegionCompleted(DateTimeOffset atUtc, string milestoneProjectId) : base(atUtc)
+        /// <summary>
+        /// True when the region closed through the authored majority-of-chains route instead of
+        /// the milestone itself (D-062). Distinct because the two routes are different
+        /// endings: the milestone route restores the whole roster, the alternative route
+        /// leaves at most one chain as optional depth.
+        /// </summary>
+        public bool AlternativeCriterion { get; }
+
+        public RegionCompleted(DateTimeOffset atUtc, string milestoneProjectId, bool alternativeCriterion = false) : base(atUtc)
         {
             MilestoneProjectId = milestoneProjectId ?? string.Empty;
+            AlternativeCriterion = alternativeCriterion;
         }
     }
 }

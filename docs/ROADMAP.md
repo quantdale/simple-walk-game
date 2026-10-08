@@ -243,7 +243,7 @@ Turn the systems vertical slice into one coherent, complete restoration region.
 
 - [x] critical path is reachable; *(ContentValidator fixpoint reachability gate: every project, landmark stage, producer unlock, discovery trigger and expedition requirement reachable from an entry project; closure milestone `proj.complete-valley-survey` reachable — M4ContentGraphTests)*
 - [x] no dependency cycles; *(cycle detection plus hidden-deadlock red-team tests: UnreachableProject/UnreachableClosureMilestone flagged — M4ContentGraphTests)*
-- [x] pacing works across the GAME_SYSTEMS §13 activity profiles; *(deterministic `tools/simulation profile` reports committed under docs/evidence/m4/ — high d97, irregular d139, weekend-heavy d201, moderate d242, low long-tail documented with provisional targets D-039, pathological d29; the `inactivity` profile does NOT reach the closure milestone inside the 400-day horizon and two chains remain incomplete — see the "Intermittent-engagement pacing finding" note below)*
+- [x] pacing works across the GAME_SYSTEMS §13 activity profiles; *(deterministic `tools/simulation profile` reports committed under docs/evidence/m4/ — high d77, irregular d109, weekend-heavy d158, moderate d192, pathological d22, inactivity d376 (every balanced profile closes inside its documented target and the harness FAILS on a shortfall, D-062), low long-tail documented as an explicit exemption; the previously unfinishable weekday-only profile now closes with all six chains complete)*
 - [x] required foreground decisions remain low; *(exactly one queue decision per project (19 total) with auto-advance; zero-to-one queue-empty days and zero capped-store days across the completed profiles)*
 - [x] all major stages have presentation requirements documented; *(WORLD_AND_CONTENT §12 binding table covers all six landmarks' canonical stages, discovery/expedition/arc presentation keys; UX_DESIGN §8 lists runtime binding requirements)*
 - [x] Region 1 can be completed headlessly. *(M4Region1AcceptanceTests drives a clean profile through the real trust pipeline to the closure milestone with replay exactly-once, post-completion stability and byte-identical determinism)*
@@ -255,21 +255,50 @@ The seven GAME_SYSTEMS §13 profiles are now all executable and have committed e
 added in this campaign because only four existed, and two of the new ones changed the
 balance picture materially:
 
-- **`pathological`** (new) completes the region on **day 29** from 3,184,633 ingested
-  steps yielding only 21,844 Vitality — roughly **686 steps/Vitality against the nominal
-  100**. This is the D-030 pathological-quantity clamp working, and it means the
-  documented "100 steps → 1 Vitality" conversion is a ceiling, not a promise.
-- **`inactivity`** (new: silent weekends plus a fully silent day 100–144) **does not
-  reach the closure milestone within 400 days**; the forest and research chains stay
-  incomplete while ecology and settlement arcs both reach 4/4.
+- **`pathological`** (new) completed the region on **day 29** from 3,184,633 ingested
+  steps yielding 21,844 Vitality. **Corrected 2026-10-09 (D-062 / F-13):** the stated figure
+  "≈686 steps/Vitality against the nominal 100" was WRONG, and the repository's own
+  committed evidence contradicted it. Recomputed: the profile requests 3,184,633 steps, the
+  per-record clamp (250,000) reduces the eligible total to 2,184,633 steps, and 21,844
+  Vitality is credited — an effective **100.0 eligible steps per Vitality**, exactly the
+  documented rate. The clamp discards surplus VOLUME; it does not reduce the credit rate, so
+  "100 steps → 1 Vitality" holds precisely rather than being a ceiling. The wrong figure came
+  from dividing the pre-clamp total by the credited vitality under an "activity ingested"
+  label; the report now prints requested and eligible totals separately.
+- **`inactivity`** (new: silent weekends plus a fully silent day 100–144) **did not reach
+  the closure milestone within 400 days** at the v2 costs: it earned 16,420 Vitality against
+  a 19,400-Vitality roster (short by 2,980), so the forest and research chains stayed
+  incomplete. **Remedied 2026-10-09 (D-062):** the M4-authored roster was rebalanced to
+  15,350 Vitality with the seed definitions untouched, closure became an authored criterion,
+  and the harness now fails on a shortfall instead of reporting one. The profile closes on
+  **day 376** with all six chains complete.
 
 That is a real product finding, not a test defect: a player who walks only on weekdays
-and takes a six-week break can restore the region's arcs but can never finish the last
-two chains on the current numbers. R-007 explicitly names this quitting-spiral shape.
-It is **recorded rather than silently re-balanced**: changing chain costs or Vitality
-awards would invalidate the four previously committed M4 pacing reports and the D-039
-provisional targets, which is a product-balance decision reserved for the M5/M6
-milestone rather than a documentation or tooling campaign.
+and takes a six-week break could restore the region's arcs but could never finish the last
+two chains on the v2 numbers. R-007 explicitly names this quitting-spiral shape.
+It was recorded rather than silently re-balanced — changing chain costs would have
+invalidated the committed M4 pacing reports and the D-039 provisional targets, so the
+rebalance was discharged as its own change (D-062) once the constraint of preserving the
+original seed definitions verbatim was understood to bound the available lever.
+
+### Pacing contract after the remedy (D-062, 2026-10-09)
+
+Every profile the region is balanced against is measured against an authored target, and a
+profile that must close and does not fails the gate:
+
+| profile | closure day | documented target |
+|---|---:|---|
+| high | 77 | ≤120 |
+| moderate | 192 | ≤300 |
+| irregular | 109 | ≤250 |
+| weekend-heavy | 158 | ≤300 |
+| pathological | 22 | ≤400 |
+| inactivity | 376 | ≤400 |
+| low | never (exempt) | documented long tail |
+
+All seven reports are committed under `docs/evidence/m4/` and reproduce byte-for-byte. The
+`low` exemption is a recorded decision, not a silent pass: the report prints
+`closure criterion: NOT MET` and states the chains left unfinished.
 
 ---
 

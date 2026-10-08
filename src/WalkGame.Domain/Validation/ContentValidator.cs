@@ -308,6 +308,94 @@ namespace WalkGame.Domain.Validation
             }
         }
 
+        /// <summary>
+        /// Restoration chains and the closure criterion (D-062).
+        ///
+        /// The criterion is the contract this whole rule group exists to protect: "the
+        /// region is finished" must be expressible in content, must be reachable by the
+        /// projects the reachability pass has already proven reachable, and must require a
+        /// strong enough majority that the ending cannot be reached cheaply. A criterion that
+        /// cannot be met is a content failure named for the criterion, not a profile that
+        /// silently fails to finish.
+        /// </summary>
+        private static void ValidateChainsAndClosureCriterion(RegionDefinition content, HashSet<string> projectIds, List<string> violations)
+        {
+            var seenChains = new HashSet<string>(StringComparer.Ordinal);
+            var chainMembers = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var chain in content.Chains)
+            {
+                if (!seenChains.Add(chain.Id))
+                    violations.Add($"Duplicate restoration chain ID '{chain.Id}'.");
+
+                foreach (var projectId in chain.ProjectIds)
+                {
+                    if (!projectIds.Contains(projectId))
+                    {
+                        violations.Add($"Chain '{chain.Id}' references missing project '{projectId}'.");
+                        continue;
+                    }
+                    if (!chainMembers.TryAdd(projectId, chain.Id))
+                        violations.Add(
+                            $"Project '{projectId}' is claimed by chains '{chainMembers[projectId]}' and '{chain.Id}'; "
+                            + "a chain grouping must partition the roster.");
+                }
+            }
+
+            if (content.ClosureCriterion == null)
+                return;
+
+            var criterion = content.ClosureCriterion;
+            if (!projectIds.Contains(criterion.MilestoneProjectId))
+            {
+                violations.Add(
+                    $"Closure criterion names unknown milestone project '{criterion.MilestoneProjectId}'.");
+                return;
+            }
+
+            if (content.Chains.Count == 0)
+            {
+                violations.Add("Closure criterion is authored but the region defines no restoration chains to measure it against.");
+                return;
+            }
+
+            // A STRONG majority: fewer than that and the ending becomes purchasable by
+            // skipping most of the valley, which is the cheap-ending failure the criterion
+            // was authored to prevent.
+            int majority = (content.Chains.Count / 2) + 1;
+            if (criterion.MinimumChainsComplete < majority)
+                violations.Add(
+                    $"Closure criterion requires {criterion.MinimumChainsComplete} of {content.Chains.Count} chains, "
+                    + $"which is below the {majority}-chain majority a closure route must require; "
+                    + "the ending would be reachable by leaving most of the valley unrestored.");
+
+            if (criterion.MinimumChainsComplete > content.Chains.Count)
+                violations.Add(
+                    $"Closure criterion requires {criterion.MinimumChainsComplete} chains but the region authors {content.Chains.Count}.");
+
+            // The alternative route must be satisfiable from content the reachability pass
+            // has ALREADY proven reachable, so a criterion can never be met only by content
+            // the player cannot get to.
+            if (criterion.MinimumChainsComplete < content.Chains.Count)
+            {
+                var reachable = ComputeReachable(content);
+                int reachableChains = 0;
+                foreach (var chain in content.Chains)
+                {
+                    bool allReachable = true;
+                    foreach (var projectId in chain.ProjectIds)
+                        if (!reachable.Contains(projectId))
+                            allReachable = false;
+                    if (allReachable)
+                        reachableChains++;
+                }
+
+                if (reachableChains < criterion.MinimumChainsComplete)
+                    violations.Add(
+                        $"Closure criterion requires {criterion.MinimumChainsComplete} chains but only {reachableChains} "
+                        + "are reachable from an entry project; a closure route a player cannot reach is a content defect.");
+            }
+        }
+
         public static List<string> Validate(RegionDefinition? content)
         {
             var violations = new List<string>();
@@ -440,6 +528,9 @@ namespace WalkGame.Domain.Validation
 
             // ---- Post-completion programs (D-061). ----
             ValidatePostCompletionPrograms(content, violations);
+
+            // ---- Restoration chains and the closure criterion (D-062). ----
+            ValidateChainsAndClosureCriterion(content, projectIds, violations);
 
             // ---- Self-check: the published bounds still match the simulation (D-058). ----
             violations.AddRange(CheckNumericBoundsAgainstSimulation(MaxMilliUnitsPerDay));

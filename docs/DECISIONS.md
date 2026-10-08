@@ -659,6 +659,9 @@ tx-corr1 namespace) and cannot collide with first-credit IDs;
 
 **Status:** Accepted *(automated verified: `tools/simulation profile`, reports committed under `docs/evidence/m4/`, M4Region1AcceptanceTests byte-determinism)*
 
+**Superseded in part by D-062 (2026-10-09):** the roster costs and the measured completion days quoted below are the v2 numbers. D-062's rebalance moves them (high 97→77, moderate 242→192, irregular 139→109, weekend-heavy 201→158, pathological 29→22, and `inactivity` from never-closing to day 376). The low-profile long tail quoted here is retained unchanged and re-affirmed there.
+
+
 **Decision:** Pacing evidence comes from the `profile` CLI verb: a deterministic auto-player (catalog-order queue choice only when fully idle; auto-advance on) drives fresh saves through the real ingestion pipeline under four fixed step patterns — low 3,000/day, moderate 8,000/day, high 20,000/day, irregular [26k,15k,2k,18k,6k,22k,9k]/week — to completion or horizon, printing a stable report (completion day, per-chain vitality/completion days, decisions, queue-empty days, capped-store days, discovery/expedition pacing, final arcs, validator cleanliness). Measured results (seed 42): high completes day 97, moderate day 242, irregular day 139; low completes 12,000 of ~19,400 vitality within 400 days (wetland chain done day 387; forest/research open). Provisional targets: high ≤120 days, irregular ≤250, moderate ≤300 — all met; low-profile completion beyond one year is recorded as an accepted characteristic of a movement-proportional economy, not hidden. Foreground pressure stays minimal everywhere: exactly one queue decision per project (19 total), zero-to-one queue-empty days, zero producer cap waste.
 
 **Rationale:** The campaign forbids inventing thresholds just to pass tests. Publishing measured distributions with explicitly provisional targets keeps balance work honest and gives future tuning (more activity categories, cost scaling) a regression baseline.
@@ -1573,3 +1576,94 @@ Home surface after region completion at all.
   properties (no unsatisfiable instruction, a defined sink, truthful surfaces, permanence)
   are tested headlessly; ending quality is a UX judgement recorded as outside this change's
   evidence.
+
+---
+
+## D-062 — Closure is an authored criterion, and the roster is rebalanced so every balanced profile can finish
+
+**Status:** Accepted (2026-10-09) — implements OpenSpec change
+`close-inactivity-pacing-shortfall` (F-19, F-13). Content version 2 → 3.
+
+**The defect.** The `inactivity` profile — weekdays 4,000/9,000 alternating, silent weekends,
+days 100–144 entirely silent — earned 16,420 Vitality in 400 days against a 19,400-Vitality
+roster: short by 2,980, which is exactly why the `forest` and `research` chains never
+completed and the region never closed. R-007 and R-013 both realised for the product's own
+target player, and the harness reported the shortfall while exiting 0, so it sat open for a
+milestone.
+
+**Decision 1 — closure becomes authored content.** `RegionDefinition.Chains` authors the six
+restoration chains (replacing a hardcoded table inside the CLI, so one grouping is shared by
+the criterion, the harness and the region surface), and
+`RegionDefinition.ClosureCriterion` states what "finished" means. `ContentValidator` requires
+the criterion to name a real milestone, to demand at least a strong majority of the chains,
+and to be reachable from entry content; `GameStateValidator` refuses a completion no route
+explains; `profile` reports closure against the criterion and exits 2 naming the unfinished
+chains, so a shortfall is a gate failure rather than a report line.
+
+**Decision 2 — the remedy is a rebalance, and the weaker closure routes were rejected by
+measurement.** A criterion a weekday-only player can meet is met EARLIER by an engaged player,
+because engaged players complete more content sooner. Measured: with a five-of-six-chain
+criterion the `high` profile closes on day 81 with the research chain unrestored — the
+survey, the observatory and the closure discovery, the part of the valley the ending is
+written about — while the weekday-only profile still does not close. So the roster was
+rebalanced instead: 19,400 → 15,350 Vitality (−20.9%), entirely inside the M4-authored
+10,600, because the five original M1/M3 development-seed definitions are preserved VERBATIM
+(the M3 acceptance proof asserts the exact Vitality boundaries those costs produce).
+
+| chain | before | after |
+|---|---:|---:|
+| trail | 1,400 | 1,000 |
+| water | 2,350 | 1,750 |
+| settlement | 3,700 | 2,900 |
+| wetland | 4,150 | 3,450 |
+| forest | 5,000 | 4,550 |
+| research | 2,800 | 1,700 |
+
+**Measured effect** (all seven committed reports regenerated, each diff reviewed):
+
+| profile | before | after | documented target |
+|---|---:|---:|---|
+| high | day 97 | day 77 | ≤120 |
+| moderate | day 242 | day 192 | ≤300 |
+| irregular | day 139 | day 109 | ≤250 |
+| weekend-heavy | day 201 | day 158 | ≤300 |
+| pathological | day 29 | day 22 | ≤400 |
+| inactivity | **never** | **day 376** | ≤400 |
+| low | never | never | exempt — documented long tail |
+
+Every profile that closes still closes with the whole roster and inside its target; no
+profile's ending was made skippable to buy another profile a shorter day.
+
+**Decision 3 — `low` stays a long tail, now as an explicit exemption.** A sustained
+3,000-steps-per-day walker earns 12,000 Vitality in 400 days and needs roughly 510 days for
+the roster. `PacingContract` names the profile exempt BY DECISION and the report prints
+`closure criterion: NOT MET`, so the outcome is stated rather than hidden. Ratified against
+D-039, which already recorded the long tail as an accepted characteristic of a
+movement-proportional economy.
+
+**Decision 4 — the reports state requested AND eligible activity.** `IngestResult.EligibleSteps`
+carries the post-clamp total; the report prints both figures plus the achieved ratio, and the
+ratio is derivable from them by division.
+
+**Consequences:**
+
+- Saves recorded against content version 2 classify as `CompatibleOlder` (D-059) and keep
+  their whole history; nothing is migrated.
+- A profile that paid the v2 cost of a project whose v3 cost is lower holds more Vitality than
+  the new cost. Accepting that state for a COMPLETED project is deliberate: refusing it would
+  fail a mature profile closed on the definitions it was earned against. An incomplete
+  project may not hold more than its cost — that would be unspendable.
+- `tools/simulation` no longer carries its own chain table; the grouping is authored content.
+
+**F-13 — the wrong conversion figure, recorded as wrong.** ROADMAP §M4 and RISK_REGISTER
+R-013 both stated the `pathological` profile showed "≈686 steps/Vitality against the nominal
+100". Recomputed from the committed evidence: the profile requests 3,184,633 steps, the
+per-record clamp reduces the eligible total to 2,184,633, credited vitality is 21,844 —
+**exactly 100.0** eligible steps per Vitality. The clamp discards surplus VOLUME; it does not
+reduce the credit rate. The wrong figure came from dividing the pre-clamp total by the
+credited vitality while labelling it "activity ingested". Both documents now carry the
+recomputation, and the report cannot reproduce the error because it prints both totals.
+
+**Still unproven:** whether the region now finishes too QUICKLY for the players it was tuned
+for is a product judgement. The mechanical contract (every balanced profile closes, inside
+its documented target, with the whole valley) is tested; the feel is not.
