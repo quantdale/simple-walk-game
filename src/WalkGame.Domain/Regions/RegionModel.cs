@@ -257,6 +257,17 @@ namespace WalkGame.Domain.Regions
         public IReadOnlyList<DiscoveryDefinition> Discoveries { get; }
         public IReadOnlyList<ExpeditionDefinition> Expeditions { get; }
 
+        /// <summary>
+        /// Authored post-completion programs (D-061): the repeatable use for progress earned
+        /// after the closure milestone. Deliberately a separate collection from
+        /// <see cref="Projects"/> — a program is never restoration work, is never queued,
+        /// and must not make the region's roster look unfinished.
+        ///
+        /// Absent (empty) is valid and authored content decides it: a region with no program
+        /// leaves post-completion progress banked and says so in its surface contract.
+        /// </summary>
+        public IReadOnlyList<PostCompletionProgramDefinition> PostCompletionPrograms { get; }
+
         /// <summary>Region-level ecological recovery arc.</summary>
         public RegionProgressionDefinition EcologyProgression { get; }
 
@@ -294,6 +305,28 @@ namespace WalkGame.Domain.Regions
         /// </summary>
         public IReadOnlyDictionary<string, ContentTombstone> Tombstones { get; }
 
+        /// <summary>Declared post-completion identifier set, collected once at construction.</summary>
+        private readonly HashSet<string> _postCompletionProgramIds;
+
+        /// <summary>Identifier set of the declared post-completion programs.</summary>
+        public IReadOnlyCollection<string> PostCompletionProgramIds => _postCompletionProgramIds;
+
+        /// <summary>Authored post-completion program for an identifier, or null when none is declared.</summary>
+        public PostCompletionProgramDefinition? FindPostCompletionProgram(string programId) =>
+            string.IsNullOrEmpty(programId) ? null : FindPostCompletionProgramUnchecked(programId);
+
+        private PostCompletionProgramDefinition? FindPostCompletionProgramUnchecked(string programId)
+        {
+            foreach (var program in PostCompletionPrograms)
+                if (string.Equals(program.Id, programId, StringComparison.Ordinal))
+                    return program;
+            return null;
+        }
+
+        /// <summary>True when the identifier is a declared post-completion program.</summary>
+        public bool IsPostCompletionProgram(string programId) =>
+            !string.IsNullOrEmpty(programId) && _postCompletionProgramIds.Contains(programId);
+
         /// <summary>The tombstone for an identifier, or null when it is not retired.</summary>
         public ContentTombstone? FindTombstone(string id) =>
             id != null && Tombstones.TryGetValue(id, out var tombstone) ? tombstone : null;
@@ -312,7 +345,8 @@ namespace WalkGame.Domain.Regions
             RegionProgressionDefinition? settlementProgression = null,
             string? completionMilestoneProjectId = null,
             IEnumerable<KeyValuePair<Economy.ResourceType, long>>? resourceCaps = null,
-            IEnumerable<ContentTombstone>? tombstones = null)
+            IEnumerable<ContentTombstone>? tombstones = null,
+            IEnumerable<PostCompletionProgramDefinition>? postCompletionPrograms = null)
         {
             if (!id.IsValid)
                 throw new ArgumentException("Region definition requires a valid ID.", nameof(id));
@@ -368,6 +402,21 @@ namespace WalkGame.Domain.Regions
                 }
             }
             Tombstones = new Dictionary<string, ContentTombstone>(retired);
+
+            var programs = new List<PostCompletionProgramDefinition>();
+            if (postCompletionPrograms != null)
+            {
+                foreach (var program in postCompletionPrograms)
+                {
+                    if (program == null)
+                        throw new ArgumentException("A post-completion program entry is null.", nameof(postCompletionPrograms));
+                    programs.Add(program);
+                }
+            }
+            PostCompletionPrograms = programs.AsReadOnly();
+            _postCompletionProgramIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var program in PostCompletionPrograms)
+                _postCompletionProgramIds.Add(program.Id);
         }
 
         public ProjectDefinition? FindProject(string projectId)
@@ -445,7 +494,7 @@ namespace WalkGame.Domain.Regions
     /// Schema v2 additive fields (D-036): discoveries/expeditions entries appear only after
     /// their first canonical transition and stage counters default to 0/false, so payloads
     /// written before M4 decode with exactly "nothing unlocked yet" semantics — no schema
-    /// bump or migration is required.
+    /// bump or migration is required. The same rule covers the D-061 post-completion counters.
     /// </remarks>
     public sealed class RegionState
     {
@@ -468,6 +517,19 @@ namespace WalkGame.Domain.Regions
 
         /// <summary>Highest reached settlement arc stage; 0 = baseline.</summary>
         public int SettlementStage { get; set; }
+
+        /// <summary>
+        /// Vitality already applied to the in-progress cycle of the region's authored
+        /// post-completion program (D-061). Always below that program's cycle cost: reaching
+        /// the cost completes a cycle and leaves only the remainder here.
+        ///
+        /// Additive on schema v2 exactly like the fields above: an older payload decodes with
+        /// 0, which means "nothing invested yet", so no migration is required.
+        /// </summary>
+        public long PostCompletionInvestedVitality { get; set; }
+
+        /// <summary>Completed post-completion program cycles. Additive on schema v2 (absent = 0).</summary>
+        public long PostCompletionCyclesCompleted { get; set; }
 
         /// <summary>True once the closure milestone completed. Never resets (post-completion evergreen).</summary>
         public bool IsCompleted { get; set; }

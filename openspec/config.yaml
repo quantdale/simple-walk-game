@@ -29,7 +29,7 @@ context: |
   bench, scenarios, ack, dump, validate.
 
   tests/ holds three xUnit projects. Current green baseline is
-  Domain 105, Infrastructure 48, Application 142, for 295 total.
+  Domain 148, Infrastructure 49, Application 240, for 437 total.
 
   scripts/, .githooks/ and tests/guards/ hold repository guard,
   writer-lease, CI-step reproduction and architecture-fitness tooling.

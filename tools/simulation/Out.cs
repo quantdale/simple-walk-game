@@ -10,7 +10,9 @@ internal static class Out
 {
     public static string HomeLine(HomeReadModel home) =>
         $"home: region={home.RegionTitleKey} vitality={home.Vitality} materials={home.Materials} knowledge={home.Knowledge}"
-        + $" completed={home.CompletedProjects}/{home.TotalProjects} active={ActiveText(home)} queued={QueueText(home)}";
+        + $" completed={home.CompletedProjects}/{home.TotalProjects} active={ActiveText(home)} queued={QueueText(home)}"
+        + $" attention={home.AttentionReason}({home.RequiresAttention})"
+        + (home.RegionComplete ? " regionComplete=" + Format(home.RegionCompletedAtUtc) : string.Empty);
 
     public static void HomeBlock(HomeReadModel home)
     {
@@ -22,6 +24,13 @@ internal static class Out
         Console.WriteLine("queued=" + QueueText(home));
         Console.WriteLine($"completed={home.CompletedProjects}/{home.TotalProjects}");
         Console.WriteLine("landmarks=" + string.Join(",", home.Landmarks.Select(l => $"{l.LandmarkId}={l.Stage}")));
+
+        // The attention classification is part of the product contract, not debug output:
+        // "which reason, and does it actually demand the player" is the question the shell
+        // has to answer before it renders anything (UX_DESIGN §3).
+        Console.WriteLine($"attention: reason={home.AttentionReason} requires={home.RequiresAttention}");
+        if (home.RegionComplete)
+            Console.WriteLine("region-complete: at=" + Format(home.RegionCompletedAtUtc));
     }
 
     public static void Dump(GameState state)
@@ -56,6 +65,12 @@ internal static class Out
             : string.Join(",", state.Queue.QueuedProjectIds);
         Console.WriteLine($"queue: active={(state.Queue.ActiveProjectId ?? "-")} queued=[{queuedIds}] autoAdvance={state.Queue.AutoAdvance}");
 
+        Console.WriteLine(
+            $"region: completed={state.Region.IsCompleted} completedAt=" + Format(state.Region.RegionCompletedAtUtc));
+        Console.WriteLine(
+            $"evergreen-care: cycles={state.Region.PostCompletionCyclesCompleted}"
+            + $" invested={state.Region.PostCompletionInvestedVitality}");
+
         Console.WriteLine("landmarks:");
         foreach (var pair in state.Region.LandmarkStages.OrderBy(p => p.Key, StringComparer.Ordinal))
             Console.WriteLine($"  {pair.Key.PadRight(24)} {pair.Value}");
@@ -74,6 +89,9 @@ internal static class Out
         Console.WriteLine(
             $"rng: S0={state.Rng.S0:X16} S1={state.Rng.S1:X16} S2={state.Rng.S2:X16} S3={state.Rng.S3:X16}");
     }
+
+    private static string Format(DateTimeOffset? value) =>
+        value.HasValue ? value.Value.ToString("O") : "-";
 
     private static string ActiveText(HomeReadModel home) =>
         home.ActiveProjectId == null

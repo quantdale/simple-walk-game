@@ -155,14 +155,14 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 ## Current repository state
 
-**Status: M1 (deterministic core), M2 (activity trust pipeline), headless M3 (ambient progression), M4-H (Region 1 content systems) implemented and automated-verified; M8-H1 (headless trust & persistence hardening) completed; M5-H1 (platform-neutral UX state contracts) completed headless — durable local preferences/onboarding store (D-042), activity connection/permission status projection behind `IActivityConnectionPort` (D-043), shell-facing read models incl. support diagnostics and explicit Home attention semantics (D-044), eleven named low-attention acceptance scenarios plus adversarial hardening suites. **295 automated tests**. Unity presentation and all runtime/device behavior remain UNVERIFIED and externally blocked (no editor in this environment; D-035).**
+**Status: M1 (deterministic core), M2 (activity trust pipeline), headless M3 (ambient progression), M4-H (Region 1 content systems) implemented and automated-verified; M8-H1 (headless trust & persistence hardening) completed; M5-H1 (platform-neutral UX state contracts) completed headless — durable local preferences/onboarding store (D-042), activity connection/permission status projection behind `IActivityConnectionPort` (D-043), shell-facing read models incl. support diagnostics and explicit Home attention semantics (D-044), eleven named low-attention acceptance scenarios plus adversarial hardening suites; and the post-completion ending is a defined state rather than a permanent dead end (D-061). **437 automated tests**. Unity presentation and all runtime/device behavior remain UNVERIFIED and externally blocked (no editor in this environment; D-035).**
 
 The repository now contains a headless .NET implementation of the deterministic game core:
 
 - `src/WalkGame.Domain` — pure domain (`netstandard2.1`, C# 9, zero engine/platform dependencies): stable IDs, resource accounting, reward ledger with exactly-once semantics, project state machine and queue with auto-rollover, region/landmark/producer model, deterministic offline advancement with backward-clock defense, injected clock, persisted-seed RNG, content/state validators.
 - `src/WalkGame.Application` — use-case orchestration (`GameSession`): boot/load/recover/migrate/advance/save flow, activity crediting, queue management, return summaries, read models. Dev content seed in `Content/Region1Catalog`.
 - `src/WalkGame.Infrastructure` — versioned JSON save envelope with SHA-256 payload integrity, sequential migration pipeline, atomic snapshot store with one-generation backup recovery.
-- `tests/` — 295 automated tests across domain (105), infrastructure (48) and application (142) suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, content red-team validation, end-to-end M3/M4/M8-H1 acceptance, plus the M5-H1 UX contract and hardening suites described below).
+- `tests/` — 437 automated tests across domain (148), infrastructure (49) and application (240) suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, content red-team validation, end-to-end M3/M4/M8-H1 acceptance, plus the M5-H1 UX contract and hardening suites described below).
 - `tools/simulation` — headless CLI: `new / credit / advance / simulate / walk / profile / longhaul / bench / scenarios / ack / dump / validate` for deterministic multi-day simulation, pacing reports, long-horizon growth records, phase-level performance measurement, PERFORMANCE_BUDGETS §19 regression scenarios, and save validation.
 
 **M2 activity trust pipeline (automated verified):**
@@ -180,7 +180,7 @@ The repository now contains a headless .NET implementation of the deterministic 
 Verification evidence (automated verified per `docs/AGENT_EXECUTION_GUIDE.md` §17):
 
 - `dotnet build SimpleWalkGame.sln` — clean, zero errors;
-- `dotnet test` — Domain.Tests 89 passed, Infrastructure.Tests 23 passed, Application.Tests 44 passed *(M2-era baseline, superseded by the 295-test current state above)*;
+- `dotnet test` — Domain.Tests 89 passed, Infrastructure.Tests 23 passed, Application.Tests 44 passed *(M2-era baseline, superseded by the 437-test current state above)*;
 - M3 acceptance path (`tools/simulation walk`) — 16 app-closed days of normalized synthetic records through `IngestActivityBatch`: 3200 Vitality credited exactly once, three project completions, landmark stage changes, producer unlock + bounded offline production, durable return summaries surviving restarts, replay of the identical window crediting zero (16 duplicates ignored), save validates at schema v2 with integrity self-test PASS;
 - guard proof suite — `tests/guards/run-guard-tests.sh`, all assertions green;
 - **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
@@ -202,11 +202,10 @@ Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISION
 - `ContentValidator` is now a release gate: forward-safe reference resolution, cycle detection, hidden-deadlock/unreachable-content rejection, critical-path reachability to the closure milestone, arc monotonicity, discovery/expedition/producer integrity and overflow bounds.
 - Deterministic pacing evidence (`tools/simulation profile`, reports under [`docs/evidence/m4/`](docs/evidence/m4)): high completes day 97, irregular day 139, moderate day 242; low is a documented long tail (62% of region vitality within 400 days); foreground pressure stays at one queue decision per project everywhere.
 - Named acceptance proof `M4Region1AcceptanceTests`: clean profile → real ingestion pipeline → all chains complete → closure milestone → replay of the entire window credits zero → post-completion stable after reload → validators clean → byte-identical determinism.
-
 Verification evidence additions:
 
 - `dotnet build SimpleWalkGame.sln` — clean, zero errors;
-- `dotnet test SimpleWalkGame.sln` — Domain.Tests 101 passed, Infrastructure.Tests 25 passed, Application.Tests 54 passed *(M4-H-era baseline, superseded by the 295-test current state above)*;
+- `dotnet test SimpleWalkGame.sln` — Domain.Tests 101 passed, Infrastructure.Tests 25 passed, Application.Tests 54 passed *(M4-H-era baseline, superseded by the 437-test current state above)*;
 - `dotnet run --project tools/simulation -- validate --save <tmpdir> --selftest` on a completed-region save — violations=0, integrity self-test PASS;
 - guard proof suite — `tests/guards/run-guard-tests.sh`, all assertions green;
 - **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
@@ -218,6 +217,15 @@ Verification evidence additions:
 - Shell-facing read models: `OnboardingReadModel`, `SettingsReadModel` (local preferences separated from canonical auto-advance), `ActivityStatusReadModel`, `DiagnosticsReadModel` (privacy-safe operational facts only — boot/recovery/migration evidence, watermark age, trust-pipeline aggregates including forever-visible unapplied reversals; no raw records/exceptions/payloads, adapter detail bounded to 300 chars), and `HomeReadModel` attention classification (`RequiresAttention`/reason/banked vitality).
 - Acceptance + hardening: eleven named scenarios in `M5H1ShellAcceptanceTests` (grant/denial first run, 1/7/30-day returns, queue-empty, transient source failure, external revocation, save recovery, preference isolation, replay-after-UX zero-recredit) and `M5H1ContractHardeningTests` (hostile payload table, interrupted writes, rapid transitions, per-step onboarding interruption, reflection-based leak sweep).
 - Evidence package: [`docs/evidence/m5-h1/`](docs/evidence/m5-h1). Decisions D-042/D-043/D-044.
+
+**Post-completion ending as a defined state (automated verified, headless; D-061):**
+
+- The audited defect: with the region complete and every project finished, `GetHome()` reported `RequiresAttention = true` with the reason "queue the next restoration project" for as long as the player kept walking, while banked Vitality grew without bound (reproduced at 60,650 banked with 19/19 complete). No assertion of the Home surface after region completion existed anywhere.
+- Home now reports `HomeAttentionReason.RegionComplete` with `RequiresAttention = false` and the completion instant, and the durable summary's primary next action is completion-aware, so no surface can propose work that no longer exists. Pre-completion behaviour is unchanged and still pinned by `M5H1ShellAcceptanceTests.Scenario06`.
+- Continued activity has an authored use: new post-completion content kind (`PostCompletionProgramDefinition`) declares one repeatable program — **Evergreen Tending**, 1,000 Vitality per cycle, enabled by the closure milestone and by nothing else. The banked balance is applied to it by integer division (whole cycles complete, remainder stays invested), so unspent progress is bounded by one cycle. It is not a project, is never queued, gates nothing, and cannot make the roster read as unfinished.
+- Content validation treats post-completion programs as authored content under every rule except entry-reachability (they are reachable only from the closure milestone) — the exemption is documented in the validator so the tempting "delete the flagged node" fix is visibly wrong.
+- New suites: `PostCompletionEvergreenStateTests` (7 named scenarios through the real trust pipeline: conclusion-not-alarm, continued activity applied and never alarming, the pre-completion alarm still honest, every surface truthful, permanence across reload/restart/long absence, closure independent of the program, bank bounded to one cycle) plus content/state invariant cases in `ContentValidationTests`.
+- Evidence: all seven `docs/evidence/m4/pacing-*.txt` reports still reproduce byte-for-byte (no profile's closure day changes); save-growth, architecture (12/12) and guard proof (25/25) gates green; `openspec validate define-post-completion-evergreen-state --strict` passes. Decision record: `docs/DECISIONS.md` D-061.
 
 **M8-H1 headless trust & persistence hardening (automated verified):**
 

@@ -235,6 +235,23 @@ Required behavior:
 - no irreversible missed-day rewards that create quitting pressure;
 - return summaries should welcome the player back and surface the next useful action.
 
+### The ending, once the region is complete (D-061)
+
+Completion is permanent and never re-detected. After the closure milestone the product's
+contract is:
+
+- the game asks for **nothing it cannot honour** — no surface may instruct the player to
+  queue, start or choose further restoration work once none exists;
+- the completed state is presented as a **conclusion** (with the completion instant), not as
+  an outstanding to-do and not as an empty screen;
+- activity earned afterwards has a **defined use**: the authored post-completion program
+  (GAME_SYSTEMS §9) consumes it, so continued walking keeps the restored valley flourishing
+  instead of accumulating a number nothing spends;
+- the player is never required to look: the post-completion program is optional depth that
+  gates nothing and never reframes completion as unfinished.
+
+The design objective is **re-entry**, not punishment.
+
 Allowed gentle consequences:
 
 - streak-like momentum may pause;

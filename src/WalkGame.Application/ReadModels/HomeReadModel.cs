@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using WalkGame.Domain.Projects;
 using WalkGame.Domain.Regions;
@@ -22,6 +23,14 @@ namespace WalkGame.Application.ReadModels
 
         /// <summary>Fresh profile: no project has ever been started (informational).</summary>
         NoProjectStartedYet = 3,
+
+        /// <summary>
+        /// The region's restoration is complete. This is a CONCLUSION, not a to-do:
+        /// <see cref="HomeReadModel.RequiresAttention"/> is false for it, and the reason value
+        /// is what lets a shell tell "finished" apart from "nothing has happened yet" — which
+        /// <see cref="None"/> alone cannot express (D-061).
+        /// </summary>
+        RegionComplete = 4,
     }
 
     /// <summary>
@@ -62,6 +71,21 @@ namespace WalkGame.Application.ReadModels
         /// <summary>Vitality currently unallocated because no project is active/queued; 0 otherwise.</summary>
         public long BankedVitality { get; }
 
+        /// <summary>True once the region's closure milestone completed; never resets.</summary>
+        public bool RegionComplete { get; }
+
+        /// <summary>When the region completed, so the shell can render the ending instead of an empty screen.</summary>
+        public DateTimeOffset? RegionCompletedAtUtc { get; }
+
+        /// <summary>Completed cycles of the authored post-completion program (D-061).</summary>
+        public long PostCompletionCareCycles { get; }
+
+        /// <summary>Progress invested in the post-completion program's current cycle.</summary>
+        public long PostCompletionCareInvested { get; }
+
+        /// <summary>Authored cost of one post-completion program cycle; 0 when the region authors none.</summary>
+        public long PostCompletionCareCostPerCycle { get; }
+
         public HomeReadModel(
             string regionTitleKey,
             long vitality, long materials, long knowledge,
@@ -75,7 +99,12 @@ namespace WalkGame.Application.ReadModels
             string? primaryNextAction = null,
             bool requiresAttention = false,
             HomeAttentionReason attentionReason = HomeAttentionReason.None,
-            long bankedVitality = 0)
+            long bankedVitality = 0,
+            bool regionComplete = false,
+            DateTimeOffset? regionCompletedAtUtc = null,
+            long postCompletionCareCycles = 0L,
+            long postCompletionCareInvested = 0L,
+            long postCompletionCareCostPerCycle = 0L)
         {
             RegionTitleKey = regionTitleKey;
             Vitality = vitality;
@@ -95,6 +124,11 @@ namespace WalkGame.Application.ReadModels
             RequiresAttention = requiresAttention;
             AttentionReason = attentionReason;
             BankedVitality = bankedVitality;
+            RegionComplete = regionComplete;
+            RegionCompletedAtUtc = regionCompletedAtUtc;
+            PostCompletionCareCycles = postCompletionCareCycles;
+            PostCompletionCareInvested = postCompletionCareInvested;
+            PostCompletionCareCostPerCycle = postCompletionCareCostPerCycle;
         }
 
         public sealed class QueuedRow

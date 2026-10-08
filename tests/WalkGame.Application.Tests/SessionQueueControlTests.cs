@@ -177,9 +177,17 @@ public sealed class SessionQueueControlTests : IDisposable
         // Complete EVERY project that is not one of the three under test, so all of them are
         // enqueueable. Completing the chain is what makes the prerequisite rule pass; doing
         // it per-id in a loop would complete the other two as a side effect.
+        //
+        // The closure milestone is deliberately left as a fresh profile has it. These tests
+        // are about QUEUE semantics, and a completed closure milestone makes the region
+        // complete as a side effect (D-061: post-completion progress then has an authored
+        // sink), which is a different product state from the one under test here.
+        string? closureMilestone = Region1Catalog.Create().CompletionMilestoneProjectId;
         foreach (var pair in state.Region.Projects)
         {
             if (keep.Contains(pair.Key))
+                continue;
+            if (pair.Key == closureMilestone)
                 continue;
             pair.Value.Status = ProjectStatus.Completed;
             pair.Value.CompletedAtUtc = TestSessions.T0;

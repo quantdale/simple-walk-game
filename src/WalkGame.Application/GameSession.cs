@@ -1108,6 +1108,7 @@ namespace WalkGame.Application
 
             long vitality = game.Resources.Get(ResourceType.Vitality);
 
+            bool regionComplete = game.Region.IsCompleted;
             bool queueIdle = activeId == null && queuedRows.Count == 0;
             long banked = queueIdle ? vitality : 0L;
             var reason = HomeAttentionReason.None;
@@ -1130,15 +1131,27 @@ namespace WalkGame.Application
                 requiresAttention = true;
                 reason = HomeAttentionReason.PendingReturnSummary;
             }
-            else if (queueIdle && banked > 0)
+            // D-061: the banked-Vitality alarm is suppressed once the region is complete. It
+            // asked the player to queue a project that no longer exists — a permanent
+            // unsatisfiable instruction for exactly the player who engaged most. Pre-completion
+            // it is unchanged and still pinned by M5H1ShellAcceptanceTests.Scenario06.
+            else if (queueIdle && banked > 0 && !regionComplete)
             {
                 requiresAttention = true;
                 reason = HomeAttentionReason.QueueEmptyWithBankedVitality;
+            }
+            // A completed region is a CONCLUSION, so it never claims attention; the reason
+            // value still distinguishes "finished" from "nothing has happened yet".
+            else if (regionComplete)
+            {
+                reason = HomeAttentionReason.RegionComplete;
             }
             else if (queueIdle && !anyStarted)
             {
                 reason = HomeAttentionReason.NoProjectStartedYet;
             }
+
+            var careProgram = FindAuthoredCareProgram(_content);
 
             return new HomeReadModel(
                 _content.TitleKey,
@@ -1154,7 +1167,24 @@ namespace WalkGame.Application
                 game.PendingReturnSummary?.PrimaryNextAction,
                 requiresAttention,
                 reason,
-                banked);
+                banked,
+                regionComplete,
+                game.Region.RegionCompletedAtUtc,
+                game.Region.PostCompletionCyclesCompleted,
+                game.Region.PostCompletionInvestedVitality,
+                careProgram?.VitalityCostPerCycle ?? 0L);
+        }
+
+        /// <summary>
+        /// The region's authored post-completion program, or null when it authors none. One
+        /// program is authored for Region 1; the lookup is content-only and deterministic so
+        /// every surface describes the same program.
+        /// </summary>
+        private static PostCompletionProgramDefinition? FindAuthoredCareProgram(RegionDefinition content)
+        {
+            foreach (var program in content.PostCompletionPrograms)
+                return program;
+            return null;
         }
 
         /// <summary>Complete Projects management snapshot for presentation.</summary>
@@ -1241,6 +1271,22 @@ namespace WalkGame.Application
                 else expeditionsAvailable++;
             }
 
+            RegionReadModel.PostCompletionCareRow? care = null;
+            if (game.Region.IsCompleted)
+            {
+                var program = FindAuthoredCareProgram(_content);
+                if (program != null)
+                {
+                    care = new RegionReadModel.PostCompletionCareRow(
+                        program.Id,
+                        program.TitleKey,
+                        program.DescriptionKey,
+                        game.Region.PostCompletionCyclesCompleted,
+                        game.Region.PostCompletionInvestedVitality,
+                        program.VitalityCostPerCycle);
+                }
+            }
+
             return new RegionReadModel(
                 _content.TitleKey,
                 landmarks,
@@ -1254,7 +1300,8 @@ namespace WalkGame.Application
                 game.Region.RegionCompletedAtUtc,
                 game.Region.Discoveries.Count,
                 expeditionsAvailable,
-                expeditionsCompleted);
+                expeditionsCompleted,
+                care);
         }
 
         /// <summary>Discovery journal snapshot: every authored discovery with its flags.</summary>
@@ -1743,7 +1790,7 @@ namespace WalkGame.Application
             if (events == null || events.Count == 0)
                 return;
             game.PendingReturnSummary = ReturnSummaryComposer.Compose(
-                events, _content, game.PendingReturnSummary, _clock.UtcNow);
+                events, _content, game.PendingReturnSummary, _clock.UtcNow, game.Region.IsCompleted);
         }
 
         /// <summary>

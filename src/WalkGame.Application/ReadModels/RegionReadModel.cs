@@ -41,6 +41,14 @@ namespace WalkGame.Application.ReadModels
 
         public int ExpeditionsCompleted { get; }
 
+        /// <summary>
+        /// The authored post-completion program and its durable progress (D-061): what
+        /// activity earned after the ending is used for. Null only before completion or when
+        /// the region authors no program, so a shell can tell "the valley is finished" from
+        /// "there is nothing left to show" without guessing.
+        /// </summary>
+        public PostCompletionCareRow? PostCompletionCare { get; }
+
         public RegionReadModel(
             string regionTitleKey,
             IReadOnlyList<LandmarkRow> landmarks,
@@ -54,7 +62,8 @@ namespace WalkGame.Application.ReadModels
             DateTimeOffset? regionCompletedAtUtc = null,
             int discoveriesUnlocked = 0,
             int expeditionsAvailable = 0,
-            int expeditionsCompleted = 0)
+            int expeditionsCompleted = 0,
+            PostCompletionCareRow? postCompletionCare = null)
         {
             RegionTitleKey = regionTitleKey;
             Landmarks = landmarks;
@@ -69,6 +78,7 @@ namespace WalkGame.Application.ReadModels
             DiscoveriesUnlocked = discoveriesUnlocked;
             ExpeditionsAvailable = expeditionsAvailable;
             ExpeditionsCompleted = expeditionsCompleted;
+            PostCompletionCare = postCompletionCare;
         }
 
         public sealed class LandmarkRow
@@ -130,6 +140,41 @@ namespace WalkGame.Application.ReadModels
                 TotalProducedMilliUnits = totalProducedMilliUnits;
                 ResourceCapUnits = resourceCapUnits;
                 CapacityLimited = capacityLimited;
+            }
+        }
+        /// <summary>
+        /// One authored post-completion program with its durable progress. Presented through
+        /// the region surface rather than the project roster on purpose: it is optional depth
+        /// that gates nothing, and putting it among the projects would make a completed region
+        /// read as unfinished work (D-061).
+        /// </summary>
+        public sealed class PostCompletionCareRow
+        {
+            public string ProgramId { get; }
+            public string TitleKey { get; }
+            public string DescriptionKey { get; }
+
+            /// <summary>Completed cycles. Repeats indefinitely; never a completion flag.</summary>
+            public long CyclesCompleted { get; }
+
+            public long InvestedVitality { get; }
+
+            public long VitalityCostPerCycle { get; }
+
+            public PostCompletionCareRow(
+                string programId,
+                string titleKey,
+                string descriptionKey,
+                long cyclesCompleted,
+                long investedVitality,
+                long vitalityCostPerCycle)
+            {
+                ProgramId = programId;
+                TitleKey = titleKey;
+                DescriptionKey = descriptionKey;
+                CyclesCompleted = cyclesCompleted;
+                InvestedVitality = investedVitality;
+                VitalityCostPerCycle = vitalityCostPerCycle;
             }
         }
     }

@@ -1453,7 +1453,6 @@ so tombstones cannot become a general escape hatch for unknown content.
 ---
 
 ## D-060 — The CLI's integrity self-test writes through the key it read, and expected failures carry their own exit code
-
 **Status:** Accepted *(verified at the F-16 pass: `dotnet test` 417/417 green; every exit code confirmed end to end by hand; `verify-ci-steps.sh` green including the simulation-smoke step that runs `validate --selftest`; `verify-architecture.sh` 12/0; guard suite 25/0)*
 
 **Decision:** `IntegritySelfTest` now determines the payload property name actually
@@ -1517,3 +1516,60 @@ product/security decision rather than being smuggled in here.
 - `--selftest` output now states which key was tampered and what the codec reported, so a
   failure distinguishes "tamper not detected" from "tamper detected but classified as
   something else" — two completely different faults that a bare `false` conflates.
+
+---
+
+## D-061 — A completed region is a conclusion, and continued activity has an authored use
+
+**Status:** accepted (2026-10-08) — closes F-20 / OpenSpec change
+`define-post-completion-evergreen-state`.
+
+**The defect.** After the closure milestone, Home reported
+`QueueEmptyWithBankedVitality` — "queue a restoration project" — for as long as the player
+kept walking, with `RequiresAttention = true` and no completion condition anywhere. The
+player who engaged most got the permanent false alarm, and the bank grew without bound
+(reproduced: 60,650 Vitality banked with 19/19 projects complete). No test asserted the
+Home surface after region completion at all.
+
+**Decisions, and why each is the small one:**
+
+1. **The ending is derived from the completion flag, not from content counts.** `GetHome()`
+   suppresses the banked-Vitality reason when `RegionState.IsCompleted` is true and reports
+   a new `HomeAttentionReason.RegionComplete` instead. `RequiresAttention` is **false** for
+   it: the state is concluded, not outstanding. Deriving "no work is left" by counting the
+   roster would have created a second source of truth that could disagree with the flag.
+2. **Suppression would have been silence, so it is a classification instead.** `None`
+   already means \"nothing has happened yet\"; a finished player needs the shell to be able
+   to say *when* the valley was restored, so `HomeReadModel` carries the completion instant.
+3. **The sink is authored content, not a mechanic.** A new content kind,
+   `PostCompletionProgramDefinition`, holds one repeatable Region 1 program: **Evergreen
+   Tending**, 1,000 Vitality per cycle, enabled by the closure milestone and by nothing
+   else. It is deliberately **not** a `ProjectDefinition`: it must never make the roster
+   read \"19 of 20 complete\", never be queued, and never gate anything.
+4. **The validator exemption is written down in one place.** Post-completion programs are
+   exempt from entry-reachability — they are reachable only from the closure milestone —
+   and remain subject to every other rule. Stated in the validator so the tempting
+   \"fix\" for a newly authored program (deleting it because reachability flagged it) is
+   visibly the wrong move.
+5. **Continued activity is applied, not merely displayed.** `OfflineAdvancer` applies the
+   banked balance to the program by integer division: whole cycles complete, the remainder
+   stays invested. O(1) regardless of how long the player has been walking, and the
+   unspent balance is bounded by one cycle instead of growing forever.
+6. **Materials and Knowledge stay declared lifetime scores.** The proposal allowed either a
+   sink or an explicit declaration. Both already have authored caps and real pre-completion
+   consumers (D-054); adding a second post-completion consumer for them was balance change
+   without a balance question, so the region-surface contract says in writing that they are
+   scores after completion. **Not** presented as progress toward anything.
+
+**Consequences:**
+- The attention signal and the summary's primary next action are both completion-aware, so
+  no surface can propose queueing work that no longer exists.
+- Existing completed saves are repaired without migration: they already carry
+  `IsCompleted`, and the banked progress is absorbed on the next evaluation.
+- Save size grows by two additive `long` fields (~65 bytes); the growth gate still passes
+  and the pacing reports still reproduce byte-for-byte, because no profile's closure day
+  changes.
+- **What this does not prove:** that the ending is emotionally satisfying. The mechanical
+  properties (no unsatisfiable instruction, a defined sink, truthful surfaces, permanence)
+  are tested headlessly; ending quality is a UX judgement recorded as outside this change's
+  evidence.

@@ -130,12 +130,23 @@ namespace WalkGame.Domain.Simulation
         /// Streams available Vitality into the active project; rolls surplus into the next
         /// queued project when AutoAdvance is enabled. Leftover Vitality stays banked when
         /// the queue is empty, so activity is never wasted because the app was closed.
+        ///
+        /// Once the region is complete the leftover is no longer "banked with nothing to
+        /// spend it on": it is applied to the authored post-completion program (D-061), which
+        /// is why that step lives here rather than in a separate call every caller would have
+        /// to remember.
         /// </summary>
         public static void AllocateVitality(GameState game, RegionDefinition content, DateTimeOffset nowUtc, List<SimulationEvent> events)
         {
             if (game == null) throw new ArgumentNullException(nameof(game));
             if (content == null) throw new ArgumentNullException(nameof(content));
 
+            AllocateVitalityToProjects(game, content, nowUtc, events);
+            ApplyPostCompletionPrograms(game, content);
+        }
+
+        private static void AllocateVitalityToProjects(GameState game, RegionDefinition content, DateTimeOffset nowUtc, List<SimulationEvent> events)
+        {
             var queue = game.Queue;
             var balances = game.Resources;
             var region = game.Region;
@@ -175,6 +186,48 @@ namespace WalkGame.Domain.Simulation
 
                 if (projectState.VitalityInvested >= projectDefinition.VitalityCost)
                     CompleteProject(game, content, projectState, nowUtc, events);
+            }
+        }
+
+        /// <summary>
+        /// Applies progress earned AFTER region completion to the authored post-completion
+        /// program (D-061). The whole banked balance is applied in one deterministic step:
+        /// whole cycles are completed by integer division and the unspent remainder stays
+        /// invested, so the operation is O(1) regardless of how long the player has been
+        /// walking and the bank cannot grow without bound.
+        ///
+        /// Before completion this does nothing at all, which is what keeps the pre-completion
+        /// attention contract ("empty queue with banked progress needs a decision") exactly
+        /// as it was. It is also why the step is conditioned on <see cref="RegionState.IsCompleted"/>
+        /// rather than on "no work is left": the completion flag is the single durable,
+        /// validated, set-exactly-once source of truth for the ending.
+        /// </summary>
+        private static void ApplyPostCompletionPrograms(GameState game, RegionDefinition content)
+        {
+            if (!game.Region.IsCompleted)
+                return;
+
+            long banked = game.Resources.Get(ResourceType.Vitality);
+            if (banked <= 0L)
+                return;
+
+            foreach (var program in content.PostCompletionPrograms)
+            {
+                long costPerCycle = program.VitalityCostPerCycle;
+                if (costPerCycle <= 0L)
+                    continue; // Unreachable for validated content; never divide by zero on authored data.
+
+                long total = game.Region.PostCompletionInvestedVitality + banked;
+                long completedCycles = total / costPerCycle;
+                long remainder = total - (completedCycles * costPerCycle);
+
+                game.Region.PostCompletionCyclesCompleted += completedCycles;
+                game.Region.PostCompletionInvestedVitality = remainder;
+
+                // The balance was read immediately above, so this cannot fail; consuming the
+                // whole bank is what makes "unspent after completion" bounded by one cycle.
+                game.Resources.TryConsume(ResourceType.Vitality, banked);
+                return; // Region 1 authors exactly one program; progress is not split.
             }
         }
 

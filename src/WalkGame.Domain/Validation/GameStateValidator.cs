@@ -261,6 +261,33 @@ namespace WalkGame.Domain.Validation
                 violations.Add("Region has a completion timestamp but is not marked completed.");
             }
 
+            // Post-completion program progress (D-061). The state is additive and derived from
+            // authored content, so every rule here is checkable against that content: an
+            // invested amount above a single cycle means a cycle failed to complete, progress
+            // recorded before completion means the sink ran out of order, and progress under
+            // content that declares no program is progress with nowhere to live.
+            long maxCycleCost = 0L;
+            foreach (var program in content.PostCompletionPrograms)
+                if (program.VitalityCostPerCycle > maxCycleCost)
+                    maxCycleCost = program.VitalityCostPerCycle;
+
+            if (state.Region.PostCompletionInvestedVitality < 0L)
+                violations.Add($"Post-completion invested vitality is negative: {state.Region.PostCompletionInvestedVitality}.");
+            else if (maxCycleCost > 0L && state.Region.PostCompletionInvestedVitality >= maxCycleCost)
+                violations.Add(
+                    $"Post-completion invested vitality {state.Region.PostCompletionInvestedVitality} reaches the authored cycle cost {maxCycleCost}; "
+                    + "reaching the cycle cost completes a cycle and leaves only the remainder invested.");
+            if (state.Region.PostCompletionCyclesCompleted < 0L)
+                violations.Add($"Post-completion cycle count is negative: {state.Region.PostCompletionCyclesCompleted}.");
+
+            if (content.PostCompletionPrograms.Count == 0
+                && (state.Region.PostCompletionInvestedVitality > 0L || state.Region.PostCompletionCyclesCompleted > 0L))
+                violations.Add("Post-completion progress is recorded but the region authors no post-completion program.");
+
+            if (!state.Region.IsCompleted
+                && (state.Region.PostCompletionInvestedVitality > 0L || state.Region.PostCompletionCyclesCompleted > 0L))
+                violations.Add("Post-completion progress is recorded before the region was completed.");
+
             // Durable pending return summary.
             var pendingSummary = state.PendingReturnSummary;
             if (pendingSummary != null)

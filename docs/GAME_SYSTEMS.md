@@ -339,6 +339,13 @@ It should require completion of several major chains and result in:
 - a clean future hook for expansion.
 
 > **Implemented (M4-H, D-038):** canonical region progression is two strictly ascending discrete arcs (ecology, settlement — each stage named by its unlocking project) plus one explicit closure milestone project; `RegionState.IsCompleted` sets once and never resets, and producers/discoveries/flourishing stages keep operating afterwards. Arc bounds, monotonicity references and completion consistency are validator-enforced.
+>
+> **Implemented (D-061):** post-completion state is a defined state rather than an absence of content. The closure milestone still only completes once and never resets. What happens after it is:- **the game asks for nothing it cannot honour.** With the region complete and the roster empty, Home reports `HomeAttentionReason.RegionComplete` with `RequiresAttention = false` and the completion instant, instead of the pre-completion `QueueEmptyWithBankedVitality` alarm — an instruction to queue work that no longer exists. This was the audited defect: a permanent false alarm aimed at exactly the player who engaged most. The return summary's primary next action is completion-aware for the same reason.
+- **continued activity has an authored use.** Authored content (not a mechanic) declares a repeatable post-completion program: **Evergreen Tending**, 1,000 Vitality per cycle, enabled by the closure milestone and by nothing else. Banked progress is applied to it automatically and deterministically, so unspent Vitality is bounded by one cycle rather than growing forever. It gates nothing, is not queued, and cannot make the roster read as unfinished (the region's 19 projects still read 19 of 19).
+- **the surfaces report it truthfully.** Home carries the completion instant and the program's progress; the region surface carries the program alongside the still-operating producers; Projects shows an exhausted roster with nothing ready, queued or actionable.
+- **Materials and Knowledge are declared lifetime scores after completion** (see §4), not objectives.
+>
+> Not proven by this: whether the ending feels emotionally satisfying. The mechanical properties above are tested headlessly; ending quality remains a UX judgement that headless evidence cannot settle.
 
 ---
 

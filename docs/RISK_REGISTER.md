@@ -37,6 +37,17 @@ Projects, claiming, inventory, expeditions, notifications, or world interactions
 
 Observed/tested daily flow remains coherent under low-engagement usage and multi-day absence.
 
+### Evidence so far (2026-10-08, D-061)
+
+The post-completion half of this risk was real and is now closed mechanically: a completed
+region used to report `RequiresAttention` with the reason "queue the next restoration
+project" for as long as the player kept walking — attention that could never be acted on,
+aimed at exactly the most engaged player. It now reports `RegionComplete` with
+`RequiresAttention = false`, and the durable summary's primary next action is
+completion-aware. Automated-verified by `PostCompletionEvergreenStateTests`. The
+screen-time-creep risk itself (foreground maintenance) stays open as written: runtime
+sessions remain unverified without a device lane (`KI-002`).
+
 ---
 
 ## R-002 — Activity is double-credited
@@ -280,6 +291,15 @@ The player earns lots of numbers, but restoration states look too similar, under
 - world is the primary progress visualization;
 - test transformation readability with UI hidden.
 
+### Evidence so far (2026-10-08, D-061)
+
+The climactic beat now has a canonical fact to hang on: completion is recorded once with an
+instant, and every surface reports it (Home carries the completion instant and the
+post-completion program's progress; the region surface reports the program alongside the
+still-operating producers). That closes the *feedback* half of this risk headlessly. The
+visual half — whether the restored world actually looks transformed — stays open and
+blocked on the runtime lane (`KI-002`).
+
 ---
 
 ## R-010 — 3D scope consumes the entire project
@@ -437,6 +457,15 @@ In reducing busywork, the game becomes a passive progress bar with no meaningful
 - optional expedition/collection objectives;
 - visible consequences for chosen restoration order;
 - preserve seconds-long decisions.
+
+### Evidence so far (2026-10-08, D-061)
+
+The "meaningful project choices" mitigation is now bounded honestly rather than silently
+exhausted: with the region complete there are no further choices to make, the game says so
+instead of asking for one, and the optional post-completion program is explicitly optional
+depth that gates nothing and never re-frames completion as unfinished. Automated-verified
+(`PostCompletionEvergreenStateTests.RegionCompletion_DoesNotRequireThePostCompletionProgram`).
+Whether a future region's choices feel meaningful is unchanged and outside this evidence.
 
 ---
 

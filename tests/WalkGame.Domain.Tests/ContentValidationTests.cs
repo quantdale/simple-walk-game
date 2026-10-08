@@ -392,4 +392,200 @@ public class ContentValidationTests
             Assert.InRange(stored, 0L, 1_000_000L * ProducerDefinition.MilliUnitsPerUnit);
         }
     }
+
+    // ==================================================================
+    // D-061: authored post-completion programs are validated as content.
+    //
+    // The rule that matters most is the one that is deliberately absent: entry
+    // reachability. A program is reachable only from the closure milestone, so a naive
+    // authoring pass would be flagged as a hidden deadlock — and the tempting "fix" is to
+    // delete the node, which silently removes the ending's sink. These tests pin the
+    // exemption AND every rule that still applies to the new content kind.
+    // ==================================================================
+
+    private static PostCompletionProgramDefinition Care(
+        string id = "care.evergreen-tending",
+        long costPerCycle = 1000L,
+        string? enabledByMilestoneProjectId = null) =>
+        new(id, "title.care", costPerCycle, enabledByMilestoneProjectId ?? "proj.closure", "description.care");
+
+    /// <summary>A minimal region whose closure milestone is <c>proj.closure</c>.</summary>
+    private static RegionDefinition RegionWithProgram(
+        PostCompletionProgramDefinition program,
+        string closureProjectId = "proj.closure") =>
+        new(new RegionId("region.test"), "Test Region",
+            new[] { P("proj.a", 300L), P("proj.closure", 500L, "proj.a") },
+            Array.Empty<LandmarkDefinition>(), Array.Empty<ProducerDefinition>(),
+            completionMilestoneProjectId: closureProjectId,
+            postCompletionPrograms: new[] { program });
+
+    [Fact]
+    public void AuthoredPostCompletionProgram_ValidatesWithZeroViolations()
+    {
+        Assert.Empty(ContentValidator.Validate(RegionWithProgram(Care())));
+    }
+
+    [Fact]
+    public void RegionWithoutAPostCompletionProgram_IsStillValidContent()
+    {
+        var content = new RegionDefinition(
+            new RegionId("region.test"), "Test Region",
+            new[] { P("proj.a", 300L), P("proj.closure", 500L, "proj.a") },
+            Array.Empty<LandmarkDefinition>(), Array.Empty<ProducerDefinition>(),
+            completionMilestoneProjectId: "proj.closure");
+
+        Assert.Empty(ContentValidator.Validate(content));
+    }
+
+    /// <summary>
+    /// The exemption that makes the whole change possible: the program is NOT reachable
+    /// from any entry project, and that is correct rather than a hidden deadlock.
+    /// </summary>
+    [Fact]
+    public void PostCompletionProgram_IsExemptFromEntryReachability_ButNothingElse()
+    {
+        var violations = ContentValidator.Validate(RegionWithProgram(Care()));
+
+        Assert.DoesNotContain(violations, v => v.Contains("unreachable"));
+        Assert.DoesNotContain(violations, v => v.Contains("hidden deadlock"));
+
+        // Still an ordinary content node for every other rule: adding a referential defect
+        // must still be reported.
+        var dangling = RegionWithProgram(Care(enabledByMilestoneProjectId: "proj.does-not-exist"));
+        Assert.Contains(ContentValidator.Validate(dangling),
+            v => v.Contains("proj.does-not-exist") && v.Contains("closure milestone"));
+    }
+
+    [Fact]
+    public void PostCompletionProgram_EnabledByANonMilestoneProject_IsFlagged()
+    {
+        var violations = ContentValidator.Validate(RegionWithProgram(Care(enabledByMilestoneProjectId: "proj.a")));
+
+        Assert.Contains(violations, v => v.Contains("care.evergreen-tending"));
+        Assert.Contains(violations, v => v.Contains("enabled by project"));
+    }
+
+    [Fact]
+    public void PostCompletionProgram_WithUnrepresentableCost_IsFlagged()
+    {
+        // The non-positive case cannot even be constructed (the definition guards it), so the
+        // validator's own non-positive rule is defence-in-depth; what is testable here is an
+        // authored cost the simulation could never represent.
+        var huge = ContentValidator.Validate(
+            RegionWithProgram(Care(costPerCycle: long.MaxValue)));
+        Assert.Contains(huge, v => v.Contains("unrepresentably large"));
+    }
+
+    [Fact]
+    public void DuplicatePostCompletionProgramId_IsFlagged()
+    {
+        var content = new RegionDefinition(
+            new RegionId("region.test"), "Test Region",
+            new[] { P("proj.a", 300L), P("proj.closure", 500L, "proj.a") },
+            Array.Empty<LandmarkDefinition>(), Array.Empty<ProducerDefinition>(),
+            completionMilestoneProjectId: "proj.closure",
+            postCompletionPrograms: new[] { Care(), Care() });
+
+        Assert.Contains(ContentValidator.Validate(content), v => v.Contains("Duplicate post-completion program ID"));
+    }
+
+    /// <summary>
+    /// A node authored as ordinary restoration content is NOT a post-completion program: it
+    /// gets the ordinary rules, entry reachability included. Declaring a program is what
+    /// makes it one — an id that is both is an authoring error, not a bonus.
+    /// </summary>
+    [Fact]
+    public void PostCompletionProgramId_ThatIsAlsoOrdinaryContent_IsFlagged()
+    {
+        var content = new RegionDefinition(
+            new RegionId("region.test"), "Test Region",
+            new[] { P("proj.a", 300L), P("care.evergreen-tending", 500L, "proj.a"), P("proj.closure", 500L, "proj.a") },
+            Array.Empty<LandmarkDefinition>(), Array.Empty<ProducerDefinition>(),
+            completionMilestoneProjectId: "proj.closure",
+            postCompletionPrograms: new[] { Care() });
+
+        Assert.Contains(ContentValidator.Validate(content),
+            v => v.Contains("authored both as ordinary content and as a post-completion program"));
+    }
+
+    [Fact]
+    public void PostCompletionProgram_UnderARegionWithNoClosureMilestone_IsFlagged()
+    {
+        var content = new RegionDefinition(
+            new RegionId("region.test"), "Test Region",
+            new[] { P("proj.a", 300L) },
+            Array.Empty<LandmarkDefinition>(), Array.Empty<ProducerDefinition>(),
+            completionMilestoneProjectId: null,
+            postCompletionPrograms: new[] { Care() });
+
+        Assert.Contains(ContentValidator.Validate(content), v => v.Contains("defines no completion milestone"));
+    }
+
+    // ==================================================================
+    // D-061: the post-completion STATE invariants.
+    // ==================================================================
+
+    [Fact]
+    public void PostCompletionProgress_BeforeCompletion_IsAStateViolation()
+    {
+        var content = RegionWithProgram(Care());
+        var game = GameFactory.NewGame(content, T0, seed: 1UL);
+        game.Region.PostCompletionCyclesCompleted = 1L;
+
+        Assert.Contains(GameStateValidator.Validate(game, content),
+            v => v.Contains("before the region was completed"));
+    }
+
+    [Fact]
+    public void PostCompletionProgress_AboveOneCycleCost_IsAStateViolation()
+    {
+        var content = RegionWithProgram(Care());
+        var game = GameFactory.NewGame(content, T0, seed: 1UL);
+        game.Region.IsCompleted = true;
+        game.Region.RegionCompletedAtUtc = T0;
+        var milestone = game.Region.FindProject("proj.closure")!;
+        milestone.Status = ProjectStatus.Completed;
+        milestone.CompletedAtUtc = T0;
+        game.Region.PostCompletionInvestedVitality = 1000L; // exactly one cycle: it must have completed
+
+        Assert.Contains(GameStateValidator.Validate(game, content),
+            v => v.Contains("reaches the authored cycle cost"));
+    }
+
+    [Fact]
+    public void PostCompletionProgress_WithoutAnAuthoredProgram_IsAStateViolation()
+    {
+        var content = new RegionDefinition(
+            new RegionId("region.test"), "Test Region",
+            new[] { P("proj.a", 300L), P("proj.closure", 500L, "proj.a") },
+            Array.Empty<LandmarkDefinition>(), Array.Empty<ProducerDefinition>(),
+            completionMilestoneProjectId: "proj.closure");
+
+        var game = GameFactory.NewGame(content, T0, seed: 1UL);
+        game.Region.IsCompleted = true;
+        game.Region.RegionCompletedAtUtc = T0;
+        var milestone = game.Region.FindProject("proj.closure")!;
+        milestone.Status = ProjectStatus.Completed;
+        milestone.CompletedAtUtc = T0;
+        game.Region.PostCompletionInvestedVitality = 10L;
+
+        Assert.Contains(GameStateValidator.Validate(game, content),
+            v => v.Contains("authors no post-completion program"));
+    }
+
+    [Fact]
+    public void PostCompletionProgress_WithARemainderBelowOneCycle_IsValid()
+    {
+        var content = RegionWithProgram(Care());
+        var game = GameFactory.NewGame(content, T0, seed: 1UL);
+        game.Region.IsCompleted = true;
+        game.Region.RegionCompletedAtUtc = T0;
+        var milestone = game.Region.FindProject("proj.closure")!;
+        milestone.Status = ProjectStatus.Completed;
+        milestone.CompletedAtUtc = T0;
+        game.Region.PostCompletionCyclesCompleted = 60L;
+        game.Region.PostCompletionInvestedVitality = 650L;
+
+        Assert.Empty(GameStateValidator.Validate(game, content));
+    }
 }

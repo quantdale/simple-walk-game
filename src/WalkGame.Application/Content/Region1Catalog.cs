@@ -15,11 +15,12 @@ using RegionId = WalkGame.Domain.Common.Id<WalkGame.Domain.Common.RegionIdKind>;
 namespace WalkGame.Application.Content
 {
     /// <summary>
-    /// Region 1 — Millbrook Valley: the authored M4 content contract (content version 2,
-    /// D-036). Six interdependent restoration chains, six landmarks, three bounded
-    /// producers, thirteen provenance-bearing discoveries, three deterministic expedition
-    /// routes, region-level ecology/settlement arcs, and the Complete Valley Survey
-    /// closure milestone with a stable post-completion evergreen state.
+     /// Region 1 — Millbrook Valley: the authored M4 content contract (content version 2,
+     /// D-036). Six interdependent restoration chains, six landmarks, three bounded
+     /// producers, thirteen provenance-bearing discoveries, three deterministic expedition
+     /// routes, region-level ecology/settlement arcs, the Complete Valley Survey closure
+     /// milestone with a stable post-completion evergreen state, and the authored
+     /// post-completion program that gives continued activity a use (D-061).
     ///
     /// The original M1/M3 development-seed definitions (projects, their costs and
     /// prerequisites, landmark stage triggers and the workshop salvage producer) are
@@ -103,6 +104,9 @@ namespace WalkGame.Application.Content
         private const string CalibrateSurveyRig = "proj.calibrate-survey-rig";
         private const string CompleteValleySurvey = "proj.complete-valley-survey";
 
+        // ---- Post-completion content (D-061) ----
+        private const string EvergreenTending = "care.evergreen-tending";
+
         public static RegionDefinition Create() => CachedInstance;
 
         /// <summary>
@@ -133,7 +137,8 @@ namespace WalkGame.Application.Content
                 settlementProgression: authored.SettlementProgression,
                 completionMilestoneProjectId: authored.CompletionMilestoneProjectId,
                 resourceCaps: authored.ResourceCaps,
-                tombstones: all);
+                tombstones: all,
+                postCompletionPrograms: authored.PostCompletionPrograms);
         }
 
         private static RegionDefinition Build()
@@ -377,6 +382,26 @@ namespace WalkGame.Application.Content
                 new ProgressionStageDefinition(4, WireSettlementPower),
             });
 
+            var postCompletionPrograms = new List<PostCompletionProgramDefinition>
+            {
+                // Evergreen Tending (D-061): the authored use for activity earned AFTER the
+                // valley's restoration is complete. One repeatable cycle, no prerequisites,
+                // nothing gated, and it cannot be mistaken for restoration work because it is
+                // not a project: the roster still reads 19 of 19 complete.
+                //
+                // Cost per cycle is 1,000 Vitality — about 5% of the region's whole authored
+                // cost — sized so a moderate walker (≈100 Vitality/day) banks a cycle roughly
+                // every ten days and a low walker still sees progress within a season. It is
+                // deliberately NOT tuned to make post-completion activity feel productive
+                // quickly: the ending is a conclusion, not a second game.
+                new PostCompletionProgramDefinition(
+                    EvergreenTending,
+                    "Evergreen Tending",
+                    vitalityCostPerCycle: 1000L,
+                    enabledByMilestoneProjectId: CompleteValleySurvey,
+                    descriptionKey: "Keep the restored valley flourishing: every completed tending cycle is one more season the cranes, the water and the woodlane hold."),
+            };
+
             return new RegionDefinition(
                 new RegionId("region.millbrook-valley"),
                 "Millbrook Valley",
@@ -389,7 +414,8 @@ namespace WalkGame.Application.Content
                 ecologyProgression: ecologyArc,
                 settlementProgression: settlementArc,
                 completionMilestoneProjectId: CompleteValleySurvey,
-                resourceCaps: AuthoredResourceCaps);
+                resourceCaps: AuthoredResourceCaps,
+                postCompletionPrograms: postCompletionPrograms);
         }
     }
 }

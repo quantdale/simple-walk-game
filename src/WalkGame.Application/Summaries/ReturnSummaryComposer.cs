@@ -53,7 +53,8 @@ namespace WalkGame.Application.Summaries
             IEnumerable<SimulationEvent> events,
             RegionDefinition content,
             PendingReturnSummaryState? existing,
-            DateTimeOffset generatedAtUtc)
+            DateTimeOffset generatedAtUtc,
+            bool regionCompleted = false)
         {
             var merged = new List<PendingSummaryItemState>();
             if (existing != null)
@@ -61,7 +62,7 @@ namespace WalkGame.Application.Summaries
 
             AppendEventItems(events, content, merged);
             StampCurrency(merged, generatedAtUtc);
-            return Finalize(merged, generatedAtUtc);
+            return Finalize(merged, generatedAtUtc, regionCompleted);
         }
 
         /// <summary>
@@ -91,7 +92,7 @@ namespace WalkGame.Application.Summaries
                 FirstCommittedAtUtc = generatedAtUtc,
             });
             StampCurrency(merged, generatedAtUtc);
-            return Finalize(merged, generatedAtUtc);
+            return Finalize(merged, generatedAtUtc, false);
         }
 
         private static void AppendEventItems(IEnumerable<SimulationEvent>? events, RegionDefinition content, List<PendingSummaryItemState> merged)
@@ -253,7 +254,7 @@ namespace WalkGame.Application.Summaries
                 AddDeduped(merged, SummaryItemKind.Notice, "A backwards device-clock change was ignored to protect your progress.");
         }
 
-        private static PendingReturnSummaryState Finalize(List<PendingSummaryItemState> merged, DateTimeOffset generatedAtUtc)
+        private static PendingReturnSummaryState Finalize(List<PendingSummaryItemState> merged, DateTimeOffset generatedAtUtc, bool regionCompleted)
         {
             // EXPLICIT stable ordering (D-055): kind ordinal first, then first-commit order
             // within a kind. The previous code called List<T>.Sort with a kind-only
@@ -327,16 +328,22 @@ namespace WalkGame.Application.Summaries
                 }
             }
 
-            state.PrimaryNextAction = DerivePrimaryNextAction(state.Items);
+            state.PrimaryNextAction = DerivePrimaryNextAction(state.Items, regionCompleted);
             return state;
         }
 
         /// <summary>
         /// One primary next action: queue/choose restoration work when something changed;
         /// otherwise null — an explicit "nothing needs attention" state.
+        ///
+        /// Completion-aware (D-061): a completed region has no queueable work left, so the
+        /// action is never offered once the closure milestone is reached, whatever items a
+        /// future event source happens to contribute.
         /// </summary>
-        private static string? DerivePrimaryNextAction(List<PendingSummaryItemState> items)
+        private static string? DerivePrimaryNextAction(List<PendingSummaryItemState> items, bool regionCompleted)
         {
+            if (regionCompleted)
+                return null;
             foreach (var item in items)
                 if (item.Kind == SummaryItemKind.ActionableDecision)
                     return "Queue the next restoration project.";

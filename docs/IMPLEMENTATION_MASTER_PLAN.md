@@ -10,13 +10,19 @@ authoritative execution detail. Do not implement from this document alone.
 
 ---
 
-## 0. Application status (updated 2026-09-30)
+## 0. Application status (updated 2026-10-08)
 
 An apply session implemented **10 of the 15 changes** on `main`
 (`df68574` … `d21e83b`). Independent review verified the applied work by
 re-running the evidence rather than reading its comments: the two P0
 reproductions were re-executed and both now behave correctly, and every gate is
 green. Test count grew 295 → 418.
+
+A second session applied **`define-post-completion-evergreen-state`** (F-20, the
+P1 product-ending defect) on 2026-10-08: a completed region no longer demands an
+impossible queue action, and continued activity has an authored sink
+(`PostCompletionEvergreenStateTests`, 7 scenarios; D-061). Test count 418 → 437.
+Remaining unapplied: 4 changes (F-07, F-14, F-19/F-13, F-18 — see below).
 
 | Applied | Findings | Verdict |
 |---|---|---|
@@ -30,14 +36,14 @@ green. Test count grew 295 → 418.
 | `close-application-use-case-test-gaps` | F-11, F-17 | `ReorderQueue` / `DequeueProject` covered; enumeration and error-code guards added. |
 | `resolve-unused-domain-surface` | F-15, F-21 | Decisions recorded; seed-honesty and dormant-surface guards added. |
 | `harden-simulation-cli-integrity-selftest` | F-16 | Self-test reads/writes the same key; exit-code mapping exhaustive. |
+| `define-post-completion-evergreen-state` | F-20 | **P1 fixed** (D-061, 2026-10-08) — the audited permanent alarm (`RequiresAttention` + "queue the next restoration project" with 19/19 complete and 60,650 Vitality banked) is replaced by an explicit `RegionComplete` conclusion with `RequiresAttention = false`; continued activity is consumed by the authored Evergreen Tending program, so the unspent balance is bounded by one cycle. All seven pacing reports still reproduce byte-for-byte; architecture, save-growth and guard gates green. |
 
-**Not yet applied (5 changes, correctly left as specified future work):**
+**Not yet applied (4 changes, correctly left as specified future work):**
 
 | Change | Findings | State |
 |---|---|---|
 | `compact-activity-and-reward-ledgers` | F-07 | Open. Growth still linear (10 KB@d7 → 395 KB@d730). |
 | `surface-ingestion-rejection-reasons` | F-14 | Open. Per-reason rejection breakdown still non-durable. |
-| `define-post-completion-evergreen-state` | F-20 | Open — **still a live P1**. Re-confirmed after the apply session: `balances: vitality=60650` with 19/19 projects complete, and `GetHome()` still reports `RequiresAttention` with no completion condition. |
 | `close-inactivity-pacing-shortfall` | F-19, F-13 | Open. A weekday-only player still cannot finish (16,420 vs 19,400). The incorrect "≈686 steps/Vitality" figure therefore also remains in `ROADMAP.md`, `RISK_REGISTER.md` R-013 and `DECISIONS.md` D-046. |
 | `extend-ci-and-release-automation` | F-18 | Open. No coverage gate, dependency check, or release workflow yet. |
 
@@ -71,7 +77,7 @@ runtime is externally blocked (`KI-002`).
 defect.** This is not an unfinished prototype. The deterministic core, the
 activity trust pipeline, the content graph, the persistence layer, the guard
 tooling and the CI reproduction machinery are all real, well-tested and
-documented to an unusual standard: 295 automated tests, all green; architecture
+documented to an unusual standard: 437 automated tests, all green; architecture
 layering, the exactly-once invariant, seven pacing profiles and the save-growth
 series are all **mechanically CI-gated** rather than asserted in prose.
 
@@ -137,7 +143,7 @@ described in §5.
 | Application | `src/WalkGame.Application/` | Use-case orchestration and read models. References Domain only. No filesystem access. |
 | Infrastructure | `src/WalkGame.Infrastructure/` | Save codec, atomic file store, local preferences store, migrations, system clock, fixture reader. Only runtime dep: `System.Text.Json` 8.0.5. |
 | Simulation CLI | `tools/simulation/` | Headless dev/release-evidence tool. Verbs: `new credit advance simulate walk profile longhaul bench scenarios ack dump validate`. |
-| Tests | `tests/` | 3 xUnit projects — Domain 105, Infrastructure 48, Application 142 = **295, all green**. |
+| Tests | `tests/` | 3 xUnit projects — Domain 148, Infrastructure 49, Application 240 = **437, all green**. |
 | Guard/tooling | `scripts/`, `.githooks/`, `tests/guards/` | Repo identity guard, single-writer lease, worktree helper, CI-step reproduction, architecture fitness, evidence gates. |
 | CI | `.github/workflows/ci.yml` | The only workflow. 12 `run:` steps. |
 
@@ -220,7 +226,7 @@ intended presentation runtime (D-009) and **does not exist in this checkout**.
 
 ```bash
 dotnet build SimpleWalkGame.sln          # 0 errors, 0 warnings (--no-incremental)
-dotnet test                               # 295 passing
+dotnet test                               # 437 passing
 scripts/verify-architecture.sh            # 11 passed, 0 failed
 scripts/verify-ci-steps.sh                # reproduces all 12 CI steps locally
 scripts/verify-pacing-evidence.sh         # 7 reproduced, 0 drifted
@@ -481,7 +487,7 @@ Both P0s, plus the taxonomy cleanup that F-01 must carry.
 
 **Exit:** the F-01 reproduction no longer loses a world; a 30-day backlog is
 credited in full; a fast clock does not disable crediting; all seven pacing
-reports still reproduce byte-for-byte; the 295-test baseline is green plus
+reports still reproduce byte-for-byte; the then-current test baseline was green plus
 additions.
 
 ### Phase 2 — Product integrity

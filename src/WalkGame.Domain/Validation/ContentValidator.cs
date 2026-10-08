@@ -224,6 +224,7 @@ namespace WalkGame.Domain.Validation
             foreach (var producer in content.Producers) liveIds.Add(producer.Id.Value);
             foreach (var discovery in content.Discoveries) liveIds.Add(discovery.Id.Value);
             foreach (var expedition in content.Expeditions) liveIds.Add(expedition.Id.Value);
+            foreach (var program in content.PostCompletionPrograms) liveIds.Add(program.Id);
 
             foreach (var pair in content.Tombstones)
             {
@@ -247,6 +248,63 @@ namespace WalkGame.Domain.Validation
                             "a live chain cannot depend on retired content.");
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Post-completion programs (D-061) are validated as authored content under every rule
+        /// that applies to ordinary nodes — unique identity, resolvable references, positive
+        /// and representable costs, and being enabled by the completed region — with ONE
+        /// deliberate exemption: they are NOT subject to the entry-reachability rule, because
+        /// a program is reachable only from the closure milestone. Reachability is a property
+        /// of content that must be earned; a post-completion program is earned by definition.
+        ///
+        /// The exemption is written down here, and nowhere else, so that the tempting "fix"
+        /// for a newly authored program — deleting it because the reachability pass flagged it
+        /// — is visibly the wrong move.
+        ///
+        /// The reverse trap is guarded too: a program identifier that also exists as ordinary
+        /// content was authored in the wrong collection (i.e. it is NOT declared
+        /// post-completion) and is reported as ordinary content would be.
+        /// </summary>
+        private static void ValidatePostCompletionPrograms(RegionDefinition content, List<string> violations)
+        {
+            var liveContentIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var project in content.Projects) liveContentIds.Add(project.Id.Value);
+            foreach (var landmark in content.Landmarks) liveContentIds.Add(landmark.Id.Value);
+            foreach (var producer in content.Producers) liveContentIds.Add(producer.Id.Value);
+            foreach (var discovery in content.Discoveries) liveContentIds.Add(discovery.Id.Value);
+            foreach (var expedition in content.Expeditions) liveContentIds.Add(expedition.Id.Value);
+
+            var seenPrograms = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var program in content.PostCompletionPrograms)
+            {
+                if (!seenPrograms.Add(program.Id))
+                    violations.Add($"Duplicate post-completion program ID '{program.Id}'.");
+
+                if (liveContentIds.Contains(program.Id))
+                    violations.Add(
+                        $"Identifier '{program.Id}' is authored both as ordinary content and as a post-completion program; "
+                        + "a post-completion program is declared by being in the declared post-completion set, not by "
+                        + "also existing as restoration content.");
+
+                if (program.VitalityCostPerCycle <= 0L)
+                    violations.Add($"Post-completion program '{program.Id}' has a non-positive cycle cost.");
+                if (program.VitalityCostPerCycle > MaxTotalVitalityCost)
+                    violations.Add($"Post-completion program '{program.Id}' cycle cost is unrepresentably large.");
+
+                if (string.IsNullOrEmpty(content.CompletionMilestoneProjectId))
+                {
+                    violations.Add(
+                        $"Post-completion program '{program.Id}' is authored but the region defines no completion milestone to enable it.");
+                    continue;
+                }
+
+                if (!string.Equals(program.EnabledByMilestoneProjectId, content.CompletionMilestoneProjectId, StringComparison.Ordinal))
+                    violations.Add(
+                        $"Post-completion program '{program.Id}' is enabled by project '{program.EnabledByMilestoneProjectId}', "
+                        + $"which is not the region's closure milestone '{content.CompletionMilestoneProjectId}'; "
+                        + "a post-completion program may only be enabled by the completed region.");
             }
         }
 
@@ -379,6 +437,9 @@ namespace WalkGame.Domain.Validation
 
             // ---- Retired content identifiers (D-059). ----
             ValidateTombstones(content, projectIds, violations);
+
+            // ---- Post-completion programs (D-061). ----
+            ValidatePostCompletionPrograms(content, violations);
 
             // ---- Self-check: the published bounds still match the simulation (D-058). ----
             violations.AddRange(CheckNumericBoundsAgainstSimulation(MaxMilliUnitsPerDay));
