@@ -337,6 +337,24 @@ The adapter should expose diagnostic source health such as:
 
 Player-facing UI should remain simple; detailed source health belongs in diagnostics.
 
+> **Implemented (D-063, automated verified):** every field above is now derived from DURABLE
+> evidence rather than from a wall-clock comparison. `IngestionOutcomeState` records when a
+> fetch was last ATTEMPTED and when one last SUCCEEDED, and the durable
+> `IngestionCheckpointUtc` is the trusted timestamp of the last accepted record.
+> `DiagnosticsReadModel.ReconciliationState` classifies the source as `NeverAttempted`,
+> `Current`, `Stale` or `FailedSinceLastSuccess`, with `ReconciliationPending` stating whether
+> the profile has activity history the source has fallen behind.
+>
+> **Staleness threshold: 3 days.** Chosen above any real polling interval (the pipeline
+> fetches when the app opens) and below the delay at which a player notices missing activity.
+> It is a published number so a future balance change disputes a constant rather than a
+> buried literal.
+>
+> **Skew policy:** when the injected clock reads EARLIER than the newest durable evidence, the
+> pair cannot agree about how old that evidence is, and the classification fails to `Stale`.
+> A reassuring `Current` computed from a clock that moved backwards is how a player whose
+> activity stopped counting gets told everything is fine.
+
 ---
 
 ## 15. Privacy and retention
@@ -438,6 +456,19 @@ Useful fields:
 - transaction IDs;
 - error categories;
 - save/recovery outcome.
+
+> **Implemented (D-063):** the durable ingestion outcome additionally retains a PER-REASON
+> rejection breakdown, keyed by the ORDINAL of `ActivityValidationStatus` (never by member
+> name, and never by provider text). That is what makes "the player's whole backlog was
+> outside the acceptance window" (`OutsideHorizon`) distinguishable from "the source returned
+> a zero-quantity record" (`ZeroQuantity`) in the only evidence that survives a restart — the
+> difference between a product defect losing a player their activity and ordinary source
+> noise. The breakdown is bounded by the reason set (one entry per eligibility status), not by
+> the batch size. `null` means "not recorded" (a save written before the field existed) and an
+> empty map means "a batch ran and rejected nothing"; those two facts are deliberately not
+> collapsed. Also now durable: deletion markers ignored, stale revisions ignored, and records
+> whose quantity was bounded — all three were computed by the batch and then discarded.
+
 
 Diagnostics should use redaction and bounded retention.
 

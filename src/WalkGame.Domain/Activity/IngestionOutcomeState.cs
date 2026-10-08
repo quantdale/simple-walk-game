@@ -49,5 +49,37 @@ namespace WalkGame.Domain.Activity
         /// fetches. Deliberately never a raw exception message.
         /// </summary>
         public string? ErrorCategory { get; set; }
+
+        /// <summary>
+        /// Per-rejection-reason counts, keyed by the ORDINAL of
+        /// <see cref="ActivityValidationStatus"/> (D-063). Persisting ordinals rather than
+        /// member names keeps the durable shape stable under a rename and the payload small,
+        /// at the cost of requiring a reader to map ordinals back through the enum — which is
+        /// the right trade for evidence about a class of rejection, not about one record.
+        ///
+        /// NULL means "no breakdown recorded" (a save written before this field existed);
+        /// EMPTY means "a batch ran and rejected nothing". Those are different facts — a
+        /// player whose whole backlog was lost and a player whose source was merely quiet do
+        /// not look alike — and collapsing them is exactly the gap that made
+        /// <c>OutsideHorizon</c> indistinguishable from <c>ZeroQuantity</c> in support.
+        ///
+        /// Bounded by construction: one entry per eligibility reason, never per record.
+        /// </summary>
+        public Dictionary<int, int>? RejectionCountsByReason { get; set; }
+
+        /// <summary>Deletion markers for records this pipeline never credited (ignored).</summary>
+        public int DeletionsIgnored { get; set; }
+
+        /// <summary>Redeliveries carrying an already-processed or older revision (ignored).</summary>
+        public int StaleRevisionsIgnored { get; set; }
+
+        /// <summary>Records whose requested quantity was above the bounded-quantity ceiling.</summary>
+        public int QuantityClamped { get; set; }
+
+        /// <summary>When a fetch was last ATTEMPTED, successful or not. Null = never attempted.</summary>
+        public DateTimeOffset? LastFetchAttemptedUtc { get; set; }
+
+        /// <summary>When a fetch last completed and its records were trusted. Null = never.</summary>
+        public DateTimeOffset? LastFetchSucceededUtc { get; set; }
     }
 }

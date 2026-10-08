@@ -206,6 +206,33 @@ public sealed class SaveCodecRoundtripTests
             Text = "Vitality credited: 200.",
         });
 
+        // D-063: the durable support-diagnostics row, including the per-reason breakdown keyed
+        // by ordinal and the fetch-attempt evidence. Round-tripping these is what makes
+        // "why was my activity not credited" answerable after a restart.
+        state.LastIngestionOutcome = new WalkGame.Domain.Activity.IngestionOutcomeState
+        {
+            Outcome = WalkGame.Domain.Activity.IngestionOutcomeKind.Succeeded,
+            CompletedAtUtc = T0.AddHours(2),
+            TotalReceived = 7,
+            Accepted = 4,
+            Rejected = 2,
+            DuplicatesIgnored = 1,
+            CorrectionsApplied = 0,
+            DeletionsApplied = 0,
+            DeletionsIgnored = 1,
+            StaleRevisionsIgnored = 1,
+            QuantityClamped = 2,
+            VitalityCredited = 200L,
+            UnappliedReversalVitality = 11L,
+            LastFetchAttemptedUtc = T0.AddHours(2),
+            LastFetchSucceededUtc = T0.AddHours(2),
+            RejectionCountsByReason = new Dictionary<int, int>
+            {
+                [(int)WalkGame.Domain.Activity.ActivityValidationStatus.OutsideHorizon] = 1,
+                [(int)WalkGame.Domain.Activity.ActivityValidationStatus.ZeroQuantity] = 1,
+            },
+        };
+
         return state;
     }
 
@@ -222,8 +249,7 @@ public sealed class SaveCodecRoundtripTests
         Assert.Equal(expected.CreatedAtUtc, actual.CreatedAtUtc);
         Assert.Equal(expected.LastAdvancedUtc, actual.LastAdvancedUtc);
 
-        Assert.Equal(expected.Rng.S0, actual.Rng.S0);
-        Assert.Equal(expected.Rng.S1, actual.Rng.S1);
+        Assert.Equal(expected.Rng.S0, actual.Rng.S0);        Assert.Equal(expected.Rng.S1, actual.Rng.S1);
         Assert.Equal(expected.Rng.S2, actual.Rng.S2);
         Assert.Equal(expected.Rng.S3, actual.Rng.S3);
 
@@ -306,6 +332,30 @@ public sealed class SaveCodecRoundtripTests
                 Assert.Equal(expected.PendingReturnSummary.Items[i].Kind, actual.PendingReturnSummary.Items[i].Kind);
                 Assert.Equal(expected.PendingReturnSummary.Items[i].Text, actual.PendingReturnSummary.Items[i].Text);
             }
+        }
+
+        // D-063: the durable ingestion row, its per-reason breakdown and its fetch evidence.
+        if (expected.LastIngestionOutcome == null)
+        {
+            Assert.Null(actual.LastIngestionOutcome);
+        }
+        else
+        {
+            Assert.NotNull(actual.LastIngestionOutcome);
+            Assert.Equal(expected.LastIngestionOutcome.Outcome, actual.LastIngestionOutcome!.Outcome);
+            Assert.Equal(expected.LastIngestionOutcome.TotalReceived, actual.LastIngestionOutcome.TotalReceived);
+            Assert.Equal(expected.LastIngestionOutcome.Rejected, actual.LastIngestionOutcome.Rejected);
+            Assert.Equal(expected.LastIngestionOutcome.DeletionsIgnored, actual.LastIngestionOutcome.DeletionsIgnored);
+            Assert.Equal(expected.LastIngestionOutcome.StaleRevisionsIgnored, actual.LastIngestionOutcome.StaleRevisionsIgnored);
+            Assert.Equal(expected.LastIngestionOutcome.QuantityClamped, actual.LastIngestionOutcome.QuantityClamped);
+            Assert.Equal(expected.LastIngestionOutcome.UnappliedReversalVitality, actual.LastIngestionOutcome.UnappliedReversalVitality);
+            Assert.Equal(expected.LastIngestionOutcome.LastFetchAttemptedUtc, actual.LastIngestionOutcome.LastFetchAttemptedUtc);
+            Assert.Equal(expected.LastIngestionOutcome.LastFetchSucceededUtc, actual.LastIngestionOutcome.LastFetchSucceededUtc);
+
+            Assert.NotNull(actual.LastIngestionOutcome.RejectionCountsByReason);
+            Assert.Equal(
+                expected.LastIngestionOutcome.RejectionCountsByReason!,
+                actual.LastIngestionOutcome.RejectionCountsByReason!);
         }
     }
 

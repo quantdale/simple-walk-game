@@ -29,7 +29,9 @@ A third session applied **`close-inactivity-pacing-shortfall`** (F-19/F-13) on
 profile now closes inside its documented target — the weekday-only profile with a
 six-week absence went from never-closing to day 376 (D-062). The pacing harness now
 FAILS on a shortfall instead of reporting one. Test count 437 → 453.
-Remaining unapplied: 3 changes (F-07, F-14, F-18 — see below).
+A fourth session applied `surface-ingestion-rejection-reasons` (F-14/F-17) on 2026-10-09: the per-reason rejection breakdown is durable (keyed by enum ordinal), source health is classified from durable fetch timestamps instead of a watermark age that floored to zero, and the no-leak sweep enumerates surfaces by reflection (D-063). Test count 453 → 465.
+
+Remaining unapplied: 2 changes (F-07, F-18 — see below).
 
 | Applied | Findings | Verdict |
 |---|---|---|
@@ -43,15 +45,15 @@ Remaining unapplied: 3 changes (F-07, F-14, F-18 — see below).
 | `close-application-use-case-test-gaps` | F-11, F-17 | `ReorderQueue` / `DequeueProject` covered; enumeration and error-code guards added. |
 | `resolve-unused-domain-surface` | F-15, F-21 | Decisions recorded; seed-honesty and dormant-surface guards added. |
 | `harden-simulation-cli-integrity-selftest` | F-16 | Self-test reads/writes the same key; exit-code mapping exhaustive. |
+| `surface-ingestion-rejection-reasons` | F-14, F-17 | **P2 fixed** (D-063, 2026-10-09) — the per-reason rejection breakdown is durable (ordinal-keyed, bounded by the reason set), the source's health is classified from durable fetch timestamps rather than a watermark age that floored to zero, a failed fetch preserves the previous batch's facts, and the no-leak sweep enumerates every read-model surface by reflection. |
 | `define-post-completion-evergreen-state` | F-20 | **P1 fixed** (D-061, 2026-10-08) — the audited permanent alarm (`RequiresAttention` + "queue the next restoration project" with 19/19 complete and 60,650 Vitality banked) is replaced by an explicit `RegionComplete` conclusion with `RequiresAttention = false`; continued activity is consumed by the authored Evergreen Tending program, so the unspent balance is bounded by one cycle. All seven pacing reports still reproduce byte-for-byte; architecture, save-growth and guard gates green. |
 | `close-inactivity-pacing-shortfall` | F-19, F-13 | **P1 fixed** (D-062, 2026-10-09) — closure is an authored criterion (`ClosureCriterionDefinition`, validated for majority and reachability, enforced by `GameStateValidator`, reported by `profile` which now exits 2 naming unfinished chains); the M4-authored roster was rebalanced 19,400 → 15,350 Vitality with the five seed definitions verbatim; every balanced profile closes inside its documented target (inactivity: never → day 376, 6/6 chains); reports state requested AND eligible activity, which also corrects the wrong "≈686 steps/Vitality" figure. |
 
-**Not yet applied (3 changes, correctly left as specified future work):**
+**Not yet applied (2 changes, correctly left as specified future work):**
 
 | Change | Findings | State |
 |---|---|---|
 | `compact-activity-and-reward-ledgers` | F-07 | Open. Growth still linear (10 KB@d7 → 395 KB@d730). |
-| `surface-ingestion-rejection-reasons` | F-14 | Open. Per-reason rejection breakdown still non-durable. |
 | `extend-ci-and-release-automation` | F-18 | Open. No coverage gate, dependency check, or release workflow yet. |
 
 **Release qualification remains blocked** by `KI-001` (hosted CI billing) and
@@ -84,7 +86,7 @@ runtime is externally blocked (`KI-002`).
 defect.** This is not an unfinished prototype. The deterministic core, the
 activity trust pipeline, the content graph, the persistence layer, the guard
 tooling and the CI reproduction machinery are all real, well-tested and
-documented to an unusual standard: 453 automated tests, all green; architecture
+documented to an unusual standard: 465 automated tests, all green; architecture
 layering, the exactly-once invariant, seven pacing profiles and the save-growth
 series are all **mechanically CI-gated** rather than asserted in prose.
 
@@ -150,7 +152,7 @@ described in §5.
 | Application | `src/WalkGame.Application/` | Use-case orchestration and read models. References Domain only. No filesystem access. |
 | Infrastructure | `src/WalkGame.Infrastructure/` | Save codec, atomic file store, local preferences store, migrations, system clock, fixture reader. Only runtime dep: `System.Text.Json` 8.0.5. |
 | Simulation CLI | `tools/simulation/` | Headless dev/release-evidence tool. Verbs: `new credit advance simulate walk profile longhaul bench scenarios ack dump validate`. |
-| Tests | `tests/` | 3 xUnit projects — Domain 148, Infrastructure 49, Application 256 = **453, all green**. |
+| Tests | `tests/` | 3 xUnit projects — Domain 148, Infrastructure 49, Application 268 = **465, all green**. |
 | Guard/tooling | `scripts/`, `.githooks/`, `tests/guards/` | Repo identity guard, single-writer lease, worktree helper, CI-step reproduction, architecture fitness, evidence gates. |
 | CI | `.github/workflows/ci.yml` | The only workflow. 12 `run:` steps. |
 
@@ -233,7 +235,7 @@ intended presentation runtime (D-009) and **does not exist in this checkout**.
 
 ```bash
 dotnet build SimpleWalkGame.sln          # 0 errors, 0 warnings (--no-incremental)
-dotnet test                               # 453 passing
+dotnet test                               # 465 passing
 scripts/verify-architecture.sh            # 11 passed, 0 failed
 scripts/verify-ci-steps.sh                # reproduces all 12 CI steps locally
 scripts/verify-pacing-evidence.sh         # 7 reproduced, 0 drifted

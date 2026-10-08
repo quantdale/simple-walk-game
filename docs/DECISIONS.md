@@ -1667,3 +1667,61 @@ recomputation, and the report cannot reproduce the error because it prints both 
 **Still unproven:** whether the region now finishes too QUICKLY for the players it was tuned
 for is a product judgement. The mechanical contract (every balanced profile closes, inside
 its documented target, with the whole valley) is tested; the feel is not.
+
+---
+
+## D-063 — The reason activity was not credited is durable, and the source's health is classified from evidence
+
+**Status:** Accepted (2026-10-09) — implements OpenSpec change
+`surface-ingestion-rejection-reasons` (F-14, F-17).
+
+**The defect.** `IngestResult.RejectionCounts` — a correct per-reason breakdown — was
+produced on every batch and then thrown away with the result object. The only durable
+evidence was `LastIngestionOutcome`, whose row carried the AGGREGATE rejected count, so
+`OutsideHorizon` (the player's entire backlog was lost) and `ZeroQuantity` (a source returned
+a zero record, entirely normal) looked identical to the only person who could act on it.
+Beside it, `IngestionCheckpointUtc` was durable evidence the pipeline recorded and then used
+only to print an age in whole days, which floors to zero — so "polled three hours ago" and
+"not polled in three weeks" both read 0.
+
+**Decisions:**
+
+1. **Ordinal-keyed breakdown.** `IngestionOutcomeState.RejectionCountsByReason` maps the
+   ORDINAL of `ActivityValidationStatus` to a count. Member names would couple the durable
+   shape to a rename, and provider text is forbidden outright; an ordinal is stable, small,
+   and maps back to a classified status on read. An unrecognised name cannot vanish: the
+   count is kept so the breakdown still sums to the recorded total.
+2. **`null` and empty are different facts.** A save written before the field decodes to
+   `null` ("not recorded"); a clean batch records an EMPTY map ("ran, rejected nothing").
+   Collapsing them would let an older build's silence masquerade as a clean batch.
+3. **The dispositions the batch already computed are now durable** — deletion markers
+   ignored, stale revisions ignored, and quantity-clamped records. Computing evidence and
+   discarding it is the defect class this closes.
+4. **A failed fetch preserves the previous batch's facts.** A failed fetch is not evidence
+   that what was earned was never earned, so the row keeps its prior counters and credited
+   progress and adds `LastFetchAttemptedUtc` without a matching success.
+5. **Source health is classified, and the classification fails closed.**
+   `ReconciliationState` (never attempted / current / stale / failed-since-last-success) is
+   derived from durable timestamps only. The threshold is 3 days, published in
+   ACTIVITY_PIPELINE §14. When the injected clock reads behind the newest durable evidence
+   the state is `Stale`, never a reassuring `Current`.
+6. **The leak sweep enumerates surfaces by reflection.** The hand-maintained list had six
+   surfaces and missed three; the sweep now walks every public parameterless session member
+   that returns a read model, asserts all ten known surfaces are present, and allow-lists the
+   two support-only surfaces where a bounded, gated adapter string may appear. It is proven
+   to fail against a deliberately leaking fixture before it ships.
+
+**Consequences:**
+
+- `GameStateValidator` checks the new durable fields: counters non-negative, the breakdown
+  summing to the recorded rejection total, and accepted not exceeding received. Each violation
+  names the offending record.
+- **Deliberately NOT validated:** `VitalityCredited` non-negativity. It is a NET APPLIED
+  delta, and a correction batch legitimately claws value back — a non-negativity rule there
+  would fail closed on a valid negative correction. Recorded because the rule was written,
+  observed to brick `SessionIngestionTests.CorrectionDown_...`, and removed for that reason.
+- Save growth is unaffected: the breakdown is one entry per eligibility reason, not per record.
+  No schema bump, no migration.
+
+**Still unverified:** the runtime/device lanes (KI-002) — a support engineer cannot yet SEE
+this projection in a shell that exists.

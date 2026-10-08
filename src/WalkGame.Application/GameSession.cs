@@ -715,6 +715,10 @@ namespace WalkGame.Application
 
             // Bounded diagnostic evidence of this batch, committed in the SAME atomic
             // write as the rewards it describes (never consulted by progression math).
+            //
+            // The per-reason breakdown is kept, not just the aggregate: "the player's whole
+            // backlog was outside the acceptance window" and "the source returned a zero
+            // record" must not look identical to the only person who can act on it (D-063).
             game.LastIngestionOutcome = new IngestionOutcomeState
             {
                 Outcome = IngestionOutcomeKind.Succeeded,
@@ -727,6 +731,12 @@ namespace WalkGame.Application
                 DeletionsApplied = deletionsApplied,
                 VitalityCredited = vitalityTotal,
                 UnappliedReversalVitality = game.ProcessedRecords.UnappliedReversalVitality,
+                RejectionCountsByReason = ToReasonCounts(rejectionCounts),
+                DeletionsIgnored = deletionsIgnored,
+                StaleRevisionsIgnored = staleRevisions,
+                QuantityClamped = clamped,
+                LastFetchAttemptedUtc = nowUtc,
+                LastFetchSucceededUtc = nowUtc,
             };
 
             OfflineAdvancer.AllocateVitality(game, _content, nowUtc, events);
@@ -764,12 +774,32 @@ namespace WalkGame.Application
                 // Durably record the transient refresh failure as bounded evidence so the
                 // shell can classify "temporarily unable to refresh" across restarts, then
                 // rethrow — callers keep their existing failure semantics. Prior progress
-                // is untouched: nothing reached the trust pipeline.
+                // is untouched: nothing reached the trust pipeline, and the PREVIOUS batch's
+                // counters and credited progress are deliberately preserved rather than
+                // zeroed, because a failed fetch is not evidence that what was earned was
+                // never earned (D-063).
+                var previous = game.LastIngestionOutcome;
                 game.LastIngestionOutcome = new IngestionOutcomeState
                 {
                     Outcome = IngestionOutcomeKind.SourceFetchFailed,
                     CompletedAtUtc = _clock.UtcNow,
                     ErrorCategory = ex.GetType().Name,
+                    TotalReceived = previous?.TotalReceived ?? 0,
+                    Accepted = previous?.Accepted ?? 0,
+                    Rejected = previous?.Rejected ?? 0,
+                    DuplicatesIgnored = previous?.DuplicatesIgnored ?? 0,
+                    CorrectionsApplied = previous?.CorrectionsApplied ?? 0,
+                    DeletionsApplied = previous?.DeletionsApplied ?? 0,
+                    VitalityCredited = previous?.VitalityCredited ?? 0L,
+                    UnappliedReversalVitality = previous?.UnappliedReversalVitality ?? 0L,
+                    RejectionCountsByReason = previous?.RejectionCountsByReason == null
+                        ? null
+                        : new Dictionary<int, int>(previous.RejectionCountsByReason),
+                    DeletionsIgnored = previous?.DeletionsIgnored ?? 0,
+                    StaleRevisionsIgnored = previous?.StaleRevisionsIgnored ?? 0,
+                    QuantityClamped = previous?.QuantityClamped ?? 0,
+                    LastFetchAttemptedUtc = _clock.UtcNow,
+                    LastFetchSucceededUtc = previous?.LastFetchSucceededUtc,
                 };
                 PersistOrThrow();
                 throw;
@@ -1615,6 +1645,9 @@ namespace WalkGame.Application
                 watermarkAgeDays = (long)checkpointAge.TotalDays;
             }
 
+            var (reconciliation, reconciliationPending) = ClassifyReconciliation(
+                game, outcome, nowUtc);
+
             return new DiagnosticsReadModel(
                 generatedAtUtc: nowUtc,
                 bootOutcome: _lastBootOutcome,
@@ -1635,10 +1668,93 @@ namespace WalkGame.Application
                 lastIngestion: outcome == null ? null : DiagnosticsIngestionRow.FromState(outcome),
                 preferencesLoadOutcome: _preferencesLoadOutcome,
                 preferencesLoadDetail: BoundDetail(_preferencesLoadDetail),
-                connectionTechnicalDetail: BoundDetail(_connectionPort?.SnapshotConnection().TechnicalDetail));
+                connectionTechnicalDetail: BoundDetail(_connectionPort?.SnapshotConnection().TechnicalDetail),
+                reconciliationState: reconciliation,
+                reconciliationPending: reconciliationPending);
         }
 
-        /// <summary>Bounds adapter/store-provided technical text so diagnostics stay bounded.</summary>
+        /// <summary>
+        /// Classifies source health from DURABLE evidence only (D-063).
+        ///
+        /// Skew policy, stated once: when the injected clock reads EARLIER than the newest
+        /// durable evidence, the pair cannot agree about how long ago that evidence was
+        /// produced, and the classification fails to Stale. A reassuring "current" computed
+        /// from a clock that has moved backwards is how a player whose activity stopped
+        /// counting gets told that everything is fine.
+        /// </summary>
+        private static (ReconciliationState State, bool Pending) ClassifyReconciliation(
+            GameState? game, IngestionOutcomeState? outcome, DateTimeOffset nowUtc)
+        {
+            if (outcome == null || outcome.LastFetchAttemptedUtc == null)
+                return (ReconciliationState.NeverAttempted, false);
+
+            DateTimeOffset lastAttempt = outcome.LastFetchAttemptedUtc!.Value;
+            DateTimeOffset? lastSuccess = outcome.LastFetchSucceededUtc;
+            DateTimeOffset watermark = game?.IngestionCheckpointUtc ?? default;
+
+            // A fetch that was attempted after the last success and did not succeed.
+            if (lastSuccess == null || lastAttempt > lastSuccess.Value)
+                return (ReconciliationState.FailedSinceLastSuccess, game != null && watermark != default);
+
+            // The newest durable activity evidence: the later of the last successful fetch and
+            // the trusted watermark, both of which are durable rather than wall-clock.
+            DateTimeOffset newestEvidence = lastSuccess.Value;
+            if (watermark > newestEvidence)
+                newestEvidence = watermark;
+
+            // Backward clock: the evidence says one thing and the clock says another. Stale.
+            if (nowUtc < newestEvidence)
+                return (ReconciliationState.Stale, true);
+
+            bool stale = nowUtc - newestEvidence > TimeSpan.FromDays(DiagnosticsReadModel.StalenessThresholdDays);
+
+            // Reconciliation is pending when the profile HAS activity history and the game has
+            // kept advancing since the newest trusted record arrived.
+            bool pending = watermark != default
+                && game != null
+                && game.LastAdvancedUtc > watermark.AddDays(1);
+
+            return (stale ? ReconciliationState.Stale : ReconciliationState.Current, pending);
+        }
+
+        /// <summary>
+        /// Maps the batch's per-reason counts onto the durable ordinal keying. The keys already
+        /// ARE the status names (that is how the batch accumulates them), so the mapping is a
+        /// parse — and an unknown key is surfaced as an unmapped ordinal rather than dropped,
+        /// because evidence about a rejection must not vanish into a rename.
+        /// </summary>
+        private static Dictionary<int, int> ToReasonCounts(SortedDictionary<string, int> rejectionCounts)
+        {
+            var durable = new Dictionary<int, int>();
+            foreach (var pair in rejectionCounts)
+            {
+                if (Enum.TryParse(pair.Key, out ActivityValidationStatus status))
+                {
+                    durable[(int)status] = pair.Value;
+                }
+                else
+                {
+                    // Unknown reason name: keep the count under an explicit unmapped ordinal so
+                    // the breakdown still sums to the recorded rejection total.
+                    const int Unmapped = -1;
+                    durable[Unmapped] = durable.TryGetValue(Unmapped, out int held) ? held + pair.Value : pair.Value;
+                }
+            }
+            return durable;
+        }
+
+        /// <summary>Maps durable ordinals back to their classified status for the read model.</summary>
+        private static IReadOnlyDictionary<ActivityValidationStatus, int> ToBreakdown(
+            Dictionary<int, int>? counts)
+        {
+            var map = new SortedDictionary<ActivityValidationStatus, int>();
+            if (counts != null)
+            {
+                foreach (var pair in counts)
+                    map[(ActivityValidationStatus)pair.Key] = pair.Value;
+            }
+            return map;
+        }
         private static string? BoundDetail(string? detail)
         {
             if (detail == null)

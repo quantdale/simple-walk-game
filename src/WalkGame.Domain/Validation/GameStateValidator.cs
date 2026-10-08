@@ -378,6 +378,53 @@ namespace WalkGame.Domain.Validation
             if (state.ProcessedRecords.UnappliedReversalVitality < 0L)
                 violations.Add("Unapplied reversal counter is negative.");
 
+            // Durable support diagnostics (D-063): bounded counters must be non-negative and
+            // internally consistent. A breakdown that does not sum to the recorded total means
+            // the evidence was mutated or truncated, and the one surface whose entire value is
+            // being trustworthy has to say so.
+            var ingestion = state.LastIngestionOutcome;
+            if (ingestion != null)
+            {
+                if (ingestion.TotalReceived < 0) violations.Add($"Ingestion total received is negative: {ingestion.TotalReceived}.");
+                if (ingestion.Accepted < 0) violations.Add($"Ingestion accepted count is negative: {ingestion.Accepted}.");
+                if (ingestion.Rejected < 0) violations.Add($"Ingestion rejected count is negative: {ingestion.Rejected}.");
+                if (ingestion.DuplicatesIgnored < 0) violations.Add($"Ingestion duplicates-ignored count is negative: {ingestion.DuplicatesIgnored}.");
+                if (ingestion.CorrectionsApplied < 0) violations.Add($"Ingestion corrections count is negative: {ingestion.CorrectionsApplied}.");
+                if (ingestion.DeletionsApplied < 0) violations.Add($"Ingestion deletions-applied count is negative: {ingestion.DeletionsApplied}.");
+                if (ingestion.DeletionsIgnored < 0) violations.Add($"Ingestion deletions-ignored count is negative: {ingestion.DeletionsIgnored}.");
+                if (ingestion.StaleRevisionsIgnored < 0) violations.Add($"Ingestion stale-revision count is negative: {ingestion.StaleRevisionsIgnored}.");
+                if (ingestion.QuantityClamped < 0) violations.Add($"Ingestion quantity-clamped count is negative: {ingestion.QuantityClamped}.");
+                if (ingestion.UnappliedReversalVitality < 0) violations.Add($"Ingestion unapplied reversal vitality is negative: {ingestion.UnappliedReversalVitality}.");
+
+                // DELIBERATELY NOT checked: VitalityCredited is a NET APPLIED delta, not a
+                // counter. A correction batch claws value back and is legitimately negative
+                // (ACTIVITY_PIPELINE §11), so a non-negativity rule here would fail closed on
+                // a valid negative correction — the exact "unsound invariant that bricks
+                // mature saves" shape this validator exists to prevent.
+
+                if (ingestion.Accepted > ingestion.TotalReceived)
+                    violations.Add(
+                        $"Ingestion accepted {ingestion.Accepted} exceeds total received {ingestion.TotalReceived}.");
+
+                if (ingestion.RejectionCountsByReason != null)
+                {
+                    long breakdownTotal = 0L;
+                    foreach (var pair in ingestion.RejectionCountsByReason)
+                    {
+                        if (pair.Key < 0)
+                            violations.Add($"Ingestion rejection breakdown has a negative reason ordinal: {pair.Key}.");
+                        if (pair.Value < 0)
+                            violations.Add(
+                                $"Ingestion rejection breakdown for reason {pair.Key} has a negative count: {pair.Value}.");
+                        breakdownTotal += pair.Value;
+                    }
+
+                    if (breakdownTotal != ingestion.Rejected)
+                        violations.Add(
+                            $"Ingestion rejection breakdown sums to {breakdownTotal} but the recorded rejection total is {ingestion.Rejected}.");
+                }
+            }
+
             return violations;
         }
     }

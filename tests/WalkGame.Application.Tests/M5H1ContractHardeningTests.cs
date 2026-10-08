@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using WalkGame.Application.Activity;
 using WalkGame.Application.ReadModels;
@@ -323,11 +324,120 @@ public sealed class M5H1ContractHardeningTests : IDisposable
     }
 
     /// <summary>
-    /// Reflection walk over every string-typed property: stronger than ToString().
-    /// Accepts null so a surface that legitimately returns nothing (an absent pending
-    /// return summary) can be swept too — that surface is exactly the one whose absence
-    /// from the sweep let a leak class go unwatched.
+    /// The sweep above is hand-maintained; this one is not. It enumerates EVERY public
+    /// parameterless member of the session that returns a read model, so a surface added
+    /// later is swept automatically instead of waiting for someone to remember to add it to
+    /// a list — the exact failure that left three surfaces unwatched (D-063).
     /// </summary>
+    [Fact]
+    public void EveryReadModelSurface_IsSweptByReflection_AndOnlySupportSurfacesMayCarryAdapterDetail()
+    {
+        var port = new FakeActivityConnectionPort
+        {
+            Permission = ActivityPermissionState.Granted,
+            TechnicalDetail = "adapter dump: " + Marker,
+        };
+        var session = NewSession(port);
+        session.StartNewGame(7UL);
+        Assert.Throws<IOException>(() => session.IngestFromSource(
+            new ThrowingRecordSource(new IOException(Marker)),
+            TestSessions.T0, TestSessions.T0.AddHours(1)));
+
+        var surfaces = EnumerateReadModelSurfaces(session);
+        var names = surfaces.Select(s => s.Name).ToList();
+
+        // A sweep that sweeps nothing must fail loudly rather than pass vacuously — and it must
+        // actually cover the surfaces the hand-maintained list used to name.
+        foreach (var required in new[]
+                 {
+                     nameof(GameSession.GetActivityStatus),
+                     nameof(GameSession.GetOnboarding),
+                     nameof(GameSession.GetSettings),
+                     nameof(GameSession.GetHome),
+                     nameof(GameSession.GetProjects),
+                     nameof(GameSession.GetRegion),
+                     nameof(GameSession.GetDiscoveries),
+                     nameof(GameSession.GetExpeditions),
+                     nameof(GameSession.GetPendingReturnSummary),
+                     nameof(GameSession.GetDiagnostics),
+                 })
+        {
+            Assert.Contains(required, names);
+        }
+
+        Assert.Equal(10, names.Count);
+
+        foreach (var (name, text) in surfaces)
+        {
+            if (name == nameof(GameSession.GetDiagnostics))
+                continue; // support-only, allow-listed below
+
+            Assert.DoesNotContain(Marker, text);
+        }
+
+        // The support projection is the ONLY surface where a bounded, gated string may appear,
+        // and even there the adapter detail arrives truncated.
+        var diagnostics = Describe(session.GetDiagnostics());
+        Assert.Contains("IOException", diagnostics);
+        Assert.True((session.GetDiagnostics().ConnectionTechnicalDetail?.Length ?? 0) <= 300);
+    }
+
+    /// <summary>Every public, parameterless, read-model-producing session member, by name.</summary>
+    private static List<(string Name, string Text)> EnumerateReadModelSurfaces(GameSession session)
+    {
+        var surfaces = new List<(string, string)>();
+        foreach (var method in typeof(GameSession).GetMethods(BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (method.GetParameters().Length > 0)
+                continue;
+
+            Type returnType = method.ReturnType;
+            if (returnType == typeof(void))
+                continue;
+
+            string? ns = returnType.Namespace;
+            bool isReadModel = ns != null && (
+                ns.StartsWith("WalkGame.Application.ReadModels", StringComparison.Ordinal) ||
+                ns.StartsWith("WalkGame.Application.Activity", StringComparison.Ordinal));
+            if (!isReadModel)
+                continue;
+
+            object? value;
+            try
+            {
+                value = method.Invoke(session, Array.Empty<object>());
+            }
+            catch (TargetInvocationException)
+            {
+                continue; // a surface that throws here is covered by its own contract tests
+            }
+
+            surfaces.Add((method.Name, Describe(value)));
+        }
+        return surfaces;
+    }
+
+    /// <summary>
+    /// Proves the sweep can fail (task 5.3): a deliberately leaking read model must be caught.
+    /// The fixture is local and never shipped — a leak sweep nobody has seen fail is a leak
+    /// sweep nobody can trust.
+    /// </summary>
+    [Fact]
+    public void LeakSweep_ProvenToFail_OnADeliberatelyLeakingSurface()
+    {
+        var leaking = new LeakySurface { Payload = "adapter dump: " + Marker };
+
+        Assert.Contains(Marker, Describe(leaking));
+
+        var clean = new LeakySurface { Payload = null };
+        Assert.DoesNotContain(Marker, Describe(clean));
+    }
+
+    private sealed class LeakySurface
+    {
+        public string? Payload { get; set; }
+    }
+
     private static string Describe(object? model)
     {
         // Reflection walk over every string-typed property: stronger than ToString().

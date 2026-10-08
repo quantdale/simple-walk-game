@@ -101,7 +101,9 @@ namespace WalkGame.Application.ReadModels
             DiagnosticsIngestionRow? lastIngestion,
             UxPreferencesLoadOutcome preferencesLoadOutcome,
             string? preferencesLoadDetail,
-            string? connectionTechnicalDetail)
+            string? connectionTechnicalDetail,
+            ReconciliationState reconciliationState,
+            bool reconciliationPending)
         {
             GeneratedAtUtc = generatedAtUtc;
             BootOutcome = bootOutcome;
@@ -123,7 +125,24 @@ namespace WalkGame.Application.ReadModels
             PreferencesLoadOutcome = preferencesLoadOutcome;
             PreferencesLoadDetail = preferencesLoadDetail;
             ConnectionTechnicalDetail = connectionTechnicalDetail;
+            ReconciliationState = reconciliationState;
+            ReconciliationPending = reconciliationPending;
         }
+
+        /// <summary>Classified source health (D-063): is the pipeline waiting for data it has not received?</summary>
+        public ReconciliationState ReconciliationState { get; }
+
+        /// <summary>True when the profile has activity history but the source has fallen behind it.</summary>
+        public bool ReconciliationPending { get; }
+
+        /// <summary>
+        /// Staleness threshold for the reconciliation classification, in days. Chosen above
+        /// any real polling interval (the pipeline fetches when the app opens) and below the
+        /// delay at which a player would notice missing activity. Documented in
+        /// ACTIVITY_PIPELINE §14 so it is a published number rather than a code constant
+        /// someone discovers later.
+        /// </summary>
+        public static readonly int StalenessThresholdDays = 3;
     }
 
     /// <summary>Bounded counter row describing the most recent ingestion batch.</summary>
@@ -143,11 +162,35 @@ namespace WalkGame.Application.ReadModels
         /// <summary>Stable error-category classification; never a raw exception message.</summary>
         public string? ErrorCategory { get; }
 
+        /// <summary>
+        /// Per-rejection-reason counts, keyed by the eligibility status. Null when the save
+        /// predates the breakdown ("not recorded") and empty when a batch rejected nothing
+        /// ("recorded, nothing rejected") — two different facts that must not be collapsed
+        /// (D-063).
+        /// </summary>
+        public IReadOnlyDictionary<ActivityValidationStatus, int>? RejectionCountsByReason { get; }
+
+        public int DeletionsIgnored { get; }
+
+        public int StaleRevisionsIgnored { get; }
+
+        public int QuantityClamped { get; }
+
+        public DateTimeOffset? LastFetchAttemptedUtc { get; }
+
+        public DateTimeOffset? LastFetchSucceededUtc { get; }
+
         private DiagnosticsIngestionRow(
             IngestionOutcomeKind outcome, DateTimeOffset completedAtUtc,
             int totalReceived, int accepted, int rejected, int duplicatesIgnored,
             int correctionsApplied, int deletionsApplied,
-            long vitalityCredited, long unappliedReversalVitality, string? errorCategory)
+            long vitalityCredited, long unappliedReversalVitality, string? errorCategory,
+            IReadOnlyDictionary<ActivityValidationStatus, int>? rejectionCountsByReason = null,
+            int deletionsIgnored = 0,
+            int staleRevisionsIgnored = 0,
+            int quantityClamped = 0,
+            DateTimeOffset? lastFetchAttemptedUtc = null,
+            DateTimeOffset? lastFetchSucceededUtc = null)
         {
             Outcome = outcome;
             CompletedAtUtc = completedAtUtc;
@@ -160,13 +203,36 @@ namespace WalkGame.Application.ReadModels
             VitalityCredited = vitalityCredited;
             UnappliedReversalVitality = unappliedReversalVitality;
             ErrorCategory = errorCategory;
+            RejectionCountsByReason = rejectionCountsByReason;
+            DeletionsIgnored = deletionsIgnored;
+            StaleRevisionsIgnored = staleRevisionsIgnored;
+            QuantityClamped = quantityClamped;
+            LastFetchAttemptedUtc = lastFetchAttemptedUtc;
+            LastFetchSucceededUtc = lastFetchSucceededUtc;
         }
 
-        internal static DiagnosticsIngestionRow FromState(IngestionOutcomeState state) =>
-            new DiagnosticsIngestionRow(
+        internal static DiagnosticsIngestionRow FromState(IngestionOutcomeState state)
+        {
+            IReadOnlyDictionary<ActivityValidationStatus, int>? breakdown = null;
+            if (state.RejectionCountsByReason != null)
+            {
+                var map = new SortedDictionary<ActivityValidationStatus, int>();
+                foreach (var pair in state.RejectionCountsByReason)
+                    map[(ActivityValidationStatus)pair.Key] = pair.Value;
+                breakdown = map;
+            }
+
+            return new DiagnosticsIngestionRow(
                 state.Outcome, state.CompletedAtUtc,
                 state.TotalReceived, state.Accepted, state.Rejected, state.DuplicatesIgnored,
                 state.CorrectionsApplied, state.DeletionsApplied,
-                state.VitalityCredited, state.UnappliedReversalVitality, state.ErrorCategory);
+                state.VitalityCredited, state.UnappliedReversalVitality, state.ErrorCategory,
+                breakdown,
+                state.DeletionsIgnored,
+                state.StaleRevisionsIgnored,
+                state.QuantityClamped,
+                state.LastFetchAttemptedUtc,
+                state.LastFetchSucceededUtc);
+        }
     }
 }

@@ -46,7 +46,7 @@ Save envelope (`SaveEnvelopeDto`, `src/WalkGame.Infrastructure/Persistence/SaveJ
 | `Resources`, `Rng` | integer balances, RNG state | non-personal game state |
 | `Ledger` | reward transactions: source record IDs, amounts, windows | **health-adjacent**: derived from walking data |
 | `ProcessedRecords` | dedup ledger (source IDs / content fingerprints) | **health-adjacent identifiers** |
-| `Region`, `Queue`, `PendingReturnSummary`, `LastIngestionOutcome` | world progress, summaries, bounded batch counters | non-personal, bounded |
+| `Region`, `Queue`, `PendingReturnSummary`, `LastIngestionOutcome` | world progress, summaries, bounded batch counters (D-063 adds a per-eligibility-reason rejection breakdown keyed by enum ordinal, three batch dispositions, and two fetch timestamps) | non-personal, bounded |
 
 No names, emails, contact data, precise location, or device identifiers are
 stored. The sensitive core is **timestamped walking activity counts and
@@ -98,10 +98,15 @@ platform data-residency rules.
 | P-1 | Health-adjacent save data is plaintext at rest (app layer) | Medium | Open → KI-006 |
 | P-2 | PRODUCT_SPEC contains no explicit privacy requirements section; the guarantees above live only in this review and implicit spec theses | Medium | Open → KI-005 |
 | P-3 | No network/analytics/accounts in headless code | — | Verified clean (§1) |
-| P-4 | Diagnostics are privacy-safe by construction, test-enforced | — | Verified clean (§5) |
+| P-4 | Diagnostics are privacy-safe by construction, test-enforced (D-063 extends the sweep to every read-model surface by reflection, so a new surface cannot escape it) | — | Verified clean (§5) |
 | P-5 | Runtime/device permission surfaces | — | UNVERIFIED (do not claim; §4/§6) |
 
 **Conclusion:** the headless lane is honest to its "offline, on-device, no
 telemetry" thesis with mechanical evidence, with two open Medium findings
 (P-1, P-2) that must be dispositioned before M9, and with all runtime/device
 permission claims explicitly reserved rather than assumed.
+
+**Re-verified 2026-10-09 (D-063):** the §1 zero-network grep still returns nothing, and the§5 no-leak sweep still passes with every read-model surface enumerated by reflection. The new
+durable fields (per-reason rejection breakdown keyed by enum ordinal, three batch
+dispositions, two fetch timestamps) carry no provider text, no record identifiers and no
+payload bytes.

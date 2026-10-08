@@ -134,9 +134,14 @@ per-batch accounting identity with every counter exercised.
 behaviour — whether a given platform actually returns a full backlog on reconnect, what
 its backfill limits are, and how it behaves across a permission revocation or a device
 clock correction. That is the M7 adapter lane and cannot be verified from this repository
-(`KI-002`). Per-reason rejection counts are still **not persisted**; the breakdown is
-produced and returned on the result object but has no durable path until the follow-up
-diagnostics change.
+(`KI-002`).
+
+**Diagnostics update (2026-10-09, D-063):** the per-reason rejection breakdown now HAS a
+durable path, so a lost-activity report is answerable from state that survives a restart.
+`SupportDiagnosticsTests` proves `OutsideHorizon` and `ZeroQuantity` are reported as different
+reasons, that the breakdown survives a restart, and that it stays bounded by the reason set
+regardless of batch size. The classification a player or support engineer would SEE remains
+blocked on the runtime lane.
 
 ---
 
