@@ -29,7 +29,7 @@ A third session applied **`close-inactivity-pacing-shortfall`** (F-19/F-13) on
 profile now closes inside its documented target — the weekday-only profile with a
 six-week absence went from never-closing to day 376 (D-062). The pacing harness now
 FAILS on a shortfall instead of reporting one. Test count 437 → 453.
-A fourth session applied `surface-ingestion-rejection-reasons` (F-14/F-17) on 2026-10-09: the per-reason rejection breakdown is durable (keyed by enum ordinal), source health is classified from durable fetch timestamps instead of a watermark age that floored to zero, and the no-leak sweep enumerates surfaces by reflection (D-063). Test count 453 → 465.
+A fourth session applied `surface-ingestion-rejection-reasons` (F-14/F-17) on 2026-10-09: the per-reason rejection breakdown is durable (keyed by enum ordinal), source health is classified from durable fetch timestamps instead of a watermark age that floored to zero, and the no-leak sweep enumerates surfaces by reflection (D-063). Test count 453 → 466.
 
 A fifth session applied `extend-ci-and-release-automation` (F-18) on 2026-10-09: a coverage floor (measured, deliberately low, as a loss detector), a dependency gate that enforces the documented one-runtime-package claim, Dependabot, a thin tag-triggered release lane, a scripted release-evidence assembler and a committed release checklist (D-064). The two new workflows are validated by executing their step bodies locally; hosted CI remains blocked (KI-001).
 
@@ -88,7 +88,7 @@ runtime is externally blocked (`KI-002`).
 defect.** This is not an unfinished prototype. The deterministic core, the
 activity trust pipeline, the content graph, the persistence layer, the guard
 tooling and the CI reproduction machinery are all real, well-tested and
-documented to an unusual standard: 465 automated tests, all green; architecture
+documented to an unusual standard: 466 automated tests, all green; architecture
 layering, the exactly-once invariant, seven pacing profiles and the save-growth
 series are all **mechanically CI-gated** rather than asserted in prose.
 
@@ -154,7 +154,7 @@ described in §5.
 | Application | `src/WalkGame.Application/` | Use-case orchestration and read models. References Domain only. No filesystem access. |
 | Infrastructure | `src/WalkGame.Infrastructure/` | Save codec, atomic file store, local preferences store, migrations, system clock, fixture reader. Only runtime dep: `System.Text.Json` 8.0.5. |
 | Simulation CLI | `tools/simulation/` | Headless dev/release-evidence tool. Verbs: `new credit advance simulate walk profile longhaul bench scenarios ack dump validate`. |
-| Tests | `tests/` | 3 xUnit projects — Domain 148, Infrastructure 49, Application 268 = **465, all green**. |
+| Tests | `tests/` | 3 xUnit projects — Domain 148, Infrastructure 49, Application 269 = **466, all green**. |
 | Guard/tooling | `scripts/`, `.githooks/`, `tests/guards/` | Repo identity guard, single-writer lease, worktree helper, CI-step reproduction, architecture fitness, evidence gates. |
 | CI | `.github/workflows/ci.yml` | The only workflow. 12 `run:` steps. |
 
@@ -237,7 +237,7 @@ intended presentation runtime (D-009) and **does not exist in this checkout**.
 
 ```bash
 dotnet build SimpleWalkGame.sln          # 0 errors, 0 warnings (--no-incremental)
-dotnet test                               # 465 passing
+dotnet test                               # 466 passing
 scripts/verify-architecture.sh            # 11 passed, 0 failed
 scripts/verify-ci-steps.sh                # reproduces all 12 CI steps locally
 scripts/verify-pacing-evidence.sh         # 7 reproduced, 0 drifted

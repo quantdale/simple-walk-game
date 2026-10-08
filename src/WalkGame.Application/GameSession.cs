@@ -667,7 +667,7 @@ namespace WalkGame.Application
 
                     ApplyCorrectionDelta(game, identityKey, existing, record, nowUtc, events,
                         ref corrections, ref clamped, ref dupTransactions, ref vitalityTotal,
-                        ref maxTrustedEndUtc);
+                        ref maxTrustedEndUtc, ref eligibleStepsTotal);
                     continue;
                 }
 
@@ -822,12 +822,18 @@ namespace WalkGame.Application
             DateTimeOffset nowUtc,
             List<SimulationEvent> events,
             ref int corrections, ref int clamped, ref int dupTransactions, ref long vitalityTotal,
-            ref DateTimeOffset maxTrustedEndUtc)
+            ref DateTimeOffset maxTrustedEndUtc,
+            ref long eligibleStepsTotal)
         {
             int revision = Math.Max(1, record.Revision);
             long eligibleSteps = ActivityValidationPolicy.ClampQuantity(record.Category, record.Quantity);
             if (eligibleSteps != record.Quantity)
                 clamped++;
+
+            // A correction REPLACES a previously trusted quantity, so counting this record's
+            // full eligible steps would double-count it against the batch's requested total.
+            // The net change is the honest contribution to the batch's eligible figure.
+            eligibleStepsTotal += eligibleSteps - existing.EligibleSteps;
 
             long targetVitality = StepConversionRuleV1.ConvertSteps(eligibleSteps);
             long delta = targetVitality - existing.VitalityCredited;

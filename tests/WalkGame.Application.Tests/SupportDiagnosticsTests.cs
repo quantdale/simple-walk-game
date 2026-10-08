@@ -223,10 +223,34 @@ public sealed class SupportDiagnosticsTests : IDisposable
         Assert.InRange(age!.Value, 28, 31);
     }
 
+    [Fact]
+    public void CorrectionBatch_CountsEligibleStepsAsANetChange_NotADoubleCount()
+    {
+        var session = NewSession();
+        session.StartNewGame(7UL);
+
+        // First delivery: 4,000 eligible steps credited as 40 vitality.
+        var first = session.IngestActivityBatch(new[] { Record(T0.AddHours(-2), T0, 4000L, "corr.seed", revision: 1) });
+        Assert.Equal(4000L, first.EligibleSteps);
+        Assert.Equal(40L, first.VitalityCredited);
+
+        // Correction up: the record now carries 8,000 steps. The eligible figure must move by
+        // the DELTA (4,000), not to 8,000 -- the original 4,000 was already trusted and
+        // counted, and adding 8,000 on top would double-count it against the batch's
+        // requested total. The credited figure is the delta too, so the ratio still holds.
+        var correction = session.IngestActivityBatch(new[]
+        {
+            Record(T0.AddHours(-2), T0, 8000L, "corr.seed", revision: 2),
+        });
+
+        Assert.Equal(1, correction.CorrectionsApplied);
+        Assert.Equal(4000L, correction.EligibleSteps);
+        Assert.Equal(40L, correction.VitalityCredited);
+    }
+
     // ------------------------------------------------------------------
     // 3. Validator.
     // ------------------------------------------------------------------
-
     [Fact]
     public void InconsistentBreakdown_IsAStateViolation()
     {
