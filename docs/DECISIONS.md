@@ -1781,3 +1781,52 @@ it detached for long sessions).
 **Still unverified:** hosted CI (KI-001) and every runtime lane (KI-002). The new workflows have
 never executed on GitHub; they are validated by executing the same step bodies locally through
 the existing reproducer.
+
+## D-065 — The glance is a read-time sentence projection, not a second attention policy
+
+**Status:** Accepted (2026-10-09) — implements OpenSpec change `define-headless-glance-language`.
+
+**The gap.** The headless core could already answer UX_DESIGN §3's three glance questions as
+facts, and nothing turned those facts into the sentences a player would read. The simulation
+CLI printed `attention=QueueEmptyWithBankedVitality(True)` and project ids;
+`ReturnSummaryComposer`'s `LandmarkStageReached` arm stored a landmark advance as
+`"Old Trailhead has reached Stabilized."`. Unity screens remain externally blocked, so that
+gap could not be closed by a pixel shell.
+
+**Decisions:**
+
+1. **Project in Application, from existing reads.** `GlanceReadModel` + `GlanceProjector` sit
+   beside the other read models. `GameSession.GetGlance()` gathers `GetHome()`,
+   `GetPendingReturnSummary()`, `GetOnboarding()`, the content graph and an activity snapshot,
+   then calls the pure projector. It is parameterless and total: a session composed without a
+   connection port gets the source-unavailable sentence instead of a throw, so the CLI can read
+   a glance on any save. Domain stays free of player copy.
+2. **Attention is consumed, never re-derived.** The projector switches on
+   `HomeAttentionReason` and copies `RequiresAttention`. The five sentences and the one-action
+   rule are pinned per reason; a completed region names the region and offers no queue action;
+   an empty queue with banked progress before completion still demands a choice.
+3. **The phrase table is closed and shared.** `GlancePhrases.FormatLandmark` is the ONE form
+   used by both the glance and newly composed summary lines, so the two can never disagree
+   about the same milestone. Alternative considered and rejected: parsing stored text loosely
+   at read time — it would drift silently as composers change.
+4. **Historical summary text is NOT migrated.** A stored `"... has reached {Stage}."` line is
+   re-rendered exactly at read time and never written back; a line that would echo a stage
+   identifier and is not that exact form falls back to an opaque lead instead. This is what
+   keeps the `Old Trailhead has reached Stabilized.` round-trip fixture true without a
+   migration, and it means a shell may still show the old form for a rotated historical item —
+   an accepted, documented cost of not rewriting a player's data.
+5. **Newly composed lines change, and the evidence follows.** Only the `LandmarkStageReached`
+   arm changed form. Pacing evidence and content version are untouched; the reports contain no
+   summary text, which is why they still reproduce byte-for-byte.
+6. **The inspection surface is a verb that never writes.** `glance` loads, prints, and returns.
+   The optional `--at` pins the clock so a summary's D-055 currency is reproducible in evidence
+   runs instead of depending on the run date.
+
+**Consequences:** `UseCaseCoverageGuardTests` and
+`EveryReadModelSurface_IsSweptByReflection_AndOnlySupportSurfacesMayCarryAdapterDetail` now
+include `GetGlance`, so the surface is aligned the moment it is added rather than by recall.
+The M5-H1 evidence labels stay **IMPLEMENTED / AUTOMATED VERIFIED**.
+
+**Still unverified:** every runtime aspect — rendering these sentences in Unity, reduced-motion
+behavior, accessibility semantics, and any device evidence remains UNVERIFIED. This change does
+not complete M5 as a roadmap milestone.
