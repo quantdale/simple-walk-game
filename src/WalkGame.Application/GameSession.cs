@@ -1622,14 +1622,54 @@ namespace WalkGame.Application
                 throw new InvalidOperationException(
                     "No activity connection port is configured for this session (" + UxErrorCodes.ConnectionPortMissing + ").");
 
-            var game = RequireState();
+            return ProjectActivityStatus(RequireState());
+        }
+
+        /// <summary>
+        /// Shared projection of the durable last outcome. Kept private and shared so the
+        /// activity-status surface and the glance can never disagree about the same facts.
+        /// </summary>
+        private ActivityStatusReadModel ProjectActivityStatus(GameState game)
+        {
             var outcome = game.LastIngestionOutcome;
             return ActivityStatusProjector.Project(
-                _connectionPort.SnapshotConnection(),
+                _connectionPort == null ? null : _connectionPort.SnapshotConnection(),
                 hasProcessedAnyRecord: game.ProcessedRecords.Count > 0,
                 lastOutcome: outcome?.Outcome ?? IngestionOutcomeKind.NeverRun,
                 lastBatchVitalityCredited: outcome?.Outcome == IngestionOutcomeKind.Succeeded ? outcome.VitalityCredited : 0L,
                 lastProcessedAtUtc: outcome?.Outcome == IngestionOutcomeKind.Succeeded ? outcome.CompletedAtUtc : null);
+        }
+
+        // ---------------------------------------------------------------------
+        // Player glance: the three answers in sentences, derived entirely from
+        // reads. Consumes the existing attention classification rather than
+        // re-deriving it, and never saves, acknowledges, or ingests — so a
+        // second read returns the same sentences (D-065).
+        // ---------------------------------------------------------------------
+
+        /// <summary>
+        /// One glance in bounded sentences: what changed, what is being restored now, and
+        /// whether anything must be done.
+        ///
+        /// Parameterless and total: a session composed without an activity connection port
+        /// (the normal headless simulation composition) still produces the source-unavailable
+        /// activity sentence instead of throwing. Reading it has no side effects.
+        /// </summary>
+        public GlanceReadModel GetGlance()
+        {
+            var game = RequireState();
+            var home = GetHome();
+            PostCompletionProgramDefinition? careProgram = home.RegionComplete
+                ? FindAuthoredCareProgram(_content)
+                : null;
+
+            return GlanceProjector.Project(
+                home,
+                GetPendingReturnSummary(),
+                GetOnboarding(),
+                ProjectActivityStatus(game),
+                _content,
+                careProgram);
         }
 
         /// <summary>Support-oriented diagnostics snapshot. Privacy-safe by construction:
