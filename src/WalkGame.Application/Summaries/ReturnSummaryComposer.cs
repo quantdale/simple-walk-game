@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using WalkGame.Application.ReadModels;
 using WalkGame.Domain.Economy;
 using WalkGame.Domain.Regions;
 using WalkGame.Domain.Simulation;
@@ -125,8 +126,11 @@ namespace WalkGame.Application.Summaries
                         break;
 
                     case LandmarkStageReached stage:
+                        // D-065: newly composed lines use the shared glance phrase form, so a stored
+                        // sentence and the read-time glance never disagree about the same milestone.
+                        // Already-stored lines are NOT migrated — historical text keeps its form.
                         AddDeduped(merged, SummaryItemKind.Transformation,
-                            Title(content.FindLandmark(stage.LandmarkId)?.TitleKey, stage.LandmarkId) + $" has reached {stage.Stage}.");
+                            GlancePhrases.FormatLandmark(content.FindLandmark(stage.LandmarkId)?.TitleKey, stage.Stage));
                         break;
 
                     case ProducerUnlocked producerUnlocked:
