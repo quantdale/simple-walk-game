@@ -434,7 +434,149 @@ public sealed class GlanceLanguageTests : IDisposable
         Assert.NotNull(session.GetPendingReturnSummary());
     }
 
+    [Fact]
+    public void ReadingAGlancePerformsNoSaveOperation()
+    {
+        // The CLI boots through the shared boot flow, which persists before presenting (as
+        // ack/dump/validate already did). What THIS surface must not do is add a save of its own.
+        // Boot first so the state is settled, then prove a glance read leaves the file alone.
+        var session = NewSession();
+        Assert.Equal(StartStatus.NewGameCreated, session.StartNewGame(7UL).Status);
+
+        session.GetGlance();
+        byte[] afterFirst = File.ReadAllBytes(SavePath);
+
+        session.GetGlance();
+        byte[] afterSecond = File.ReadAllBytes(SavePath);
+
+        // A save inside GetGlance would refresh the storedAt stamp, so identical bytes is
+        // the evidence that this surface performs no save operation at all.
+        Assert.Equal(afterFirst, afterSecond);
+
+        // And the projected sentences did not depend on any mutation.
+        Assert.Equal(Describe(session.GetGlance()), Describe(session.GetGlance()));
+    }
+
+    /// <summary>
+    /// The boot persist is shared and pre-existing: a session that boots and one that boots
+    /// and then reads a glance leave the same canonical state (only the persisted wall-clock
+    /// stamp differs), so the glance adds nothing to the save.
+    /// </summary>
+    [Fact]
+    public void ReadingAGlanceAddsNothingToWhatBootingAlreadyPersists()
+    {
+        var plain = NewTemp();
+        var glanced = NewTemp();
+        try
+        {
+            BootInto(plain);
+            BootInto(glanced);
+
+            var glanceSession = TestSessions.Create(glanced, new ManualClock(TestSessions.T0),
+                new LocalPreferencesStore(glanced), null);
+            Assert.Equal(StartStatus.Loaded, glanceSession.Continue().Status);
+            glanceSession.GetGlance();
+
+            Assert.Equal(CanonicalState(plain), CanonicalState(glanced));
+        }
+        finally
+        {
+            Directory.Delete(plain, true);
+            Directory.Delete(glanced, true);
+        }
+    }
+
+    /// <summary>Canonical state with the persisted wall-clock stamp excluded.</summary>
+    private static string CanonicalState(string dir)
+    {
+        var payload = File.ReadAllText(Path.Combine(dir, "save.json"));
+        var lines = new System.Text.StringBuilder();
+        foreach (var line in payload.Split('\n'))
+        {
+            var trimmed = line.Trim();
+            if (trimmed.Contains("lastAdvancedUtc") || trimmed.Contains("savedAtUtc"))
+                continue;
+            lines.Append(trimmed);
+        }
+        return lines.ToString();
+    }
+
+    private static string NewTemp()
+    {
+        var path = Path.Combine(Path.GetTempPath(), "walkgame-glance-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(path);
+        return path;
+    }
+
+    private static void BootInto(string dir)
+    {
+        var clock = new ManualClock(TestSessions.T0);
+        var session = TestSessions.Create(dir, clock, new LocalPreferencesStore(dir), null);
+        Assert.Equal(StartStatus.NewGameCreated, session.StartNewGame(7UL).Status);
+    }
+
     // ------------------------------------------------------------------ helpers
+
+    [Fact]
+    public void AFinishedValleyNeverOffersAQueueActionEvenWithACurrentSummary()
+    {
+        // GetHome() prefers PendingReturnSummary over RegionComplete whenever a summary item
+        // is still current, so this is the state a finished region actually arrives in —
+        // carrying a summary-derived action for work that no longer exists. The design rule
+        // is that the conclusion outranks the stale action.
+        var home = RegionCompleteWithCurrentSummary();
+        var projected = GlanceProjector.Project(
+            home,
+            PendingReturnSummaryFor(home),
+            CompletedOnboarding(),
+            ConnectedStatus(),
+            Region1Catalog.Create(),
+            new PostCompletionProgramDefinition(
+                "care.evergreen-tending", "Evergreen Tending", 250L, "proj.valley-closure-milestone"));
+
+        Assert.False(projected.RequiresAttention);
+        Assert.Equal("Millbrook Valley's restoration is complete.", projected.AttentionSentence);
+        Assert.Null(projected.PrimaryNextAction);
+        Assert.DoesNotContain("Queue", projected.AttentionSentence);
+    }
+
+    private static HomeReadModel RegionCompleteWithCurrentSummary() => new HomeReadModel(
+        regionTitleKey: "Millbrook Valley",
+        vitality: 0L, materials: 0L, knowledge: 0L,
+        activeProjectId: null, activeProjectTitleKey: null,
+        activeProjectInvested: 0L, activeProjectCost: 0L,
+        queued: Array.Empty<HomeReadModel.QueuedRow>(),
+        completedProjects: 19, totalProjects: 19,
+        landmarks: new[] { new HomeReadModel.LandmarkRow("lm.trailhead", "Old Trailhead", RestorationStage.Restored) },
+        autoAdvance: true,
+        hasPendingSummary: true,
+        primaryNextAction: "Queue the next restoration project.",
+        requiresAttention: true,
+        attentionReason: HomeAttentionReason.PendingReturnSummary,
+        bankedVitality: 0L,
+        regionComplete: true,
+        postCompletionCareInvested: 60L,
+        postCompletionCareCostPerCycle: 250L);
+
+    private static ReturnSummaryReadModel PendingReturnSummaryFor(HomeReadModel home) => new(
+        new[]
+        {
+            new ReturnSummaryReadModel.ItemRow(
+                SummaryItemKind.Transformation, "Restore the Well is complete.", TestSessions.T0, isCurrent: true),
+        },
+        home.PrimaryNextAction,
+        TestSessions.T0);
+
+    private static OnboardingReadModel CompletedOnboarding() => new(
+        OnboardingStage.Complete, OnboardingNextAction.None, true,
+        OnboardingActivityStepState.Granted, false);
+
+    private static ActivityStatusReadModel ConnectedStatus() => new(
+        ActivityPlayerStatus.ConnectedCurrent, ActivityRecommendedAction.None,
+        permissionGranted: true, partiallyGranted: false, hasProcessedAnyRecord: true,
+        lastOutcome: IngestionOutcomeKind.Succeeded, lastBatchVitalityCredited: 60L,
+        lastProcessedAtUtc: TestSessions.T0, lastSuccessfulRefreshUtc: TestSessions.T0,
+        lastAttemptUtc: TestSessions.T0);
 
     private GlanceReadModel GlanceFor(
         PendingSummaryItemState? pendingItem = null,

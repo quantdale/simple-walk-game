@@ -43,8 +43,13 @@ classification already produced for the shell. It SHALL NOT invent a second
 attention policy. The completed-region classification SHALL remain a
 conclusion: the glance SHALL NOT instruct the player to queue restoration work
 that no longer exists, and SHALL NOT report that attention is required solely
-because the region is complete. Before completion, an empty queue with banked
-progress SHALL still be reported as requiring attention.
+because the region is complete.
+
+Because the home classification prefers a pending current summary over
+region-complete, a finished region can arrive at the glance carrying a
+summary-derived action. In that state the completion conclusion SHALL outrank
+the summary, and no queue action SHALL be offered. Before completion, an empty
+queue with banked progress SHALL still be reported as requiring attention.
 
 The sentences SHALL be:
 
@@ -227,16 +232,26 @@ inputs SHALL produce the same sentences.
 
 ### Requirement: A headless inspection surface prints the glance without touching evidence output
 
-A headless inspection command SHALL print the three glance answers, the
-activity sentence, and the onboarding sentence when one is required. Existing
-evidence commands that print home facts, save dumps, pacing reports, or
-validation verdicts SHALL keep their existing output for the same save. The
-inspection command SHALL NOT write the save.
+A headless inspection command SHALL print the three glance answers, the activity
+sentence, and the onboarding sentence when one is required. Existing evidence
+commands that print home facts, save dumps, pacing reports, or validation
+verdicts SHALL keep their existing output for the same save. Reading a glance
+SHALL NOT advance, acknowledge, ingest, or credit anything: the projection is a
+pure function of its inputs and performs no application operation.
+
+The command boots a session through the shared boot flow, which persists the save
+before presenting, exactly as the existing `ack`, `dump` and `validate` commands
+already do. The save bytes therefore SHALL be identical to the bytes those same
+commands would leave for the same starting save; the inspection command SHALL NOT
+perform any save operation of its own beyond that shared boot path. A verb with a
+read-only boot is a separate change.
 
 #### Scenario: Inspecting a glance does not rewrite evidence lines
 
-- **WHEN** the glance inspection command is run against a save, and the
-  existing home-fact command is run against the same save
+- **WHEN** the glance inspection command is run against a save, and the existing
+  home-fact command is run against the same save
 - **THEN** the inspection output contains the three glance answers
 - **THEN** the home-fact output is unchanged from its previous contract
-- **THEN** the save bytes are unchanged
+- **THEN** the glance leaves the same canonical state the existing commands
+  leave for the same starting save
+- **THEN** the glance performs no application operation of its own

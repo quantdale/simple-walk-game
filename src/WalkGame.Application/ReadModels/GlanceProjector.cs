@@ -107,14 +107,14 @@ namespace WalkGame.Application.ReadModels
 
             var (leadSentence, furtherChanges) = ProjectWhatChanged(pendingSummary);
             string restoringNow = ProjectRestoringNow(home, content, postCompletionProgram);
-            (string attentionSentence, string? primaryAction) =
+            (string attentionSentence, string? primaryAction, bool requiresAttention) =
                 ProjectAttention(home, leadSentence);
 
             return new GlanceReadModel(
                 leadSentence,
                 furtherChanges,
                 restoringNow,
-                home.RequiresAttention,
+                requiresAttention,
                 attentionSentence,
                 primaryAction,
                 ActivitySentenceFor(activityStatus),
@@ -204,29 +204,42 @@ namespace WalkGame.Application.ReadModels
         // ------------------------------------------------------------------ attention
 
         /// <summary>
-        /// One sentence per existing <see cref="HomeAttentionReason"/>. The completed region
-        /// stays a conclusion and never receives a queue action, even if a stale summary string
-        /// were present; the banked-progress alarm stays an alarm until the region completes.
+        /// One sentence per existing <see cref="HomeAttentionReason"/>, plus the attention
+        /// flag the glance reports for it.
+        ///
+        /// <see cref="HomeReadModel.RegionComplete"/> is checked BEFORE the reason switch
+        /// because <c>GetHome()</c> prefers <see cref="HomeAttentionReason.PendingReturnSummary"/>
+        /// whenever a summary item is still current, so a region that has finished can arrive
+        /// here carrying a summary-derived action and a summary-derived attention flag. The
+        /// completed region is a conclusion: it names the region, offers no queue action, and
+        /// never reports that attention is required.
         /// </summary>
-        private static (string Sentence, string? Action) ProjectAttention(HomeReadModel home, string leadSentence)
+        private static (string Sentence, string? Action, bool RequiresAttention) ProjectAttention(
+            HomeReadModel home, string leadSentence)
         {
+            // A finished region outranks any attention reason: the queue is empty forever.
+            if (home.RegionComplete)
+                return (DisplayRegionTitle(home.RegionTitleKey) + "'s restoration is complete.", null, false);
+
             switch (home.AttentionReason)
             {
                 case HomeAttentionReason.PendingReturnSummary:
-                    return (leadSentence, home.PrimaryNextAction);
+                    // The action is only forwarded while the region is genuinely unfinished,
+                    // so a stale summary string cannot resurrect work that was completed.
+                    return (leadSentence, home.PrimaryNextAction, home.RequiresAttention);
 
                 case HomeAttentionReason.QueueEmptyWithBankedVitality:
                     return ("Restoration is paused. Your movement is saved until you choose a project.",
-                        "Choose a restoration project.");
+                        "Choose a restoration project.", true);
 
                 case HomeAttentionReason.NoProjectStartedYet:
-                    return ("Choose the first thing to restore.", null);
+                    return ("Choose the first thing to restore.", null, false);
 
                 case HomeAttentionReason.RegionComplete:
-                    return (DisplayRegionTitle(home.RegionTitleKey) + "'s restoration is complete.", null);
+                    return (DisplayRegionTitle(home.RegionTitleKey) + "'s restoration is complete.", null, false);
 
                 default:
-                    return ("Nothing needs your attention right now.", null);
+                    return ("Nothing needs your attention right now.", null, false);
             }
         }
 
