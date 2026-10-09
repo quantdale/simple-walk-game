@@ -17,6 +17,7 @@ try
         "bench" => Bench.Run(args[1..]),
         "scenarios" => Scenarios.Run(args[1..]),
         "ack" => Cli.Ack(args[1..]),
+        "glance" => Cli.Glance(args[1..]),
         "dump" => Cli.Dump(args[1..]),
         "validate" => Cli.Validate(args[1..]),
         _ => Cli.Usage($"unknown verb '{args[0]}'"),

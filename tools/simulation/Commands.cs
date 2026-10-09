@@ -618,7 +618,29 @@ internal static class Cli
         return 0;
     }
 
-    public static int Dump(string[] tokens)
+        /// <summary>Prints the player glance without writing the save (D-065).</summary>
+    public static int Glance(string[] tokens)
+    {
+        var a = new SimArgs(tokens);
+        // A path whose PARENT cannot exist is a usage mistake, not "no save found"
+        // (D-060). Same contract as `ack`/`dump`/`validate`.
+        string saveDir = a.RequireReadableSaveDir();
+
+        // Optional clock pin. Without it the glance reads at wall-clock time, which is what a
+        // real device does. With it, evidence runs are deterministic and a pending summary's
+        // currency (D-055) can be reproduced exactly instead of depending on the run date.
+        IClock clock = a.Has("--at") ? new ManualClock(a.Iso("--at")) : NewSystemClock();
+
+        var session = CreateSession(clock, saveDir);
+        var boot = Boot(session, allowFreshStart: false, freshSeed: 0);
+        if (boot.ExitCode != 0)
+            return boot.ExitCode;
+
+        Out.GlanceBlock(session.GetGlance());
+        return 0;
+    }
+
+        public static int Dump(string[] tokens)
     {
         var a = new SimArgs(tokens);
         // A path whose PARENT cannot exist is a usage mistake, not "no save found"
@@ -768,8 +790,13 @@ internal static class Cli
                     mature-region max content. Emits SCENARIO-SIZES lines whose byte/count
                     values are deterministic and CI-gatable; wall-clock is evidence-only.
                     Visit World / Home-idle scenarios are NOT simulated (no editor).
-              ack       --save <dir>
-                  acknowledge (dismiss) the pending return summary; idempotent
+               ack       --save <dir>
+                    acknowledge (dismiss) the pending return summary; idempotent
+               glance    --save <dir> [--at ISO8601]
+                    PLAYER GLANCE (D-065): print the three glance sentences, the activity
+                    sentence and the onboarding sentence. Reads at wall-clock time by default;
+                    --at pins the clock so a pending summary's currency is reproducible.
+                    Never writes the save.
               dump      --save <dir>
                   print aligned internals decoded straight from the save file
               validate  --save <dir> [--selftest]

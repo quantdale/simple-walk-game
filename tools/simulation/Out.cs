@@ -14,6 +14,26 @@ internal static class Out
         + $" attention={home.AttentionReason}({home.RequiresAttention})"
         + (home.RegionComplete ? " regionComplete=" + Format(home.RegionCompletedAtUtc) : string.Empty);
 
+    /// <summary>
+    /// Prints the player glance: the three answers plus the activity and onboarding
+    /// sentences (D-065). This is the only new evidence surface for the glance; the existing
+    /// home-fact lines above are deliberately untouched, so every previously committed pacing
+    /// or growth series stays byte-compatible.
+    /// </summary>
+    public static void GlanceBlock(GlanceReadModel glance)
+    {
+        Console.WriteLine("what-changed: " + glance.WhatChangedSentence);
+        if (glance.FurtherChangesSentence != null)
+            Console.WriteLine("more-changes: " + glance.FurtherChangesSentence);
+        Console.WriteLine("restoring-now: " + glance.RestoringNowSentence);
+        Console.WriteLine("attention: " + glance.AttentionSentence
+            + " requires=" + (glance.RequiresAttention ? "yes" : "no"));
+        Console.WriteLine("action: " + (glance.PrimaryNextAction ?? "none"));
+        Console.WriteLine("activity: " + glance.ActivitySentence);
+        if (glance.OnboardingSentence != null)
+            Console.WriteLine("onboarding: " + glance.OnboardingSentence);
+    }
+
     public static void HomeBlock(HomeReadModel home)
     {
         Console.WriteLine("region=" + home.RegionTitleKey);
