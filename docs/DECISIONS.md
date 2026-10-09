@@ -1838,6 +1838,16 @@ gap could not be closed by a pixel shell.
 include `GetGlance`, so the surface is aligned the moment it is added rather than by recall.
 The M5-H1 evidence labels stay **IMPLEMENTED / AUTOMATED VERIFIED**.
 
+**Known residual, deliberately out of scope (same class, one layer down):** `GetHome()` itself
+still reports `RequiresAttention = true` with reason `PendingReturnSummary` on a save whose
+region is complete and whose summary still holds a current item. The GLANCE now outranks that
+(state: completion sentence, no action, attention not required), but a shell that binds
+`HomeReadModel` directly instead of `GlanceReadModel` still sees the alarm. This decision
+corrects the glance layer only, because the glance is what this change specifies; changing
+`HomeReadModel`'s attention precedence would alter the attention contract that
+`M5H1ShellAcceptanceTests` and the attention-reason suite already pin, and that is a separate
+change that must be scoped deliberately rather than smuggled into a copy change.
+
 **Still unverified:** every runtime aspect — rendering these sentences in Unity, reduced-motion
 behavior, accessibility semantics, and any device evidence remains UNVERIFIED. This change does
 not complete M5 as a roadmap milestone.
