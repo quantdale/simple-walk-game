@@ -8,8 +8,13 @@ See proposal.md for why a glance is missing. The facts already exist: `GameSessi
 
 - One application projection, `GlanceReadModel`, produced by a pure function and exposed as parameterless `GameSession.GetGlance()`.
 - Landmark-stage wording shared by that projection and by newly composed summary lines.
-- A `glance` verb that prints the projection and does not write the save.
+- A `glance` verb that prints the projection.
 
+  **Corrected 2026-10-09 (post-review):** this line originally read "and does not write the
+  save", which was false. The verb boots through the shared boot flow, which persists —
+  exactly as `ack`, `dump` and `validate` already did. The projection and `GetGlance()`
+  perform no save of their own; see the spec amendment and D-065. A read-only boot is a
+  separate change.
 **Non-Goals:**
 
 - A second attention classifier, a localization catalog, a schema bump, or any change to `Out.HomeLine`, `dump`, `profile`, `validate`, or pacing output.
@@ -64,7 +69,18 @@ Onboarding baseline landmark: first landmark in content order whose current stag
 
 ### 4. CLI prints and does not save
 
-Add `"glance"` to the switch in `tools/simulation/Program.cs` and `Cli.Glance` in `Commands.cs`. It loads the save the way `ack` does, calls `GetGlance()`, prints the sentences, and returns. It must not call save, ack, or ingest. Add the verb to `Usage`. Do not edit `Out.HomeLine` or `Out.HomeBlock`.
+Add `"glance"` to the switch in `tools/simulation/Program.cs` and `Cli.Glance`
+in `Commands.cs`. It loads the save the way `ack` does, calls `GetGlance()`, prints the
+sentences, and returns.
+
+**Corrected 2026-10-09 (post-review):** the original line read "It must not call save, ack,
+or ingest." That is still true of the glance surface — `GetGlance()` performs no save
+operation of its own, which is what `ReadingAGlancePerformsNoSaveOperation` pins — but
+it is false if read as a claim about the VERB: booting via `Boot` → `Continue` →
+`FinishBoot` persists before presenting. The spec requirement was amended to this
+truer contract rather than left unmet.
+
+Add the verb to `Usage`. Do not edit `Out.HomeLine` or `Out.HomeBlock`.
 
 ### 5. Record the decision, do not claim a screen
 
