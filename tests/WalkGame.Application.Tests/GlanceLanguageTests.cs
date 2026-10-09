@@ -439,22 +439,39 @@ public sealed class GlanceLanguageTests : IDisposable
     {
         // The CLI boots through the shared boot flow, which persists before presenting (as
         // ack/dump/validate already did). What THIS surface must not do is add a save of its own.
-        // Boot first so the state is settled, then prove a glance read leaves the file alone.
+        var created = NewSession();
+        Assert.Equal(StartStatus.NewGameCreated, created.StartNewGame(7UL).Status);
+
+        // A pending summary MUST exist, or the durable row a glance-time save would disturb is
+        // absent and this test passes vacuously. Exposed by mutation testing: without a summary
+        // an earlier revision survived a GetGlance that persisted.
+        WritePendingSummary(NewCurrentSummary());
+
         var session = NewSession();
-        Assert.Equal(StartStatus.NewGameCreated, session.StartNewGame(7UL).Status);
+        Assert.Equal(StartStatus.Loaded, session.Continue().Status);
+        Assert.True(session.GetPendingReturnSummary()!.HasCurrentItems);
+
+        // Snapshot AFTER boot, before any glance read: this is the persisted baseline the CLI
+        // would leave for a verb that boots and reads nothing.
+        byte[] beforeGlance = File.ReadAllBytes(SavePath);
 
         session.GetGlance();
-        byte[] afterFirst = File.ReadAllBytes(SavePath);
 
-        session.GetGlance();
-        byte[] afterSecond = File.ReadAllBytes(SavePath);
+        byte[] afterGlance = File.ReadAllBytes(SavePath);
 
-        // A save inside GetGlance would refresh the storedAt stamp, so identical bytes is
-        // the evidence that this surface performs no save operation at all.
-        Assert.Equal(afterFirst, afterSecond);
-
-        // And the projected sentences did not depend on any mutation.
-        Assert.Equal(Describe(session.GetGlance()), Describe(session.GetGlance()));
+        // A save inside GetGlance would refresh the storedAt stamp and re-encode the payload.
+        Assert.Equal(beforeGlance, afterGlance);
+    }
+    private static PendingReturnSummaryState NewCurrentSummary()
+    {
+        var state = new PendingReturnSummaryState { GeneratedAtUtc = TestSessions.T0 };
+        state.Items.Add(new PendingSummaryItemState
+        {
+            Kind = SummaryItemKind.Transformation,
+            Text = "Old Trailhead is safe to approach.",
+            FirstCommittedAtUtc = TestSessions.T0,
+        });
+        return state;
     }
 
     /// <summary>
@@ -463,14 +480,20 @@ public sealed class GlanceLanguageTests : IDisposable
     /// stamp differs), so the glance adds nothing to the save.
     /// </summary>
     [Fact]
-    public void ReadingAGlanceAddsNothingToWhatBootingAlreadyPersists()
+    public void ReadingAGlanceLeavesTheSameStateABootThatReadsNothingLeaves()
     {
+        // The amended spec scenario, tested for real: a boot that reads a glance must leave the
+        // same canonical state as a boot that read nothing (what dump / alidate now do).
+        //
+        // Both sides MUST carry the same pending summary, or neither side has any durable row
+        // for a glance-time save to disturb and the comparison passes vacuously. An earlier
+        // revision compared two summary-free saves and was caught vacuous by mutation testing.
         var plain = NewTemp();
         var glanced = NewTemp();
         try
         {
-            BootInto(plain);
-            BootInto(glanced);
+            BootIntoWithSummary(plain);
+            BootIntoWithSummary(glanced);
 
             var glanceSession = TestSessions.Create(glanced, new ManualClock(TestSessions.T0),
                 new LocalPreferencesStore(glanced), null);
@@ -478,6 +501,8 @@ public sealed class GlanceLanguageTests : IDisposable
             glanceSession.GetGlance();
 
             Assert.Equal(CanonicalState(plain), CanonicalState(glanced));
+            // The summary must still be there on the glanced side: a glance never acknowledges.
+            Assert.Contains("pendingReturnSummary", CanonicalState(glanced));
         }
         finally
         {
@@ -486,21 +511,34 @@ public sealed class GlanceLanguageTests : IDisposable
         }
     }
 
-    /// <summary>Canonical state with the persisted wall-clock stamp excluded.</summary>
-    private static string CanonicalState(string dir)
+    /// <summary>Creates a profile, attaches a pending summary, and boots the way the reading verbs do.</summary>
+    private static void BootIntoWithSummary(string dir)
     {
-        var payload = File.ReadAllText(Path.Combine(dir, "save.json"));
-        var lines = new System.Text.StringBuilder();
-        foreach (var line in payload.Split('\n'))
-        {
-            var trimmed = line.Trim();
-            if (trimmed.Contains("lastAdvancedUtc") || trimmed.Contains("savedAtUtc"))
-                continue;
-            lines.Append(trimmed);
-        }
-        return lines.ToString();
+        var session = TestSessions.Create(dir, new ManualClock(TestSessions.T0),
+            new LocalPreferencesStore(dir), null);
+        Assert.Equal(StartStatus.NewGameCreated, session.StartNewGame(7UL).Status);
+        WritePendingSummaryInto(dir, NewCurrentSummary());
+
+        var reload = TestSessions.Create(dir, new ManualClock(TestSessions.T0),
+            new LocalPreferencesStore(dir), null);
+        Assert.Equal(StartStatus.Loaded, reload.Continue().Status);
+        Assert.True(reload.GetPendingReturnSummary()!.HasCurrentItems);
     }
 
+    private static void WritePendingSummaryInto(string dir, PendingReturnSummaryState state)
+    {
+        var codec = TestSessions.NewCodec();
+        var store = new AtomicFileSaveStore(dir);
+        var read = store.ReadPrimary();
+        Assert.Equal(SaveReadOutcome.Success, read.Outcome);
+
+        var decoded = codec.Decode(read.EnvelopeBytes!);
+        Assert.Equal(CodecStatus.Ok, decoded.Status);
+        Assert.NotNull(decoded.State);
+
+        decoded.State!.PendingReturnSummary = state;
+        store.WriteAtomic(codec.Encode(decoded.State!, TestSessions.T0));
+    }
     private static string NewTemp()
     {
         var path = Path.Combine(Path.GetTempPath(), "walkgame-glance-" + Guid.NewGuid().ToString("N"));
@@ -508,13 +546,43 @@ public sealed class GlanceLanguageTests : IDisposable
         return path;
     }
 
-    private static void BootInto(string dir)
+    /// <summary>
+    /// Canonical state, field-based, decoded from the real envelope.
+    ///
+    /// The save is {schemaVersion, savedAtUtc, payloadSha256Base64, payloadBase64} and the
+    /// state is BASE64 inside payloadBase64, so probing the envelope's own keys is vacuous.
+    /// An earlier revision probed the envelope, another filtered by line on a single-line
+    /// payload; both compared empty to empty and passed. This one decodes and probes fields.
+    /// </summary>
+    private static string CanonicalState(string dir)
     {
-        var clock = new ManualClock(TestSessions.T0);
-        var session = TestSessions.Create(dir, clock, new LocalPreferencesStore(dir), null);
-        Assert.Equal(StartStatus.NewGameCreated, session.StartNewGame(7UL).Status);
+        var envelope = File.ReadAllText(Path.Combine(dir, "save.json"));
+        var payload = DecodePayload(envelope);
+
+        var probe = new System.Text.StringBuilder();
+        foreach (var key in new[]
+                 {
+                     "createdAtUtc", "schemaVersion", "authoredContentVersion",
+                     "processedRecords", "ledger", "pendingReturnSummary",
+                     "resources", "queue", "region", "landmarkStages", "regionProjects",
+                 })
+        {
+            payload.TryGetPropertyValue(key, out var value);
+            probe.Append(key).Append('=').Append(value?.ToJsonString() ?? "null").Append('|');
+        }
+        return probe.ToString();
     }
 
+    private static System.Text.Json.Nodes.JsonObject DecodePayload(string envelope)
+    {
+        var node = System.Text.Json.Nodes.JsonNode.Parse(envelope)!.AsObject();
+        var base64 = node["payloadBase64"]?.ToString();
+        Assert.False(string.IsNullOrEmpty(base64), "no payloadBase64 in the envelope.");
+
+        var bytes = Convert.FromBase64String(base64!);
+        var json = System.Text.Encoding.UTF8.GetString(bytes);
+        return System.Text.Json.Nodes.JsonNode.Parse(json)!.AsObject();
+    }
     // ------------------------------------------------------------------ helpers
 
     [Fact]
