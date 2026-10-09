@@ -314,6 +314,7 @@ public sealed class M5H1ContractHardeningTests : IDisposable
         Assert.DoesNotContain(Marker, Describe(session.GetDiscoveries()));
         Assert.DoesNotContain(Marker, Describe(session.GetExpeditions()));
         Assert.DoesNotContain(Marker, Describe(session.GetPendingReturnSummary()));
+        Assert.DoesNotContain(Marker, Describe(session.GetGlance()));
 
         // Diagnostics may carry adapter technical detail, but bounded and gated there.
         var diagText = Describe(session.GetDiagnostics());
@@ -360,12 +361,13 @@ public sealed class M5H1ContractHardeningTests : IDisposable
                      nameof(GameSession.GetExpeditions),
                      nameof(GameSession.GetPendingReturnSummary),
                      nameof(GameSession.GetDiagnostics),
+                     nameof(GameSession.GetGlance),
                  })
         {
             Assert.Contains(required, names);
         }
 
-        Assert.Equal(10, names.Count);
+        Assert.Equal(11, names.Count);
 
         foreach (var (name, text) in surfaces)
         {
