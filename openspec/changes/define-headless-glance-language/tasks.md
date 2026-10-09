@@ -28,7 +28,7 @@
 
 ## 5. Headless inspection verb
 
-- [x] 5.1 Add `glance` to `tools/simulation/Program.cs`, `Cli.Glance` in `Commands.cs`, and the usage text. It loads, prints `GetGlance()`, and does not write the save.
+- [x] 5.1 Add `glance` to `tools/simulation/Program.cs`, `Cli.Glance` in `Commands.cs`, and the usage text. It loads, prints `GetGlance()`, and does not write the save. CORRECTED 2026-10-09: the verb boots through the shared boot flow, which persists before presenting (as `ack`/`dump`/`validate` already did), so "does not write the save" was false and the spec was amended. `GetGlance()` itself performs no save operation; `ReadingAGlancePerformsNoSaveOperation` and `ReadingAGlanceAddsNothingToWhatBootingAlreadyPersists` pin exactly that, and the CLI commit message records it. A read-only boot is a separate follow-up.
 - [x] 5.2 Do not edit `Out.HomeLine` or `Out.HomeBlock`.
 
 ## 6. Decision record
@@ -41,5 +41,5 @@
 - [x] 7.1 Run `dotnet test --filter GlanceLanguageTests` and the existing tests that must keep passing: `SaveCodecRoundtripTests`, `PostCompletionEvergreenStateTests`, `M5H1ShellAcceptanceTests`, `M5H1ContractHardeningTests`, and `ReturnSummaryDurabilityTests`.
 - [x] 7.2 Run `dotnet test` for the solution. Do not delete a failing assertion to get green.
 - [x] 7.3 Run `scripts/verify-architecture.sh` and confirm Domain gained no copy dependency.
-- [x] 7.4 Run the simulation `glance` verb against a fresh save and against a save with a pending summary. Confirm the save bytes are unchanged and that `new` still prints the previous `HomeLine` contract.
+- [x] 7.4 Run the simulation `glance` verb against a fresh save and against a save with a pending summary. Confirm the save bytes are unchanged and that `new` still prints the previous `HomeLine` contract. CORRECTED 2026-10-09: the "save bytes unchanged" claim was false for the same reason as 5.1 — the shared boot path persists. Verified instead (a) `new` still prints the previous `HomeLine` contract, (b) the only canonical delta after a `glance` run is the boot's own `lastAdvanced` refresh, identical for `dump`/`validate`, and (c) `GetGlance()` performs no save of its own — all pinned by the tests added in the correction commits. The spec requirement was amended to the true contract rather than left unmet.
 - [x] 7.5 Run `openspec validate --change define-headless-glance-language` if the CLI supports it, and record the result in the implementation notes. Do not claim M5 or device verification.
