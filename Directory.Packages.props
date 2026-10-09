@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <!-- Infrastructure save codec. Sole runtime dependency of the whole product. -->
-    <PackageVersion Include="System.Text.Json" Version="8.0.5" />
+    <PackageVersion Include="System.Text.Json" Version="10.0.12" />
 
     <!-- Shared test stack: identical in all three test projects. -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
