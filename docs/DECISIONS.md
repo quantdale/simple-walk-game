@@ -1818,9 +1818,20 @@ gap could not be closed by a pixel shell.
 5. **Newly composed lines change, and the evidence follows.** Only the `LandmarkStageReached`
    arm changed form. Pacing evidence and content version are untouched; the reports contain no
    summary text, which is why they still reproduce byte-for-byte.
-6. **The inspection surface is a verb that never writes.** `glance` loads, prints, and returns.
-   The optional `--at` pins the clock so a summary's D-055 currency is reproducible in evidence
-   runs instead of depending on the run date.
+6. **The inspection surface is a verb that reads, and it writes exactly what every other verb
+   already wrote.** `glance` calls the shared boot flow (`Boot` → `Continue` → `FinishBoot`),
+   which rolls the offline systems forward and persists before presenting — the behaviour
+   `ack`, `dump` and `validate` already had. **The projection itself writes nothing**: it is a
+   pure function of its inputs, it never saves, acknowledges, ingests or credits, and a second
+   read is identical. This is pinned by test, not by this paragraph.
+
+   Stated plainly, because documentation that describes behaviour that is not true is the
+   thing this repository forbids: **running the `glance` verb against a save does persist that
+   save** (an advanced `lastAdvanced`, plus the boot-composed summary), so the save bytes after
+   a wall-clock run are not the bytes from before it. `--at` pins the clock so an evidence run
+   is reproducible, but it does not make the boot path non-persisting. A verb with a
+   genuinely read-only boot would need a new application entry point, which this change's
+   non-goals exclude; that is a follow-up, not a silent shortfall.
 
 **Consequences:** `UseCaseCoverageGuardTests` and
 `EveryReadModelSurface_IsSweptByReflection_AndOnlySupportSurfacesMayCarryAdapterDetail` now

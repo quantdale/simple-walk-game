@@ -618,9 +618,9 @@ internal static class Cli
         return 0;
     }
 
-        /// <summary>Prints the player glance without writing the save (D-065).</summary>
-    public static int Glance(string[] tokens)
-    {
+        /// <summary>Prints the player glance. Reading it never writes canonical progress.</summary>
+        public static int Glance(string[] tokens)
+        {
         var a = new SimArgs(tokens);
         // A path whose PARENT cannot exist is a usage mistake, not "no save found"
         // (D-060). Same contract as `ack`/`dump`/`validate`.
