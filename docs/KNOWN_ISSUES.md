@@ -14,6 +14,16 @@ campaign accepts something open; entries are removed only with evidence.
 | KI-007 | Low | Open | `install-git-hooks.sh --check` can only pass in fixture repos without an origin when `GITHUB_REPOSITORY` is exported (identity guard needs a source of truth). Works, but a `--allow-no-origin` mode for test fixtures would remove the implicit env coupling. | Tooling hygiene | observed during C4 clean-clone campaign, `docs/evidence/ci-local/CAMPAIGN-2026-09-29.md` |
 | KI-008 | Low | Open | Long guard/proof suites and lease ownership both break on this harness's short-lived shell model: (a) a foreground suite killed mid-lease-scenario strands a writer lease (two operator-authorized force-releases happened this way in one day); (b) `writer-lease.sh` only recognizes a release as same-session via `SWG_SESSION_ID` or a still-alive holder PID, and every harness command runs in a fresh bash — so a later `release` call reports the session's **own** lease as foreign. Remedies in practice: run long suites detached (`artifacts/ev-c4/launch*.ps1` pattern) and export a stable `SWG_SESSION_ID` for the whole session so acquire/release match across processes (verified working). A lease TTL or heartbeat could make stranding self-healing. | Tooling hardening decision | `docs/evidence/ci-local/CAMPAIGN-2026-09-29.md` "Lease note"; C5 close-out (same-session release refused at `9042019`, resolved via `SWG_SESSION_ID`) |
 
+## Needs Michael (morning queue)
+
+Operator-only actions. Agents log these and keep working on unblocked tasks (see `docs/AGENT_EXECUTION_GUIDE.md` "Blockers never stop the campaign").
+
+| Blocker | Exact fix | Links | Unblocks |
+|---|---|---|---|
+| **D-035 / KI-002: Unity licence + version** | Choose the exact Unity 6 LTS version (recommend latest 6000.x LTS), then activate a licence on the build box: Personal via Unity Hub sign-in or manual `.ulf` activation; Pro/Build Server via serial (`unity -batchmode -serial ... -username ... -password ... -quit`). Record the version in DECISIONS D-035. | https://unity.com/releases/editor/qa/lts-releases · https://docs.unity3d.com/Manual/ManualActivationGuide.html | M5 runtime screens, Android APK builds, M6/M7 work, the runtime half of M8 |
+| **KI-001: GitHub Actions billing** | GitHub → Settings → Billing and plans: fix the failed payment or raise the Actions spending limit, then re-run CI and diff the result against `docs/evidence/ci-local/`. | https://github.com/settings/billing · https://github.com/quantdale/simple-walk-game/actions | Claiming hosted-green CI, the release lane, M9 |
+| **KI-006: save-encryption decision** | Choose one: (a) app-layer encryption (e.g. AES-GCM with a Keystore/Keychain key), (b) document OS full-disk encryption as a system requirement, or (c) accept the risk with written rationale. Record the choice as a D-entry. | `docs/PRIVACY_REVIEW.md` §3/§7 P-1 | M9 privacy sign-off, any persistence-format work |
+
 ## Rules
 
 - **No Critical or High item may remain open at release qualification**

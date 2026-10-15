@@ -499,3 +499,13 @@ schema** (`SchemaVersions`, migrated by the `ISaveMigration` chain) is the wire 
 **authored content version** (`AuthoredContentVersion`) is the graph the payload refers to,
 and is never migrated. If a save is rejected, check which axis rejected it before acting —
 `dotnet run --project tools/simulation -- validate --save <dir>` prints both.
+
+
+## Blockers never stop the campaign (standing rule, 2026-10-16)
+
+A blocker is logged, never treated as a reason to stop:
+
+1. Record it in `docs/KNOWN_ISSUES.md`. Operator-only items go under "Needs Michael (morning queue)" with the exact fix, links and what it unblocks.
+2. Use a safe, free workaround: local build and test evidence instead of hosted CI, and stacked local branches when pushing is not approved.
+3. **Never** bypass writer leases, git hooks, integrity checks or gates (no `--no-verify`, no `--force`, no editing guards). Unverifiable gates are reported as UNVERIFIED.
+4. Move on to the next task that is not blocked.
