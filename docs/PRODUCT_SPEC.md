@@ -323,6 +323,15 @@ While offline, the player must be able to:
 
 No core state should become inaccessible because a backend is unavailable.
 
+### System requirement: device encryption (D-067)
+
+Save data is health-adjacent and is protected at rest by the operating system, not by the app:
+
+- Android: file-based encryption (mandatory on devices launching with Android 10+); the save lives in app-private internal storage.
+- iOS: Data Protection at the default class (`CompleteUntilFirstUserAuthentication`) or stronger.
+- The backup save generation gets identical treatment (same app-private directory).
+- Devices without platform encryption, and rooted/jailbroken devices, are outside the supported confidentiality guarantee.
+
 ---
 
 ## 13. Error-state requirements

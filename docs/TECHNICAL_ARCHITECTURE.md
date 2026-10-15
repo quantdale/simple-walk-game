@@ -275,6 +275,10 @@ For an early vertical slice, a versioned snapshot plus small journal/ledger can 
 
 The architecture must allow the persistence implementation to evolve without changing domain semantics.
 
+### At-rest confidentiality (D-067)
+
+There is no app-layer encryption. The composition root must inject an **app-private** save directory (Android internal storage under FBE credential-encrypted storage; iOS app container with Data Protection at the default class or stronger). `AtomicFileSaveStore` writes the primary, its temp file and the backup generation only inside that injected directory, so every generation inherits the same OS protection. Writing any save generation to shared, external, temp or exported locations is forbidden. The runtime lane must verify the path and protection class on device.
+
 ---
 
 ## 10. Save lifecycle
