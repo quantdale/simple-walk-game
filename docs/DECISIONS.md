@@ -1851,3 +1851,22 @@ change that must be scoped deliberately rather than smuggled into a copy change.
 **Still unverified:** every runtime aspect — rendering these sentences in Unity, reduced-motion
 behavior, accessibility semantics, and any device evidence remains UNVERIFIED. This change does
 not complete M5 as a roadmap milestone.
+
+---
+
+## D-066 — Bounded ledger retirement: watermark-relative, identity-preserving, amortized
+
+**Status:** Accepted (2026-10-16). Implements OpenSpec change `compact-activity-and-reward-ledgers` (F-07).
+
+**Context.** The processed-record ledger and the reward ledger grew one row per ingested record forever and were re-serialized on every commit (day 730: 395,716 B, linear, ~540 B/day).
+
+**Decision.**
+- **Retention rule:** a processed-record row is retired when its record end (`RecordEndUtc`, stored from this change on; legacy rows fall back to `ProcessedAtUtc`) is strictly before the acceptance window's lower bound under post-batch trusted progress, i.e. `TrustedWindowFloor` (45 days) behind trusted progress. Anything retired is already outside what the pipeline would accept.
+- **Batch size:** at most `ActivityValidationPolicy.RetirementBatchSize` = 256 rows per structure per ingestion commit, run inside the same atomic commit. Selection is deterministic: ordered by `ProcessedAtUtc`, then ordinal identity key.
+- **Identity kept forever:** retired identities go into `ProcessedRecords.RetiredIdentities` (O(1) lookup through an in-memory set). A retired identity is permanently non-creditable. Re-delivery, correction or deletion of a retired record credits nothing, reverses nothing, and is counted as a duplicate plus the sub-classification `LastIngestionOutcome.RetiredRecordsIgnored`. It is counted as a duplicate as well so that the pinned exactly-once acceptance evidence (`DuplicatesIgnored`) is unchanged.
+- **Maintained aggregates:** both ledgers keep a durable `MaintainedVitalityCredited` (O(1) `TotalVitalityCredited`) plus `RetiredVitalityCredited`/`RetiredCount`. The validator requires each maintained total to equal retained rows + retired total, and requires retired and retained identities to be disjoint. A null maintained total (pre-D-066 save) is hydrated from recomputation on first mutation, so no migration is needed.
+- **Ledger coupling (review point):** the reward ledger retires activity-derived rows (reason prefix `ingest`) from its front whose commit instant is before the **same** cutoff. Non-activity rows are never retired and block further retirement, so history is never reordered. This is a new coupling between two histories that were previously independent. `ProcessedRecordCredited <= LedgerTotal` holds trivially because neither maintained total changes on retirement.
+
+**Measured.** Day 365: 58,540 B; day 730: 80,458 B. Second-year growth is 47% of first-year growth; the remainder is the identity set, about 60 B/day. Retained detail plateaus at about 46 rows. `scripts/verify-save-growth.sh` gates the ratio at ≤ 60%.
+
+**Not achieved.** The reward-ledger index is still built once per load (O(retained), which is now bounded). It stays warm across commits and retirement within a session (`IndexBuildCount` test). The retired-identity set still grows; a compact probabilistic structure stays a Region-2 decision.

@@ -45,7 +45,7 @@ Save envelope (`SaveEnvelopeDto`, `src/WalkGame.Infrastructure/Persistence/SaveJ
 | `CreatedAtUtc`, `LastAdvancedUtc`, `IngestionCheckpointUtc` | timestamps | presence/absence of play; coarse activity times |
 | `Resources`, `Rng` | integer balances, RNG state | non-personal game state |
 | `Ledger` | reward transactions: source record IDs, amounts, windows | **health-adjacent**: derived from walking data |
-| `ProcessedRecords` | dedup ledger (source IDs / content fingerprints) | **health-adjacent identifiers** |
+| `ProcessedRecords` | dedup ledger (source IDs / content fingerprints). Since D-066 detail rows (steps, credited Vitality, record end) are kept only for ~45 days of trusted progress; older records are reduced to an identity string in `retiredIdentities`, plus aggregate counters | **health-adjacent identifiers**; retained activity detail is now time-bounded |
 | `Region`, `Queue`, `PendingReturnSummary`, `LastIngestionOutcome` | world progress, summaries, bounded batch counters (D-063 adds a per-eligibility-reason rejection breakdown keyed by enum ordinal, three batch dispositions, and two fetch timestamps) | non-personal, bounded |
 
 No names, emails, contact data, precise location, or device identifiers are

@@ -259,6 +259,8 @@ CI simulation should report save-size growth across long-running synthetic profi
 
 Compaction is still deferred and is still a product decision, not an engineering one: D-045 records that late deletions target ledger rows without horizon checks, so compaction changes deletion semantics. The measurement that decision needs now exists; the decision has not been made.
 
+**Update (2026-10-16, D-066): bounded.** Ledger retirement (F-07) makes retained activity detail plateau at the 45-day trusted window (~46 rows on the flat profile). Growth model: day 7: 11,986 B; day 365: 58,540 B; day 730: 80,458 B. The residual ~60 B/day is the identity-only retired set (an identity string per retired record), which is expected to keep growing slowly. Structures expected to plateau: `ProcessedRecords.Entries` and `Ledger.Records`. `scripts/verify-save-growth.sh` now asserts convergence: second-year growth must be ≤ 60% of first-year growth (measured 47%). Late deletions are window-validated since D-053, so retiring rows beyond the window does not change deletion semantics.
+
 ---
 
 ## 16. Storage budgets
