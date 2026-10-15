@@ -28,6 +28,8 @@ new product surface:
   its own proposal, behavioural spec deltas, design and ordered task list.
   Validate with `openspec validate --changes --strict`.
 
+**Current automated test count (2026-10-16): 514** (Domain 148 / Infrastructure 49 / Application 317). Counts quoted in the per-milestone notes below are historical, as of each campaign.
+
 Milestone status and evidence state are unchanged by that plan. In particular,
 **release qualification remains blocked** by `KI-001` (hosted CI billing) and
 `KI-002` (no Unity editor) regardless of how much of the implementation plan
