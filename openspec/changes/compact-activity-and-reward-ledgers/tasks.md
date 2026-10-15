@@ -27,7 +27,7 @@
 - [x] 2.2 Ensure an inconsistent index can never present as a false duplicate or
   a lost credit: the durable rows remain authoritative, and the index is only
   ever mutated alongside them.
-- [~] 2.3 (PARTIAL: warm-index/no-rebuild proven via IndexBuildCount; the first check after a load still builds the index once, O(retained), which is now bounded — see D-066) Add a test that loads a large state and asserts the first duplicate
+- [x] 2.3 (index stays warm across commits/retirement; first check after a load scans only the retained window, independent of lifetime history — LastIndexBuildSize test) Add a test that loads a large state and asserts the first duplicate
   check does not require iterating every retained record (for example, by
   asserting a counter exposed for the test, or by asserting the operation is
   independent of retained size).

@@ -1869,4 +1869,4 @@ not complete M5 as a roadmap milestone.
 
 **Measured.** Day 365: 58,540 B; day 730: 80,458 B. Second-year growth is 47% of first-year growth; the remainder is the identity set, about 60 B/day. Retained detail plateaus at about 46 rows. `scripts/verify-save-growth.sh` gates the ratio at ≤ 60%.
 
-**Not achieved.** The reward-ledger index is still built once per load (O(retained), which is now bounded). It stays warm across commits and retirement within a session (`IndexBuildCount` test). The retired-identity set still grows; a compact probabilistic structure stays a Region-2 decision.
+**Index cost.** The reward-ledger index is built once per load over the retained window only (bounded, independent of lifetime history; `LastIndexBuildSize` test). It stays warm across commits and retirement within a session (`IndexBuildCount` test). The retired-identity set still grows; a compact probabilistic structure stays a Region-2 decision.
