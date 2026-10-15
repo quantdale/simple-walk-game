@@ -101,14 +101,14 @@ platform data-residency rules.
 | # | Finding | Severity (§15) | Status |
 |---|---|---|---|
 | P-1 | Health-adjacent save data is plaintext at rest (app layer) | Medium | **Dispositioned (D-067)**: OS encryption is a system requirement; device verification is in the M7 lane |
-| P-2 | PRODUCT_SPEC contains no explicit privacy requirements section; the guarantees above live only in this review and implicit spec theses | Medium | Open → KI-005 |
+| P-2 | PRODUCT_SPEC contains no explicit privacy requirements section; the guarantees above live only in this review and implicit spec theses | Medium | **Closed (2026-10-16)**: PRODUCT_SPEC §7a "Privacy requirements" states the guarantees as product requirements |
 | P-3 | No network/analytics/accounts in headless code | — | Verified clean (§1) |
 | P-4 | Diagnostics are privacy-safe by construction, test-enforced (D-063 extends the sweep to every read-model surface by reflection, so a new surface cannot escape it) | — | Verified clean (§5) |
 | P-5 | Runtime/device permission surfaces | — | UNVERIFIED (do not claim; §4/§6) |
 
 **Conclusion:** the headless lane is honest to its "offline, on-device, no
-telemetry" thesis with mechanical evidence, with one open Medium finding
-(P-2) that must be dispositioned before M9 (P-1 dispositioned by D-067), and with all runtime/device
+telemetry" thesis with mechanical evidence, with no open Medium findings
+(P-1 dispositioned by D-067; P-2 closed by PRODUCT_SPEC §7a), and with all runtime/device
 permission claims explicitly reserved rather than assumed.
 
 **Re-verified 2026-10-09 (D-063):** the §1 zero-network grep still returns nothing, and the§5 no-leak sweep still passes with every read-model surface enumerated by reflection. The new
