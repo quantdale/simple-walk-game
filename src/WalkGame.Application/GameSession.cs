@@ -478,6 +478,11 @@ namespace WalkGame.Application
         /// revision at least as high as the one delivered, so processing it could only be
         /// a no-op. Pure lookup, no state change.
         /// </summary>
+        private static bool IsRetiredRecord(GameState game, NormalizedActivityRecord record) =>
+            !string.IsNullOrWhiteSpace(record.ProviderNamespace) &&
+            game.ProcessedRecords.RetiredCount > 0 &&
+            game.ProcessedRecords.IsRetired(ActivityIdentity.Compute(record));
+
         private static bool IsAlreadyTrustedNoOp(GameState game, NormalizedActivityRecord record)
         {
             if (string.IsNullOrWhiteSpace(record.ProviderNamespace))
@@ -598,6 +603,7 @@ namespace WalkGame.Application
             int total = records.Count;
             int accepted = 0, rejected = 0, duplicates = 0, clamped = 0, dupTransactions = 0;
             int corrections = 0, deletionsApplied = 0, deletionsIgnored = 0, staleRevisions = 0;
+            int retiredIgnored = 0;
             long vitalityTotal = 0L, eligibleStepsTotal = 0L;
             DateTimeOffset maxTrustedEndUtc = game.IngestionCheckpointUtc;
 
@@ -632,6 +638,12 @@ namespace WalkGame.Application
                     // out-of-window record carrying a HIGHER revision would otherwise reach
                     // the correction path and credit a delta. It is rejected like any other
                     // new out-of-window record, so an old record can only ever be a no-op.
+                    if (IsRetiredRecord(game, record))
+                    {
+                        retiredIgnored++;
+                        duplicates++; // a retired re-delivery is still an exactly-once no-op; RetiredRecordsIgnored is its sub-classification (D-066)
+                        continue;
+                    }
                     if (IsAlreadyTrustedNoOp(game, record))
                     {
                         duplicates++;
@@ -644,7 +656,16 @@ namespace WalkGame.Application
                     continue;
                 }
 
-                // 2. Dispatch. Deletion markers are only reachable once eligible.
+                // 2. A record whose detail row was retired (D-066) is permanently
+                //    non-creditable: no credit, no correction, no destructive reversal.
+                if (IsRetiredRecord(game, record))
+                {
+                    retiredIgnored++;
+                        duplicates++; // a retired re-delivery is still an exactly-once no-op; RetiredRecordsIgnored is its sub-classification (D-066)
+                    continue;
+                }
+
+                // 3. Dispatch. Deletion markers are only reachable once eligible.
                 if (record.IsDeletion)
                 {
                     ProcessDeletion(game, record, nowUtc, events,
@@ -704,7 +725,8 @@ namespace WalkGame.Application
                     eligibleSteps,
                     vitality,
                     nowUtc,
-                    Math.Max(1, record.Revision)));
+                    Math.Max(1, record.Revision),
+                    endUtc));
 
                 if (endUtc > maxTrustedEndUtc)
                     maxTrustedEndUtc = endUtc;
@@ -712,6 +734,17 @@ namespace WalkGame.Application
             }
 
             game.IngestionCheckpointUtc = maxTrustedEndUtc;
+
+            // Bounded ledger retirement (D-066), inside this same atomic commit. The cutoff is
+            // the acceptance window's lower bound under the post-batch trusted progress, so
+            // nothing can be retired that the pipeline would still accept; retired identities
+            // stay permanently non-creditable. Lifetime totals and balances are unchanged.
+            var retirementCutoff = new TrustedTime(nowUtc, maxTrustedEndUtc, maxTrustedEndUtc).WindowStartUtc;
+            if (maxTrustedEndUtc != default)
+            {
+                game.ProcessedRecords.Retire(retirementCutoff, nowUtc, ActivityValidationPolicy.RetirementBatchSize);
+                game.Ledger.RetireActivityRows(retirementCutoff, ActivityValidationPolicy.RetirementBatchSize);
+            }
 
             // Bounded diagnostic evidence of this batch, committed in the SAME atomic
             // write as the rewards it describes (never consulted by progression math).
@@ -735,6 +768,7 @@ namespace WalkGame.Application
                 DeletionsIgnored = deletionsIgnored,
                 StaleRevisionsIgnored = staleRevisions,
                 QuantityClamped = clamped,
+                RetiredRecordsIgnored = retiredIgnored,
                 LastFetchAttemptedUtc = nowUtc,
                 LastFetchSucceededUtc = nowUtc,
             };
@@ -798,6 +832,7 @@ namespace WalkGame.Application
                     DeletionsIgnored = previous?.DeletionsIgnored ?? 0,
                     StaleRevisionsIgnored = previous?.StaleRevisionsIgnored ?? 0,
                     QuantityClamped = previous?.QuantityClamped ?? 0,
+                    RetiredRecordsIgnored = previous?.RetiredRecordsIgnored ?? 0,
                     LastFetchAttemptedUtc = _clock.UtcNow,
                     LastFetchSucceededUtc = previous?.LastFetchSucceededUtc,
                 };
@@ -887,7 +922,8 @@ namespace WalkGame.Application
                 eligibleSteps,
                 newAppliedVitality,
                 nowUtc,
-                revision));
+                revision,
+                record.EndUtc.ToUniversalTime()));
 
             DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
             if (endUtc > maxTrustedEndUtc)
@@ -971,7 +1007,8 @@ namespace WalkGame.Application
                 EligibleSteps: 0L,
                 VitalityCredited: remainingAppliedVitality,
                 ProcessedAtUtc: nowUtc,
-                LastRevision: revision));
+                LastRevision: revision,
+                RecordEndUtc: record.EndUtc.ToUniversalTime()));
 
             DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
             if (endUtc > maxTrustedEndUtc)
