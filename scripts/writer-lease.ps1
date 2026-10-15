@@ -94,6 +94,12 @@ if ($Status) {
 }
 
 if ($Acquire) {
+    # Same-session resume (KI-008): see writer-lease.sh. Never replaces or steals.
+    if ((Test-Path -LiteralPath $LockPath) -and $env:SWG_SESSION_ID -and -not $Force -and
+        (Read-Lock).sessionId -eq $env:SWG_SESSION_ID) {
+        Write-Host "WRITER LEASE: ALREADY HELD by this session ($($env:SWG_SESSION_ID)); resumed without change."
+        exit 0
+    }
     if (Test-Path -LiteralPath $LockPath) {
         Write-Host "WRITER LEASE: another writer holds the lease for this work tree."
         Show-Lock (Read-Lock)
