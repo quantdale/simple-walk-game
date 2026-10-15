@@ -25,7 +25,7 @@ namespace WalkGame.Infrastructure.Persistence
     /// delete+move replace. A crash leaves either the old or the new file intact; leftover
     /// temporaries are ignored by reads and cleaned before the next write.
     /// </summary>
-    public sealed class LocalPreferencesStore : IUxPreferencesStore
+    public sealed class LocalPreferencesStore : IUxPreferencesStore, WalkGame.Application.Persistence.ILocalDataEraser
     {
         private readonly string _path;
         private readonly string _tempPath;
@@ -40,6 +40,13 @@ namespace WalkGame.Infrastructure.Persistence
             Directory.CreateDirectory(directory);
             _path = Path.Combine(directory, fileName);
             _tempPath = Path.Combine(directory, fileName + ".tmp");
+        }
+
+        /// <summary>Deletes the preferences file and its temporary (privacy requirement 7).</summary>
+        public void EraseAll()
+        {
+            if (File.Exists(_tempPath)) File.Delete(_tempPath);
+            if (File.Exists(_path)) File.Delete(_path);
         }
 
         public UxPreferencesLoadResult Load()
