@@ -57,7 +57,7 @@ Remaining unapplied: 1 change (F-07 — see below).
 
 | Change | Findings | State |
 |---|---|---|
-| `compact-activity-and-reward-ledgers` | F-07 | Open. Growth still linear (10 KB@d7 → 395 KB@d730). |
+| `compact-activity-and-reward-ledgers` | F-07 | **Applied (D-066, 2026-10-16)** on branch `agent/simple-walk-game/f07-ledger-compaction-20261016`: day 730 save 395,716 → 80,458 B; convergence gate added; 505 → 514 tests. |
 | `extend-ci-and-release-automation` | F-18 | **P3 fixed** (D-064, 2026-10-09) — coverage floor at 55% (deliberately low; measured aggregate 59.51%), a dependency gate that fails on a known advisory AND on a runtime surface other than the documented single first-party package, Dependabot for the test-side packages, a thin tag-triggered release lane, a scripted release-evidence assembler, and a committed release checklist. The new workflows are validated by executing their step bodies locally; hosted CI remains blocked (KI-001). |
 
 **Release qualification remains blocked** by `KI-001` (hosted CI billing) and

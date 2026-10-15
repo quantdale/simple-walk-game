@@ -30,15 +30,59 @@ namespace WalkGame.Domain.Activity
 
         private HashSet<string>? _index;
 
-        public long TotalVitalityCredited
+        /// <summary>Maintained lifetime total (D-066). Null on pre-D-066 saves; hydrated on first mutation.</summary>
+        public long? MaintainedVitalityCredited { get; set; }
+
+        /// <summary>Net Vitality carried by retired activity-derived rows.</summary>
+        public long RetiredVitalityCredited { get; set; }
+
+        /// <summary>Number of activity-derived rows retired so far.</summary>
+        public long RetiredCount { get; set; }
+
+        /// <summary>Times the transaction index was rebuilt from durable rows (test/diagnostic accelerator counter; not persisted).</summary>
+        public int IndexBuildCount { get; private set; }
+
+        public long TotalVitalityCredited => MaintainedVitalityCredited ?? RecomputeLifetimeVitality();
+
+        public long RecomputeLifetimeVitality()
         {
-            get
+            long total = RetiredVitalityCredited;
+            foreach (var record in Records)
+                total += record.VitalityAmount;
+            return total;
+        }
+
+        /// <summary>
+        /// Retires up to <paramref name="maxBatch"/> activity-derived rows (reason prefix
+        /// "ingest") from the front of the ledger whose commit instant is strictly before
+        /// <paramref name="cutoffUtc"/>. Stops at the first row that does not qualify, so
+        /// retirement is deterministic and never reorders history. Non-activity rows are
+        /// never retired: their identity may be re-presented by a caller, and only activity
+        /// identities are protected upstream by the retired-identity set (D-066).
+        /// Lifetime totals are unchanged.
+        /// </summary>
+        public int RetireActivityRows(DateTimeOffset cutoffUtc, int maxBatch)
+        {
+            long baseline = MaintainedVitalityCredited ?? RecomputeLifetimeVitality();
+            int n = 0;
+            while (n < maxBatch && n < Records.Count)
             {
-                long total = 0L;
-                foreach (var record in Records)
-                    total += record.VitalityAmount;
-                return total;
+                var r = Records[n];
+                if (r.OccurredAtUtc >= cutoffUtc || r.Reason == null ||
+                    !r.Reason.StartsWith("ingest", StringComparison.Ordinal))
+                    break;
+                n++;
             }
+            if (n == 0) return 0;
+            for (int i = 0; i < n; i++)
+            {
+                RetiredVitalityCredited = checked(RetiredVitalityCredited + Records[i].VitalityAmount);
+                _index?.Remove(Records[i].TransactionId);
+            }
+            Records.RemoveRange(0, n);
+            RetiredCount += n;
+            MaintainedVitalityCredited = baseline;
+            return n;
         }
 
         public bool HasTransaction(RewardTransactionId transactionId)
@@ -55,6 +99,7 @@ namespace WalkGame.Domain.Activity
                 throw new ArgumentOutOfRangeException(nameof(transaction), "Reward transactions cannot be negative; corrections are an M2 pipeline policy.");
 
             EnsureIndex();
+            long baseline = MaintainedVitalityCredited ?? RecomputeLifetimeVitality();
             if (!_index!.Add(transaction.TransactionId.Value))
                 return LedgerApplyOutcome.DuplicateIgnored;
 
@@ -64,6 +109,7 @@ namespace WalkGame.Domain.Activity
                 transaction.OccurredAtUtc,
                 transaction.VitalityAmount,
                 transaction.Reason ?? string.Empty));
+            MaintainedVitalityCredited = checked(baseline + transaction.VitalityAmount);
             return LedgerApplyOutcome.AppliedFirstTime;
         }
 
@@ -82,6 +128,7 @@ namespace WalkGame.Domain.Activity
                     "Correction would drive the balance negative; clamp reversals before applying.");
 
             EnsureIndex();
+            long baseline = MaintainedVitalityCredited ?? RecomputeLifetimeVitality();
             if (!_index!.Add(transaction.TransactionId.Value))
                 return LedgerApplyOutcome.DuplicateIgnored;
 
@@ -101,6 +148,7 @@ namespace WalkGame.Domain.Activity
                 transaction.OccurredAtUtc,
                 transaction.VitalityAmount,
                 transaction.Reason ?? string.Empty));
+            MaintainedVitalityCredited = checked(baseline + transaction.VitalityAmount);
             return LedgerApplyOutcome.AppliedFirstTime;
         }
 
@@ -108,6 +156,7 @@ namespace WalkGame.Domain.Activity
         {
             if (_index != null)
                 return;
+            IndexBuildCount++;
             _index = new HashSet<string>(StringComparer.Ordinal);
             foreach (var record in Records)
                 _index.Add(record.TransactionId);

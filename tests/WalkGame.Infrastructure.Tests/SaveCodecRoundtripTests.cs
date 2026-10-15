@@ -173,6 +173,11 @@ public sealed class SaveCodecRoundtripTests
             T0.AddMinutes(-50), T0.AddMinutes(-20)));
         state.ProcessedRecords.Record(new ProcessedRecordEntry(identityA, StepConversionRuleV1.RuleVersion, 6400L, 64L, T0));
         state.ProcessedRecords.Record(new ProcessedRecordEntry(identityB, StepConversionRuleV1.RuleVersion, 12345L, 123L, T0));
+        // D-066 fields: a row carrying its record end, then retired, so the retirement
+        // bookkeeping and maintained aggregates are populated and must round-trip.
+        state.ProcessedRecords.Record(new ProcessedRecordEntry("rec1|fixture|retired-1",
+            StepConversionRuleV1.RuleVersion, 5000L, 50L, T0.AddDays(-60), 1, T0.AddDays(-60)));
+        Assert.Equal(1, state.ProcessedRecords.Retire(T0.AddDays(-50), T0, 16));
         state.IngestionCheckpointUtc = T0.AddMinutes(-15);
 
         state.Resources.SetCap(ResourceType.Materials, 500L);
@@ -282,7 +287,18 @@ public sealed class SaveCodecRoundtripTests
             Assert.Equal(pair.Value.EligibleSteps, a.EligibleSteps);
             Assert.Equal(pair.Value.VitalityCredited, a.VitalityCredited);
             Assert.Equal(pair.Value.ProcessedAtUtc, a.ProcessedAtUtc);
+            Assert.Equal(pair.Value.LastRevision, a.LastRevision);
+            Assert.Equal(pair.Value.RecordEndUtc, a.RecordEndUtc);
         }
+        Assert.Equal(expected.ProcessedRecords.RetiredIdentities, actual.ProcessedRecords.RetiredIdentities);
+        Assert.Equal(expected.ProcessedRecords.RetiredCount, actual.ProcessedRecords.RetiredCount);
+        Assert.Equal(expected.ProcessedRecords.LastRetiredAtUtc, actual.ProcessedRecords.LastRetiredAtUtc);
+        Assert.Equal(expected.ProcessedRecords.RetiredVitalityCredited, actual.ProcessedRecords.RetiredVitalityCredited);
+        Assert.Equal(expected.ProcessedRecords.MaintainedVitalityCredited, actual.ProcessedRecords.MaintainedVitalityCredited);
+        Assert.Equal(expected.Ledger.MaintainedVitalityCredited, actual.Ledger.MaintainedVitalityCredited);
+        Assert.Equal(expected.Ledger.RetiredVitalityCredited, actual.Ledger.RetiredVitalityCredited);
+        Assert.Equal(expected.Ledger.RetiredCount, actual.Ledger.RetiredCount);
+        Assert.True(actual.ProcessedRecords.IsRetired("rec1|fixture|retired-1"));
 
         Assert.Equal(expected.Queue.ActiveProjectId, actual.Queue.ActiveProjectId);
         Assert.Equal(expected.Queue.AutoAdvance, actual.Queue.AutoAdvance);

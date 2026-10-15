@@ -378,6 +378,31 @@ namespace WalkGame.Domain.Validation
             if (state.ProcessedRecords.UnappliedReversalVitality < 0L)
                 violations.Add("Unapplied reversal counter is negative.");
 
+            // Maintained lifetime aggregates (D-066) must equal a full recomputation over
+            // retained history plus the durably recorded retired total. A mismatch means the
+            // O(1) value cannot be trusted, so it is a violation naming the aggregate.
+            var processed = state.ProcessedRecords;
+            if (processed.MaintainedVitalityCredited.HasValue &&
+                processed.MaintainedVitalityCredited.Value != processed.RecomputeLifetimeVitality())
+                violations.Add($"Maintained aggregate ProcessedRecords.MaintainedVitalityCredited ({processed.MaintainedVitalityCredited.Value}) does not equal its recomputation ({processed.RecomputeLifetimeVitality()}).");
+            if (state.Ledger.MaintainedVitalityCredited.HasValue &&
+                state.Ledger.MaintainedVitalityCredited.Value != state.Ledger.RecomputeLifetimeVitality())
+                violations.Add($"Maintained aggregate Ledger.MaintainedVitalityCredited ({state.Ledger.MaintainedVitalityCredited.Value}) does not equal its recomputation ({state.Ledger.RecomputeLifetimeVitality()}).");
+            if (processed.RetiredCount < 0L || state.Ledger.RetiredCount < 0L)
+                violations.Add("Retirement count is negative.");
+            if (processed.RetiredCount != processed.RetiredIdentities.Count)
+                violations.Add($"Retired-identity set size {processed.RetiredIdentities.Count} does not match retired count {processed.RetiredCount}.");
+            foreach (var retired in processed.RetiredIdentities)
+            {
+                if (processed.Entries.ContainsKey(retired))
+                {
+                    violations.Add($"Processed-record '{retired}' is both retained and retired.");
+                    break;
+                }
+            }
+            if (state.LastIngestionOutcome != null && state.LastIngestionOutcome.RetiredRecordsIgnored < 0)
+                violations.Add("Ingestion retired-records-ignored counter is negative.");
+
             // Durable support diagnostics (D-063): bounded counters must be non-negative and
             // internally consistent. A breakdown that does not sum to the recorded total means
             // the evidence was mutated or truncated, and the one surface whose entire value is
