@@ -12,6 +12,8 @@ authoritative execution detail. Do not implement from this document alone.
 
 ## 0. Application status (updated 2026-10-09)
 
+> **2026-10-16 phase-1 re-assessment** (fresh clone at `97db0c6`): build clean, 505/505 tests, guard suite 25/25, simulation smoke green. `compact-activity-and-reward-ledgers` (F-07) is still the only unapplied change and is proposed as the next campaign — see `.agent/ROADMAP_PROPOSAL_2026-10-16.md` (PROPOSED, not active).
+
 An apply session implemented **10 of the 15 changes** on `main`
 (`df68574` … `d21e83b`). Independent review verified the applied work by
 re-running the evidence rather than reading its comments: the two P0
