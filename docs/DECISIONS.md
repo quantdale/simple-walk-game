@@ -417,7 +417,7 @@ so, because that file is the single most misreadable reference in the repository
 
 The following should be resolved at the relevant milestone rather than guessed prematurely:
 
-1. Exact Unity 6 LTS editor/runtime version. **(open — D-035)**
+1. Exact Unity 6 LTS editor/runtime version. *(resolved 2026-10-16, D-035: Unity 6000.3.26f1 (6.3 LTS), Personal licence; install/activation pending, KI-002)*
 2. Exact local persistence implementation (snapshot+journal vs SQLite or another adapter). *(resolved by D-025/D-026: versioned JSON envelope with SHA-256 integrity, atomic snapshot + one-generation backup)*
 3. Exact Android Health Connect SDK/API integration strategy and minimum supported OS/device policy. *(open — M7, physically blocked)*
 4. Exact iOS HealthKit integration strategy and minimum supported iOS version. *(open — M7, physically blocked)*
@@ -608,7 +608,8 @@ tx-corr1 namespace) and cannot collide with first-credit IDs;
 **Rationale:** "Never fabricate editor/device evidence" (campaign §3, AGENTS.md honesty gates). Headless-verifiable M3 scope is complete; runtime-only gates are recorded UNVERIFIED, not silently omitted.
 
 **Consequences:**
-- The exact Unity 6 LTS version remains unresolved decision #1; the next campaign with an installed editor starts at the Unity shell + EditMode/PlayMode gates, not at domain/application rework.
+- **Resolved 2026-10-16:** Unity **6000.3.26f1** (Unity 6.3 LTS, released 2026-10-08, changeset `de8167e7440c`, supported to Dec 2027), **Personal** licence. Michael delegated the choice. Alternatives rejected: 6000.6.x is not LTS, and 6000.0 LTS reaches end of support in Oct 2026. Install readiness is in `docs/UNITY_INSTALL.md`. The editor is not yet installed or activated (KI-002 open).
+- *(historical)* The exact Unity 6 LTS version remained unresolved decision #1; the next campaign with an installed editor starts at the Unity shell + EditMode/PlayMode gates, not at domain/application rework.
 - Any future presentation technology must consume the same read-model/use-case boundary; nothing in Domain/Application references Unity.
 
 ---
