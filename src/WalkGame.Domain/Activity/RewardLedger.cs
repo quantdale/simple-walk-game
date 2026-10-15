@@ -42,6 +42,9 @@ namespace WalkGame.Domain.Activity
         /// <summary>Times the transaction index was rebuilt from durable rows (test/diagnostic accelerator counter; not persisted).</summary>
         public int IndexBuildCount { get; private set; }
 
+        /// <summary>Rows scanned by the most recent index build (accelerator diagnostic; not persisted).</summary>
+        public int LastIndexBuildSize { get; private set; }
+
         public long TotalVitalityCredited => MaintainedVitalityCredited ?? RecomputeLifetimeVitality();
 
         public long RecomputeLifetimeVitality()
@@ -157,6 +160,7 @@ namespace WalkGame.Domain.Activity
             if (_index != null)
                 return;
             IndexBuildCount++;
+            LastIndexBuildSize = Records.Count;
             _index = new HashSet<string>(StringComparer.Ordinal);
             foreach (var record in Records)
                 _index.Add(record.TransactionId);

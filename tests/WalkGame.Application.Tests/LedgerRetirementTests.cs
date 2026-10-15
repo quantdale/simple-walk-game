@@ -218,4 +218,21 @@ public sealed class LedgerRetirementTests : IDisposable
         Assert.Equal(1, ledger.IndexBuildCount); // no rebuild: the index is mutated alongside the rows
         Assert.Equal(5_000L, ledger.TotalVitalityCredited);
     }
+
+    [Fact]
+    public void FirstDuplicateCheckAfterLoad_ScansOnlyRetainedRows_IndependentOfLifetimeHistory()
+    {
+        DriveDays(200);
+        var loaded = Decode();
+        Assert.Equal(0, loaded.Ledger.IndexBuildCount);
+        string anyId = loaded.Ledger.Records[0].TransactionId;
+
+        Assert.True(loaded.Ledger.HasTransaction(RewardTransactionId.FromGuid(new Guid(anyId))));
+
+        Assert.Equal(1, loaded.Ledger.IndexBuildCount);
+        // 200 days of lifetime history, but the first check touches only the bounded
+        // retained window (D-066): cost is a function of the window, not of play time.
+        Assert.InRange(loaded.Ledger.LastIndexBuildSize, 1, 50);
+        Assert.True(loaded.Ledger.RetiredCount >= 150);
+    }
 }
