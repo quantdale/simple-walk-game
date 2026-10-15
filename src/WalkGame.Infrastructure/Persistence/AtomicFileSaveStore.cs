@@ -32,7 +32,7 @@ namespace WalkGame.Infrastructure.Persistence
     /// the player's world. A store-level guarantee is not a guarantee until its caller
     /// exercises it, which is why the recovery tests live in the application suite.
     /// </summary>
-    public sealed class AtomicFileSaveStore : ISaveStore
+    public sealed class AtomicFileSaveStore : ISaveStore, ILocalDataEraser
     {
         private readonly string _primaryPath;
         private readonly string _backupPath;
@@ -56,6 +56,26 @@ namespace WalkGame.Infrastructure.Persistence
         }
 
         public SaveReadResult ReadPrimary() => ReadFile(_primaryPath);
+
+        /// <summary>
+        /// Deletes every generation: temporaries, then the backup, then the primary LAST.
+        /// If interrupted, the primary is still intact and boot simply loads it (the player
+        /// can retry); the reverse order could leave only a backup, which boot recovery
+        /// (D-052) would promote — silently undoing the erase.
+        /// </summary>
+        public void EraseAll()
+        {
+            DeleteIfExists(_tempPath);
+            DeleteIfExists(_backupTempPath);
+            DeleteIfExists(_backupPath);
+            DeleteIfExists(_primaryPath);
+        }
+
+        private static void DeleteIfExists(string path)
+        {
+            if (File.Exists(path))
+                File.Delete(path);
+        }
 
         public SaveReadResult ReadBackup() => ReadFile(_backupPath);
 

@@ -291,6 +291,45 @@ namespace WalkGame.Application
         private int? _lastSaveContentVersion;
         private int _lastBuildContentVersion;
 
+        /// <summary>
+        /// Permanently deletes all local data this session owns: every save generation
+        /// (primary, backup, temporaries) and, when wired, the local preferences file
+        /// (PRODUCT_SPEC §7a requirement 7). Fails closed: if any wired store cannot erase,
+        /// nothing is touched and <see cref="LocalDataEraseStatus.NotSupported"/> is returned.
+        /// On success the in-memory session is reset to the never-booted state, so the next
+        /// operation must be StartNewGame. The failure detail is the exception TYPE only
+        /// (privacy-safe, D-044).
+        /// </summary>
+        public LocalDataEraseResult DeleteAllLocalData()
+        {
+            var saveEraser = _store as ILocalDataEraser;
+            var prefsEraser = _preferencesStore as ILocalDataEraser;
+            if (saveEraser == null || (_preferencesStore != null && prefsEraser == null))
+                return new LocalDataEraseResult(LocalDataEraseStatus.NotSupported, null);
+
+            try
+            {
+                // Saves first: they hold the health-adjacent data. Preferences are UX-only.
+                saveEraser.EraseAll();
+                prefsEraser?.EraseAll();
+            }
+            catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException)
+            {
+                return new LocalDataEraseResult(LocalDataEraseStatus.Failed, ex.GetType().Name);
+            }
+
+            _state = null;
+            _preferences = UxPreferencesState.CreateDefault();
+            _preferencesLoadOutcome = UxPreferencesLoadOutcome.NotFound;
+            _preferencesLoadDetail = null;
+            _lastBootOutcome = DiagnosticsBootOutcome.NeverBooted;
+            _lastBootRecoveredFromBackup = false;
+            _lastBootRecoveryCause = SaveRecoveryCause.None;
+            _lastBootCodecFailure = CodecFailureCategory.None;
+            _lastBootAppliedMigrations = Array.Empty<string>();
+            return new LocalDataEraseResult(LocalDataEraseStatus.Erased, null);
+        }
+
         public GameSession(ISaveStore store, ISaveCodec codec, IClock clock, RegionDefinition content)
             : this(store, codec, clock, content, preferencesStore: null, connectionPort: null)
         {

@@ -54,6 +54,19 @@ namespace WalkGame.Application.Persistence
         void WriteAtomicPreservingBackup(byte[] envelopeBytes);
     }
 
+    /// <summary>
+    /// Optional capability of a local store: permanently delete every generation it owns
+    /// (privacy requirement 7, PRODUCT_SPEC §7a). Kept separate from <see cref="ISaveStore"/>
+    /// and <see cref="WalkGame.Application.Ux.IUxPreferencesStore"/> so existing adapters
+    /// opt in explicitly. Implementations must delete the authoritative file LAST so that
+    /// an interrupted erase never leaves only a backup that boot recovery would resurrect.
+    /// Throws on I/O failure; a repeated call after success is a no-op.
+    /// </summary>
+    public interface ILocalDataEraser
+    {
+        void EraseAll();
+    }
+
     public enum CodecStatus
     {
         Ok = 0,
@@ -94,5 +107,25 @@ namespace WalkGame.Application.Persistence
         DecodeResult Decode(byte[] envelopeBytes);
 
         byte[] Encode(GameState state, DateTimeOffset savedAtUtc);
+    }
+
+    public enum LocalDataEraseStatus
+    {
+        Erased = 0,
+        NotSupported = 1,
+        Failed = 2,
+    }
+
+    /// <summary>Outcome of <c>GameSession.DeleteAllLocalData</c>; detail is an exception type name only.</summary>
+    public sealed class LocalDataEraseResult
+    {
+        public LocalDataEraseResult(LocalDataEraseStatus status, string? failureCategory)
+        {
+            Status = status;
+            FailureCategory = failureCategory;
+        }
+
+        public LocalDataEraseStatus Status { get; }
+        public string? FailureCategory { get; }
     }
 }
