@@ -13,6 +13,7 @@
 #   8. pre-push detects unexpected remote advancement (lost-update protection)
 #   9. guard behaves correctly from a nested working directory
 #  10. both HTTPS and SSH forms of the correct remote normalize correctly
+#  11. architecture rule 7 self-test (Unity shell never mutates Domain state)
 set -u
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -102,6 +103,15 @@ echo "== scenario 5: second writer lease acquisition fails =="
 C5="$(new_clone s5)"
 expect_in_exit "first lease acquires" 0 "$C5" env SWG_SESSION_ID=w1 sh scripts/writer-lease.sh acquire
 expect_in_exit "second lease refused" "$LEASE_BUSY_EXIT" "$C5" env SWG_SESSION_ID=w2 sh scripts/writer-lease.sh acquire
+# KI-008 same-session resume: the owner may re-acquire; the lock file is untouched;
+# an anonymous (PID-derived) acquirer and a different session are still refused.
+_lock5="$(cd "$C5" && git rev-parse --path-format=absolute --git-path simple-walk-game.writer-lock.json)"
+_before5="$(cat "$_lock5")"
+expect_in_exit "same session re-acquire resumes" 0 "$C5" env SWG_SESSION_ID=w1 sh scripts/writer-lease.sh acquire
+if [ "$(cat "$_lock5")" = "$_before5" ]; then ok "same-session resume left the lease file unchanged"
+else bad "same-session resume modified the lease file"; fi
+expect_in_exit "anonymous acquirer still refused" "$LEASE_BUSY_EXIT" "$C5" env -u SWG_SESSION_ID sh scripts/writer-lease.sh acquire
+expect_in_exit "other session still refused after resume" "$LEASE_BUSY_EXIT" "$C5" env SWG_SESSION_ID=w2 sh scripts/writer-lease.sh acquire
 
 echo "== scenario 6: released lease permits a new writer =="
 expect_in_exit "foreign release without --force refused" "$LEASE_BUSY_EXIT" "$C5" env SWG_SESSION_ID=w2 sh scripts/writer-lease.sh release
@@ -174,6 +184,9 @@ if [ "$n1" = "$n2" ] && [ "$n2" = "$n3" ] && [ "$n3" = "$n4" ] && [ "$n4" = "$n5
 else bad "normalization mismatch: [$n1] [$n2] [$n3] [$n4] [$n5]"; fi
 
 echo ""
+echo "== scenario 11: architecture rule 7 (Unity shell) rejects violating fixtures =="
+expect_exit "verify-architecture.sh --selftest-rule7" 0 bash "$REPO_ROOT/scripts/verify-architecture.sh" --selftest-rule7
+
 echo "=============================="
 echo "GUARD PROOF SUITE: $PASS passed, $FAIL failed"
 echo "=============================="

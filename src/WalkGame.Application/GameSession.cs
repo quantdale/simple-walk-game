@@ -291,6 +291,45 @@ namespace WalkGame.Application
         private int? _lastSaveContentVersion;
         private int _lastBuildContentVersion;
 
+        /// <summary>
+        /// Permanently deletes all local data this session owns: every save generation
+        /// (primary, backup, temporaries) and, when wired, the local preferences file
+        /// (PRODUCT_SPEC §7a requirement 7). Fails closed: if any wired store cannot erase,
+        /// nothing is touched and <see cref="LocalDataEraseStatus.NotSupported"/> is returned.
+        /// On success the in-memory session is reset to the never-booted state, so the next
+        /// operation must be StartNewGame. The failure detail is the exception TYPE only
+        /// (privacy-safe, D-044).
+        /// </summary>
+        public LocalDataEraseResult DeleteAllLocalData()
+        {
+            var saveEraser = _store as ILocalDataEraser;
+            var prefsEraser = _preferencesStore as ILocalDataEraser;
+            if (saveEraser == null || (_preferencesStore != null && prefsEraser == null))
+                return new LocalDataEraseResult(LocalDataEraseStatus.NotSupported, null);
+
+            try
+            {
+                // Saves first: they hold the health-adjacent data. Preferences are UX-only.
+                saveEraser.EraseAll();
+                prefsEraser?.EraseAll();
+            }
+            catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException)
+            {
+                return new LocalDataEraseResult(LocalDataEraseStatus.Failed, ex.GetType().Name);
+            }
+
+            _state = null;
+            _preferences = UxPreferencesState.CreateDefault();
+            _preferencesLoadOutcome = UxPreferencesLoadOutcome.NotFound;
+            _preferencesLoadDetail = null;
+            _lastBootOutcome = DiagnosticsBootOutcome.NeverBooted;
+            _lastBootRecoveredFromBackup = false;
+            _lastBootRecoveryCause = SaveRecoveryCause.None;
+            _lastBootCodecFailure = CodecFailureCategory.None;
+            _lastBootAppliedMigrations = Array.Empty<string>();
+            return new LocalDataEraseResult(LocalDataEraseStatus.Erased, null);
+        }
+
         public GameSession(ISaveStore store, ISaveCodec codec, IClock clock, RegionDefinition content)
             : this(store, codec, clock, content, preferencesStore: null, connectionPort: null)
         {
@@ -478,6 +517,11 @@ namespace WalkGame.Application
         /// revision at least as high as the one delivered, so processing it could only be
         /// a no-op. Pure lookup, no state change.
         /// </summary>
+        private static bool IsRetiredRecord(GameState game, NormalizedActivityRecord record) =>
+            !string.IsNullOrWhiteSpace(record.ProviderNamespace) &&
+            game.ProcessedRecords.RetiredCount > 0 &&
+            game.ProcessedRecords.IsRetired(ActivityIdentity.Compute(record));
+
         private static bool IsAlreadyTrustedNoOp(GameState game, NormalizedActivityRecord record)
         {
             if (string.IsNullOrWhiteSpace(record.ProviderNamespace))
@@ -598,6 +642,7 @@ namespace WalkGame.Application
             int total = records.Count;
             int accepted = 0, rejected = 0, duplicates = 0, clamped = 0, dupTransactions = 0;
             int corrections = 0, deletionsApplied = 0, deletionsIgnored = 0, staleRevisions = 0;
+            int retiredIgnored = 0;
             long vitalityTotal = 0L, eligibleStepsTotal = 0L;
             DateTimeOffset maxTrustedEndUtc = game.IngestionCheckpointUtc;
 
@@ -632,6 +677,12 @@ namespace WalkGame.Application
                     // out-of-window record carrying a HIGHER revision would otherwise reach
                     // the correction path and credit a delta. It is rejected like any other
                     // new out-of-window record, so an old record can only ever be a no-op.
+                    if (IsRetiredRecord(game, record))
+                    {
+                        retiredIgnored++;
+                        duplicates++; // a retired re-delivery is still an exactly-once no-op; RetiredRecordsIgnored is its sub-classification (D-066)
+                        continue;
+                    }
                     if (IsAlreadyTrustedNoOp(game, record))
                     {
                         duplicates++;
@@ -644,7 +695,16 @@ namespace WalkGame.Application
                     continue;
                 }
 
-                // 2. Dispatch. Deletion markers are only reachable once eligible.
+                // 2. A record whose detail row was retired (D-066) is permanently
+                //    non-creditable: no credit, no correction, no destructive reversal.
+                if (IsRetiredRecord(game, record))
+                {
+                    retiredIgnored++;
+                        duplicates++; // a retired re-delivery is still an exactly-once no-op; RetiredRecordsIgnored is its sub-classification (D-066)
+                    continue;
+                }
+
+                // 3. Dispatch. Deletion markers are only reachable once eligible.
                 if (record.IsDeletion)
                 {
                     ProcessDeletion(game, record, nowUtc, events,
@@ -704,7 +764,8 @@ namespace WalkGame.Application
                     eligibleSteps,
                     vitality,
                     nowUtc,
-                    Math.Max(1, record.Revision)));
+                    Math.Max(1, record.Revision),
+                    endUtc));
 
                 if (endUtc > maxTrustedEndUtc)
                     maxTrustedEndUtc = endUtc;
@@ -712,6 +773,17 @@ namespace WalkGame.Application
             }
 
             game.IngestionCheckpointUtc = maxTrustedEndUtc;
+
+            // Bounded ledger retirement (D-066), inside this same atomic commit. The cutoff is
+            // the acceptance window's lower bound under the post-batch trusted progress, so
+            // nothing can be retired that the pipeline would still accept; retired identities
+            // stay permanently non-creditable. Lifetime totals and balances are unchanged.
+            var retirementCutoff = new TrustedTime(nowUtc, maxTrustedEndUtc, maxTrustedEndUtc).WindowStartUtc;
+            if (maxTrustedEndUtc != default)
+            {
+                game.ProcessedRecords.Retire(retirementCutoff, nowUtc, ActivityValidationPolicy.RetirementBatchSize);
+                game.Ledger.RetireActivityRows(retirementCutoff, ActivityValidationPolicy.RetirementBatchSize);
+            }
 
             // Bounded diagnostic evidence of this batch, committed in the SAME atomic
             // write as the rewards it describes (never consulted by progression math).
@@ -735,6 +807,7 @@ namespace WalkGame.Application
                 DeletionsIgnored = deletionsIgnored,
                 StaleRevisionsIgnored = staleRevisions,
                 QuantityClamped = clamped,
+                RetiredRecordsIgnored = retiredIgnored,
                 LastFetchAttemptedUtc = nowUtc,
                 LastFetchSucceededUtc = nowUtc,
             };
@@ -798,6 +871,7 @@ namespace WalkGame.Application
                     DeletionsIgnored = previous?.DeletionsIgnored ?? 0,
                     StaleRevisionsIgnored = previous?.StaleRevisionsIgnored ?? 0,
                     QuantityClamped = previous?.QuantityClamped ?? 0,
+                    RetiredRecordsIgnored = previous?.RetiredRecordsIgnored ?? 0,
                     LastFetchAttemptedUtc = _clock.UtcNow,
                     LastFetchSucceededUtc = previous?.LastFetchSucceededUtc,
                 };
@@ -887,7 +961,8 @@ namespace WalkGame.Application
                 eligibleSteps,
                 newAppliedVitality,
                 nowUtc,
-                revision));
+                revision,
+                record.EndUtc.ToUniversalTime()));
 
             DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
             if (endUtc > maxTrustedEndUtc)
@@ -971,7 +1046,8 @@ namespace WalkGame.Application
                 EligibleSteps: 0L,
                 VitalityCredited: remainingAppliedVitality,
                 ProcessedAtUtc: nowUtc,
-                LastRevision: revision));
+                LastRevision: revision,
+                RecordEndUtc: record.EndUtc.ToUniversalTime()));
 
             DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
             if (endUtc > maxTrustedEndUtc)

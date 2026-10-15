@@ -76,6 +76,12 @@ namespace WalkGame.Domain.Activity
         /// <summary>Records whose requested quantity was above the bounded-quantity ceiling.</summary>
         public int QuantityClamped { get; set; }
 
+        /// <summary>
+        /// Re-deliveries of records whose detail row was retired (D-066): credited nothing,
+        /// distinct from an ordinary duplicate and from new credit. Absent decodes to 0.
+        /// </summary>
+        public int RetiredRecordsIgnored { get; set; }
+
         /// <summary>When a fetch was last ATTEMPTED, successful or not. Null = never attempted.</summary>
         public DateTimeOffset? LastFetchAttemptedUtc { get; set; }
 

@@ -1,0 +1,11 @@
+/Library/
+/Temp/
+/Logs/
+/Build/
+/UserSettings/
+/obj/
+*.csproj
+*.sln
+/Assets/Plugins/WalkGame/
+/Assets/Plugins/WalkGame.meta
+/.utmp/

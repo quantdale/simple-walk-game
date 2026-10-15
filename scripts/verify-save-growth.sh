@@ -78,6 +78,24 @@ if ! grep -q 'completedProjects=19' "$WORK/run1.sizes"; then
 fi
 echo "  PASS: growth series reaches a completed region with all projects unlocked"
 
+# Convergence (F-07 / D-066): a growth-MODEL check, not a byte count. Growth over the
+# second year (day 365 -> 730) must be at most CONVERGENCE_PCT % of growth over the first
+# (day 7 -> 365). Before ledger retirement the ratio was ~100 % (linear, no plateau).
+CONVERGENCE_PCT=60
+bytes_at() { sed -n "s/.*day=$1 .*saveBytes=\([0-9]*\).*/\1/p" "$WORK/run1.sizes" | head -n1; }
+b7="$(bytes_at 7)"; b365="$(bytes_at 365)"; b730="$(bytes_at 730)"
+if [ -z "$b7" ] || [ -z "$b365" ] || [ -z "$b730" ]; then
+    echo "  FAIL: growth series is missing the day 7/365/730 checkpoints needed for the convergence check" >&2
+    exit 1
+fi
+first=$((b365 - b7)); second=$((b730 - b365))
+ratio=$(( first > 0 ? second * 100 / first : 100 ))
+if [ "$ratio" -gt "$CONVERGENCE_PCT" ]; then
+    echo "  FAIL: save growth does not converge: second-year growth ${second} B is ${ratio}% of first-year growth ${first} B (bound ${CONVERGENCE_PCT}%)" >&2
+    exit 1
+fi
+echo "  PASS: save growth converges: second-year growth ${second} B is ${ratio}% of first-year ${first} B (bound ${CONVERGENCE_PCT}%)"
+
 echo ""
 echo "======================================"
 echo "SAVE GROWTH: verified (timings not gated)"

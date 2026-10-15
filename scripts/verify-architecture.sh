@@ -16,9 +16,15 @@
 #      exception IOException as a documented port-failure contract, but it must
 #      not touch the filesystem.
 #   3. Infrastructure references only Application and Domain.
-#   4. No engine namespace (UnityEngine/UnityEditor/...) appears anywhere in src/.
+#   4. No engine namespace (UnityEngine/UnityEditor/...) appears anywhere in src/
+#      except src/WalkGame.Unity, the only engine-bearing project (rule 7 covers it).
 #   5. Domain and Application perform no filesystem access.
 #   6. Every script CI invokes directly is committed executable and LF-only.
+#   7. Unity shell scripts never mutate canonical Domain state: no canonical
+#      state/ledger/factory types are named, and Infrastructure adapters are
+#      constructed only in the composition root (ShellBootstrap.cs) and tests.
+#      `verify-architecture.sh --selftest-rule7` proves the rule rejects
+#      violating fixtures and accepts a clean one.
 #
 # Rule 6 exists because a gate script committed without the executable bit passes
 # every local run on Windows (which ignores the bit) and then fails in CI with
@@ -108,6 +114,30 @@ strip_comments() {
     sed -e 's://.*$::' "$1"
 }
 
+
+# Rule 7 implementation: prints violations for a Unity Assets root, empty when clean.
+UNITY_FORBIDDEN='\b(GameState|GameFactory|ResourceBalances|RewardLedger(State)?|ActivityIngestion|ProcessedRecordLedger[A-Za-z]*|ProjectQueue)\b'
+UNITY_ADAPTERS='\bnew[[:space:]]+(AtomicFileSaveStore|LocalPreferencesStore|SaveCodec|SystemClock)\b'
+rule7_violations() { # assets_root
+    local root="$1"
+    [ -d "$root" ] || return 0
+    grep -rnE --include=*.cs "$UNITY_FORBIDDEN" "$root" || true
+    grep -rnE --include=*.cs "$UNITY_ADAPTERS" "$root" | grep -v '/ShellBootstrap\.cs:' | grep -v '/Tests/' || true
+}
+
+if [ "${1:-}" = "--selftest-rule7" ]; then
+    t="$(mktemp -d)"; trap 'rm -rf "$t"' EXIT
+    mkdir -p "$t/clean/Shell" "$t/dirty/Shell" "$t/adapter/Shell"
+    echo 'class A { void F(GameSession s) { s.Continue(); } }' > "$t/clean/Shell/A.cs"
+    echo 'class B { void F(GameState s) { s.Vitality = 9; } }' > "$t/dirty/Shell/B.cs"
+    echo 'class C { object F() => new AtomicFileSaveStore("x"); }' > "$t/adapter/Shell/C.cs"
+    rc=0
+    if [ -z "$(rule7_violations "$t/clean")" ]; then echo "  PASS: clean fixture accepted"; else echo "  FAIL: clean fixture rejected"; rc=1; fi
+    if [ -n "$(rule7_violations "$t/dirty")" ]; then echo "  PASS: canonical-state fixture rejected"; else echo "  FAIL: canonical-state fixture accepted"; rc=1; fi
+    if [ -n "$(rule7_violations "$t/adapter")" ]; then echo "  PASS: adapter-outside-root fixture rejected"; else echo "  FAIL: adapter fixture accepted"; rc=1; fi
+    exit $rc
+fi
+
 echo "== rule 1-3: project reference direction =="
 for layer in WalkGame.Domain WalkGame.Application WalkGame.Infrastructure; do
     file="$(proj_file "$layer")"
@@ -149,7 +179,7 @@ for layer in WalkGame.Domain WalkGame.Application WalkGame.Infrastructure; do
 done
 
 echo "== rule 4: no engine namespace anywhere in src/ =="
-engine_hits="$(grep -rn --include=*.cs -E '(^|[^A-Za-z0-9_.])(using[[:space:]]+)?UnityEngine|UnityEditor' src/ || true)"
+engine_hits="$(grep -rn --include=*.cs --exclude-dir=WalkGame.Unity -E '(^|[^A-Za-z0-9_.])(using[[:space:]]+)?UnityEngine|UnityEditor' src/ || true)"
 if [ -z "$engine_hits" ]; then
     ok "no UnityEngine/UnityEditor reference in src/"
 else
@@ -204,6 +234,15 @@ else
             ok "$s is committed executable and LF-only"
         fi
     done
+fi
+
+echo "== rule 7: Unity shell never mutates canonical Domain state =="
+unity_hits="$(rule7_violations src/WalkGame.Unity/Assets)"
+if [ -z "$unity_hits" ]; then
+    ok "Unity assets use GameSession commands/read models only"
+else
+    bad "Unity assets reach canonical state or construct adapters outside ShellBootstrap.cs:"
+    printf '%s\n' "$unity_hits" | sed 's/^/      | /' >&2
 fi
 
 echo ""

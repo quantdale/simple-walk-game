@@ -162,6 +162,14 @@ namespace WalkGame.Domain.Activity
         public static readonly TimeSpan TrustedWindowFloor = TimeSpan.FromDays(45);
 
         /// <summary>
+        /// Maximum processed-record rows (and, separately, reward-ledger rows) retired in a
+        /// single commit (D-066). Retirement is amortized inside ordinary ingestion commits so
+        /// no single commit's work is unbounded; a mature legacy save drains over a few
+        /// commits. Retention bound = <see cref="TrustedWindowFloor"/> behind trusted progress.
+        /// </summary>
+        public const int RetirementBatchSize = 256;
+
+        /// <summary>
         /// Deprecated wall-clock name for the old 14-day constant, retained only so the
         /// historical decision (D-030) can be located in code review. It is NOT used by
         /// validation any more: the window is anchored to trusted time, not to wall clock.
@@ -327,7 +335,8 @@ namespace WalkGame.Domain.Activity
         long EligibleSteps,
         long VitalityCredited,
         DateTimeOffset ProcessedAtUtc,
-        int LastRevision = 1);
+        int LastRevision = 1,
+        DateTimeOffset? RecordEndUtc = null);
 
     /// <summary>
     /// Append-only processed-record ledger: the durable dedup structure answering
@@ -339,8 +348,41 @@ namespace WalkGame.Domain.Activity
         public Dictionary<string, ProcessedRecordEntry> Entries { get; } =
             new Dictionary<string, ProcessedRecordEntry>(StringComparer.Ordinal);
 
+        /// <summary>
+        /// Identities of records whose detail row was retired (D-066). The identity is the
+        /// trust anchor and is kept forever; only the audit detail is dropped. A retired
+        /// identity is permanently non-creditable. Absent decodes to "nothing retired".
+        /// Appended in deterministic retirement order.
+        /// </summary>
+        public List<string> RetiredIdentities { get; } = new List<string>();
+
+        /// <summary>Number of rows retired so far (durable bookkeeping, D-066).</summary>
+        public long RetiredCount { get; set; }
+
+        /// <summary>Commit instant of the most recent retirement; null when nothing was retired.</summary>
+        public DateTimeOffset? LastRetiredAtUtc { get; set; }
+
+        /// <summary>Net applied Vitality carried by retired rows (so the lifetime total survives retirement).</summary>
+        public long RetiredVitalityCredited { get; set; }
+
+        /// <summary>
+        /// Maintained lifetime credited total, updated in <see cref="Record"/>/<see cref="Update"/>.
+        /// Null on saves written before D-066; hydrated from a recomputation on first mutation.
+        /// The validator cross-checks it against <see cref="RecomputeLifetimeVitality"/>.
+        /// </summary>
+        public long? MaintainedVitalityCredited { get; set; }
+
+        private HashSet<string>? _retiredIndex;
+
         public bool HasProcessed(string identityKey) =>
             identityKey != null && Entries.ContainsKey(identityKey);
+
+        public bool IsRetired(string identityKey)
+        {
+            if (identityKey == null) return false;
+            EnsureRetiredIndex();
+            return _retiredIndex!.Contains(identityKey);
+        }
 
         public bool TryGet(string identityKey, out ProcessedRecordEntry? entry)
         {
@@ -356,17 +398,63 @@ namespace WalkGame.Domain.Activity
         public void Record(ProcessedRecordEntry entry)
         {
             if (entry == null) throw new ArgumentNullException(nameof(entry));
+            if (IsRetired(entry.IdentityKey))
+                throw new InvalidOperationException("Processed-record '" + entry.IdentityKey + "' was retired and is permanently non-creditable.");
+            long baseline = HydratedTotal();
             if (!Entries.TryAdd(entry.IdentityKey, entry))
                 throw new InvalidOperationException("Processed-record ledger already contains '" + entry.IdentityKey + "'.");
+            MaintainedVitalityCredited = checked(baseline + entry.VitalityCredited);
         }
 
         /// <summary>Replaces an existing row during correction processing; must already exist.</summary>
         public void Update(ProcessedRecordEntry entry)
         {
             if (entry == null) throw new ArgumentNullException(nameof(entry));
-            if (!Entries.ContainsKey(entry.IdentityKey))
+            if (!Entries.TryGetValue(entry.IdentityKey, out var previous))
                 throw new InvalidOperationException("Processed-record ledger has no row '" + entry.IdentityKey + "' to update.");
+            long baseline = HydratedTotal();
             Entries[entry.IdentityKey] = entry;
+            MaintainedVitalityCredited = checked(baseline - previous.VitalityCredited + entry.VitalityCredited);
+        }
+
+        /// <summary>
+        /// Retires up to <paramref name="maxBatch"/> rows whose record end (or, for rows
+        /// written before record ends were stored, their processing instant) lies strictly
+        /// before <paramref name="cutoffUtc"/>. Selection is deterministic: ordered by
+        /// processing instant, then ordinal identity key. Changes no lifetime total and no
+        /// balance; only retained detail moves to the identity-only retired set (D-066).
+        /// </summary>
+        public int Retire(DateTimeOffset cutoffUtc, DateTimeOffset nowUtc, int maxBatch)
+        {
+            if (maxBatch <= 0 || Entries.Count == 0) return 0;
+            var candidates = new List<ProcessedRecordEntry>();
+            foreach (var entry in Entries.Values)
+            {
+                DateTimeOffset end = entry.RecordEndUtc ?? entry.ProcessedAtUtc;
+                if (end < cutoffUtc)
+                    candidates.Add(entry);
+            }
+            if (candidates.Count == 0) return 0;
+            candidates.Sort((a, b) =>
+            {
+                int c = a.ProcessedAtUtc.UtcTicks.CompareTo(b.ProcessedAtUtc.UtcTicks);
+                return c != 0 ? c : string.CompareOrdinal(a.IdentityKey, b.IdentityKey);
+            });
+            long baseline = HydratedTotal();
+            EnsureRetiredIndex();
+            int n = Math.Min(maxBatch, candidates.Count);
+            for (int i = 0; i < n; i++)
+            {
+                var entry = candidates[i];
+                Entries.Remove(entry.IdentityKey);
+                RetiredIdentities.Add(entry.IdentityKey);
+                _retiredIndex!.Add(entry.IdentityKey);
+                RetiredVitalityCredited = checked(RetiredVitalityCredited + entry.VitalityCredited);
+            }
+            RetiredCount += n;
+            LastRetiredAtUtc = nowUtc;
+            MaintainedVitalityCredited = baseline; // unchanged by construction
+            return n;
         }
 
         public int Count => Entries.Count;
@@ -378,15 +466,24 @@ namespace WalkGame.Domain.Activity
         /// </summary>
         public long UnappliedReversalVitality { get; set; }
 
-        public long TotalVitalityCredited
+        /// <summary>Lifetime credited total in O(1) (maintained; recomputed only for legacy saves).</summary>
+        public long TotalVitalityCredited => MaintainedVitalityCredited ?? RecomputeLifetimeVitality();
+
+        /// <summary>Full recomputation: retained rows plus the durably recorded retired total.</summary>
+        public long RecomputeLifetimeVitality()
         {
-            get
-            {
-                long total = 0L;
-                foreach (var entry in Entries.Values)
-                    total += entry.VitalityCredited;
-                return total;
-            }
+            long total = RetiredVitalityCredited;
+            foreach (var entry in Entries.Values)
+                total += entry.VitalityCredited;
+            return total;
+        }
+
+        private long HydratedTotal() => MaintainedVitalityCredited ?? RecomputeLifetimeVitality();
+
+        private void EnsureRetiredIndex()
+        {
+            if (_retiredIndex != null && _retiredIndex.Count == RetiredIdentities.Count) return;
+            _retiredIndex = new HashSet<string>(RetiredIdentities, StringComparer.Ordinal);
         }
     }
 

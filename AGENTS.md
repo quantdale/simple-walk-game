@@ -95,6 +95,8 @@ scripts/writer-lease.sh status     # diagnostics at any time
   only a **human operator** who confirmed the holder is dead may run
   `release --force` (or `SWG_ACKNOWLEDGE_LOCK_OVERRIDE=yes acquire --force`).
 * Agents must never pass `--force`. Ever.
+* Export a stable `SWG_SESSION_ID` for your whole session. `acquire` with the same id
+  resumes your own lease unchanged (KI-008), and `release` recognizes it as yours.
 
 Windows twin: `scripts\writer-lease.ps1` (-Acquire/-Release/-Status).
 

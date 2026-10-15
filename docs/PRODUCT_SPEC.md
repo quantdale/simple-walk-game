@@ -237,6 +237,19 @@ Avoid:
 
 ---
 
+## 7a. Privacy requirements
+
+These are product requirements. `docs/PRIVACY_REVIEW.md` records how each is verified (closes P-2 / KI-005).
+
+1. **Offline, on-device only.** No network calls, accounts, analytics, telemetry, advertising SDKs or cloud sync in the MVP. Adding any network surface is a review-triggering change (PRIVACY_REVIEW §1).
+2. **Data minimization.** Only data needed for progression is stored: normalized step quantities, record time windows, provider namespace/record identity, and derived game state. No raw platform payloads, names, contact data, precise location or device identifiers.
+3. **Bounded retention.** Per-record activity detail is kept only for the reconciliation window (~45 days of trusted progress). Older records are reduced to an identity string that exists only for exactly-once protection (D-066).
+4. **At-rest protection.** Delegated to OS device encryption as a system requirement. Primary, temp and backup save generations stay in app-private storage (D-067, §12).
+5. **Least permission.** Request only the read permission for the activity types actually used (walking steps), only when the player opts in, with a plain-language purpose. Denial or revocation never blocks the game (§7, ACTIVITY_PIPELINE).
+6. **Privacy-safe diagnostics.** Support diagnostics show classified enums, bounded counters and timestamps only. No activity records, payloads or raw exception text, and no upload path (D-044/D-063).
+7. **Player control.** The player must be able to delete all local game data (primary and backup generations) from Settings. Implemented headless: `GameSession.DeleteAllLocalData()` erases every save generation and the preferences file, deleting the primary last so boot recovery cannot resurrect it. It fails closed on stores without erase capability (`LocalDataEraseTests`). The Settings UI is M5 runtime work.
+8. **Third-party code.** Any new runtime dependency (including Unity packages) is reviewed for network/analytics behavior before it ships (PRIVACY_REVIEW §2).
+
 ## 8. Notification requirements
 
 Notifications are opt-in, conservative, and event-based.
@@ -322,6 +335,15 @@ While offline, the player must be able to:
 - safely reconcile platform activity when data becomes available.
 
 No core state should become inaccessible because a backend is unavailable.
+
+### System requirement: device encryption (D-067)
+
+Save data is health-adjacent and is protected at rest by the operating system, not by the app:
+
+- Android: file-based encryption (mandatory on devices launching with Android 10+); the save lives in app-private internal storage.
+- iOS: Data Protection at the default class (`CompleteUntilFirstUserAuthentication`) or stronger.
+- The backup save generation gets identical treatment (same app-private directory).
+- Devices without platform encryption, and rooted/jailbroken devices, are outside the supported confidentiality guarantee.
 
 ---
 

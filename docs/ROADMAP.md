@@ -28,6 +28,8 @@ new product surface:
   its own proposal, behavioural spec deltas, design and ordered task list.
   Validate with `openspec validate --changes --strict`.
 
+**Current automated test count (2026-10-16): 514** (Domain 148 / Infrastructure 49 / Application 317). Counts quoted in the per-milestone notes below are historical, as of each campaign.
+
 Milestone status and evidence state are unchanged by that plan. In particular,
 **release qualification remains blocked** by `KI-001` (hosted CI billing) and
 `KI-002` (no Unity editor) regardless of how much of the implementation plan
@@ -305,6 +307,8 @@ All seven reports are committed under `docs/evidence/m4/` and reproduce byte-for
 # M5 — Mobile shell and low-attention UX
 
 > **M5-H1 headless contract campaign (2026-08-26): the platform-neutral UX state layer is implemented and automated verified** (295 automated tests): durable local preferences/onboarding store with documented corruption/future-version policy and byte-proven canonical isolation (D-042); platform-neutral activity connection/permission status projection with documented precedence, conformance tables, and durable refresh-failure evidence (D-043); shell-facing read models for onboarding/settings/activity-status/support-diagnostics plus explicit Home attention classification; explicit empty/error/recovery semantics incl. save-recovery and future-schema fail-closed states (D-044); eleven named low-attention acceptance scenarios (first-run grant/denial, 1/7/30-day returns, queue-empty, source-failure, external revocation, save recovery, preference isolation, replay-after-UX zero-recredit) plus adversarial hardening suites.
+>
+> **M5-U1 (implemented 2026-10-16, box-verified):** `src/WalkGame.Unity` on 6000.3.26f1 (D-035) with prebuilt plugins, one composition root on `persistentDataPath` (D-067), a StartStatus router and Home/Return/Projects/Settings (incl. delete-all confirmation)/Activity screens. The batchmode EditMode suite passes 13/13 and a batchmode IL2CPP arm64 debug APK builds (30.7 MB); see `docs/evidence/m5-u1/M5-U1-RESULTS.md`. The APK has never been run on a device, and visual rendering, accessibility and the Health Connect adapter remain UNVERIFIED.
 >
 > **NOT yet delivered by M5-H1 (runtime/platform, remains open until an editor exists, D-035): actual Unity screens/scenes, screen-reader navigation, reduced-motion runtime behavior, notification DELIVERY, OS permission dialogs, device lifecycle/performance evidence. These stay UNVERIFIED and M5 is NOT complete as a milestone.**
 

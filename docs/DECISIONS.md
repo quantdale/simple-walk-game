@@ -417,7 +417,7 @@ so, because that file is the single most misreadable reference in the repository
 
 The following should be resolved at the relevant milestone rather than guessed prematurely:
 
-1. Exact Unity 6 LTS editor/runtime version. **(open — D-035)**
+1. Exact Unity 6 LTS editor/runtime version. *(resolved 2026-10-16, D-035: Unity 6000.3.26f1 (6.3 LTS), Personal licence; install/activation pending, KI-002)*
 2. Exact local persistence implementation (snapshot+journal vs SQLite or another adapter). *(resolved by D-025/D-026: versioned JSON envelope with SHA-256 integrity, atomic snapshot + one-generation backup)*
 3. Exact Android Health Connect SDK/API integration strategy and minimum supported OS/device policy. *(open — M7, physically blocked)*
 4. Exact iOS HealthKit integration strategy and minimum supported iOS version. *(open — M7, physically blocked)*
@@ -608,7 +608,8 @@ tx-corr1 namespace) and cannot collide with first-credit IDs;
 **Rationale:** "Never fabricate editor/device evidence" (campaign §3, AGENTS.md honesty gates). Headless-verifiable M3 scope is complete; runtime-only gates are recorded UNVERIFIED, not silently omitted.
 
 **Consequences:**
-- The exact Unity 6 LTS version remains unresolved decision #1; the next campaign with an installed editor starts at the Unity shell + EditMode/PlayMode gates, not at domain/application rework.
+- **Resolved 2026-10-16:** Unity **6000.3.26f1** (Unity 6.3 LTS, released 2026-10-08, changeset `de8167e7440c`, supported to Dec 2027), **Personal** licence. Michael delegated the choice. Alternatives rejected: 6000.6.x is not LTS, and 6000.0 LTS reaches end of support in Oct 2026. Install readiness is in `docs/UNITY_INSTALL.md`. The editor is not yet installed or activated (KI-002 open).
+- *(historical)* The exact Unity 6 LTS version remained unresolved decision #1; the next campaign with an installed editor starts at the Unity shell + EditMode/PlayMode gates, not at domain/application rework.
 - Any future presentation technology must consume the same read-model/use-case boundary; nothing in Domain/Application references Unity.
 
 ---
@@ -1851,3 +1852,44 @@ change that must be scoped deliberately rather than smuggled into a copy change.
 **Still unverified:** every runtime aspect — rendering these sentences in Unity, reduced-motion
 behavior, accessibility semantics, and any device evidence remains UNVERIFIED. This change does
 not complete M5 as a roadmap milestone.
+
+---
+
+## D-066 — Bounded ledger retirement: watermark-relative, identity-preserving, amortized
+
+**Status:** Accepted (2026-10-16). Implements OpenSpec change `compact-activity-and-reward-ledgers` (F-07).
+
+**Context.** The processed-record ledger and the reward ledger grew one row per ingested record forever and were re-serialized on every commit (day 730: 395,716 B, linear, ~540 B/day).
+
+**Decision.**
+- **Retention rule:** a processed-record row is retired when its record end (`RecordEndUtc`, stored from this change on; legacy rows fall back to `ProcessedAtUtc`) is strictly before the acceptance window's lower bound under post-batch trusted progress, i.e. `TrustedWindowFloor` (45 days) behind trusted progress. Anything retired is already outside what the pipeline would accept.
+- **Batch size:** at most `ActivityValidationPolicy.RetirementBatchSize` = 256 rows per structure per ingestion commit, run inside the same atomic commit. Selection is deterministic: ordered by `ProcessedAtUtc`, then ordinal identity key.
+- **Identity kept forever:** retired identities go into `ProcessedRecords.RetiredIdentities` (O(1) lookup through an in-memory set). A retired identity is permanently non-creditable. Re-delivery, correction or deletion of a retired record credits nothing, reverses nothing, and is counted as a duplicate plus the sub-classification `LastIngestionOutcome.RetiredRecordsIgnored`. It is counted as a duplicate as well so that the pinned exactly-once acceptance evidence (`DuplicatesIgnored`) is unchanged.
+- **Maintained aggregates:** both ledgers keep a durable `MaintainedVitalityCredited` (O(1) `TotalVitalityCredited`) plus `RetiredVitalityCredited`/`RetiredCount`. The validator requires each maintained total to equal retained rows + retired total, and requires retired and retained identities to be disjoint. A null maintained total (pre-D-066 save) is hydrated from recomputation on first mutation, so no migration is needed.
+- **Ledger coupling (review point):** the reward ledger retires activity-derived rows (reason prefix `ingest`) from its front whose commit instant is before the **same** cutoff. Non-activity rows are never retired and block further retirement, so history is never reordered. This is a new coupling between two histories that were previously independent. `ProcessedRecordCredited <= LedgerTotal` holds trivially because neither maintained total changes on retirement.
+
+**Measured.** Day 365: 58,540 B; day 730: 80,458 B. Second-year growth is 47% of first-year growth; the remainder is the identity set, about 60 B/day. Retained detail plateaus at about 46 rows. `scripts/verify-save-growth.sh` gates the ratio at ≤ 60%.
+
+**Index cost.** The reward-ledger index is built once per load over the retained window only (bounded, independent of lifetime history; `LastIndexBuildSize` test). It stays warm across commits and retirement within a session (`IndexBuildCount` test). The retired-identity set still grows; a compact probabilistic structure stays a Region-2 decision.
+
+---
+
+## D-067 — At-rest confidentiality relies on OS device encryption (KI-006 option b)
+
+**Status:** Accepted (2026-10-16, product owner decision). Closes KI-006 / PRIVACY_REVIEW P-1.
+
+**Context.** The save, including its backup generation, holds health-adjacent data: timestamped walking counts and provider record identifiers (detail kept only for the ~45-day window since D-066; older records are reduced to identity strings). It is plaintext at the application layer (base64 payload; SHA-256 provides integrity only). Three options were open: (a) app-layer encryption, (b) rely on OS encryption as a documented system requirement, (c) accept the risk.
+
+**Decision.** Option (b). No app-layer encryption. At-rest confidentiality is delegated to the operating system, and this is a **system requirement**:
+- **Android:** file-based encryption (FBE). FBE is mandatory for devices launching with Android 10+ (and full-disk encryption or FBE for Android 6–9 launches). The save lives in app-private internal storage (credential-encrypted storage by default), never on external/shared storage.
+- **iOS:** Data Protection. The save uses the default protection class (`NSFileProtectionCompleteUntilFirstUserAuthentication`) or stronger, and the app never lowers it to `NSFileProtectionNone`.
+- **Backup generation:** treated identically. The atomic store keeps it in the same host-injected app-private directory as the primary, so it inherits exactly the same OS protection. It must never be written to a different, shared or less-protected location (no `/tmp`, external storage, or exported files).
+
+**Rationale.** Platform encryption is hardware-backed, mandatory on the supported device classes, and protects every app file uniformly. App-layer encryption would add key management (Keystore/Keychain), new failure modes (an unreadable save after key loss or restore, which is directly against the product's "never lose the world" invariant), and testing burden, but no meaningful protection against an attacker who already holds an unlocked device. The data is minimized (no names, location, or account) and bounded (D-066).
+
+**Consequences.**
+- The runtime/M7 lane must verify the actual save path (Unity `persistentDataPath` resolves to app-private internal storage) and the iOS protection class on device. Until then this is a **requirement**, not verified behavior.
+- OS cloud/device backup (Android Auto Backup, iCloud/iTunes backup) copies the save under the platform's own backup encryption. Whether to exclude the save from cloud backup is an M7 decision; this decision does not change it.
+- Rooted/jailbroken devices and unlocked-device access are out of scope (accepted, documented).
+- Revisit if a backend/sync, exports, or sharing of save files is ever introduced, or if a target platform without mandatory encryption is added.
+

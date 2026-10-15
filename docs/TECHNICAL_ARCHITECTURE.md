@@ -275,6 +275,10 @@ For an early vertical slice, a versioned snapshot plus small journal/ledger can 
 
 The architecture must allow the persistence implementation to evolve without changing domain semantics.
 
+### At-rest confidentiality (D-067)
+
+There is no app-layer encryption. The composition root must inject an **app-private** save directory (Android internal storage under FBE credential-encrypted storage; iOS app container with Data Protection at the default class or stronger). `AtomicFileSaveStore` writes the primary, its temp file and the backup generation only inside that injected directory, so every generation inherits the same OS protection. Writing any save generation to shared, external, temp or exported locations is forbidden. The runtime lane must verify the path and protection class on device.
+
 ---
 
 ## 10. Save lifecycle
@@ -619,3 +623,5 @@ M1 is complete only when:
 **Shell-facing projections.** New purpose-built read models follow the existing immutable-read-model rule (TECH section 15): `OnboardingReadModel`, `SettingsReadModel` (local preferences kept separate from canonical queue auto-advance), `ActivityStatusReadModel`, `DiagnosticsReadModel` (D-044 privacy-safe support facts only), plus explicit attention semantics on `HomeReadModel`. Presentation consumes these; it never reads domain graphs or preference internals.
 
 **Persistence boundaries summary for M5-H1:** canonical save envelope untouched (schema stays v2; the additive `IngestionOutcomeState? LastIngestionOutcome` field decodes absent-as-null exactly like `PendingReturnSummary`); preferences live in their own versioned envelope; status is never persisted by the application; diagnostics derive from existing canonical aggregates plus the single bounded outcome row.
+
+**Ledger retirement lifecycle (D-066).** A processed-record row lives in `ProcessedRecords.Entries` while its record end is inside the trusted acceptance window. Once trusted progress moves more than 45 days past it, an ordinary ingestion commit retires it: the row is removed, its identity is appended to `RetiredIdentities` (permanently non-creditable), and its credited Vitality moves into `RetiredVitalityCredited`. At most 256 rows are retired per commit, in deterministic order. Activity-derived reward-ledger rows retire from the front on the same cutoff. Maintained lifetime totals never change on retirement and are cross-checked by `GameStateValidator` on every load. Dedup now answers "processed?" or "retired?", both in O(1).

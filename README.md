@@ -8,7 +8,7 @@ The core premise is deliberately simple:
 
 **move in real life → generate progress → restore a persistent world → make short meaningful decisions → optionally visit and interact with that world**
 
-This repository implements the product contract defined by its documentation: a deterministic, offline-first game core with an exactly-once activity trust pipeline. Headless milestones M1, M2, M3, M4-H, M8-H1 and M5-H1 are implemented and automated-verified; the presentation runtime, platform activity adapters, device performance and release qualification remain UNVERIFIED pending an installed Unity 6 LTS editor (D-035). See [Current repository state](#current-repository-state) for the per-milestone breakdown.
+This repository implements the product contract defined by its documentation: a deterministic, offline-first game core with an exactly-once activity trust pipeline. Headless milestones M1, M2, M3, M4-H, M8-H1 and M5-H1 are implemented and automated-verified; the presentation runtime, platform activity adapters, device performance and release qualification remain UNVERIFIED. Unity 6000.3.26f1 is now installed (D-035): the M5-U1 shell in `src/WalkGame.Unity` passes its batchmode EditMode suite and builds an Android debug APK, but it has not been run on a device. See [Current repository state](#current-repository-state) for the per-milestone breakdown.
 
 ---
 
@@ -155,14 +155,14 @@ See [`docs/TESTING_AND_RELEASE.md`](docs/TESTING_AND_RELEASE.md) for the full qu
 
 ## Current repository state
 
-**Status: M1 (deterministic core), M2 (activity trust pipeline), headless M3 (ambient progression), M4-H (Region 1 content systems) implemented and automated-verified; M8-H1 (headless trust & persistence hardening) completed; M5-H1 (platform-neutral UX state contracts) completed headless — durable local preferences/onboarding store (D-042), activity connection/permission status projection behind `IActivityConnectionPort` (D-043), shell-facing read models incl. support diagnostics and explicit Home attention semantics (D-044), eleven named low-attention acceptance scenarios plus adversarial hardening suites; the post-completion ending is a defined state rather than a permanent dead end (D-061); and every activity profile the region is balanced against now reaches closure inside its documented target, with the pacing harness failing rather than reporting a shortfall (D-062). **466 automated tests**. Unity presentation and all runtime/device behavior remain UNVERIFIED and externally blocked (no editor in this environment; D-035).**
+**Status: M1 (deterministic core), M2 (activity trust pipeline), headless M3 (ambient progression), M4-H (Region 1 content systems) implemented and automated-verified; M8-H1 (headless trust & persistence hardening) completed; M5-H1 (platform-neutral UX state contracts) completed headless — durable local preferences/onboarding store (D-042), activity connection/permission status projection behind `IActivityConnectionPort` (D-043), shell-facing read models incl. support diagnostics and explicit Home attention semantics (D-044), eleven named low-attention acceptance scenarios plus adversarial hardening suites; the post-completion ending is a defined state rather than a permanent dead end (D-061); and every activity profile the region is balanced against now reaches closure inside its documented target, with the pacing harness failing rather than reporting a shortfall (D-062); and long-lived saves are bounded by ledger retirement (D-066). **520 automated .NET tests**. M5-U1 Unity shell: 13 EditMode tests pass in batchmode and an arm64 debug APK builds; all runtime/device behavior remains UNVERIFIED (no device; KI-002).**
 
 The repository now contains a headless .NET implementation of the deterministic game core:
 
 - `src/WalkGame.Domain` — pure domain (`netstandard2.1`, C# 9, zero engine/platform dependencies): stable IDs, resource accounting, reward ledger with exactly-once semantics, project state machine and queue with auto-rollover, region/landmark/producer model, deterministic offline advancement with backward-clock defense, injected clock, persisted-seed RNG, content/state validators.
 - `src/WalkGame.Application` — use-case orchestration (`GameSession`): boot/load/recover/migrate/advance/save flow, activity crediting, queue management, return summaries, read models. Dev content seed in `Content/Region1Catalog`.
 - `src/WalkGame.Infrastructure` — versioned JSON save envelope with SHA-256 payload integrity, sequential migration pipeline, atomic snapshot store with one-generation backup recovery.
-- `tests/` — 466 automated tests across domain (148), infrastructure (49) and application (269) suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, content red-team validation, end-to-end M3/M4/M8-H1 acceptance, the M5-H1 UX contract and hardening suites, the post-completion ending suite, and the pacing contract suite described below).
+- `tests/` — 520 automated tests across domain (148), infrastructure (50) and application (322) suites (idempotency, determinism, roundtrip, corruption/recovery, migration harness, producer capacity/store bounds, durable return summaries, queue control, content red-team validation, end-to-end M3/M4/M8-H1 acceptance, the M5-H1 UX contract and hardening suites, the post-completion ending suite, and the pacing contract suite described below).
 - `tools/simulation` — headless CLI: `new / credit / advance / simulate / walk / profile / longhaul / bench / scenarios / ack / dump / validate` for deterministic multi-day simulation, pacing reports, long-horizon growth records, phase-level performance measurement, PERFORMANCE_BUDGETS §19 regression scenarios, and save validation.
 
 **M2 activity trust pipeline (automated verified):**
@@ -180,7 +180,7 @@ The repository now contains a headless .NET implementation of the deterministic 
 Verification evidence (automated verified per `docs/AGENT_EXECUTION_GUIDE.md` §17):
 
 - `dotnet build SimpleWalkGame.sln` — clean, zero errors;
-- `dotnet test` — Domain.Tests 89 passed, Infrastructure.Tests 23 passed, Application.Tests 44 passed *(M2-era baseline, superseded by the 437-test current state above)*;
+- `dotnet test` — Domain.Tests 89 passed, Infrastructure.Tests 23 passed, Application.Tests 44 passed *(M2-era baseline, superseded by the 514-test current state above)*;
 - M3 acceptance path (`tools/simulation walk`) — 16 app-closed days of normalized synthetic records through `IngestActivityBatch`: 3200 Vitality credited exactly once, three project completions, landmark stage changes, producer unlock + bounded offline production, durable return summaries surviving restarts, replay of the identical window crediting zero (16 duplicates ignored), save validates at schema v2 with integrity self-test PASS;
 - guard proof suite — `tests/guards/run-guard-tests.sh`, all assertions green;
 - **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
@@ -205,7 +205,7 @@ Key implementation decisions are recorded in [`docs/DECISIONS.md`](docs/DECISION
 Verification evidence additions:
 
 - `dotnet build SimpleWalkGame.sln` — clean, zero errors;
-- `dotnet test SimpleWalkGame.sln` — Domain.Tests 101 passed, Infrastructure.Tests 25 passed, Application.Tests 54 passed *(M4-H-era baseline, superseded by the 437-test current state above)*;
+- `dotnet test SimpleWalkGame.sln` — Domain.Tests 101 passed, Infrastructure.Tests 25 passed, Application.Tests 54 passed *(M4-H-era baseline, superseded by the 514-test current state above)*;
 - `dotnet run --project tools/simulation -- validate --save <tmpdir> --selftest` on a completed-region save — violations=0, integrity self-test PASS;
 - guard proof suite — `tests/guards/run-guard-tests.sh`, all assertions green;
 - **unverified:** device/runtime behavior, battery/performance budgets, Health Connect/HealthKit integration, Unity scene binding (M5–M7 scope).
