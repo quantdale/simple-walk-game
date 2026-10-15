@@ -1,0 +1,8 @@
+<!-- IL2CPP stripping: keep the canonical core and the reflection-based save codec intact. -->
+<linker>
+  <assembly fullname="WalkGame.Domain" preserve="all"/>
+  <assembly fullname="WalkGame.Application" preserve="all"/>
+  <assembly fullname="WalkGame.Infrastructure" preserve="all"/>
+  <assembly fullname="System.Text.Json" preserve="all"/>
+  <assembly fullname="System.Text.Encodings.Web" preserve="all"/>
+</linker>
