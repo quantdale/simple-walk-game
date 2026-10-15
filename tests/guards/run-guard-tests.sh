@@ -13,6 +13,7 @@
 #   8. pre-push detects unexpected remote advancement (lost-update protection)
 #   9. guard behaves correctly from a nested working directory
 #  10. both HTTPS and SSH forms of the correct remote normalize correctly
+#  11. architecture rule 7 self-test (Unity shell never mutates Domain state)
 set -u
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -183,6 +184,9 @@ if [ "$n1" = "$n2" ] && [ "$n2" = "$n3" ] && [ "$n3" = "$n4" ] && [ "$n4" = "$n5
 else bad "normalization mismatch: [$n1] [$n2] [$n3] [$n4] [$n5]"; fi
 
 echo ""
+echo "== scenario 11: architecture rule 7 (Unity shell) rejects violating fixtures =="
+expect_exit "verify-architecture.sh --selftest-rule7" 0 bash "$REPO_ROOT/scripts/verify-architecture.sh" --selftest-rule7
+
 echo "=============================="
 echo "GUARD PROOF SUITE: $PASS passed, $FAIL failed"
 echo "=============================="

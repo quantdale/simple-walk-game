@@ -1,0 +1,11 @@
+{
+    "name": "WalkGame.Shell.Tests",
+    "rootNamespace": "WalkGame.Shell.Tests",
+    "references": ["WalkGame.Shell", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "overrideReferences": true,
+    "precompiledReferences": ["nunit.framework.dll", "WalkGame.Domain.dll", "WalkGame.Application.dll", "WalkGame.Infrastructure.dll"],
+    "autoReferenced": false,
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"]
+}

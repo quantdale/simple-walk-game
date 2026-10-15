@@ -1,0 +1,8 @@
+{
+    "name": "WalkGame.Shell.Editor",
+    "rootNamespace": "WalkGame.Shell.Editor",
+    "references": ["WalkGame.Shell"],
+    "includePlatforms": ["Editor"],
+    "excludePlatforms": [],
+    "autoReferenced": false
+}

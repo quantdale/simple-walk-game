@@ -1,0 +1,7 @@
+# Unity 6000.3.26f1 licence check, 2026-10-16 05:50 PHT — command: Unity -batchmode -nographics -quit -logFile <file>; exit code 0. Entitlement via Hub licensing client (no Unity_lic.ulf; not required).
+[Licensing::Module] Trying to connect to existing licensing client channel...
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-box" (connect: 0.00s, validation: 0.00s, handshake: 0.00s)
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
