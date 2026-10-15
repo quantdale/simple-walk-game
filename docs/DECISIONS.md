@@ -1870,3 +1870,25 @@ not complete M5 as a roadmap milestone.
 **Measured.** Day 365: 58,540 B; day 730: 80,458 B. Second-year growth is 47% of first-year growth; the remainder is the identity set, about 60 B/day. Retained detail plateaus at about 46 rows. `scripts/verify-save-growth.sh` gates the ratio at ≤ 60%.
 
 **Index cost.** The reward-ledger index is built once per load over the retained window only (bounded, independent of lifetime history; `LastIndexBuildSize` test). It stays warm across commits and retirement within a session (`IndexBuildCount` test). The retired-identity set still grows; a compact probabilistic structure stays a Region-2 decision.
+
+---
+
+## D-067 — At-rest confidentiality relies on OS device encryption (KI-006 option b)
+
+**Status:** Accepted (2026-10-16, product owner decision). Closes KI-006 / PRIVACY_REVIEW P-1.
+
+**Context.** The save, including its backup generation, holds health-adjacent data: timestamped walking counts and provider record identifiers (detail kept only for the ~45-day window since D-066; older records are reduced to identity strings). It is plaintext at the application layer (base64 payload; SHA-256 provides integrity only). Three options were open: (a) app-layer encryption, (b) rely on OS encryption as a documented system requirement, (c) accept the risk.
+
+**Decision.** Option (b). No app-layer encryption. At-rest confidentiality is delegated to the operating system, and this is a **system requirement**:
+- **Android:** file-based encryption (FBE). FBE is mandatory for devices launching with Android 10+ (and full-disk encryption or FBE for Android 6–9 launches). The save lives in app-private internal storage (credential-encrypted storage by default), never on external/shared storage.
+- **iOS:** Data Protection. The save uses the default protection class (`NSFileProtectionCompleteUntilFirstUserAuthentication`) or stronger, and the app never lowers it to `NSFileProtectionNone`.
+- **Backup generation:** treated identically. The atomic store keeps it in the same host-injected app-private directory as the primary, so it inherits exactly the same OS protection. It must never be written to a different, shared or less-protected location (no `/tmp`, external storage, or exported files).
+
+**Rationale.** Platform encryption is hardware-backed, mandatory on the supported device classes, and protects every app file uniformly. App-layer encryption would add key management (Keystore/Keychain), new failure modes (an unreadable save after key loss or restore, which is directly against the product's "never lose the world" invariant), and testing burden, but no meaningful protection against an attacker who already holds an unlocked device. The data is minimized (no names, location, or account) and bounded (D-066).
+
+**Consequences.**
+- The runtime/M7 lane must verify the actual save path (Unity `persistentDataPath` resolves to app-private internal storage) and the iOS protection class on device. Until then this is a **requirement**, not verified behavior.
+- OS cloud/device backup (Android Auto Backup, iCloud/iTunes backup) copies the save under the platform's own backup encryption. Whether to exclude the save from cloud backup is an M7 decision; this decision does not change it.
+- Rooted/jailbroken devices and unlocked-device access are out of scope (accepted, documented).
+- Revisit if a backend/sync, exports, or sharing of save files is ever introduced, or if a target platform without mandatory encryption is added.
+

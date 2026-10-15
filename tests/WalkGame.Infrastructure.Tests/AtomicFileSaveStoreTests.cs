@@ -10,6 +10,30 @@ namespace WalkGame.Infrastructure.Tests;
 
 public sealed class AtomicFileSaveStoreTests
 {
+    /// <summary>
+    /// D-067: at-rest confidentiality relies on OS protection of the injected app-private
+    /// directory, so EVERY generation (primary, backup, both temp files) must stay inside it.
+    /// </summary>
+    [Fact]
+    public void EveryGeneration_IncludingBackupAndTemps_StaysInsideTheInjectedDirectory()
+    {
+        using var temp = new TempDirectory();
+        string saveDir = Path.Combine(temp.Path, "app-private");
+        Directory.CreateDirectory(saveDir);
+        var store = new AtomicFileSaveStore(saveDir);
+
+        store.WriteAtomic(SampleBytes(32));
+        store.WriteAtomic(SampleBytes(48));
+        store.WriteAtomic(SampleBytes(64));
+
+        var outside = Directory.GetFiles(temp.Path, "*", SearchOption.AllDirectories)
+            .Where(f => !Path.GetDirectoryName(f)!.Equals(saveDir, StringComparison.Ordinal))
+            .ToArray();
+        Assert.Empty(outside);
+        Assert.Equal(SaveReadOutcome.Success, store.ReadBackup().Outcome);
+        Assert.True(File.Exists(Path.Combine(saveDir, "save.backup.json")));
+    }
+
     [Fact]
     public void WriteAtomic_ThenReadPrimary_ReturnsExactBytes()
     {

@@ -719,7 +719,7 @@ following are true.
 - [ ] **No Critical or High item open** (`TESTING_AND_RELEASE.md` §15).
       `KI-001` (hosted CI billing) and `KI-002` (no Unity editor) are
       **externally blocked** and cannot be closed from this repository.
-- [ ] `KI-006` (at-rest confidentiality) dispositioned as a product/security
+- [x] `KI-006` (at-rest confidentiality; D-067, OS encryption as system requirement) dispositioned as a product/security
       decision.
 - [ ] Runtime, device, accessibility and performance lanes verified — blocked on
       `KI-002`.
