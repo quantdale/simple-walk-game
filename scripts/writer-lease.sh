@@ -104,6 +104,16 @@ cmd_acquire() {
     _ca_repo="$(identity_field "$(git rev-parse --show-toplevel)/.repo-identity.json" repository)"
     _ca_root="$(git rev-parse --show-toplevel)"
 
+    # Same-session resume (KI-008): a harness whose shell died mid-session re-acquires
+    # its OWN lease by presenting the same explicit SWG_SESSION_ID. Nothing is replaced
+    # or stolen: the file is left untouched, a different session is still refused, and a
+    # PID-derived default id can never match. This is the same ownership test release uses.
+    if [ -f "$LOCK_PATH" ] && [ -n "${SWG_SESSION_ID:-}" ] && [ "$_ca_force" -eq 0 ] \
+        && [ "$(identity_field "$LOCK_PATH" sessionId)" = "$SWG_SESSION_ID" ]; then
+        echo "WRITER LEASE: ALREADY HELD by this session ($SWG_SESSION_ID); resumed without change."
+        exit 0
+    fi
+
     if [ -f "$LOCK_PATH" ]; then
         echo "WRITER LEASE: another writer holds the lease for this work tree." >&2
         print_lock_diagnostics "$LOCK_PATH" >&2
