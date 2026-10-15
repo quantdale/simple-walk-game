@@ -25,9 +25,10 @@ echo "== 1. Unity Hub apt repository + deps (needs sudo) =="
 run "curl -fsSL https://hub.unity3d.com/linux/keys/public | sudo gpg --dearmor -o /usr/share/keyrings/Unity_Technologies_ApS.gpg"
 run "echo 'deb [signed-by=/usr/share/keyrings/Unity_Technologies_ApS.gpg] https://hub.unity3d.com/linux/repos/deb stable main' | sudo tee /etc/apt/sources.list.d/unityhub.list"
 run "sudo apt-get update"
-run "sudo apt-get install -y unityhub xvfb libnss3 libasound2t64"   # Debian 13 t64 names; Hub deps resolve via Provides
+run "sudo apt-get install -y unityhub xvfb libnss3 libasound2t64 xz-utils p7zip-full cpio"   # xz: Hub extracts the editor .tar.xz; 7z/cpio: Android .pkg payload   # Debian 13 t64 names; Hub deps resolve via Provides
 
 echo "== 2. Editor + Android modules via Hub CLI (no licence required) =="
+run "mkdir -p '$INSTALL_ROOT'"
 run "xvfb-run -a unityhub --no-sandbox --headless install-path --set '$INSTALL_ROOT'"
 run "xvfb-run -a unityhub --no-sandbox --headless install --version $VERSION --changeset $CHANGESET $(printf -- '--module %s ' "${MODULES[@]}") --childModules"
 

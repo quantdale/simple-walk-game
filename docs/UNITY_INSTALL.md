@@ -1,6 +1,10 @@
 # Unity install readiness: 6000.3.26f1 (D-035)
 
-**Status (2026-10-16):** prepared, **not installed**. KI-002 stays open until the editor is installed **and** activated.
+**Status (2026-10-16 05:00 PHT):** **installed, not activated.** Unity Hub 3.22.3 (apt) and editor 6000.3.26f1 are at `~/Unity/Hub/Editor/6000.3.26f1` (18 GB, `Unity -version` prints `6000.3.26f1`). Modules: Android Build Support, OpenJDK, Android SDK (platforms 34–37, build-tools 36, platform-tools, cmdline-tools), NDK r27c, CMake. KI-002 stays open until the Personal licence is activated.
+
+Lessons from the real install: the Hub install path must already exist, and Debian 13 lacks `xz-utils` by default (the editor extraction fails with `xz: Cannot exec`). The script now handles both. Hub's D-Bus errors under Xvfb are harmless.
+
+**Launch Hub on a box desktop:** from a terminal on that desktop run `unityhub --no-sandbox &`. From a shell, target the desktop's X display, e.g. `DISPLAY=:1 setsid unityhub --no-sandbox >/tmp/unityhub.log 2>&1 &`. Each agent desktop is a separate display (`:1`, `:2`, …); use the one you are viewing.
 
 ## Chosen version
 - Unity **6000.3.26f1** (Unity 6.3 LTS), released 2026-10-08, changeset `de8167e7440c`, supported to Dec 2027. Licence: **Personal**.

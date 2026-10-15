@@ -18,7 +18,7 @@ Operator-only actions. Agents log these and keep working on unblocked tasks (see
 
 | Blocker | Exact fix | Links | Unblocks |
 |---|---|---|---|
-| **D-035 / KI-002: Unity activation** | Version decided: **Unity 6000.3.26f1 (6.3 LTS), Personal** (D-035). **Michael: create a Unity ID; activation on the box pending.** Then sign in to Unity Hub on the box desktop and add a Personal licence (`docs/UNITY_INSTALL.md` §Activation). The agent can install Hub, the editor and Android modules beforehand with `tools/unity/install-unity-6000.3.26f1.sh --apply`. | https://id.unity.com · `docs/UNITY_INSTALL.md` | M5 runtime screens, Android APK builds, M6/M7 work, the runtime half of M8 |
+| **D-035 / KI-002: Unity activation** | Version decided: **Unity 6000.3.26f1 (6.3 LTS), Personal** (D-035). **Michael: create a Unity ID; activation on the box pending.** Then sign in to Unity Hub on the box desktop and add a Personal licence (`docs/UNITY_INSTALL.md` §Activation). Hub 3.22.3, the editor and the Android modules are **already installed** on the box (2026-10-16). Remaining step: launch Hub on the desktop (`unityhub --no-sandbox`), sign in, add a Personal licence. | https://id.unity.com · `docs/UNITY_INSTALL.md` | M5 runtime screens, Android APK builds, M6/M7 work, the runtime half of M8 |
 
 ## Rules
 
