@@ -1,0 +1,71 @@
+== building isolated fixture repository ==
+== scenario 1: correct repo passes ==
+  PASS: guard accepts faithful clone (exit 0)
+== scenario 2: identity file claiming the SIBLING repo fails ==
+  PASS: guard rejects sibling identity file (exit 86)
+== scenario 3: wrong origin slug fails ==
+  PASS: guard rejects sibling origin (https) (exit 86)
+  PASS: guard rejects sibling origin (ssh) (exit 86)
+== scenario 4: wrong CI repository value fails ==
+  PASS: guard rejects mismatched GITHUB_REPOSITORY (exit 86)
+  PASS: matching GITHUB_REPOSITORY passes (exit 0)
+== scenario 5: second writer lease acquisition fails ==
+  PASS: first lease acquires (exit 0)
+  PASS: second lease refused (exit 87)
+  PASS: same session re-acquire resumes (exit 0)
+  PASS: same-session resume left the lease file unchanged
+  PASS: anonymous acquirer still refused (exit 87)
+  PASS: other session still refused after resume (exit 87)
+== scenario 6: released lease permits a new writer ==
+  PASS: foreign release without --force refused (exit 87)
+  PASS: owner releases (exit 0)
+  PASS: new writer acquires after release (exit 0)
+  PASS: cleanup release (exit 0)
+== scenario 7: stale lease is NOT silently stolen ==
+  PASS: stale lease reported BUSY with STALE CANDIDATE diagnostics
+  PASS: plain acquire does NOT steal stale lease (exit 87)
+  PASS: --force alone does NOT steal (env ack required) (exit 87)
+  PASS: stale lease file survived all refusal paths, still owned by 'ghost'
+  PASS: operator override (flag + env ack) takes over explicitly (exit 0)
+  PASS: override holder releases cleanly (exit 0)
+== scenario 8: pre-push detects unexpected remote advancement ==
+REPOSITORY IDENTITY OK: quantdale/simple-walk-game (Simple Walk Game)
+REPOSITORY IDENTITY OK: quantdale/simple-walk-game (Simple Walk Game)
+REPOSITORY IDENTITY OK: quantdale/simple-walk-game (Simple Walk Game)
+  PASS: divergent push refused by pre-push lost-update guard
+  PASS: session B's divergent commit did NOT land on the remote
+  PASS: reconciled (rebased) push accepted
+== scenario 9: guard behaves correctly from a nested working directory ==
+  PASS: guard resolves nested cwd to repo root (exit 0)
+  PASS: lease also resolves nested cwd (exit 0)
+  PASS: nested cleanup release (exit 0)
+== scenario 10: HTTPS and SSH forms of the correct remote normalize identically ==
+  PASS: https / scp-ssh / ssh:// forms all normalize to quantdale/simple-walk-game
+
+== scenario 11: architecture rule 7 (Unity shell) rejects violating fixtures ==
+  PASS: verify-architecture.sh --selftest-rule7 (exit 0)
+== scenario 12: new-agent-worktree.sh honours an exported SWG_SESSION_ID (KI-008) ==
+  PASS: helper with exported SWG_SESSION_ID creates worktree (exit 0)
+  PASS: same exported id resumes its own lease (exit 0)
+  PASS: a different id is still refused (exit 87)
+  PASS: same exported id releases its own lease (exit 0)
+  PASS: helper without SWG_SESSION_ID defaults to wt-<campaign>-<session> (exit 0)
+  PASS: default id releases the default lease (exit 0)
+== scenario 14: new-agent-worktree.sh branches from a freshly fetched remote main ==
+  PASS: helper creates worktree from fetched base (exit 0)
+  PASS: worktree HEAD is the fetched remote main, not the stale local HEAD
+  PASS: fetch failure refuses (no stale fallback) (exit 1)
+  PASS: no worktree created after fetch failure
+== scenario 13: hook installer in a remote-less fixture (KI-007) ==
+  PASS: no origin, no flag: refused (exit 86)
+  PASS: no origin, --allow-no-origin: passes without GITHUB_REPOSITORY (exit 0)
+  PASS: hooksPath configured in the fixture
+  PASS: flag still enforces GITHUB_REPOSITORY (exit 86)
+  PASS: the plain guard stays strict without origin (exit 86)
+  PASS: flag refused when other remotes exist (exit 86)
+  PASS: flag never excuses a WRONG origin (exit 86)
+  PASS: flag refuses a remote-less fixture declaring walk-game (exit 86)
+  PASS: unknown argument is a usage error (exit 2)
+==============================
+GUARD PROOF SUITE: 49 passed, 0 failed
+==============================

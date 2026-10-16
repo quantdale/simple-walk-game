@@ -87,3 +87,11 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - D-094: onboarding shows the D-093 update-required state (no Connect dead end). .NET 689, EditMode 117/117 (Unity-editor-tested); device UNVERIFIED (KI-002).
 - D-095: accessibility audit across all 12 screens (focus order, labels, 48 dp touch, theme contrast, reduced motion); fixed primary-button contrast 6.29→8.03:1. EditMode 125/125 (Unity-editor-tested).
 - D-096: copy polish + source-level no-guilt check (CopyPolishTests); domain error text no longer shown to players. EditMode 131/131 (Unity-editor-tested).
+
+## Session note 2026-10-16 (grok1929)
+- #68: release-candidate verification of main `181db31`. A clean clone with Unity gave .NET 689/689, EditMode 131/131, PlayMode 4 + 1 ignored, and the APK built; the assembler passed 11/11 (`docs/evidence/rc-181db31/`). The first attempt failed only because `dotnet` was not on PATH in the detached run. Export `PATH=$HOME/.dotnet:$PATH` before `validate-clean-clone.sh`.
+- #67 (D-098): 400-day save-growth gate (60 B/day) and an 800-case save-load fuzz. It found and fixed two paths that threw instead of failing closed (a null collection, a null dedup entry). .NET 692.
+- #69 (D-097): Home summary lines are now in the copy scan; settings status lines are plain sentences. EditMode 133.
+- This PR (D-099): the "Your progress" screen. EditMode 139/139 merged; editor-rendered PNG.
+- `dev:walk` ingests relative to the real `UtcNow`. A shell test that walks must use `new ManualClock(DateTimeOffset.UtcNow)`, or nothing is credited.
+- Next: lifetime "days walked" (needs a persisted aggregate and a D-entry); richer project-completion moments; device lane (KI-002). Region 2 is still PROPOSED only.
