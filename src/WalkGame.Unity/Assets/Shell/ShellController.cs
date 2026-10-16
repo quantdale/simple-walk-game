@@ -253,7 +253,8 @@ namespace WalkGame.Shell
             bool empty = home.ActiveProjectId == null && home.Queued.Count == 0;
             var m = With(ShellScreen.Home, "Home", empty ? ScreenState.Empty : ScreenState.Normal);
             m.Lines.Add(glance.WhatChangedSentence);
-            m.Lines.Add(glance.RestoringNowSentence);
+            // D-106: the empty-state line below already says nothing is being restored; skip the duplicate.
+            if (!empty) m.Lines.Add(glance.RestoringNowSentence);
             if (glance.AttentionSentence != null) m.Lines.Add(glance.AttentionSentence);
             m.Lines.Add(glance.ActivitySentence);
             m.Lines.Add(HomeStoryLine(_session.GetStory()));
@@ -268,6 +269,9 @@ namespace WalkGame.Shell
             m.Actions.Add(new ShellAction("nav:Settings", "Settings"));
             if (_devTools) m.Actions.Add(new ShellAction("dev:walk", "[dev] Simulate a day of walking"));
             m.Lines.RemoveAll(string.IsNullOrEmpty);
+            // D-106: the glance can repeat a sentence (what changed == attention); show each line once.
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            m.Lines.RemoveAll(l => !seen.Add(l));
             return m;
         }
 

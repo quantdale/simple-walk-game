@@ -112,3 +112,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Counts: .NET 728/728 on main after #77; EditMode 151/151 on this branch merged with main before D-105 (Unity-editor-tested).
 - Removed the 3 merged, clean -grok1954 worktrees with plain `git worktree remove`. Region 2 is still PROPOSED only.
 - Next: Home layout polish with a PNG; device lane (KI-002); an APK build to compile the Java offset change.
+- #78 (`7ae6de3`) records that evidence. D-106: Home layout polish (no repeated line, no doubled empty-state message); before/after PNGs in `docs/evidence/d106-home/` (editor-rendered); EditMode 154/154 (Unity-editor-tested).
