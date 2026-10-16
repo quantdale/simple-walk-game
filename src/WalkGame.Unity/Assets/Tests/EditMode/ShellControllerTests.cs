@@ -94,7 +94,7 @@ namespace WalkGame.Shell.Tests
             var c = NewController(); c.Boot(); c.Invoke("start"); c.Invoke("nav:Settings");
             c.Invoke("toggle:reducedMotion");
             var c2 = NewController(); c2.Boot(); c2.Invoke("nav:Settings");
-            Assert.Contains("Reduced motion: on", c2.Render().Lines);
+            Assert.Contains(ShellController.ReducedMotionLine(true), c2.Render().Lines);
         }
 
         [Test] public void Delete_cancel_keeps_data()

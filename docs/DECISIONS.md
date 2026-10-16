@@ -2228,6 +2228,13 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 
 **Evidence.** `CopyPolishTests` (6 EditMode cases): a source scan of the player strings in ShellController, PlayerCopy and BootRouter against a guilt/pressure list (including "!"); every activity status/action and boot outcome; bad action ids never echoed. EditMode 131/131 (`docs/evidence/d096-copy-polish/`, Unity-editor-tested). Gap: Application-layer Glance copy is covered by the existing .NET GlanceLanguageTests, not by this scan.
 
+## D-097 — Copy scan covers Home summary text; settings status lines reworded (2026-10-16)
+
+**Context.** D-096 left a gap: Home shows Application-layer Glance sentences, the story line and the balance line, and none of them went through the shell copy scan. The Settings status lines were bare labels ("Reduced motion: on", "Diagnostics: hidden"), which are terse for a screen reader and say nothing about what the setting does.
+
+**Decision.** `CopyPolishTests` renders Home after the guide, after five days of walking and after a 30-day absence, and checks every line against the guilt/pressure list and the raw-code pattern. The settings lines are now full sentences from `ShellController.ReducedMotionLine/SoundLine/DiagnosticsLine`, for example "Reduced motion is on. Your choice is saved on this device." and "Support details are hidden. You only need them to look into a step-count question." The wording claims nothing the shell does not do; the shell has no animation today (UX_DESIGN). This is a copy change only, with no save, content or behaviour change.
+
+**Evidence.** 2 new EditMode cases; EditMode 133/133 (`docs/evidence/d097-copy-scan/`, Unity-editor-tested; device UNVERIFIED, KI-002).
 ## D-098 — Long-run save growth gate and save-load fuzzing; two fail-closed fixes (2026-10-16)
 
 **Context.** Region 1 hardening asked for long-run save-size and migration fuzz tests. A deterministic fuzz of mature saves (1–3 random mutations per case: remove a field or element, or set it to null, -1, `long.MaxValue`, a string or an empty object; the checksum is re-sealed so the damage reaches decoding) found two ways that `Continue()` **threw** instead of failing closed: (1) `"records": null` made System.Text.Json raise `InvalidOperationException`, which the codec did not catch (it caught `JsonException` only); (2) a null processed-record entry made `GameStateValidator` throw `NullReferenceException` inside `RecomputeLifetimeVitality`. A malformed `payloadSha256Base64` would also have thrown `FormatException`.

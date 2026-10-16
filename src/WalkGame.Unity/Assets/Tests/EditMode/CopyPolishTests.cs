@@ -87,6 +87,56 @@ namespace WalkGame.Shell.Tests
             finally { Directory.Delete(dir, true); }
         }
 
+        /// <summary>D-097: every Home line (Glance sentences, story line, balances, empty state) across fresh, walked and long-away states.</summary>
+        [Test] public void Home_summary_lines_read_calmly_across_states()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), "wg-home-copy-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(dir);
+            try
+            {
+                // dev:walk ingests the day before the real UtcNow, so the session clock starts there too.
+                var clock = new ManualClock(DateTimeOffset.UtcNow);
+                var c = new ShellController(ShellBootstrap.CreateSession(dir, new ShellConnectionPort(true), clock), () => 42UL, devTools: true);
+                c.Boot(); c.Invoke("start");
+                for (int i = 0; i < 12 && c.Current == ShellScreen.Guide; i++)
+                {
+                    var g = c.Render();
+                    var q = g.Actions.FirstOrDefault(a => a.Id.StartsWith("queue:"));
+                    c.Invoke(g.Actions.Any(a => a.Id == "guide:next") ? "guide:next" : q?.Id ?? g.Actions[0].Id);
+                }
+                int checkedLines = 0;
+                void Scan(string ctx)
+                {
+                    c.Invoke("nav:Home");
+                    var r = c.Render();
+                    Assert.AreEqual(ShellScreen.Home, c.Current, ctx);
+                    foreach (var line in r.Lines) { Check(line, ctx); checkedLines++; }
+                }
+                Scan("fresh");
+                var freshLines = string.Join("\n", c.Render().Lines);
+                for (int d = 0; d < 5; d++) c.Invoke("dev:walk");
+                Scan("after walking");
+                Assert.AreNotEqual(freshLines, string.Join("\n", c.Render().Lines), "walking changed nothing on Home; the 'after walking' state is not real");
+                clock.Advance(TimeSpan.FromDays(30));
+                c.Boot();
+                Scan("after 30 days away");
+                Assert.That(checkedLines, Is.GreaterThanOrEqualTo(12), "too few Home lines scanned");
+            }
+            finally { Directory.Delete(dir, true); }
+        }
+
+        /// <summary>D-097: settings status lines are full calm sentences, never a bare "X: on".</summary>
+        [Test] public void Settings_status_lines_are_plain_sentences()
+        {
+            foreach (var on in new[] { true, false })
+                foreach (var line in new[] { ShellController.ReducedMotionLine(on), ShellController.SoundLine(on), ShellController.DiagnosticsLine(on) })
+                {
+                    Check(line, "settings " + on);
+                    StringAssert.DoesNotContain(": ", line);
+                    StringAssert.EndsWith(".", line);
+                }
+        }
+
         private static void Check(string text, string context)
         {
             Assert.IsFalse(string.IsNullOrWhiteSpace(text), context + " has no copy");

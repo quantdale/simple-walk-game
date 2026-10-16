@@ -191,7 +191,7 @@ namespace WalkGame.Shell.Tests
                 }
                 c.Invoke("nav:Settings");
                 if (reduced) c.Invoke("toggle:reducedMotion");
-                Assert.IsTrue(c.Render().Lines.Contains("Reduced motion: " + (reduced ? "on" : "off")));
+                Assert.IsTrue(c.Render().Lines.Contains(ShellController.ReducedMotionLine(reduced)));
                 foreach (var s in new[] { "Home", "ReturnSummary", "Projects", "Region", "Story", "Discoveries", "Settings", "ActivityStatus" })
                 {
                     c.Invoke("nav:" + s);
