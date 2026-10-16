@@ -571,6 +571,7 @@ None are pre-authorized by this roadmap.
 
 ## Features (B)
 - [x] B1 Region 1 completion celebration in the return summary (D-080): retitled, calm static headline, "See the restored valley" link after Continue; EditMode 65/65 (`docs/evidence/b-celebration/`; Unity-editor-tested; device UNVERIFIED, KI-002)
+- [x] B1b Celebration gap closed (D-081): `CelebrationPlayModeTests` drives a real Region 1 completion (77 synthetic days, real pipeline) to the celebration, renders it in a live UIDocument and proves it shows once; editor-rendered PNG `docs/evidence/b-celebration-capture/celebration-editor-rendered.png` (`WG_CAPTURE_SCREEN=Celebration`). PlayMode 4 passed + 1 capture-only ignored (Unity-editor-tested; device UNVERIFIED, KI-002)
 
 # Cross-milestone rules
 
