@@ -1,0 +1,21 @@
+  Determining projects to restore...
+  Restored /workspace/simple-walk-game-wt-rc-grok0120/src/WalkGame.Application/WalkGame.Application.csproj (in 74 ms).
+  Restored /workspace/simple-walk-game-wt-rc-grok0120/src/WalkGame.Domain/WalkGame.Domain.csproj (in 74 ms).
+  Restored /workspace/simple-walk-game-wt-rc-grok0120/tools/simulation/WalkGame.SimCli.csproj (in 173 ms).
+  Restored /workspace/simple-walk-game-wt-rc-grok0120/src/WalkGame.Infrastructure/WalkGame.Infrastructure.csproj (in 178 ms).
+  Restored /workspace/simple-walk-game-wt-rc-grok0120/tests/WalkGame.Domain.Tests/WalkGame.Domain.Tests.csproj (in 180 ms).
+  Restored /workspace/simple-walk-game-wt-rc-grok0120/tests/WalkGame.Application.Tests/WalkGame.Application.Tests.csproj (in 180 ms).
+  Restored /workspace/simple-walk-game-wt-rc-grok0120/tests/WalkGame.Infrastructure.Tests/WalkGame.Infrastructure.Tests.csproj (in 180 ms).
+  WalkGame.Domain -> /workspace/simple-walk-game-wt-rc-grok0120/src/WalkGame.Domain/bin/Debug/netstandard2.1/WalkGame.Domain.dll
+  WalkGame.Application -> /workspace/simple-walk-game-wt-rc-grok0120/src/WalkGame.Application/bin/Debug/netstandard2.1/WalkGame.Application.dll
+  WalkGame.Domain.Tests -> /workspace/simple-walk-game-wt-rc-grok0120/tests/WalkGame.Domain.Tests/bin/Debug/net9.0/WalkGame.Domain.Tests.dll
+  WalkGame.Infrastructure -> /workspace/simple-walk-game-wt-rc-grok0120/src/WalkGame.Infrastructure/bin/Debug/netstandard2.1/WalkGame.Infrastructure.dll
+  WalkGame.SimCli -> /workspace/simple-walk-game-wt-rc-grok0120/tools/simulation/bin/Debug/net9.0/WalkGame.SimCli.dll
+  WalkGame.Infrastructure.Tests -> /workspace/simple-walk-game-wt-rc-grok0120/tests/WalkGame.Infrastructure.Tests/bin/Debug/net9.0/WalkGame.Infrastructure.Tests.dll
+  WalkGame.Application.Tests -> /workspace/simple-walk-game-wt-rc-grok0120/tests/WalkGame.Application.Tests/bin/Debug/net9.0/WalkGame.Application.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:04.17
