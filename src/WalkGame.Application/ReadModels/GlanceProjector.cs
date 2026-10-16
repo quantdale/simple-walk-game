@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using WalkGame.Application.Activity;
+using WalkGame.Application.Content;
 using WalkGame.Application.Summaries;
 using WalkGame.Domain.Regions;
 
@@ -27,6 +28,43 @@ namespace WalkGame.Application.ReadModels
 
         /// <summary>Baseline sentence when no damaged landmark exists to point at.</summary>
         public const string AnyLandmarkBaseline = "The valley needs your help.";
+
+        /// <summary>
+        /// D-122 slice 3: the stable overlay id for a glance phrase ("glance.&lt;name&gt;#text").
+        /// Glance sentences are read-time presentation only; stored summary lines keep using the
+        /// English forms below, so a locale never reaches a save.
+        /// </summary>
+        public static string PhraseId(string name) => "glance." + name;
+
+        /// <summary>The overlay field used by every glance phrase.</summary>
+        public const string PhraseField = "text";
+
+        /// <summary>A glance phrase through the overlay; English when absent.</summary>
+        public static string Localize(ContentText? text, string name, string english) =>
+            text == null ? english : text.Resolve(PhraseId(name), PhraseField, english);
+
+        /// <summary>Stage phrase through the overlay (glance.stage.&lt;stage&gt;).</summary>
+        public static string PhraseFor(RestorationStage stage, ContentText? text) =>
+            Localize(text, "stage." + stage.ToString().ToLowerInvariant(), PhraseFor(stage));
+
+        /// <summary>
+        /// The glance form of "{title} {phrase}." through the overlay. The sentence pattern is
+        /// itself an overlay entry (glance.landmark-sentence, "{0} {1}.") so word order can change.
+        /// </summary>
+        public static string FormatLandmark(string? title, RestorationStage stage, ContentText? text)
+        {
+            if (text == null) return FormatLandmark(title, stage);
+            string subject = string.IsNullOrWhiteSpace(title) ? Localize(text, "untitled-project", UntitledProject) : title!;
+            return Format(text, "landmark-sentence", "{0} {1}.", subject, PhraseFor(stage, text));
+        }
+
+        /// <summary>A pattern phrase through the overlay; a broken localized pattern falls back to English.</summary>
+        public static string Format(ContentText? text, string name, string englishPattern, params object[] args)
+        {
+            string pattern = Localize(text, name, englishPattern);
+            try { return string.Format(CultureInfo.InvariantCulture, pattern, args); }
+            catch (FormatException) { return string.Format(CultureInfo.InvariantCulture, englishPattern, args); }
+        }
 
         public static string PhraseFor(RestorationStage stage) => stage switch
         {
@@ -67,20 +105,26 @@ namespace WalkGame.Application.ReadModels
         /// stored summary text is never migrated. Any other text that would echo a stage
         /// identifier falls back to the opaque lead rather than leaking the enum spelling.
         /// </summary>
-        public static string PlayerLeadFor(string? text)
+        public static string PlayerLeadFor(string? text) => PlayerLeadFor(text, null);
+
+        /// <summary>
+        /// <see cref="PlayerLeadFor(string?)"/> with the D-122 overlay for the opaque lead and the
+        /// re-rendered legacy form. Other stored text is shown as stored (never translated).
+        /// </summary>
+        public static string PlayerLeadFor(string? text, ContentText? locale)
         {
             if (string.IsNullOrWhiteSpace(text))
-                return OpaqueTransformationLead;
+                return Localize(locale, "opaque-change", OpaqueTransformationLead);
 
             var legacy = LegacyStageLine.Match(text!);
             if (legacy.Success)
             {
                 var stage = Enum.TryParse(legacy.Groups["stage"].Value, ignoreCase: false,
                     out RestorationStage parsed) ? parsed : RestorationStage.Ruined;
-                return FormatLandmark(legacy.Groups["title"].Value, stage);
+                return FormatLandmark(legacy.Groups["title"].Value, stage, locale);
             }
 
-            return ContainsStageIdentifier(text) ? OpaqueTransformationLead : text!;
+            return ContainsStageIdentifier(text) ? Localize(locale, "opaque-change", OpaqueTransformationLead) : text!;
         }
     }
 
@@ -98,17 +142,18 @@ namespace WalkGame.Application.ReadModels
             OnboardingReadModel onboarding,
             ActivityStatusReadModel activityStatus,
             RegionDefinition content,
-            PostCompletionProgramDefinition? postCompletionProgram)
+            PostCompletionProgramDefinition? postCompletionProgram,
+            ContentText? text = null)
         {
             if (home == null) throw new ArgumentNullException(nameof(home));
             if (onboarding == null) throw new ArgumentNullException(nameof(onboarding));
             if (activityStatus == null) throw new ArgumentNullException(nameof(activityStatus));
             if (content == null) throw new ArgumentNullException(nameof(content));
 
-            var (leadSentence, furtherChanges) = ProjectWhatChanged(pendingSummary);
-            string restoringNow = ProjectRestoringNow(home, content, postCompletionProgram);
+            var (leadSentence, furtherChanges) = ProjectWhatChanged(pendingSummary, text);
+            string restoringNow = ProjectRestoringNow(home, content, postCompletionProgram, text);
             (string attentionSentence, string? primaryAction, bool requiresAttention) =
-                ProjectAttention(home, leadSentence);
+                ProjectAttention(home, leadSentence, text);
 
             return new GlanceReadModel(
                 leadSentence,
@@ -117,8 +162,8 @@ namespace WalkGame.Application.ReadModels
                 requiresAttention,
                 attentionSentence,
                 primaryAction,
-                ActivitySentenceFor(activityStatus),
-                OnboardingSentenceFor(onboarding, home));
+                ActivitySentenceFor(activityStatus, text),
+                OnboardingSentenceFor(onboarding, home, text));
         }
 
         // ------------------------------------------------------------------ what changed
@@ -130,10 +175,11 @@ namespace WalkGame.Application.ReadModels
         /// further-change count instead of being dumped on the player.
         /// </summary>
         private static (string Sentence, int FurtherChanges) ProjectWhatChanged(
-            ReturnSummaryReadModel? pendingSummary)
+            ReturnSummaryReadModel? pendingSummary, ContentText? text)
         {
+            string nothing = GlancePhrases.Localize(text, "nothing-changed", "Nothing has changed since you were last here.");
             if (pendingSummary == null)
-                return ("Nothing has changed since you were last here.", 0);
+                return (nothing, 0);
 
             var current = new List<ReturnSummaryReadModel.ItemRow>();
             foreach (var item in pendingSummary.Items)
@@ -141,7 +187,7 @@ namespace WalkGame.Application.ReadModels
                     current.Add(item);
 
             if (current.Count == 0)
-                return ("Nothing has changed since you were last here.", 0);
+                return (nothing, 0);
 
             // Stable ranking by kind ordinal, ties keeping composer order. A single linear
             // pass is enough and cannot depend on a sort implementation's stability.
@@ -150,37 +196,43 @@ namespace WalkGame.Application.ReadModels
                 if ((int)current[i].Kind < (int)current[leadIndex].Kind)
                     leadIndex = i;
 
-            return (GlancePhrases.PlayerLeadFor(current[leadIndex].Text), current.Count - 1);
+            return (GlancePhrases.PlayerLeadFor(current[leadIndex].Text, text), current.Count - 1);
         }
 
         // ------------------------------------------------------------------ restoring now
 
         private static string ProjectRestoringNow(
-            HomeReadModel home, RegionDefinition content, PostCompletionProgramDefinition? postCompletionProgram)
+            HomeReadModel home, RegionDefinition content, PostCompletionProgramDefinition? postCompletionProgram,
+            ContentText? text)
         {
             if (home.ActiveProjectId != null)
             {
-                string title = DisplayTitle(content.FindProject(home.ActiveProjectId)?.TitleKey, home.ActiveProjectTitleKey);
-                return title + " is underway (" + home.ActiveProjectInvested.ToString(CultureInfo.InvariantCulture)
-                    + " of " + home.ActiveProjectCost.ToString(CultureInfo.InvariantCulture) + ").";
+                string title = DisplayTitle(LocalTitle(text, home.ActiveProjectId, content.FindProject(home.ActiveProjectId)?.TitleKey), home.ActiveProjectTitleKey, text);
+                return GlancePhrases.Format(text, "underway", "{0} is underway ({1} of {2}).", title,
+                    home.ActiveProjectInvested.ToString(CultureInfo.InvariantCulture),
+                    home.ActiveProjectCost.ToString(CultureInfo.InvariantCulture));
             }
 
             if (home.Queued.Count > 0)
             {
-                string next = DisplayTitle(content.FindProject(home.Queued[0].ProjectId)?.TitleKey, home.Queued[0].TitleKey);
-                return "Next up is " + next + ".";
+                string next = DisplayTitle(LocalTitle(text, home.Queued[0].ProjectId, content.FindProject(home.Queued[0].ProjectId)?.TitleKey), home.Queued[0].TitleKey, text);
+                return GlancePhrases.Format(text, "next-up", "Next up is {0}.", next);
             }
 
             if (home.RegionComplete && postCompletionProgram != null)
             {
-                return DisplayTitle(postCompletionProgram.TitleKey, null)
-                    + " continues (" + home.PostCompletionCareInvested.ToString(CultureInfo.InvariantCulture)
-                    + " of " + home.PostCompletionCareCostPerCycle.ToString(CultureInfo.InvariantCulture)
-                    + " this cycle).";
+                return GlancePhrases.Format(text, "care-continues", "{0} continues ({1} of {2} this cycle).",
+                    DisplayTitle(LocalTitle(text, postCompletionProgram.Id, postCompletionProgram.TitleKey), null, text),
+                    home.PostCompletionCareInvested.ToString(CultureInfo.InvariantCulture),
+                    home.PostCompletionCareCostPerCycle.ToString(CultureInfo.InvariantCulture));
             }
 
-            return "Nothing is being restored right now.";
+            return GlancePhrases.Localize(text, "nothing-restoring", "Nothing is being restored right now.");
         }
+
+        /// <summary>D-122: an authored title through the overlay by stable id (null stays null).</summary>
+        private static string? LocalTitle(ContentText? text, string stableId, string? authoredEnglish) =>
+            text == null || authoredEnglish == null ? authoredEnglish : text.Resolve(stableId, ContentText.Fields.Title, authoredEnglish);
 
         /// <summary>
         /// A display title, never a stable content identifier.
@@ -190,12 +242,12 @@ namespace WalkGame.Application.ReadModels
         /// reach here are the id-using ones assembled by <see cref="HomeReadModel"/>, so a
         /// dotted value is treated as "no title" and replaced rather than read out as copy.
         /// </summary>
-        private static string DisplayTitle(string? titleKey, string? fallbackTitleKey)
+        private static string DisplayTitle(string? titleKey, string? fallbackTitleKey, ContentText? text)
         {
             if (IsDisplayTitle(titleKey)) return titleKey!;
             if (IsDisplayTitle(fallbackTitleKey) && !GlancePhrases.ContainsStageIdentifier(fallbackTitleKey))
                 return fallbackTitleKey!;
-            return GlancePhrases.UntitledProject;
+            return GlancePhrases.Localize(text, "untitled-project", GlancePhrases.UntitledProject);
         }
 
         private static bool IsDisplayTitle(string? value) =>
@@ -215,11 +267,11 @@ namespace WalkGame.Application.ReadModels
         /// never reports that attention is required.
         /// </summary>
         private static (string Sentence, string? Action, bool RequiresAttention) ProjectAttention(
-            HomeReadModel home, string leadSentence)
+            HomeReadModel home, string leadSentence, ContentText? text)
         {
             // A finished region outranks any attention reason: the queue is empty forever.
             if (home.RegionComplete)
-                return (DisplayRegionTitle(home.RegionTitleKey) + "'s restoration is complete.", null, false);
+                return (Complete(home, text), null, false);
 
             switch (home.AttentionReason)
             {
@@ -229,27 +281,30 @@ namespace WalkGame.Application.ReadModels
                     return (leadSentence, home.PrimaryNextAction, home.RequiresAttention);
 
                 case HomeAttentionReason.QueueEmptyWithBankedVitality:
-                    return ("Restoration is paused. Your movement is saved until you choose a project.",
-                        "Choose a restoration project.", true);
+                    return (GlancePhrases.Localize(text, "paused", "Restoration is paused. Your movement is saved until you choose a project."),
+                        GlancePhrases.Localize(text, "choose-project-action", "Choose a restoration project."), true);
 
                 case HomeAttentionReason.NoProjectStartedYet:
-                    return ("Choose the first thing to restore.", null, false);
+                    return (GlancePhrases.Localize(text, "choose-first", "Choose the first thing to restore."), null, false);
 
                 case HomeAttentionReason.RegionComplete:
-                    return (DisplayRegionTitle(home.RegionTitleKey) + "'s restoration is complete.", null, false);
+                    return (Complete(home, text), null, false);
 
                 default:
-                    return ("Nothing needs your attention right now.", null, false);
+                    return (GlancePhrases.Localize(text, "nothing-needed", "Nothing needs your attention right now."), null, false);
             }
         }
 
-        private static string DisplayRegionTitle(string? regionTitleKey) =>
-            string.IsNullOrWhiteSpace(regionTitleKey) ? "This valley" : regionTitleKey!;
+        private static string Complete(HomeReadModel home, ContentText? text) =>
+            GlancePhrases.Format(text, "region-complete", "{0}'s restoration is complete.", DisplayRegionTitle(home.RegionTitleKey, text));
+
+        private static string DisplayRegionTitle(string? regionTitleKey, ContentText? text) =>
+            string.IsNullOrWhiteSpace(regionTitleKey) ? GlancePhrases.Localize(text, "this-valley", "This valley") : regionTitleKey!;
 
         // ------------------------------------------------------------------ activity status
 
-        private static string ActivitySentenceFor(ActivityStatusReadModel status) =>
-            status.Status switch
+        private static string ActivitySentenceFor(ActivityStatusReadModel status, ContentText? text) =>
+            GlancePhrases.Localize(text, "activity." + status.Status.ToString().ToLowerInvariant(), status.Status switch
             {
                 ActivityPlayerStatus.ConnectedCurrent => "Your movement is connected.",
                 ActivityPlayerStatus.PermissionNeeded
@@ -263,7 +318,7 @@ namespace WalkGame.Application.ReadModels
                 ActivityPlayerStatus.ProviderUpdateRequired
                     => "Your movement app needs an update before new walks can count. Your progress is still here.",
                 _ => "Movement could not be refreshed just now. Nothing was lost.",
-            };
+            });
 
         // ------------------------------------------------------------------ onboarding
 
@@ -273,11 +328,12 @@ namespace WalkGame.Application.ReadModels
         /// connection step: the step's sentence is the same whether permission was denied or
         /// simply not requested yet, so a denial cannot become a trap or a loop.
         /// </summary>
-        private static string? OnboardingSentenceFor(OnboardingReadModel onboarding, HomeReadModel home) =>
-            onboarding.NextAction switch
+        private static string? OnboardingSentenceFor(OnboardingReadModel onboarding, HomeReadModel home, ContentText? text)
+        {
+            if (onboarding.NextAction == OnboardingNextAction.ShowWorldBaseline) return BaselineLandmarkSentence(home, text);
+            string? english = onboarding.NextAction switch
             {
                 OnboardingNextAction.ExplainPremise => "Your movement restores this world.",
-                OnboardingNextAction.ShowWorldBaseline => BaselineLandmarkSentence(home),
                 OnboardingNextAction.OfferActivityConnection
                     when onboarding.ActivityStep == OnboardingActivityStepState.ProviderUpdateRequired
                     => "Your movement app needs an update before new walks can count. You can keep going; nothing is locked.",
@@ -288,13 +344,20 @@ namespace WalkGame.Application.ReadModels
                 OnboardingNextAction.ShowExitMessage => "You do not need to keep this open.",
                 _ => null,
             };
+            if (english == null) return null;
+            string name = onboarding.NextAction == OnboardingNextAction.OfferActivityConnection
+                && onboarding.ActivityStep == OnboardingActivityStepState.ProviderUpdateRequired
+                ? "onboarding.offeractivityconnection.update"
+                : "onboarding." + onboarding.NextAction.ToString().ToLowerInvariant();
+            return GlancePhrases.Localize(text, name, english);
+        }
 
         /// <summary>
         /// One damaged landmark as the world baseline: the first in content order whose current
         /// stage is Ruined, else the first landmark. Prefers a damaged one so the prompt to
         /// restore is visible; degrades to a generic line rather than an id.
         /// </summary>
-        private static string BaselineLandmarkSentence(HomeReadModel home)
+        private static string BaselineLandmarkSentence(HomeReadModel home, ContentText? text)
         {
             HomeReadModel.LandmarkRow? damaged = null;
             HomeReadModel.LandmarkRow? first = null;
@@ -310,8 +373,8 @@ namespace WalkGame.Application.ReadModels
 
             var chosen = damaged ?? first;
             return chosen == null
-                ? GlancePhrases.AnyLandmarkBaseline
-                : GlancePhrases.FormatLandmark(chosen.TitleKey, RestorationStage.Ruined);
+                ? GlancePhrases.Localize(text, "any-landmark-baseline", GlancePhrases.AnyLandmarkBaseline)
+                : GlancePhrases.FormatLandmark(chosen.TitleKey, RestorationStage.Ruined, text);
         }
     }
 }

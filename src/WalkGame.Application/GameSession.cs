@@ -1432,7 +1432,7 @@ namespace WalkGame.Application
                 long held = game.Resources.Get(definition.Output);
                 producers.Add(new RegionReadModel.ProducerRow(
                     definition.Id.Value,
-                    definition.TitleKey,
+                    ContentTitle(definition.Id.Value, definition.TitleKey),
                     definition.Output,
                     definition.MilliUnitsPerDay,
                     definition.CapacityUnits,
@@ -1466,7 +1466,7 @@ namespace WalkGame.Application
                 {
                     care = new RegionReadModel.PostCompletionCareRow(
                         program.Id,
-                        program.TitleKey,
+                        ContentTitle(program.Id, program.TitleKey),
                         program.DescriptionKey,
                         game.Region.PostCompletionCyclesCompleted,
                         game.Region.PostCompletionInvestedVitality,
@@ -1642,7 +1642,7 @@ namespace WalkGame.Application
 
                 rows.Add(new ExpeditionsReadModel.ExpeditionRow(
                     definition.Id.Value,
-                    definition.TitleKey,
+                    ContentTitle(definition.Id.Value, definition.TitleKey),
                     definition.DescriptionKey,
                     status,
                     requiredProjects,
@@ -1905,7 +1905,8 @@ namespace WalkGame.Application
                 GetOnboarding(),
                 ProjectActivityStatus(game),
                 _content,
-                careProgram);
+                careProgram,
+                ContentLocale);
         }
 
         /// <summary>Support-oriented diagnostics snapshot. Privacy-safe by construction:
