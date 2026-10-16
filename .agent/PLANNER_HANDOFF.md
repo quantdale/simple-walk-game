@@ -85,3 +85,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-16 (grok1844)
 - D-094: onboarding shows the D-093 update-required state (no Connect dead end). .NET 689, EditMode 117/117 (Unity-editor-tested); device UNVERIFIED (KI-002).
+- D-095: accessibility audit across all 12 screens (focus order, labels, 48 dp touch, theme contrast, reduced motion); fixed primary-button contrast 6.29→8.03:1. EditMode 125/125 (Unity-editor-tested).

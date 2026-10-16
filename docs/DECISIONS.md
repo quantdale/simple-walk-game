@@ -2209,3 +2209,13 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - The onboarding stage never moves because of this; after an update the normal Connect step returns. Ephemeral read-model value only: no save or content change.
 
 **Evidence.** `OnboardingProviderUpdateTests` (5 .NET cases); EditMode `Outdated_health_connect_shows_update_required_not_connect`. .NET 689 total; EditMode 117/117 (`docs/evidence/d094-onboarding-update/`, Unity-editor-tested). Device UNVERIFIED (KI-002).
+
+## D-095 — Accessibility audit across every screen; primary-button contrast raised to 8:1 (2026-10-16)
+
+**Context.** D-073 covered six screens. Onboarding, Guide, Story, Discoveries, DeleteConfirm and BootError had no focus/label/touch checks, and the theme's contrast claims were comments, not tests.
+
+**Decision.** `AccessibilityAuditTests` (8 EditMode cases) renders one model per `ShellScreen` value (a coverage test fails if a new screen is added without being audited) and checks: button tree order = action order = screen-reader order, title first, every button focusable; non-empty, unique, non-id-like labels; touch targets ≥ 48 dp (Android minimum) at text scale 1, 1.3 and 2, with spacing; WCAG contrast of every theme pair (text ≥ 7:1, non-text ≥ 3:1) and that rendered text uses only audited colours; no element carries a transition with reduced motion on or off.
+
+**Finding fixed.** The primary-button text (white on `Accent` #2F6B4F) measured 6.29:1, below the documented 7:1 body target. `Accent` is now #245A41 (8.03:1 with white; 7.1:1 against the page). The Muted comment is corrected to the measured 7.49:1. The valley picture's own palette (RegionScene) is unchanged. Visual-only; no save or content change.
+
+**Evidence.** EditMode 125/125 (`docs/evidence/d095-a11y-audit/`, Unity-editor-tested). TalkBack, switch access and real touch on hardware UNVERIFIED (KI-002).
