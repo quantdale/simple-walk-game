@@ -412,6 +412,9 @@ namespace WalkGame.Shell
             }
             int hidden = d.TotalDiscoveries - d.UnlockedCount;
             if (hidden > 0) m.Lines.Add(hidden + (hidden == 1 ? " more find is" : " more finds are") + " still waiting in the valley.");
+            // D-118: Nell's letters are listed with the discoveries but read in the Story journal.
+            var letters = _session.GetLetters();
+            if (letters.FoundCount > 0) m.Lines.Add(LettersCountLine(letters) + " Read them in the Story journal.");
 
             m.Lines.Add("Expedition routes: " + e.AvailableCount + " open, " + e.CompletedCount + " of " + e.TotalExpeditions + " completed.");
             var projects = _session.GetProjects().Projects.ToDictionary(p => p.ProjectId, p => PlayerCopy.Title(p.TitleKey));
@@ -520,9 +523,26 @@ namespace WalkGame.Shell
                     m.Lines.Add(heading + " (ahead)");
                 }
             }
+            // D-118: optional letters found at restored sites. Shown only once one is found, in
+            // the order they were written; unfound letters are never listed or hinted at.
+            var letters = _session.GetLetters();
+            if (letters.FoundCount > 0)
+            {
+                m.Lines.Add(LettersCountLine(letters));
+                foreach (var l in letters.Letters.Where(x => x.Found && x.Body != null).OrderBy(x => x.Order))
+                    m.Lines.Add(LetterLine(l));
+            }
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
+
+        /// <summary>D-118: "Letters from Nell Hartley: 2 of 6 found."</summary>
+        public static string LettersCountLine(WalkGame.Application.ReadModels.LettersReadModel letters) =>
+            "Letters from " + WalkGame.Application.Content.Region1Letters.Writer + ": " + letters.FoundCount + " of " + letters.TotalLetters + " found.";
+
+        /// <summary>D-118: one found letter, with where it turned up.</summary>
+        public static string LetterLine(WalkGame.Application.ReadModels.LettersReadModel.LetterRow l) =>
+            "Found at " + l.Place + ": \"" + l.Body + "\"";
 
         /// <summary>
         /// D-099: a calm look back at everything walking has done. Read-only; built from the
