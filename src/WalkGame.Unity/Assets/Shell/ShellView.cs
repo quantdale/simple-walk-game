@@ -81,6 +81,20 @@ namespace WalkGame.Shell
                 scroll.Add(l);
             }
 
+            if (!string.IsNullOrEmpty(model.TextPreview))
+            {
+                // B3 (D-083): a bordered sample at the effective text scale, so the player sees
+                // what their phone's font size does before leaving Settings.
+                var preview = Text(model.TextPreview, BodySize * k, Ink);
+                preview.name = "text-preview";
+                preview.style.borderTopWidth = preview.style.borderBottomWidth = preview.style.borderLeftWidth = preview.style.borderRightWidth = 2;
+                preview.style.borderTopColor = preview.style.borderBottomColor = preview.style.borderLeftColor = preview.style.borderRightColor = Accent;
+                preview.style.paddingTop = preview.style.paddingBottom = 12;
+                preview.style.paddingLeft = preview.style.paddingRight = 12;
+                preview.style.marginTop = 8;
+                scroll.Add(preview);
+            }
+
             var actions = new VisualElement { name = "actions" };
             actions.style.marginTop = 24;
             scroll.Add(actions);
