@@ -55,3 +55,11 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR (D-084): shell input hardening. Exact-name nav, no game actions before load, `start` cannot replace a game or an unreadable save. KI-021 is the Application-level residual.
 - Capture now takes `WG_CAPTURE_SCREEN=Celebration|Discoveries|Settings` and `WG_CAPTURE_TEXT_SCALE`.
 - Next: KI-020 ring inset; KI-021 decision; authored discovery body copy (keys only today); device lane (KI-002).
+
+## Session note 2026-10-16 (grok1724)
+- #50 (D-085): KI-021 resolved with `StartNewGame(seed, overwriteExisting)`; `false` refuses with `ExistingSaveRefused`; the shell uses it; the legacy overload is the explicit overwrite.
+- #51 (D-086): authored discovery body and origin copy (`Region1DiscoveryCopy`, 26 keys), shown on the Discoveries screen; content fingerprint unchanged.
+- #52 (D-087): KI-020 resolved (`ValleyElement.RingGeometry`); re-capture at `docs/evidence/b-ki020-ring/celebration-editor-rendered.png`.
+- This PR (D-088): perf pass. Allocation per screen switch measured, pooled line labels, `WG_RENDER` debug-only; `docs/evidence/c-perf-pass/PERFORMANCE_PASS.md`.
+- Unity Mono returns 0 from `GC.GetAllocatedBytesForCurrentThread`; use `GC.GetTotalMemory` deltas, which have 4 KB resolution.
+- Next: pool or diff buttons too (largest remaining view allocation, KI-018); a Discoveries PNG with the new copy; Region 2 storyline design (OpenSpec first); device lane (KI-002).

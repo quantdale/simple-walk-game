@@ -72,12 +72,26 @@ namespace WalkGame.Shell
 
             // Empty state (UX_DESIGN §17): the screen's own explanatory line IS the empty state,
             // at body size; no generic small-print filler.
+            // D-088: body-line labels are pooled per root and reused across renders (text, size and
+            // name are reset each time), so a screen switch no longer allocates a Label plus its
+            // inline style block per line. Measured in ShellPerformanceTests (WG_PERF alloc).
+            var pool = LinePool(root);
             bool markedEmpty = false;
-            foreach (var line in model.Lines)
+            for (int i = 0; i < model.Lines.Count; i++)
             {
-                var l = Text(line, BodySize * k, Ink);
-                l.style.marginBottom = 10;
-                if (model.State == ScreenState.Empty && !markedEmpty) { l.name = "empty-state"; markedEmpty = true; }
+                Label l;
+                if (i < pool.Count) l = pool[i];
+                else
+                {
+                    l = Text(string.Empty, BodySize * k, Ink);
+                    l.style.marginBottom = 10;
+                    pool.Add(l);
+                }
+                l.text = model.Lines[i];
+                l.style.fontSize = BodySize * k;
+                string name = null;
+                if (model.State == ScreenState.Empty && !markedEmpty) { name = "empty-state"; markedEmpty = true; }
+                l.name = name;
                 scroll.Add(l);
             }
 
@@ -117,6 +131,14 @@ namespace WalkGame.Shell
                 actions.Add(b);
                 first = false;
             }
+        }
+
+        private static System.Collections.Generic.List<Label> LinePool(VisualElement root)
+        {
+            if (root.userData is System.Collections.Generic.List<Label> pool) return pool;
+            pool = new System.Collections.Generic.List<Label>();
+            root.userData = pool;
+            return pool;
         }
 
         private static Label Text(string text, float size, Color color)

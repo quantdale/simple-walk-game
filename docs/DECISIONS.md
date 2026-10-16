@@ -2144,3 +2144,14 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Decision.** `ValleyElement.RingGeometry(cx, cy, s, w, h)` (engine-free, public for tests) keeps the full stroke inside the picture: first shrink the radius (never below 1.2×s, so the ring still surrounds the landmark), then shift the centre only as much as needed. With room, the ring is unchanged. No layout, content or save change.
 
 **Evidence.** `RegionSceneTests.Moment_ring_always_stays_inside_the_picture_and_around_its_landmark` sweeps 6 widths × every landmark position for 1–8 landmarks × 5 levels (bounds, landmark inside ring, radius ≥ 1.2×s), plus an unchanged-with-room case. EditMode 103/103 pre-merge (`docs/evidence/b-ki020-ring/`, Unity-editor-tested). Re-captured `docs/evidence/b-ki020-ring/celebration-editor-rendered.png` (editor-rendered, llvmpipe/Xvfb, NOT device): the right-most ring is fully inside. Device UNVERIFIED (KI-002).
+## D-088 — Performance pass: pooled body-line labels, release-silent render log (2026-10-16)
+
+**Context.** D-074 budgeted structure and wall time but never measured allocation per screen switch, and it left Story and Discoveries out of the screen set.
+
+**Decision.**
+- Measure: `ShellPerformanceTests.Screen_switch_allocations_are_measured_and_bounded` logs approximate managed bytes for the model and the view per render on all 8 game screens of the 365-day save. Unity Mono has no per-thread allocation counter, so it uses `GC.GetTotalMemory` growth, the median of 60 samples with collections dropped, at 4 KB resolution. A loose 1 MB ceiling catches only order-of-magnitude regressions; wall-times are not gated.
+- Fix the measured hotspot: `ShellView.Render` reuses pooled body-line labels per root instead of creating a Label and its style per line on every render. A test proves that no stale text or `empty-state` name carries across screens.
+- The `WG_RENDER` per-render `Debug.Log` runs only in debug builds (release builds paid for string building and a stack trace on every screen switch).
+- The model side measured ≤ ~20 KB and mostly ~0, so it was left unchanged.
+
+**Evidence.** `docs/evidence/c-perf-pass/PERFORMANCE_PASS.md` has the before/after tables. Story view ~86 KB → ~12 KB, Projects ~78 KB → ~8 KB, 3,000 enter/exits 678 → 392 ms, live-panel growth ~116 → ~78 B/render (about 0 on a rerun, within noise). EditMode 108/108 on the merged branch, PlayMode 4 passed + 1 capture-only ignored (Unity-editor-tested). Device UNVERIFIED (KI-002); KI-018 stays open.
