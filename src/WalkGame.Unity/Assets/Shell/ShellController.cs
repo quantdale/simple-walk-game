@@ -50,6 +50,9 @@ namespace WalkGame.Shell
         /// </summary>
         public Func<string, bool>? ShareText { get; set; }
 
+        /// <summary>D-119: optional gentle-reminder delivery; null where the OS has none (editor, iOS today).</summary>
+        public IReminderScheduler? Reminders { get; set; }
+
         /// <summary>D-111: larger exports are refused (Android intent extras are limited to about 1 MB).</summary>
         public const int MaxExportChars = 512 * 1024;
 
@@ -78,6 +81,65 @@ namespace WalkGame.Shell
             ? "Support details are shown. They are only for looking into a step-count question."
             : "Support details are hidden. You only need them to look into a step-count question.";
 
+        /// <summary>
+        /// D-119: the reminder's Settings line. Null availability = no notification support here.
+        /// Calm and factual: no streak, count or guilt wording; it says how to turn it off.
+        /// </summary>
+        public static string ReminderLine(bool? wanted, ReminderPermission permission, int minutesOfDay)
+        {
+            if (wanted == null) return "Daily reminder: not available on this device.";
+            if (wanted == false) return "Daily reminder is off. If you like, the game can send one gentle note a day.";
+            if (permission != ReminderPermission.Granted)
+                return "Daily reminder is on, but notifications are not allowed for this game. You can allow them in your phone's settings.";
+            return "Daily reminder is on, around " + ReminderTime(minutesOfDay) + ". It is one quiet note, and you can turn it off at any time.";
+        }
+
+        /// <summary>"08:00" from minutes since midnight (device-local).</summary>
+        public static string ReminderTime(int minutesOfDay)
+        {
+            int m = Math.Max(0, Math.Min(24 * 60 - 1, minutesOfDay));
+            return (m / 60).ToString("00", System.Globalization.CultureInfo.InvariantCulture) + ":" + (m % 60).ToString("00", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>D-119: the reminder is wanted only when BOTH the master opt-in and the reminder are on (default off).</summary>
+        private static bool ReminderWanted(WalkGame.Application.ReadModels.SettingsReadModel s) => s.NotificationsOptIn && s.DailyReminderEnabled;
+
+        private void ToggleReminder()
+        {
+            if (Reminders == null) { _error = "Reminders aren't available on this device."; return; }
+            var s = _session.GetSettings();
+            if (ReminderWanted(s))
+            {
+                Check(_session.SetDailyReminder(false, s.DailyReminderMinutesOfDay));
+            }
+            else
+            {
+                if (!Check(_session.SetNotificationsOptIn(true))) return;
+                if (!Check(_session.SetDailyReminder(true, s.DailyReminderMinutesOfDay))) return;
+                if (Reminders.Permission != ReminderPermission.Granted) Reminders.RequestPermission();
+            }
+            SyncReminder();
+        }
+
+        /// <summary>
+        /// D-119: make the OS schedule match the preference. Called on boot, resume and toggle, so
+        /// a permission granted (or revoked) in the OS takes effect the next time the game opens.
+        /// Never schedules without both opt-ins and the OS permission.
+        /// </summary>
+        public void SyncReminder()
+        {
+            if (Reminders == null) return;
+            try
+            {
+                var s = _session.GetSettings();
+                if (ReminderWanted(s) && Reminders.Permission == ReminderPermission.Granted)
+                    Reminders.ScheduleDaily(s.DailyReminderMinutesOfDay, ReminderCopy.Title, ReminderCopy.Body);
+                else
+                    Reminders.Cancel();
+            }
+            catch (Exception) { /* a delivery failure never blocks the game */ }
+        }
+
         public ShellScreen Current { get; private set; } = ShellScreen.Onboarding;
         public StartStatus? LastStartStatus { get; private set; }
 
@@ -91,6 +153,7 @@ namespace WalkGame.Shell
             _error = null;
             Current = screen;
             if (_booted) SyncLiveSource();
+            if (_booted) SyncReminder();
             if (_booted && OnboardingIncomplete()) Current = ShellScreen.Guide;
             else if (_booted && _session.GetPendingReturnSummary() != null) Current = ShellScreen.ReturnSummary;
         }
@@ -158,6 +221,7 @@ namespace WalkGame.Shell
                 case "ack": if (Check(_session.AcknowledgeReturnSummary())) Current = ShellScreen.Home; return;
                 case "toggle:reducedMotion": Check(_session.SetReducedMotion(!_session.GetSettings().ReducedMotion)); return;
                 case "toggle:sound": Check(_session.SetSoundEnabled(!_session.GetSettings().SoundEnabled)); return;
+                case "toggle:reminder": ToggleReminder(); return;
                 case "toggle:diagnostics": Check(_session.SetDiagnosticsVisible(!_session.GetSettings().DiagnosticsVisible)); return;
                 case "export": Export(); return;
                 case "delete:request": Current = ShellScreen.DeleteConfirm; return;
@@ -590,12 +654,16 @@ namespace WalkGame.Shell
             m.Lines.Add(ReducedMotionLine(s.ReducedMotion));
             m.Lines.Add(SoundLine(s.SoundEnabled));
             m.Lines.Add(DiagnosticsLine(s.DiagnosticsVisible));
+            bool reminderOn = ReminderWanted(s);
+            m.Lines.Add(ReminderLine(Reminders == null ? (bool?)null : reminderOn, Reminders?.Permission ?? ReminderPermission.NotGranted, s.DailyReminderMinutesOfDay));
             float raw;
             try { raw = TextScaleSource?.Invoke() ?? 1f; } catch (Exception) { raw = 1f; }
             m.Lines.Add(TextSizeLine(raw));
             m.TextPreview = TextPreviewSample;
             m.Actions.Add(new ShellAction("toggle:reducedMotion", (s.ReducedMotion ? "Turn off" : "Turn on") + " reduced motion"));
             m.Actions.Add(new ShellAction("toggle:sound", (s.SoundEnabled ? "Turn off" : "Turn on") + " sound"));
+            if (Reminders != null)
+                m.Actions.Add(new ShellAction("toggle:reminder", reminderOn ? "Turn off the daily reminder" : "Turn on a gentle daily reminder"));
             m.Actions.Add(new ShellAction("toggle:diagnostics", (s.DiagnosticsVisible ? "Hide" : "Show") + " diagnostics"));
             m.Actions.Add(new ShellAction("nav:Privacy", "Privacy and your data"));
             m.Actions.Add(new ShellAction("delete:request", "Delete all local data…"));
