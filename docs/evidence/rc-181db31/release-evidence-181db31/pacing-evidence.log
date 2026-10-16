@@ -1,0 +1,12 @@
+== building simulation CLI ==
+  PASS: low reproduces docs/evidence/m4/pacing-low.txt
+  PASS: moderate reproduces docs/evidence/m4/pacing-moderate.txt
+  PASS: high reproduces docs/evidence/m4/pacing-high.txt
+  PASS: irregular reproduces docs/evidence/m4/pacing-irregular.txt
+  PASS: weekend-heavy reproduces docs/evidence/m4/pacing-weekend-heavy.txt
+  PASS: inactivity reproduces docs/evidence/m4/pacing-inactivity.txt
+  PASS: pathological reproduces docs/evidence/m4/pacing-pathological.txt
+
+==============================================
+PACING EVIDENCE: 7 reproduced, 0 drifted
+==============================================
