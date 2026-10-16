@@ -86,6 +86,30 @@ namespace WalkGame.Shell.PlayModeTests
                 ShellView.Render(doc.rootVisualElement, c.Render(), _ => { }, textScale);
                 for (int i = 0; i < 10; i++) yield return null;
 
+                // WG_CAPTURE_SCROLL=end scrolls the shared ScrollView to the bottom (e.g. the Privacy
+                // export button), and WG_CAPTURE_EXPECT_BUTTON asserts that a button with that exact
+                // text is fully inside the visible viewport in the captured frame.
+                string expectButton = Environment.GetEnvironmentVariable("WG_CAPTURE_EXPECT_BUTTON");
+                if (Environment.GetEnvironmentVariable("WG_CAPTURE_SCROLL") == "end")
+                {
+                    var scroll = doc.rootVisualElement.Q<ScrollView>("content");
+                    Assert.IsNotNull(scroll, "no content ScrollView to scroll");
+                    float max = Mathf.Max(0f, scroll.contentContainer.layout.height - scroll.contentViewport.layout.height);
+                    scroll.scrollOffset = new Vector2(0f, max);
+                    for (int i = 0; i < 10; i++) yield return null;
+                    Debug.Log("WG_CAPTURE_SCROLL offset=" + scroll.scrollOffset.y + " max=" + max);
+                }
+                if (!string.IsNullOrEmpty(expectButton))
+                {
+                    var viewport = doc.rootVisualElement.Q<ScrollView>("content")?.contentViewport.worldBound ?? doc.rootVisualElement.worldBound;
+                    var button = doc.rootVisualElement.Query<Button>().Where(x => x.text == expectButton).First();
+                    Assert.IsNotNull(button, "no button with text '" + expectButton + "'");
+                    var wb = button.worldBound;
+                    Assert.IsTrue(wb.yMin >= viewport.yMin - 0.5f && wb.yMax <= viewport.yMax + 0.5f,
+                        "button '" + expectButton + "' not fully visible: " + wb + " in viewport " + viewport);
+                    Debug.Log("WG_CAPTURE_BUTTON visible '" + expectButton + "' bounds=" + wb + " viewport=" + viewport);
+                }
+
                 var prev = RenderTexture.active;
                 RenderTexture.active = rt;
                 var tex = new Texture2D(rt.width, rt.height, TextureFormat.RGBA32, false);
