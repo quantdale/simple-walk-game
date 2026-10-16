@@ -31,7 +31,7 @@ jobs:
           scripts/verify-project-settings.sh --range "$base..HEAD"
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           # The toolchain is pinned in global.json (OpenSpec change
           # pin-build-toolchain-and-centralize-packages). setup-dotnet installs

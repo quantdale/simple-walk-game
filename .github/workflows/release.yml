@@ -34,7 +34,7 @@ jobs:
         run: scripts/assert-repo-identity.sh
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
 
