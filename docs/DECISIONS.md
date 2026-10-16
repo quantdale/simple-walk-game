@@ -2400,7 +2400,7 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 - `IosHealthKitBridge` (Shell, `DllImport("__Internal")`, editor stub) and `Assets/Plugins/iOS/WalkGameHealthKitBridge.swift` (`@_cdecl`, read-only stepCount, sample query plus anchored query for deletions, 10 s timeouts, deletions re-emitted while in the window as in D-069).
 - **Not composed.** `ShellBootstrap` is unchanged, so iOS players keep the D-108 unsupported state until a macOS build and device check exist. Entitlement (`com.apple.developer.healthkit`) and `NSHealthShareUsageDescription` are documented in `docs/HEALTHKIT_SETUP.md`, not applied.
 
-**Tests:** .NET `HealthKitActivityAdapterTests` (35 cases with theories: mapping, offsets, malformed/duplicate/oversized lines, window and order, request-status mapping, unavailable/not-asked never read, bridge errors, read-access honesty, one read per fetch, credit once and deletion reversal once across a restart, per-provider identity). Evidence: `docs/evidence/d112-healthkit/`.
+**Tests:** .NET `HealthKitActivityAdapterTests` (35 cases with theories: mapping, offsets, malformed/duplicate/oversized lines, window and order, request-status mapping, unavailable/not-asked never read, bridge errors, read-access honesty, one read per fetch, credit once and deletion reversal once across a restart, per-provider identity). .NET 774/774 and EditMode 174/174 merged with main after D-111 (Unity-editor-tested; the editor compiles only the stub branch of `IosHealthKitBridge`). Evidence: `docs/evidence/d112-healthkit/`.
 
 **Labels.** Adapter: automated-verified (headless). Swift and the iOS P/Invoke branch: UNVERIFIED (never compiled). No iOS build claim.
 
