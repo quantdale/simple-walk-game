@@ -10,8 +10,12 @@ namespace WalkGame.Shell
     /// </summary>
     public static class PlayerCopy
     {
-        public static string Title(string titleKey) =>
-            string.IsNullOrWhiteSpace(titleKey) || titleKey.IndexOf('.') >= 0 ? GlancePhrases.UntitledProject : titleKey;
+        /// <summary>
+        /// A read-model title is display text by contract (D-125): blank means unknown, and a
+        /// stable id never arrives here. A '.' inside a title ("St. Ives") is ordinary text.
+        /// </summary>
+        public static string Title(string titleText) =>
+            string.IsNullOrWhiteSpace(titleText) ? GlancePhrases.UntitledProject : titleText;
 
         public static string ProjectStatus(ProjectStatus status, int? queuedPosition)
         {

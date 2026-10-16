@@ -1266,7 +1266,7 @@ namespace WalkGame.Application
             foreach (var queuedId in game.Queue.QueuedProjectIds)
             {
                 var def = _content.FindProject(queuedId);
-                queuedRows.Add(new HomeReadModel.QueuedRow(queuedId, def == null ? queuedId : ContentTitle(queuedId, def.TitleKey)));
+                queuedRows.Add(new HomeReadModel.QueuedRow(queuedId, def == null ? string.Empty : ContentTitle(queuedId, def.TitleKey)));
             }
 
             int completed = 0;

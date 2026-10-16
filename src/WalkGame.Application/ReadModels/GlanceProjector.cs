@@ -237,21 +237,20 @@ namespace WalkGame.Application.ReadModels
         /// <summary>
         /// A display title, never a stable content identifier.
         ///
-        /// Display titles in the authored catalog are English phrases ("Old Trailhead") while
-        /// stable ids carry a dotted namespace (`proj.*`, `lm.*`, `care.*`). The fallbacks that
-        /// reach here are the id-using ones assembled by <see cref="HomeReadModel"/>, so a
-        /// dotted value is treated as "no title" and replaced rather than read out as copy.
+        /// Typing is explicit (D-125): every read-model title field carries display text only
+        /// (authored English or its overlay), and an unknown title is blank, never an id. So
+        /// any non-blank value is text, even when a translation contains a '.' ("St. Ives").
+        /// There is deliberately no dot heuristic: the id never reaches this method.
         /// </summary>
-        private static string DisplayTitle(string? titleKey, string? fallbackTitleKey, ContentText? text)
+        private static string DisplayTitle(string? titleText, string? fallbackTitleText, ContentText? text)
         {
-            if (IsDisplayTitle(titleKey)) return titleKey!;
-            if (IsDisplayTitle(fallbackTitleKey) && !GlancePhrases.ContainsStageIdentifier(fallbackTitleKey))
-                return fallbackTitleKey!;
+            if (IsDisplayTitle(titleText)) return titleText!;
+            if (IsDisplayTitle(fallbackTitleText) && !GlancePhrases.ContainsStageIdentifier(fallbackTitleText))
+                return fallbackTitleText!;
             return GlancePhrases.Localize(text, "untitled-project", GlancePhrases.UntitledProject);
         }
 
-        private static bool IsDisplayTitle(string? value) =>
-            !string.IsNullOrWhiteSpace(value) && value!.IndexOf('.') < 0;
+        private static bool IsDisplayTitle(string? value) => !string.IsNullOrWhiteSpace(value);
 
         // ------------------------------------------------------------------ attention
 
