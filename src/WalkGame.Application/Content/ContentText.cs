@@ -41,11 +41,14 @@ namespace WalkGame.Application.Content
             return authoredEnglish;
         }
 
-        /// <summary>Field names used by the first slice (letters, D-122).</summary>
+        /// <summary>Field names (D-122): letters, then titles, chapters and discovery copy.</summary>
         public static class Fields
         {
             public const string Body = "body";
             public const string Place = "place";
+            public const string Title = "title";
+            public const string Hint = "hint";
+            public const string Provenance = "provenance";
         }
     }
 }

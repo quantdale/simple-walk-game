@@ -1256,7 +1256,7 @@ namespace WalkGame.Application
                 var runtime = region.FindProject(activeId);
                 if (def != null && runtime != null)
                 {
-                    activeTitle = def.TitleKey;
+                    activeTitle = ContentTitle(def.Id.Value, def.TitleKey);
                     invested = runtime.VitalityInvested;
                     cost = def.VitalityCost;
                 }
@@ -1266,7 +1266,7 @@ namespace WalkGame.Application
             foreach (var queuedId in game.Queue.QueuedProjectIds)
             {
                 var def = _content.FindProject(queuedId);
-                queuedRows.Add(new HomeReadModel.QueuedRow(queuedId, def?.TitleKey ?? queuedId));
+                queuedRows.Add(new HomeReadModel.QueuedRow(queuedId, def == null ? queuedId : ContentTitle(queuedId, def.TitleKey)));
             }
 
             int completed = 0;
@@ -1290,7 +1290,7 @@ namespace WalkGame.Application
                 var stage = region.LandmarkStages.TryGetValue(landmark.Id.Value, out var s)
                     ? s
                     : RestorationStage.Ruined;
-                landmarkRows.Add(new HomeReadModel.LandmarkRow(landmark.Id.Value, landmark.TitleKey, stage));
+                landmarkRows.Add(new HomeReadModel.LandmarkRow(landmark.Id.Value, ContentTitle(landmark.Id.Value, landmark.TitleKey), stage));
             }
 
             long vitality = game.Resources.Get(ResourceType.Vitality);
@@ -1341,7 +1341,7 @@ namespace WalkGame.Application
             var careProgram = FindAuthoredCareProgram(_content);
 
             return new HomeReadModel(
-                _content.TitleKey,
+                ContentTitle(_content.Id.Value, _content.TitleKey),
                 vitality,
                 game.Resources.Get(ResourceType.Materials),
                 game.Resources.Get(ResourceType.Knowledge),
@@ -1397,7 +1397,7 @@ namespace WalkGame.Application
                 queuedPositions.TryGetValue(definition.Id.Value, out int position);
                 rows.Add(new ProjectsReadModel.ProjectRow(
                     definition.Id.Value,
-                    definition.TitleKey,
+                    ContentTitle(definition.Id.Value, definition.TitleKey),
                     definition.VitalityCost,
                     runtime.VitalityInvested,
                     runtime.Status,
@@ -1421,7 +1421,7 @@ namespace WalkGame.Application
                 var stage = game.Region.LandmarkStages.TryGetValue(landmark.Id.Value, out var s)
                     ? s
                     : RestorationStage.Ruined;
-                landmarks.Add(new RegionReadModel.LandmarkRow(landmark.Id.Value, landmark.TitleKey, stage));
+                landmarks.Add(new RegionReadModel.LandmarkRow(landmark.Id.Value, ContentTitle(landmark.Id.Value, landmark.TitleKey), stage));
             }
 
             var producers = new List<RegionReadModel.ProducerRow>();
@@ -1482,7 +1482,7 @@ namespace WalkGame.Application
                 {
                     if (def.Id.Value != game.Queue.ActiveProjectId) continue;
                     var st = game.Region.FindProject(def.Id.Value);
-                    activeTitle = def.TitleKey;
+                    activeTitle = ContentTitle(def.Id.Value, def.TitleKey);
                     buildStages = def.VisibleBuildStages;
                     if (st != null && st.Status != ProjectStatus.Completed)
                         buildStage = def.BuildStageFor(st.VitalityInvested);
@@ -1491,7 +1491,7 @@ namespace WalkGame.Application
             }
 
             return new RegionReadModel(
-                _content.TitleKey,
+                ContentTitle(_content.Id.Value, _content.TitleKey),
                 landmarks,
                 producers,
                 completed,
@@ -1528,11 +1528,11 @@ namespace WalkGame.Application
             string? nextHint = null;
             foreach (var p in progress)
             {
-                if (!p.Unlocked && nextHint == null) nextHint = p.Chapter.HintKey;
+                if (!p.Unlocked && nextHint == null) nextHint = ContentLocale.Resolve(p.Chapter.Id, WalkGame.Application.Content.ContentText.Fields.Hint, p.Chapter.HintKey);
                 rows.Add(new StoryReadModel.ChapterRow(
-                    p.Chapter.Id, p.Chapter.Number, p.Chapter.TitleKey,
-                    p.Unlocked ? p.Chapter.BodyKey : null,
-                    p.Chapter.HintKey, p.Unlocked, p.UnlockedAtUtc));
+                    p.Chapter.Id, p.Chapter.Number, ContentTitle(p.Chapter.Id, p.Chapter.TitleKey),
+                    p.Unlocked ? ContentLocale.Resolve(p.Chapter.Id, WalkGame.Application.Content.ContentText.Fields.Body, p.Chapter.BodyKey) : null,
+                    ContentLocale.Resolve(p.Chapter.Id, WalkGame.Application.Content.ContentText.Fields.Hint, p.Chapter.HintKey), p.Unlocked, p.UnlockedAtUtc));
             }
 
             return new StoryReadModel(rows, StoryProgress.UnlockedCount(progress), nextHint);
@@ -1547,6 +1547,20 @@ namespace WalkGame.Application
         /// persisted and never read by canonical state, validation or saves.
         /// </summary>
         public WalkGame.Application.Content.ContentText ContentLocale { get; set; } = WalkGame.Application.Content.ContentText.English;
+
+        /// <summary>D-122: a content title through the presentation overlay (identity in English).</summary>
+        private string ContentTitle(string stableId, string authoredEnglish)
+            => ContentLocale.Resolve(stableId, WalkGame.Application.Content.ContentText.Fields.Title, authoredEnglish);
+
+        /// <summary>
+        /// D-122: authored discovery copy (body or origin, D-086) through the overlay. Returns null for
+        /// an unknown key so a raw key never reaches a screen.
+        /// </summary>
+        public string? DiscoveryCopy(string discoveryId, string field, string copyKey)
+        {
+            var english = WalkGame.Application.Content.Region1DiscoveryCopy.Text(copyKey);
+            return english == null ? null : ContentLocale.Resolve(discoveryId, field, english);
+        }
 
         public LettersReadModel GetLetters()
         {
@@ -1581,7 +1595,7 @@ namespace WalkGame.Application
                 rows.Add(new DiscoveriesReadModel.DiscoveryRow(
                     definition.Id.Value,
                     definition.Category,
-                    definition.TitleKey,
+                    ContentTitle(definition.Id.Value, definition.TitleKey),
                     definition.BodyKey,
                     definition.ProvenanceKey,
                     definition.LocationKey,
