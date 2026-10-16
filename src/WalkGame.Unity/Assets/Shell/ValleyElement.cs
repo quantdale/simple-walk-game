@@ -57,6 +57,18 @@ namespace WalkGame.Shell
                     p.Arc(new Vector2(cx, cy - s * 0.5f), s * 1.9f, 0f, 360f); p.Stroke(); shapes++;
                 }
             }
+            if (Scene.BuildSite != null)                                                                 // D-071 build site
+            {
+                var b = Scene.BuildSite;
+                float bx = w * 0.04f, by = h * 0.84f, bw = w * 0.18f;
+                Rect(p, bx, by - 4f, bw, 4f, C(0x6B5A48u)); shapes++;                                    // slab
+                float step = bw / b.Stages;
+                for (int k = 0; k <= b.Stage; k++)                                                      // posts rise per stage
+                {
+                    float ph = h * 0.05f * (1 + k);
+                    Rect(p, bx + k * step + step * 0.3f, by - 4f - ph, step * 0.4f, ph, C(0xB08D57u)); shapes++;
+                }
+            }
             LastShapeCount = shapes;
         }
 

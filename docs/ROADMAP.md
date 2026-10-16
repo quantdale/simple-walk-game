@@ -304,7 +304,7 @@ All seven reports are committed under `docs/evidence/m4/` and reproduce byte-for
 
 ---
 
-> **Balance cadence (2026-10-16, automated verified, headless):** `profile --cadence` and `VisibleChangeCadenceTests` measure how long each profile waits to see the valley change (D-070). high and irregular are healthy (longest gaps 20 and 29 days). low (78), moderate (50) and weekend-heavy (42) exceed the proposed 30-day target, recorded as KI-017 pending an owner decision.
+> **Balance cadence (2026-10-16, automated verified, headless):** `profile --cadence` and `VisibleChangeCadenceTests` measure how long each profile waits to see the valley change (D-070). high and irregular are healthy (longest gaps 20 and 29 days). low (78), moderate (50) and weekend-heavy (42) exceed the proposed 30-day target, recorded as KI-017. **Resolved by D-071 (visible build stages, content v4):** the longest gaps are now low 27, moderate 10 and weekend-heavy 10 days, with closure unchanged. Unity-editor-tested build-site visual.
 
 # M5 — Mobile shell and low-attention UX
 

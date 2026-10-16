@@ -1,0 +1,29 @@
+D-071 cadence after visible build stages (content v4). Automated, headless; same command as cadence-2026-10-16.txt
+== high
+region completed: yes on day 77
+cadence: first visible change: day 2; longest gap without change: 4 days; visible changes: 26 in 77 days (10.1 per 30 days)
+cadence change days: 2,3,5,9,11,14,18,22,25,29,32,36,40,41,43,46,47,49,53,57,61,65,69,71,74,77
+== irregular
+region completed: yes on day 109
+cadence: first visible change: day 2; longest gap without change: 7 days; visible changes: 26 in 109 days (7.2 per 30 days)
+cadence change days: 2,4,8,13,15,20,25,30,35,41,46,50,57,58,62,65,67,69,75,81,86,92,98,102,105,109
+== moderate
+region completed: yes on day 192
+cadence: first visible change: day 4; longest gap without change: 10 days; visible changes: 26 in 192 days (4.1 per 30 days)
+cadence change days: 4,8,13,23,28,35,44,54,62,71,80,89,99,102,107,114,117,121,131,141,151,161,171,178,184,192
+== weekend-heavy
+region completed: yes on day 158
+cadence: first visible change: day 3; longest gap without change: 10 days; visible changes: 26 in 158 days (4.9 per 30 days)
+cadence change days: 3,6,11,18,24,30,38,45,52,59,67,74,81,87,88,95,96,101,109,116,126,136,143,150,153,158
+== low
+region completed: NO (horizon reached)
+cadence: first visible change: day 10; longest gap without change: 27 days; visible changes: 20 in 400 days (1.5 per 30 days)
+cadence change days: 10,20,34,60,74,92,117,142,164,189,213,238,262,272,285,304,310,322,349,375
+== inactivity
+region completed: yes on day 376
+cadence: first visible change: day 5; longest gap without change: 60 days; visible changes: 26 in 376 days (2.1 per 30 days)
+cadence change days: 5,12,22,38,46,59,74,92,152,169,184,200,215,222,232,242,247,254,271,289,306,324,340,352,362,376
+== pathological
+region completed: yes on day 22
+cadence: first visible change: day 1; longest gap without change: 2 days; visible changes: 19 in 22 days (25.9 per 30 days)
+cadence change days: 1,2,3,4,5,6,7,8,9,10,11,13,14,15,16,17,19,21,22

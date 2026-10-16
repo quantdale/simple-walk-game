@@ -369,7 +369,10 @@ internal static class Cli
         Console.WriteLine("validator-clean: " + (violations.Count == 0 ? "yes" : "NO — " + string.Join("; ", violations)));
         // D-070: opt-in so the committed pacing evidence still reproduces byte-for-byte.
         if (cadence)
+        {
             Console.WriteLine("cadence: " + CadenceReport.Analyze(tracker.ChangeDays, day).ToLine());
+            Console.WriteLine("cadence change days: " + string.Join(",", tracker.ChangeDays));
+        }
 
         // A profile that must close and did not is a BALANCE FAILURE, not a report line. The
         // shortfall sat open for a whole milestone precisely because the harness reported it
