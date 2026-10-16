@@ -1976,9 +1976,28 @@ Measured in the Unity editor, not on a device: a mature 365-day restored save, e
 
 ## D-076 — A restoration storyline: milestone-gated, ordered, derived chapters (2026-10-16)
 
-Michael's campaign brief asks for narrative progression tied to walking. **Decision:** Region 1 gets nine authored chapters: a prologue, seven restoration chapters ending at the closure survey, and an epilogue after the first evergreen tending cycle. Each unlocks only from restoration milestones (completed projects or care cycles), never from raw steps, streaks or time. Chapters are cumulative, so the story always reads in order, and they never lock again. Unlock state is **derived** from completion state that saves already carry (`StoryProgress.Evaluate`), so there is no save schema change or migration. Content goes 4 → 5 as an additive change (CompatibleOlder). New chapters become "New chapter: …" Transformation items in the return summary (existing kind and bound) and live in a Story journal screen. Locked chapters show only a title and a gentle "restore X to continue" hint, with no guilt language. Rejected alternatives:
+Michael's campaign brief asks for narrative progression tied to walking. **Decision:** Region 1 gets authored chapters (nine in the first draft, ten after the A2 amendment below): a prologue, restoration chapters ending at the closure survey, and an epilogue after the first evergreen tending cycle. Each unlocks only from restoration milestones (completed projects or care cycles), never from raw steps, streaks or time. Chapters are cumulative, so the story always reads in order, and they never lock again. Unlock state is **derived** from completion state that saves already carry (`StoryProgress.Evaluate`), so there is no save schema change or migration. Content goes 4 → 5 as an additive change (CompatibleOlder). New chapters become "New chapter: …" Transformation items in the return summary (existing kind and bound) and live in a Story journal screen. Locked chapters show only a title and a gentle "restore X to continue" hint, with no guilt language. Rejected alternatives:
 - persisted chapter state: needs a migration and a new tamper surface;
 - step-count gates: punish low walkers and contradict "restoration, not numbers";
 - unordered fragments: that is already what discoveries are.
 
-Cadence bounds come from measurement (`profile --story`) and are recorded when the gate lands. OpenSpec: `openspec/changes/add-restoration-storyline/`.
+Cadence bounds come from measurement and are recorded below. OpenSpec: `openspec/changes/add-restoration-storyline/`.
+
+**Amendment (A2, 2026-10-16), from measurement:** the first nine-chapter draft unlocked "The Marsh Breathes" and "Lights in the Square" on the same day for every profile, because settlement power completes before wetland drainage. The draft also left a 72-day woodland gap (moderate). The authored story is now **ten** chapters: Quiet Valley (free), Way In (trailhead), Water Remembers (river intake), Hands at the Bench (workshop), Lights in the Square (settlement power), The Marsh Breathes (wetland drainage), Under the Canopy (woodland understory), Above the Trees (canopy walkway), Every Mile Mapped (valley survey = closure), and The Long Watch (one care cycle).
+
+*Mechanism.* `OfflineAdvancer.AllocateVitality` is the single path through which every project completion and care cycle happens. It compares the derived unlocked count before and after and emits `StoryChapterUnlocked`, which the composer turns into a "New chapter: <title>." item. The summary moment therefore needs no persisted state either.
+
+*Cadence* is measured through the real ingestion pipeline by `StoryCadenceTests`, which replaces a separate `profile --story` CLI. Unlock days for chapters 0–9:
+
+| Profile | Unlock days (chapters 0–9) |
+|---|---|
+| high | 0,2,9,22,29,40,49,69,77,82 |
+| irregular | 0,2,13,30,41,57,69,98,109,117 |
+| moderate | 0,4,23,54,71,99,121,171,192,204 |
+| weekend-heavy | 0,6,21,48,62,84,104,146,161,174 |
+| inactivity, with a 45-day absence | 0,5,38,92,169,215,254,340,376,397 |
+| low, the documented long tail | 0,10,60,142,189,262,322, then unread by day 400 |
+
+*Gates.* The prologue is available at day 0. The first milestone chapter lands by day 10. No two chapters unlock on the same day. The maximum gap between chapters is 25 (high), 35 (irregular), 55 (moderate), 50 (weekend-heavy) and 90 (inactivity and low). Every engaged profile reads the whole story within 400 days.
+
+These days come from the test harness's first-available queue policy; a player who orders projects differently simply reads later chapters together when a cumulative gate clears.

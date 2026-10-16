@@ -422,6 +422,37 @@ namespace WalkGame.Domain.Validation
             foreach (var expedition in content.Expeditions)
                 expeditionIds.Add(expedition.Id.Value);
 
+            // ---- Storyline chapters (D-076): ordered, resolvable, milestone-gated, glanceable. ----
+            var chapterIds = new HashSet<string>(StringComparer.Ordinal);
+            for (int c = 0; c < content.Chapters.Count; c++)
+            {
+                var chapter = content.Chapters[c];
+                if (!chapterIds.Add(chapter.Id))
+                    violations.Add($"Duplicate chapter ID '{chapter.Id}'.");
+                if (chapter.Number != c)
+                    violations.Add($"Chapter '{chapter.Id}' is numbered {chapter.Number}; chapters must be numbered contiguously from 0 in reading order.");
+                if (chapter.BodyKey.Length > Story.StoryChapterDefinition.MaxBodyLength)
+                    violations.Add($"Chapter '{chapter.Id}' body exceeds the glance budget ({Story.StoryChapterDefinition.MaxBodyLength} characters).");
+                if (c > 0 && chapter.RequiredProjectIds.Count == 0 && chapter.MinCareCycles == 0)
+                    violations.Add($"Chapter '{chapter.Id}' has no restoration milestone; only the prologue may be free.");
+                if (c > 0 && string.IsNullOrWhiteSpace(chapter.HintKey))
+                    violations.Add($"Chapter '{chapter.Id}' needs a hint for while it is locked.");
+                foreach (var required in chapter.RequiredProjectIds)
+                    if (!projectIds.Contains(required))
+                        violations.Add($"Chapter '{chapter.Id}' requires missing project '{required}'.");
+                if (chapter.MinCareCycles > 0 && content.PostCompletionPrograms.Count == 0)
+                    violations.Add($"Chapter '{chapter.Id}' requires care cycles but the region authors no post-completion program.");
+            }
+            if (content.Chapters.Count > 0 && content.CompletionMilestoneProjectId != null)
+            {
+                bool closureChapter = false;
+                foreach (var chapter in content.Chapters)
+                    foreach (var required in chapter.RequiredProjectIds)
+                        if (required == content.CompletionMilestoneProjectId) closureChapter = true;
+                if (!closureChapter)
+                    violations.Add("The storyline has no chapter for the region's closure milestone.");
+            }
+
             // ---- Projects: identity, cost sanity, forward-safe references. ----
             var seenProjects = new HashSet<string>(StringComparer.Ordinal);
             long totalCost = 0L;

@@ -559,6 +559,13 @@ None are pre-authorized by this roadmap.
 
 ---
 
+# Campaign 2026-10-16 (continuation): storyline, features, hardening
+
+## Storyline (D-076, OpenSpec `add-restoration-storyline`)
+- [x] A1 Design: OpenSpec change and D-076 (PR #37)
+- [x] A2 Domain/content/application: ten milestone-gated chapters, content v5 (additive), `GetStory()`, "New chapter" summary moments, validator rules, cadence gate (`StoryCadenceTests`)
+- [ ] A4 Unity Story journal screen and chapter moments; EditMode tests (Unity-editor-tested; device UNVERIFIED, KI-002)
+
 # Cross-milestone rules
 
 Every milestone must:

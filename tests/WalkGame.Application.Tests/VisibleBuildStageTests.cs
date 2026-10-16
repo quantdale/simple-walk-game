@@ -51,5 +51,5 @@ public sealed class VisibleBuildStageTests
     }
 
     [Fact]
-    public void Content_version_is_four() => Assert.Equal(4L, Region1Catalog.Create().ContentVersion);
+    public void Content_version_is_five_after_the_storyline() => Assert.Equal(5L, Region1Catalog.Create().ContentVersion);
 }

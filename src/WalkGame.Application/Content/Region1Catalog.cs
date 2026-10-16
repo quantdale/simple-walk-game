@@ -30,6 +30,9 @@ namespace WalkGame.Application.Content
     /// are funded. Costs, prerequisites and ids are unchanged (the seeds stay verbatim); the
     /// stages are derived from invested Vitality, so v3 saves need no content migration.
     ///
+    /// Content version 5 (D-076): the restoration storyline, nine chapters that unlock from
+    /// restoration milestones only and are derived from completion state (no save change).
+    ///
     /// Six interdependent restoration chains, six landmarks, three bounded producers,
     /// thirteen provenance-bearing discoveries, three deterministic expedition routes,
     /// region-level ecology/settlement arcs, the Complete Valley Survey closure criterion,
@@ -40,7 +43,7 @@ namespace WalkGame.Application.Content
     /// </summary>
     public static class Region1Catalog
     {
-        public const int AuthoredContentVersion = 4;
+        public const int AuthoredContentVersion = 5;
 
         /// <summary>
         /// Authored per-resource storage caps for Region 1, in whole units (D-054).
@@ -156,7 +159,10 @@ namespace WalkGame.Application.Content
                 completionMilestoneProjectId: authored.CompletionMilestoneProjectId,
                 resourceCaps: authored.ResourceCaps,
                 tombstones: all,
-                postCompletionPrograms: authored.PostCompletionPrograms);
+                postCompletionPrograms: authored.PostCompletionPrograms,
+                chains: authored.Chains,
+                closureCriterion: authored.ClosureCriterion,
+                chapters: authored.Chapters);
         }
 
         private static RegionDefinition Build()
@@ -474,7 +480,48 @@ namespace WalkGame.Application.Content
                 resourceCaps: AuthoredResourceCaps,
                 postCompletionPrograms: postCompletionPrograms,
                 chains: chains,
-                closureCriterion: closureCriterion);
+                closureCriterion: closureCriterion,
+                chapters: Chapters());
+        }
+
+        // ---- Storyline (D-076): Millbrook Valley, told by what the player brings back. ----
+        private static IEnumerable<WalkGame.Domain.Story.StoryChapterDefinition> Chapters()
+        {
+            WalkGame.Domain.Story.StoryChapterDefinition Ch(int n, string id, string title, string body, string hint, long care = 0, params string[] projects) =>
+                new WalkGame.Domain.Story.StoryChapterDefinition("story." + id, n, title, body, hint, projects, care);
+            return new[]
+            {
+                Ch(0, "quiet-valley", "The Quiet Valley",
+                    "Millbrook was a working valley once: a mill on the river, a market on the square, cranes in the east marsh. Then the floods came, the drainage scheme failed, and people drifted away one season at a time. Nobody decided to abandon it. It simply went quiet. Your walks are the first footsteps on the old trail in years.",
+                    ""),
+                Ch(1, "way-in", "The Way In",
+                    "With the trailhead cleared, the valley can be entered again. Someone carved a mark into the gatepost long ago: a heron over a wheel. You find it twice more on the way down, as if the valley meant to be found.",
+                    "Clear the old trailhead to open the way in.", 0, ClearTrailHead),
+                Ch(2, "water-remembers", "Water Remembers",
+                    "The intake gates groan open and the river finds its old channel. By evening the leat is running past the mill for the first time since the floods. Water remembers the shape of a place even when people forget it.",
+                    "Restore the river intake to let the water back in.", 0, RiverIntake),
+                Ch(3, "hands-at-the-bench", "Hands at the Bench",
+                    "A roof, a bench, a rack of tools: the workshop is small, but it changes what is possible. A salvage crew from the next valley stops by, then stays. They say they heard there was work here again.",
+                    "Rebuild the settlement workshop.", 0, BuildWorkshop),
+                Ch(4, "lights-in-the-square", "Lights in the Square",
+                    "The mill race turns the generator and the street lamps come on one by one. The market hall has stalls again and a notice board, and someone has pinned a hand-drawn map of the valley to it, with your trail marked in pencil.",
+                    "Wire settlement power to light the square.", 0, WireSettlementPower),
+                Ch(5, "marsh-breathes", "The Marsh Breathes",
+                    "The old drains are broken open and the east wetland fills slowly, like a held breath let go. Frogs first, then dragonflies. Late one afternoon a single crane circles twice and lands.",
+                    "Drain the east wetland.", 0, WetlandDrainage),
+                Ch(6, "under-the-canopy", "Under the Canopy",
+                    "Fallen timber cleared, the understory planted: the old grove starts to fill in from the ground up. Bird calls return before the leaves do. Someone ties a ribbon to the oldest oak so nobody fells it by mistake.",
+                    "Replant the woodland understory.", 0, PlantWoodlandUnderstory),
+                Ch(7, "above-the-trees", "Above the Trees",
+                    "The walkway threads the crowns of the grove, and from up here the valley makes sense: the river, the marsh, the square, the ridge. Children run the boards at dusk. The heron-and-wheel mark is carved here too, freshly, by someone new.",
+                    "Raise the canopy walkway through the grove.", 0, CanopyWalkway),
+                Ch(8, "every-mile-mapped", "Every Mile Mapped",
+                    "The survey is finished: every path, spring and field boundary recorded at the observatory. The valley is whole again, not as it was, but as the people now living in it want it to be. Millbrook is not quiet anymore.",
+                    "Complete the valley survey to close the story of the restoration.", 0, CompleteValleySurvey),
+                Ch(9, "long-watch", "The Long Watch",
+                    "Restored is not finished. Each season of tending keeps the cranes returning and the water clear. Your walks still matter here. They always did.",
+                    "Complete a season of evergreen tending after the valley is restored.", 1),
+            };
         }
     }
 }

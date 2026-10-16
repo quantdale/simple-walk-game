@@ -15,7 +15,7 @@ Millbrook Valley has landmarks, discoveries and a closure milestone, but no stor
   - a Unity **Story** screen (journal);
   - "New chapter: …" **chapter moments** in the durable return summary when a batch unlocks a chapter.
 - **Content validation:** unique ids; contiguous numbers from 0; every required project exists; the final pre-epilogue chapter requires the closure milestone; bodies within the glance budget.
-- **Cadence gate:** for every pacing profile, chapter unlock days are measured (`profile --story`), and tests bound the first chapter and the longest gap between chapters.
+- **Cadence gate:** for every pacing profile, chapter unlock days are measured through the real pipeline (`StoryCadenceTests`), and tests bound the first chapter and the longest gap between chapters.
 
 ## Non-goals
 
