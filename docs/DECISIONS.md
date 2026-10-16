@@ -2479,3 +2479,11 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Labels.** Automated-verified (self-test; CI step reproduced locally with `verify-ci-steps.sh`). No game, save or content change.
 
+
+## D-118 — Optional landmark letters (Region 1 storyline depth) (2026-10-16)
+
+**Context.** Storyline depth was requested. Region 2 is not approved, so it has to come from Region 1.
+
+**Decision.** The OpenSpec change `add-landmark-letters` is agent-approved as Region 1 / shell scope (as D-103). Six letters from Nell Hartley are each tied to one project (trailhead, river intake, workshop, east wetland, canopy walkway, valley survey). They are derived from project completion only (`GameSession.GetLetters()`), with no save or content-fingerprint change. They are shown in the Story journal, and counted in Discoveries, only after the first find. The copy is calm (no streak, guilt or pressure wording, test-pinned).
+
+**Labels.** Automated-verified (.NET 806/806); Unity-editor-tested (EditMode 181/181). Device UNVERIFIED (KI-002).
