@@ -204,3 +204,10 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - #128 (D-129): Region 1 epilogue (OpenSpec `add-region1-epilogue`, agent-approved as Region 1 scope): Nell's closing letters, a final journal entry and cycling valley notes. No save change.
 - This PR (D-130): null-input scan. Null project ids give calm results; a null provider batch counts as empty. `NullBoundaryTests` (6).
 - No new Dependabot PRs. Region 2 is still PROPOSED only. Next: device lane (KI-002); first real translation.
+
+## Session note 2026-10-17 (grok0718)
+- #130 (`4f04ed6`, D-131): closes the D-128 failed-save gap. `GameSession.HasUnsavedChanges` and `RetryPendingSave()` were added. On resume the shell retries first; if storage still fails it keeps the in-memory world and shows a calm "not saved yet" notice. `FailedSaveGapTests` (6) show no credit is lost or doubled.
+- #131 (`0248656`, D-132): `KillMidSaveTests` (9) kill the save after each `WriteAtomic` step and on a torn temp file. Every cut boots the old or the new generation, and a replay credits exactly once. No production change.
+- This PR (D-133): editor-rendered epilogue journal PNGs (`docs/evidence/d133-epilogue-journal/`). The Story header after restoration now points to tending, not restoring.
+- Epilogue lease: no lease is held. The only writer-lock files on the box belong to the two kept worktrees (`grok-story-1520`, `grok-b1-1537`). The epilogue worktree (grok0316/grok0702) was removed with `git worktree remove`, which deleted its per-worktree lock along with `.git/worktrees/<name>`. Nothing needed releasing, and `--force` was not used.
+- Counts: .NET 853/853 (merged tree). EditMode: see this PR's body (Unity-editor-tested). Device UNVERIFIED (KI-002). There were no Dependabot PRs. Region 2 is still PROPOSED only.
