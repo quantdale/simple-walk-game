@@ -131,3 +131,10 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR: `PlatformParityTests` pins that the bootstrap does not compose the unverified HealthKit bridge. EditMode 175/175 (Unity-editor-tested), evidence in `docs/evidence/records-grok2144/`.
 - Next: a Privacy PNG in the screen tour; an APK build to compile the `AndroidShareSheet` JNI path; HealthKit composition only after a macOS build. Region 2 is still PROPOSED only.
 
+
+## Session note 2026-10-16 (grok2212)
+- #88 (`0e71b27`): an arm64 debug APK built from main `0574e21` compiles the D-111 `AndroidShareSheet` path. Its Android-only literals are in `global-metadata.dat`. No fix was needed. Evidence: `docs/evidence/apk-d111/RESULTS.md` (compile only; device share sheet UNVERIFIED, KI-002).
+- #89 (`0cf22d2`): the screen tour includes Privacy. `docs/evidence/screen-tour/privacy-editor-rendered.png` (editor-rendered); the tour is now 15 PNGs.
+- #90 (`27d866a`, D-113): HealthKit prep, headless. `HealthKitSampleLedger` prunes the seen-samples maps (30 + 7 days, cap 50,000) and the Swift bridge mirrors it (UNVERIFIED). `HealthKitSourceDedup` is the Watch > iPhone > other design, NOT wired: it needs a bridge source field and a D-entry. The reinstall table is in `docs/HEALTHKIT_SETUP.md`. .NET 789/789, EditMode 175/175. The adapter is still not composed.
+- This PR: `PlatformParityTests` pins the prune window to `SyncWindowDays` and keeps the D-113 types out of the shell; EditMode 176/176 (Unity-editor-tested, `docs/evidence/records-grok2212/`). Merged worktrees removed with plain `git worktree remove`.
+- Next: a bridge protocol source field so the dedup can be wired (macOS needed to verify); device lane (KI-002). Region 2 is still PROPOSED only.
