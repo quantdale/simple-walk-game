@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using WalkGame.Application.Content;
 
 namespace WalkGame.Shell
 {
@@ -201,10 +202,36 @@ namespace WalkGame.Shell
         };
 
         /// <summary>The string for key; a missing key returns an empty string (never the raw key).</summary>
-        public static string T(string key) => key != null && En.TryGetValue(key, out var v) ? v : string.Empty;
+        /// <summary>
+        /// D-126 (KI-023): optional presentation-only locale for shell strings, the same
+        /// <see cref="ContentText"/> overlay content copy uses (D-122). Entries are keyed
+        /// <c>ui.&lt;key&gt;#text</c>. A missing or blank entry falls back to the English table,
+        /// a broken localized template falls back to the English template, and a key absent
+        /// from the English table stays empty (an overlay cannot add keys). Never persisted.
+        /// </summary>
+        public static ContentText Locale { get; set; } = ContentText.English;
+
+        public const string Field = "text";
+        public static string OverlayId(string key) => "ui." + key;
+
+        public static string T(string key)
+        {
+            if (key == null || !En.TryGetValue(key, out var english)) return string.Empty;
+            var locale = Locale;
+            return locale == null ? english : locale.Resolve(OverlayId(key), Field, english);
+        }
 
         /// <summary>Formats a template with invariant culture (numbers are pre-formatted by callers).</summary>
-        public static string F(string key, params object[] args) => string.Format(CultureInfo.InvariantCulture, T(key), args);
+        public static string F(string key, params object[] args)
+        {
+            string template = T(key);
+            try { return string.Format(CultureInfo.InvariantCulture, template, args); }
+            catch (FormatException)
+            {
+                string english = key != null && En.TryGetValue(key, out var e) ? e : string.Empty;
+                return string.Format(CultureInfo.InvariantCulture, english, args);
+            }
+        }
 
         public static IEnumerable<string> Keys => En.Keys;
         public static bool Has(string key) => key != null && En.ContainsKey(key);
