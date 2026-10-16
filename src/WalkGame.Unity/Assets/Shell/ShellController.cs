@@ -151,6 +151,7 @@ namespace WalkGame.Shell
                 case ShellScreen.ActivityStatus: return Activity();
                 case ShellScreen.BootError: return BootErrorScreen();
                 case ShellScreen.Guide: return Guide();
+                case ShellScreen.Region: return Region();
                 default: throw new InvalidOperationException("Unmapped screen " + Current);
             }
         }
@@ -181,6 +182,7 @@ namespace WalkGame.Shell
             if (empty) m.Lines.Add("Nothing is being restored yet. Choose a project to begin.");
             if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", "While you were away"));
             m.Actions.Add(new ShellAction("nav:Projects", "Projects"));
+            m.Actions.Add(new ShellAction("nav:Region", "The valley"));
             m.Actions.Add(new ShellAction("nav:ActivityStatus", "Activity"));
             m.Actions.Add(new ShellAction("nav:Settings", "Settings"));
             if (_devTools) m.Actions.Add(new ShellAction("dev:walk", "[dev] Simulate a day of walking"));
@@ -203,15 +205,48 @@ namespace WalkGame.Shell
         {
             var p = _session.GetProjects();
             var open = p.Projects.Where(r => r.Status != ProjectStatus.Locked && r.Status != ProjectStatus.Completed).ToList();
+            bool anyQueued = p.Projects.Any(r => r.Status == ProjectStatus.Queued || r.Status == ProjectStatus.Active);
             var m = With(ShellScreen.Projects, "Projects", open.Count == 0 ? ScreenState.Empty : ScreenState.Normal);
-            if (open.Count == 0) m.Lines.Add("No projects are available right now.");
-            foreach (var r in p.Projects.OrderBy(r => r.QueuedPosition ?? int.MaxValue))
+            // UX_DESIGN §17: empty states explain the next useful action.
+            if (open.Count == 0)
+                m.Lines.Add(p.Projects.All(r => r.Status == ProjectStatus.Completed)
+                    ? "Every restoration in this valley is finished. It stays restored; check the valley to see it flourish."
+                    : "No projects are open right now. Keep walking: finishing restorations unlocks new ones.");
+            else if (!anyQueued)
+                m.Lines.Add("Nothing is queued. Choose a project below and your walks will start restoring it.");
+            foreach (var r in p.Projects.Where(r => r.Status != ProjectStatus.Locked).OrderBy(r => r.QueuedPosition ?? int.MaxValue))
             {
-                string pos = r.QueuedPosition.HasValue ? "#" + (r.QueuedPosition.Value + 1) + " " : "";
-                m.Lines.Add(pos + r.TitleKey + " — " + r.Status + " (" + r.VitalityInvested + "/" + r.VitalityCost + ")");
-                if (r.Status == ProjectStatus.Available) m.Actions.Add(new ShellAction("queue:" + r.ProjectId, "Queue " + r.TitleKey));
-                if (r.Status == ProjectStatus.Queued && r.QueuedPosition > 0) m.Actions.Add(new ShellAction("up:" + r.ProjectId, "Move up " + r.TitleKey));
+                string title = PlayerCopy.Title(r.TitleKey);
+                m.Lines.Add(title + " — " + PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition) + " (" + r.VitalityInvested + " of " + r.VitalityCost + " vitality)");
+                if (r.Status == ProjectStatus.Available) m.Actions.Add(new ShellAction("queue:" + r.ProjectId, "Restore " + title));
+                if (r.Status == ProjectStatus.Queued && r.QueuedPosition > 0) m.Actions.Add(new ShellAction("up:" + r.ProjectId, "Move " + title + " up"));
             }
+            int locked = p.Projects.Count(r => r.Status == ProjectStatus.Locked);
+            if (locked > 0) m.Lines.Add(locked + (locked == 1 ? " more project unlocks" : " more projects unlock") + " as the valley recovers.");
+            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            return m;
+        }
+
+        /// <summary>UX_DESIGN §9 compact region status: landmarks as phrases, producers, closure.</summary>
+        private ScreenModel Region()
+        {
+            var r = _session.GetRegion();
+            var m = With(ShellScreen.Region, "The valley");
+            if (r.RegionCompleted)
+                m.Lines.Add("The valley is fully restored. It stays this way; nothing will reset.");
+            else
+                m.Lines.Add(r.CompletedProjects + " of " + r.TotalProjects + " restorations finished.");
+            foreach (var l in r.Landmarks) m.Lines.Add(GlancePhrases.FormatLandmark(PlayerCopy.Title(l.TitleKey), l.Stage));
+            foreach (var pr in r.Producers)
+                m.Lines.Add(PlayerCopy.Title(pr.TitleKey) + ": " + (!pr.Unlocked
+                    ? "not running yet. Restore nearby landmarks to bring it back."
+                    : pr.CapacityLimited ? "storage full, holding what it made." : "producing while you are away."));
+            m.Lines.Add(r.DiscoveriesUnlocked == 0
+                ? "No discoveries yet. Walks that restore landmarks reveal them."
+                : r.DiscoveriesUnlocked + (r.DiscoveriesUnlocked == 1 ? " discovery found." : " discoveries found."));
+            m.Lines.Add(r.ExpeditionsAvailable == 0 && r.ExpeditionsCompleted == 0
+                ? "No expedition routes are open yet. Restoring the valley opens them."
+                : r.ExpeditionsAvailable + " expedition routes open, " + r.ExpeditionsCompleted + " completed.");
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
@@ -223,9 +258,9 @@ namespace WalkGame.Shell
             m.Lines.Add("Reduced motion: " + (s.ReducedMotion ? "on" : "off"));
             m.Lines.Add("Sound: " + (s.SoundEnabled ? "on" : "off"));
             m.Lines.Add("Diagnostics: " + (s.DiagnosticsVisible ? "visible" : "hidden"));
-            m.Actions.Add(new ShellAction("toggle:reducedMotion", "Toggle reduced motion"));
-            m.Actions.Add(new ShellAction("toggle:sound", "Toggle sound"));
-            m.Actions.Add(new ShellAction("toggle:diagnostics", "Toggle diagnostics"));
+            m.Actions.Add(new ShellAction("toggle:reducedMotion", (s.ReducedMotion ? "Turn off" : "Turn on") + " reduced motion"));
+            m.Actions.Add(new ShellAction("toggle:sound", (s.SoundEnabled ? "Turn off" : "Turn on") + " sound"));
+            m.Actions.Add(new ShellAction("toggle:diagnostics", (s.DiagnosticsVisible ? "Hide" : "Show") + " diagnostics"));
             m.Actions.Add(new ShellAction("delete:request", "Delete all local data…"));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
@@ -244,10 +279,12 @@ namespace WalkGame.Shell
         {
             var a = _session.GetActivityStatus();
             var m = With(ShellScreen.ActivityStatus, "Activity", a.HasProcessedAnyRecord ? ScreenState.Normal : ScreenState.Empty);
-            m.Lines.Add("Status: " + a.Status);
-            m.Lines.Add("Recommended: " + a.RecommendedAction);
-            if (!a.HasProcessedAnyRecord) m.Lines.Add("No walking data has been received yet.");
-            else m.Lines.Add("Last batch credited " + a.LastBatchVitalityCredited + " vitality.");
+            // UX_DESIGN §5: player-facing states only; never raw identifiers or exception text.
+            m.Lines.Add(PlayerCopy.ActivityStatus(a.Status));
+            string next = PlayerCopy.ActivityAction(a.RecommendedAction);
+            if (next != null) m.Lines.Add(next);
+            if (!a.HasProcessedAnyRecord) m.Lines.Add("No walking data has arrived yet. Your progress starts with your first walk.");
+            else m.Lines.Add("Your last walks added " + a.LastBatchVitalityCredited + " vitality.");
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }

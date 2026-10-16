@@ -69,7 +69,7 @@ namespace WalkGame.Shell.Tests
         [Test] public void Every_screen_renders_without_error_after_new_game()
         {
             var c = NewController(); c.Boot(); c.Invoke("start");
-            foreach (var s in new[] { "Home", "ReturnSummary", "Projects", "Settings", "ActivityStatus" })
+            foreach (var s in new[] { "Home", "ReturnSummary", "Projects", "Settings", "ActivityStatus", "Region" })
             {
                 c.Invoke("nav:" + s);
                 var m = c.Render();
@@ -116,6 +116,78 @@ namespace WalkGame.Shell.Tests
             Assert.IsEmpty(Directory.GetFiles(_dir));
             var c2 = NewController(); c2.Boot();
             Assert.AreEqual(StartStatus.NoSaveFound, c2.LastStartStatus);
+        }
+
+        private static readonly string[] AllScreens = { "Home", "ReturnSummary", "Projects", "Settings", "ActivityStatus", "Region" };
+
+        private static System.Collections.Generic.IEnumerable<string> EnumIdentifiers() =>
+            System.Enum.GetNames(typeof(WalkGame.Application.Activity.ActivityPlayerStatus))
+                .Concat(System.Enum.GetNames(typeof(WalkGame.Application.Activity.ActivityRecommendedAction)).Where(n => n != "None"))
+                .Concat(new[] { "Ruined", "Stabilized", "Functional", "Flourishing" });
+
+        [Test] public void No_screen_shows_enum_identifiers_or_content_keys()
+        {
+            var c = NewController(); c.Boot(); c.Invoke("start"); FinishOnboarding(c);
+            for (int pass = 0; pass < 2; pass++)
+            {
+                foreach (var s in AllScreens)
+                {
+                    c.Invoke("nav:" + s);
+                    var m = c.Render();
+                    var texts = m.Lines.Concat(m.Actions.Select(a => a.Label)).Append(m.Title);
+                    foreach (var t in texts)
+                    {
+                        foreach (var id in EnumIdentifiers()) Assert.IsFalse(System.Text.RegularExpressions.Regex.IsMatch(t, @"\b" + id + @"\b"), s + ": '" + t + "' leaks " + id);
+                        Assert.IsFalse(System.Text.RegularExpressions.Regex.IsMatch(t, @"\b[a-z0-9-]+\.[a-z0-9-]+\b"), s + ": '" + t + "' looks like a content key");
+                    }
+                }
+                c.Invoke("dev:walk"); c.Invoke("nav:Home");
+            }
+        }
+
+        [Test] public void Empty_states_explain_the_next_action()
+        {
+            var c = NewController(); c.Boot(); c.Invoke("start"); FinishOnboarding(c);
+            foreach (var s in AllScreens)
+            {
+                c.Invoke("nav:" + s);
+                var m = c.Render();
+                if (m.State != ScreenState.Empty) continue;
+                Assert.IsTrue(m.Lines.Any(l => l.Length > 25 && !l.StartsWith("Nothing here")), s + " empty state lacks guidance");
+            }
+        }
+
+        [Test] public void Region_screen_lists_landmarks_as_phrases_and_is_reachable_from_home()
+        {
+            var c = NewController(); c.Boot(); c.Invoke("start"); FinishOnboarding(c);
+            Assert.IsTrue(c.Render().Actions.Any(a => a.Id == "nav:Region"));
+            c.Invoke("nav:Region");
+            var m = c.Render();
+            Assert.AreEqual(ShellScreen.Region, c.Current);
+            Assert.AreNotEqual(ScreenState.Error, m.State, m.Notice);
+            Assert.That(m.Lines.Count, Is.GreaterThanOrEqualTo(3));
+            Assert.IsTrue(m.Actions.Any(a => a.Id == "nav:Home"));
+        }
+
+        [Test] public void Settings_toggle_labels_describe_the_resulting_change()
+        {
+            var c = NewController(); c.Boot(); c.Invoke("start"); FinishOnboarding(c); c.Invoke("nav:Settings");
+            string before = c.Render().Actions.First(a => a.Id == "toggle:reducedMotion").Label;
+            c.Invoke("toggle:reducedMotion");
+            string after = c.Render().Actions.First(a => a.Id == "toggle:reducedMotion").Label;
+            Assert.AreNotEqual(before, after);
+            Assert.IsTrue(after.StartsWith("Turn off") || after.StartsWith("Turn on"));
+        }
+
+        [Test] public void Every_activity_status_and_action_has_player_copy()
+        {
+            foreach (WalkGame.Application.Activity.ActivityPlayerStatus st in System.Enum.GetValues(typeof(WalkGame.Application.Activity.ActivityPlayerStatus)))
+            {
+                var t = PlayerCopy.ActivityStatus(st);
+                Assert.IsFalse(string.IsNullOrWhiteSpace(t)); Assert.IsFalse(t.Contains(st.ToString()));
+            }
+            foreach (WalkGame.Application.Activity.ActivityRecommendedAction a in System.Enum.GetValues(typeof(WalkGame.Application.Activity.ActivityRecommendedAction)))
+                Assert.AreEqual(a == WalkGame.Application.Activity.ActivityRecommendedAction.None, PlayerCopy.ActivityAction(a) == null);
         }
 
         private static void FinishOnboarding(ShellController c)
