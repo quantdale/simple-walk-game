@@ -708,13 +708,20 @@ namespace WalkGame.Shell
         /// next locked chapter shows its gentle hint; later chapters show only their titles so
         /// the journal never spoils the story and never uses guilt language.
         /// </summary>
+        /// <summary>
+        /// The Story journal's first line. Once the valley is restored the remaining chapter comes
+        /// from tending, not restoring, so the hint must not say "restoring" (D-133, epilogue polish).
+        /// </summary>
+        public static string StoryProgressLine(int unlocked, int total, bool regionCompleted) =>
+            unlocked >= total ? PlayerStrings.T("shell.youHaveReadThe")
+            : regionCompleted ? PlayerStrings.F("shell.story.progressTending", unlocked, total)
+            : PlayerStrings.F("shell.story.progress", unlocked, total);
+
         private ScreenModel Story()
         {
             var story = _session.GetStory();
             var m = With(ShellScreen.Story, "Story");
-            m.Lines.Add(story.UnlockedCount == story.TotalChapters
-                ? PlayerStrings.T("shell.youHaveReadThe")
-                : PlayerStrings.F("shell.story.progress", story.UnlockedCount, story.TotalChapters));
+            m.Lines.Add(StoryProgressLine(story.UnlockedCount, story.TotalChapters, _session.GetRegion().RegionCompleted));
             bool hinted = false;
             foreach (var c in story.Chapters)
             {

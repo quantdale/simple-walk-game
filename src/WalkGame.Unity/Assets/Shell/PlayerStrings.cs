@@ -182,6 +182,7 @@ namespace WalkGame.Shell
             ["shell.expedition.open"] = "{0} · open; it completes on its own while you walk.",
             ["shell.expedition.locked"] = "{0} · opens after: {1}.",
             ["shell.story.progress"] = "{0} of {1} chapters unlocked. Restoring the valley reveals the next one.",
+            ["shell.story.progressTending"] = "{0} of {1} chapters unlocked. Tending the restored valley reveals the last one.",
             ["shell.progress.daysAtLeast.one"] = "You have walked on at least {0} day.",
             ["shell.progress.daysAtLeast.many"] = "You have walked on at least {0} days.",
             ["shell.progress.days.one"] = "You have walked on {0} day.",
