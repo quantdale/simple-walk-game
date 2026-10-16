@@ -279,6 +279,9 @@ namespace WalkGame.Application.ReadModels
                 OnboardingNextAction.ExplainPremise => "Your movement restores this world.",
                 OnboardingNextAction.ShowWorldBaseline => BaselineLandmarkSentence(home),
                 OnboardingNextAction.OfferActivityConnection
+                    when onboarding.ActivityStep == OnboardingActivityStepState.ProviderUpdateRequired
+                    => "Your movement app needs an update before new walks can count. You can keep going; nothing is locked.",
+                OnboardingNextAction.OfferActivityConnection
                     => "Connect movement to restore this world. Only walking activity is needed, and you can decide later.",
                 OnboardingNextAction.ChooseFirstProject => "Choose the first thing to restore.",
                 OnboardingNextAction.DemonstrateProgression => "Progress can continue while you are away.",

@@ -21,8 +21,9 @@ namespace WalkGame.Shell.Tests
         private sealed class MutablePort : IActivityConnectionPort
         {
             public ActivityPermissionState Permission = ActivityPermissionState.NotRequested;
+            public ActivitySourceAvailability Availability = ActivitySourceAvailability.Available;
             public ActivityConnectionSnapshot SnapshotConnection() =>
-                new ActivityConnectionSnapshot(Permission, ActivitySourceAvailability.Available);
+                new ActivityConnectionSnapshot(Permission, Availability);
         }
 
         private sealed class CountingSource : IActivityRecordSource
@@ -85,6 +86,24 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual("Connect your walking", c.Render().Title);
             Assert.AreEqual(ScreenState.Normal, c.Render().State);
             Assert.AreEqual(1, _source.Fetches, "a grant made in settings is picked up on resume");
+            FinishOnboarding(c);
+        }
+
+        [Test] public void Outdated_health_connect_shows_update_required_not_connect()
+        {
+            var c = Launch(); c.Boot(); c.Invoke("start");
+            _port.Availability = ActivitySourceAvailability.ProviderUpdateRequired; c.Invoke("guide:next");
+            var m = c.Render();
+            Assert.AreEqual("Update Health Connect", m.Title, "D-094: no Connect dead end");
+            Assert.IsFalse(Has(c, "activity:connect"));
+            Assert.IsTrue(m.Lines.Any(l => l.Contains("needs an update")));
+            Assert.IsTrue(m.Lines.Any(l => l.StartsWith("Next: update Health Connect")));
+            Assert.IsTrue(Has(c, "guide:next"), "never trapped");
+            Assert.AreEqual(0, _source.Fetches, "no read on an outdated provider");
+
+            _port.Availability = ActivitySourceAvailability.Available; c.Resume();
+            Assert.AreEqual("Connect your walking", c.Render().Title, "after the update the normal step returns");
+            Assert.IsTrue(Has(c, "activity:connect"));
             FinishOnboarding(c);
         }
 

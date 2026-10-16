@@ -533,11 +533,14 @@ namespace WalkGame.Shell
                     m.Actions.Add(new ShellAction("guide:next", "Continue"));
                     break;
                 case OnboardingStage.ActivityConnection:
-                    m = With(ShellScreen.Guide, "Connect your walking");
+                    bool needsUpdate = ob.ActivityStep == OnboardingActivityStepState.ProviderUpdateRequired;
+                    // D-094: an outdated Health Connect shows the update-required state, never a Connect dead end.
+                    m = With(ShellScreen.Guide, needsUpdate ? "Update Health Connect" : "Connect your walking");
                     m.Lines.Add("The game reads only your step counts, on this device. Nothing is uploaded.");
                     m.Lines.Add(PlayerCopy.ActivityStatus(_session.GetActivityStatus().Status));
+                    if (needsUpdate) m.Lines.Add(PlayerCopy.ActivityAction(ActivityRecommendedAction.UpdateProvider));
                     m.Lines.Add("You can keep going without connecting; nothing is locked.");
-                    if (_session.GetActivityStatus().RecommendedAction == ActivityRecommendedAction.Connect && _requestPermission != null)
+                    if (!needsUpdate && _session.GetActivityStatus().RecommendedAction == ActivityRecommendedAction.Connect && _requestPermission != null)
                         m.Actions.Add(new ShellAction("activity:connect", "Connect walking data"));
                     m.Actions.Add(new ShellAction("guide:next", "Continue"));
                     break;
