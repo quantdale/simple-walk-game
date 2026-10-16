@@ -64,6 +64,22 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual(ShellScreen.BootError, broken.Current);
         }
 
+        [Test] public void Start_refuses_a_save_that_appeared_after_boot()
+        {
+            // D-085: a save written after this shell booted to onboarding (e.g. another
+            // session) is refused by the Application layer, not replaced.
+            var c = Shell(); c.Boot();
+            Assert.AreEqual(ShellScreen.Onboarding, c.Current);
+            var other = Shell(); other.Boot(); other.Invoke("start");
+            var save = Path.Combine(_dir, "save.json");
+            var before = File.ReadAllBytes(save);
+            c.Invoke("start");
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(save));
+            Assert.AreEqual(StartStatus.ExistingSaveRefused, c.LastStartStatus);
+            Assert.AreEqual(ShellScreen.Onboarding, c.Current);
+            Assert.AreEqual("A game is already here; it was not replaced.", c.Render().Notice);
+        }
+
         [Test] public void After_delete_all_a_new_game_can_still_start()
         {
             var c = Shell(); c.Boot(); c.Invoke("start");

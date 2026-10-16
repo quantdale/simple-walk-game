@@ -110,7 +110,9 @@ namespace WalkGame.Shell
                     // screen of an unbooted shell may start. A loaded game or an unreadable save
                     // (BootError) is never replaced from here.
                     if (_booted || Current != ShellScreen.Onboarding) { _error = "A game is already here; it was not replaced."; return; }
-                    var started = _session.StartNewGame(_seedSource());
+                    // D-085: the Application layer refuses too, so a save the boot did not
+                    // see (or could not read) is never replaced from the shell.
+                    var started = _session.StartNewGame(_seedSource(), overwriteExisting: false);
                     LastStartStatus = started.Status;
                     if (started.Status == StartStatus.NewGameCreated)
                     {
@@ -118,6 +120,7 @@ namespace WalkGame.Shell
                         Check(_session.AdvanceOnboarding(OnboardingStage.WorldBaseline));
                         Current = OnboardingIncomplete() ? ShellScreen.Guide : ShellScreen.Home;
                     }
+                    else if (started.Status == StartStatus.ExistingSaveRefused) _error = "A game is already here; it was not replaced.";
                     else _error = "Could not start a new game (" + started.Status + "): " + started.Detail;
                     return;
                 case "retry": Boot(); return;

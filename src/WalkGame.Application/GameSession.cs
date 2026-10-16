@@ -40,6 +40,13 @@ namespace WalkGame.Application
         /// action is to upgrade the build, not to repair the save.
         /// </summary>
         ContentIncompatible = 6,
+
+        /// <summary>
+        /// D-085 (KI-021): <c>StartNewGame(seed, overwriteExisting: false)</c> found a save
+        /// generation (primary or backup) or could not tell, so nothing was written. The
+        /// existing world, even an unreadable one, is left for Continue/recovery.
+        /// </summary>
+        ExistingSaveRefused = 7,
     }
 
     /// <summary>Why a boot had to fall back to the backup generation (never set when the
@@ -387,8 +394,31 @@ namespace WalkGame.Application
 
         public RegionDefinition Content => _content;
 
-        public StartResult StartNewGame(ulong seed)
+        /// <summary>
+        /// Creates and persists a fresh game, REPLACING any existing save. This is the
+        /// long-standing explicit-overwrite contract used by tools and tests; it is the same
+        /// as <c>StartNewGame(seed, overwriteExisting: true)</c>. Player-facing callers should
+        /// pass <c>overwriteExisting: false</c> (D-085, KI-021).
+        /// </summary>
+        public StartResult StartNewGame(ulong seed) => StartNewGame(seed, overwriteExisting: true);
+
+        /// <summary>
+        /// D-085 (KI-021): with <paramref name="overwriteExisting"/> false, refuses with
+        /// <see cref="StartStatus.ExistingSaveRefused"/> when the primary or backup slot holds
+        /// anything, or when the store cannot say (an I/O failure fails closed). Nothing is
+        /// written and the in-memory session is unchanged.
+        /// </summary>
+        public StartResult StartNewGame(ulong seed, bool overwriteExisting)
         {
+            if (!overwriteExisting)
+            {
+                var primary = _store.ReadPrimary().Outcome;
+                var backup = _store.ReadBackup().Outcome;
+                if (primary != SaveReadOutcome.NotFound || backup != SaveReadOutcome.NotFound)
+                    return new StartResult(StartStatus.ExistingSaveRefused,
+                        detail: "A save already exists on this device; it was not replaced.");
+            }
+
             var nowUtc = _clock.UtcNow;
             var fresh = GameFactory.NewGame(_content, nowUtc, seed);
 
