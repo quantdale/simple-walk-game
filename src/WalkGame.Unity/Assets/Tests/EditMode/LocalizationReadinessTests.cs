@@ -20,13 +20,12 @@ namespace WalkGame.Shell.Tests
         private static readonly Regex Words = new Regex("[A-Za-z]{2,}[^\"]*\\s[^\"]*[A-Za-z]{2,}");
 
         /// <summary>Files fully routed through the table: zero hard-coded player literals.</summary>
-        private static readonly string[] Migrated = { "BootRouter.cs", "ReminderScheduler.cs", "PlayerCopy.cs", "RegionScene.cs" };
+        private static readonly string[] Migrated = { "BootRouter.cs", "ReminderScheduler.cs", "PlayerCopy.cs", "RegionScene.cs", "ShellController.cs" };
 
         /// <summary>Ratchet ceilings for files not yet migrated (2026-10-16). Lower them; never raise.</summary>
         private static readonly Dictionary<string, int> Ceiling = new Dictionary<string, int>
         {
             ["AccessibleOutline.cs"] = 1, ["AndroidShareSheet.cs"] = 2, ["ShellBootstrap.cs"] = 3, ["ShellConnectionPort.cs"] = 2,
-            ["ShellController.cs"] = 79,
         };
 
         private static string ShellDir => Path.Combine(UnityEngine.Application.dataPath, "Shell");
@@ -94,6 +93,17 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual("3 of 9 restorations finished.", PlayerStrings.F("shell.region.finished", 3, 9));
             Assert.AreEqual("2 expedition routes open, 0 completed.", PlayerStrings.F("shell.region.expeditions", 2, 0));
             Assert.AreEqual("1 discovery found.", PlayerStrings.F("shell.region.discoveries.one", 1));
+            Assert.AreEqual("You have walked on at least 1 day.", ShellController.DaysWalkedLine(1, true));
+            Assert.AreEqual("You have walked on 12 days.", ShellController.DaysWalkedLine(12, false));
+            var lines = ShellController.ProgressLines(1234, 2, 9, 3, 10, 1, 7, false);
+            Assert.Contains("Vitality gathered from your walks: 1,234.", lines);
+            Assert.Contains("Restorations finished: 2 of 9.", lines);
+            Assert.Contains("Discoveries found: 3 of 10.", lines);
+            Assert.Contains("Story chapters unlocked: 1 of 7.", lines);
+            Assert.Contains("Every restoration in the valley is finished (9 of 9).", ShellController.ProgressLines(5, 9, 9, 0, 1, 0, 1, true));
+            Assert.AreEqual("Turn off reduced motion", PlayerStrings.T("shell.settings.motion.off"));
+            Assert.AreEqual("Expedition routes: 1 open, 2 of 4 completed.", PlayerStrings.F("shell.discoveries.expeditions", 1, 2, 4));
+            Assert.AreEqual("Old Mill · opens after: more restoration.", PlayerStrings.F("shell.expedition.locked", "Old Mill", PlayerStrings.T("shell.moreRestoration")));
         }
 
         [Test] public void Every_key_used_in_shell_code_exists_in_the_table()
