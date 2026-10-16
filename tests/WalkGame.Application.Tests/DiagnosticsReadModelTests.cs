@@ -1,3 +1,4 @@
+using WalkGame.Domain;
 using System;
 using System.IO;
 using System.Text;
@@ -38,7 +39,7 @@ public sealed class DiagnosticsReadModelTests : IDisposable
         Assert.False(diag.RecoveredFromBackup);
         Assert.Equal(CodecFailureCategory.None, diag.LastBootCodecFailure);
         Assert.Empty(diag.AppliedMigrationsAtBoot);
-        Assert.Equal(2, diag.SchemaVersion);
+        Assert.Equal(SchemaVersions.Current, diag.SchemaVersion);
         Assert.Equal("region.millbrook-valley", diag.RegionId);
         Assert.Equal(0, diag.ProcessedRecordCount);
         Assert.Equal(0L, diag.LifetimeVitalityCredited);
@@ -107,7 +108,7 @@ public sealed class DiagnosticsReadModelTests : IDisposable
         // future — the honest way this failure occurs in the wild.
         byte[] genuine = File.ReadAllBytes(Path.Combine(_temp.Path, "save.json"));
         string bumped = Encoding.UTF8.GetString(genuine)
-            .Replace("\"schemaVersion\":2", "\"schemaVersion\":999");
+            .Replace("\"schemaVersion\":" + SchemaVersions.Current, "\"schemaVersion\":999");
         Assert.NotEqual(Encoding.UTF8.GetString(genuine), bumped);
         File.WriteAllBytes(Path.Combine(_temp.Path, "save.json"), Encoding.UTF8.GetBytes(bumped));
         File.WriteAllBytes(Path.Combine(_temp.Path, "save.backup.json"), Encoding.UTF8.GetBytes(bumped));

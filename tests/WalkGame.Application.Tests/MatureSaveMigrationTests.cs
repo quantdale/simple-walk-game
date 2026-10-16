@@ -105,7 +105,7 @@ public sealed class MatureSaveMigrationTests : IDisposable
         var codec = TestSessions.NewCodec();
         var first = codec.Decode(File.ReadAllBytes(Path.Combine(_temp.Path, "save.json")));
         Assert.Equal(CodecStatus.Ok, first.Status);
-        Assert.Equal(new[] { MigrationV1ToV2.Id }, first.AppliedMigrations);
+        Assert.Equal(new[] { MigrationV1ToV2.Id, MigrationV2ToV3.Id }, first.AppliedMigrations);
 
         var session = TestSessions.Create(_temp.Path, new ManualClock(T0.AddDays(daysDriven)));
         Assert.Equal(StartStatus.Loaded, session.Continue().Status);

@@ -290,7 +290,11 @@ public final class HealthConnectBridge {
                     index.known.put(id, new long[] { s, e, mod });
                     index.deleted.remove(id);
                     out.append(id).append('\t').append(s).append('\t').append(e).append('\t')
-                       .append(r.getCount()).append('\t').append(mod).append('\n');
+                       .append(r.getCount()).append('\t').append(mod).append('\t');
+                    // D-103: sixth field = end zone offset in seconds (empty when unknown).
+                    java.time.ZoneOffset zo = r.getEndZoneOffset();
+                    if (zo != null) out.append(zo.getTotalSeconds());
+                    out.append('\n');
                 }
                 pageToken = resp.getNextPageToken();
                 if (pageToken == -1) return;

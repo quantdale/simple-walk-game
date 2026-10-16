@@ -36,7 +36,7 @@ public class M4BackwardDecodingTests : IDisposable
 
         Assert.Equal(CodecStatus.Ok, decoded.Status);
         var state = decoded.State!;
-        Assert.Equal(2, decoded.SourceSchemaVersion);
+        Assert.Equal(SchemaVersions.Current, decoded.SourceSchemaVersion); // fresh games are written at the current schema (v3 since D-103)
         Assert.Empty(state.Region.Discoveries);
         Assert.Empty(state.Region.Expeditions);
         Assert.Equal(0, state.Region.EcologyStage);

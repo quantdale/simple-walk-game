@@ -39,7 +39,7 @@ public sealed class SaveCodecRoundtripTests
 
         Assert.Equal(CodecStatus.Ok, result.Status);
         Assert.NotNull(result.State);
-        Assert.Equal(2, result.SourceSchemaVersion);
+        Assert.Equal(SchemaVersions.Current, result.SourceSchemaVersion);
         Assert.Empty(result.AppliedMigrations);
         AssertEquivalentState(expected, result.State!);
     }
@@ -87,7 +87,7 @@ public sealed class SaveCodecRoundtripTests
 
         Assert.Equal(CodecStatus.ChecksumMismatch, result.Status);
         Assert.Null(result.State);
-        Assert.Equal(2, result.SourceSchemaVersion);
+        Assert.Equal(SchemaVersions.Current, result.SourceSchemaVersion);
     }
 
     [Fact]
