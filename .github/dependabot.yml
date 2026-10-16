@@ -17,6 +17,12 @@ updates:
     open-pull-requests-limit: 3
     labels:
       - "dependencies"
+    # System.Text.Json is the one shipped runtime package, published into the Unity
+    # netstandard2.1 plugin folder; a major bump needs its own decision and Unity/APK
+    # evidence (D-064, KI-024), so Dependabot only proposes patch/minor updates for it.
+    ignore:
+      - dependency-name: "System.Text.Json"
+        update-types: ["version-update:semver-major"]
     groups:
       xunit:
         patterns:

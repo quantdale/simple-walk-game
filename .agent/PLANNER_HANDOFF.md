@@ -179,3 +179,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - #111 (`521920e`, D-123): `ReminderTime.java` (pure) with a headless 200k-case property test across all time zones and DST, plus the restart decision table. Fix: a damaged stored reminder time no longer makes "turn on" a dead end. .NET 813.
 - RC on `521920e`: `docs/evidence/rc-521920e/` (11/11 mechanical PASS, clean clone with Unity and APK). Device UNVERIFIED (KI-002).
 - Next: D-122 slices (titles by id in read models, chapters, discovery copy, glance phrases), then a language preference. Device lane (KI-002). Region 2 is still PROPOSED only.
+
+## Session note 2026-10-17 (grok0157)
+- Dependabot triage: #1/#2/#3 recreated on main as #113 (`f93d751`, checkout v7, setup-dotnet v6, upload-artifact v6; Node 24) and closed as superseded. #6 recreated as #114 (`65c27ba`, Test.Sdk 18.10.1, xunit 2.9.3, runner 4.0.1, coverlet 10.1.0) and closed. #5 (System.Text.Json 10) closed: runtime/Unity pin, see KI-024; dependabot.yml now ignores its majors.
+- #115 (`70b467e`): KI-023 slice 2 (D-122). Titles, chapters and discovery copy route through `ContentText`; `ContentTitleOverlayTests` (2). .NET 815, EditMode 205/205.
+- Next: glance phrases plus expedition/producer titles (D-122), then a language preference. Device lane (KI-002). Region 2 is still PROPOSED only.
