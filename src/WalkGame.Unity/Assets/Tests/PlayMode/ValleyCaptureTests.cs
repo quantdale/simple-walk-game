@@ -32,12 +32,12 @@ namespace WalkGame.Shell.PlayModeTests
             {
                 string screen = Environment.GetEnvironmentVariable("WG_CAPTURE_SCREEN") ?? "Region";
                 ShellController c;
-                if (screen == "Celebration")
+                if (screen == "Celebration" || screen == "Discoveries")
                 {
                     // Seeded completed-region state through the real pipeline (CompletedRegionFixture).
                     c = CompletedRegionFixture.Build(dir, out var done, out _);
                     Assert.IsTrue(done.GetRegion().RegionCompleted);
-                    c.Invoke("nav:ReturnSummary");
+                    c.Invoke(screen == "Celebration" ? "nav:ReturnSummary" : "nav:Discoveries");
                 }
                 else
                 {

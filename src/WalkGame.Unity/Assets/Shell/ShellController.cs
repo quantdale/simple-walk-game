@@ -194,6 +194,7 @@ namespace WalkGame.Shell
                 case ShellScreen.Guide: return Guide();
                 case ShellScreen.Region: return Region();
                 case ShellScreen.Story: return Story();
+                case ShellScreen.Discoveries: return Discoveries();
                 default: throw new InvalidOperationException("Unmapped screen " + Current);
             }
         }
@@ -308,8 +309,62 @@ namespace WalkGame.Shell
             m.Lines.Add(r.ExpeditionsAvailable == 0 && r.ExpeditionsCompleted == 0
                 ? "No expedition routes are open yet. Restoring the valley opens them."
                 : r.ExpeditionsAvailable + " expedition routes open, " + r.ExpeditionsCompleted + " completed.");
+            m.Actions.Add(new ShellAction("nav:Discoveries", "Discoveries and expeditions"));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
+        }
+
+        /// <summary>
+        /// Discoveries and expeditions detail (B2, D-082). Found discoveries show title, kind and
+        /// when they were found; unfound ones stay unnamed so nothing is spoiled. Expedition routes
+        /// show status, what opens them (in player words) and their reward. Read-only: viewing
+        /// never changes progression (GAME_SYSTEMS §7).
+        /// </summary>
+        private ScreenModel Discoveries()
+        {
+            var d = _session.GetDiscoveries();
+            var e = _session.GetExpeditions();
+            bool empty = d.UnlockedCount == 0 && e.AvailableCount == 0 && e.CompletedCount == 0;
+            var m = With(ShellScreen.Discoveries, "Discoveries and expeditions", empty ? ScreenState.Empty : ScreenState.Normal);
+            m.Lines.Add("Discoveries: " + d.UnlockedCount + " of " + d.TotalDiscoveries + " found.");
+            if (d.UnlockedCount == 0) m.Lines.Add("Nothing found yet. Restoring landmarks reveals what the valley kept.");
+            foreach (var row in d.Discoveries.Where(x => x.Unlocked).OrderBy(x => x.DiscoveredAtUtc))
+                m.Lines.Add(PlayerCopy.Title(row.TitleKey) + " · " + PlayerCopy.DiscoveryCategory(row.Category)
+                    + (row.DiscoveredAtUtc.HasValue ? " · found " + row.DiscoveredAtUtc.Value.UtcDateTime.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture) : ""));
+            int hidden = d.TotalDiscoveries - d.UnlockedCount;
+            if (hidden > 0) m.Lines.Add(hidden + (hidden == 1 ? " more find is" : " more finds are") + " still waiting in the valley.");
+
+            m.Lines.Add("Expedition routes: " + e.AvailableCount + " open, " + e.CompletedCount + " of " + e.TotalExpeditions + " completed.");
+            var projects = _session.GetProjects().Projects.ToDictionary(p => p.ProjectId, p => PlayerCopy.Title(p.TitleKey));
+            var landmarks = _session.GetRegion().Landmarks.ToDictionary(l => l.LandmarkId, l => PlayerCopy.Title(l.TitleKey));
+            foreach (var x in e.Expeditions)
+            {
+                string reward = x.RewardType.HasValue && x.RewardUnits > 0 ? " Reward: +" + x.RewardUnits + " " + x.RewardType.Value + "." : "";
+                switch (x.Status)
+                {
+                    case ExpeditionsReadModel.ExpeditionStatus.Completed:
+                        m.Lines.Add(PlayerCopy.Title(x.TitleKey) + " · completed." + reward); break;
+                    case ExpeditionsReadModel.ExpeditionStatus.Available:
+                        m.Lines.Add(PlayerCopy.Title(x.TitleKey) + " · open; it completes on its own while you walk." + reward); break;
+                    default:
+                        var needs = x.RequiredProjectIds.Select(id => projects.TryGetValue(id, out var t) ? t : GlancePhrases.UntitledProject)
+                            .Concat(x.RequiredStageKeys.Select(k => StageNeed(k, landmarks))).ToList();
+                        m.Lines.Add(PlayerCopy.Title(x.TitleKey) + " · opens after: " + (needs.Count == 0 ? "more restoration" : string.Join(", ", needs)) + "." + reward);
+                        break;
+                }
+            }
+            m.Actions.Add(new ShellAction("nav:Region", "The valley"));
+            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            return m;
+        }
+
+        /// <summary>"lm.canopy@Flourishing" → "Canopy flourishing"; unknown ids never leak raw.</summary>
+        public static string StageNeed(string key, IReadOnlyDictionary<string, string> landmarks)
+        {
+            int at = key == null ? -1 : key.LastIndexOf('@');
+            if (at <= 0) return "more restoration";
+            string name = landmarks.TryGetValue(key.Substring(0, at), out var t) ? t : "a landmark";
+            return name + " " + key.Substring(at + 1).ToLowerInvariant();
         }
 
         /// <summary>Suffix the composer uses for the region-complete moment (ReturnSummaryComposer, RegionCompleted).</summary>
