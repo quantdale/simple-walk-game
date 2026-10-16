@@ -125,13 +125,23 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
         {
             if (line.StartsWith("del\t", StringComparison.Ordinal)) return ParseDeletion(line);
             var f = line.Split('\t');
-            if (f.Length != 5 || !IsAcceptableId(f[0].Trim())) return null;
+            // Five fields, or six with the record's end zone offset in seconds (D-103). An
+            // empty sixth field means Health Connect supplied no offset.
+            if ((f.Length != 5 && f.Length != 6) || !IsAcceptableId(f[0].Trim())) return null;
             var inv = CultureInfo.InvariantCulture;
             if (!long.TryParse(f[1], NumberStyles.Integer, inv, out long s) ||
                 !long.TryParse(f[2], NumberStyles.Integer, inv, out long e) ||
                 !long.TryParse(f[3], NumberStyles.Integer, inv, out long count) ||
                 !long.TryParse(f[4], NumberStyles.Integer, inv, out long modified))
                 return null;
+            int? offsetSeconds = null;
+            if (f.Length == 6 && f[5].Length > 0)
+            {
+                if (!int.TryParse(f[5], NumberStyles.AllowLeadingSign, inv, out int off)
+                    || off > LocalDayCalendar.MaxOffsetSeconds || off < -LocalDayCalendar.MaxOffsetSeconds)
+                    return null;
+                offsetSeconds = off;
+            }
             DateTimeOffset start, end, mod;
             try
             {
@@ -142,7 +152,7 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
             catch (ArgumentOutOfRangeException) { return null; }
             // Quantity/timestamp validity is judged by the trust pipeline, not here.
             return new NormalizedActivityRecord(Namespace, f[0].Trim(), ActivityCategory.Walking, ActivityUnits.Steps,
-                count, start, end, RevisionFor(mod));
+                count, start, end, RevisionFor(mod), EndZoneOffsetSeconds: offsetSeconds);
         }
 
         /// <summary>

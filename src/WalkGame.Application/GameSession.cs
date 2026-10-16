@@ -801,7 +801,8 @@ namespace WalkGame.Application
                     vitality,
                     nowUtc,
                     Math.Max(1, record.Revision),
-                    endUtc));
+                    endUtc,
+                    LocalDayCalendar.DayOf(endUtc, record.EndZoneOffsetSeconds)));
 
                 if (endUtc > maxTrustedEndUtc)
                     maxTrustedEndUtc = endUtc;
@@ -1003,7 +1004,8 @@ namespace WalkGame.Application
                 newAppliedVitality,
                 nowUtc,
                 revision,
-                record.EndUtc.ToUniversalTime()));
+                record.EndUtc.ToUniversalTime(),
+                LocalDayCalendar.DayOf(record.EndUtc, record.EndZoneOffsetSeconds) ?? existing.LocalDay));
 
             DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
             if (endUtc > maxTrustedEndUtc)
@@ -1096,7 +1098,8 @@ namespace WalkGame.Application
                 VitalityCredited: remainingAppliedVitality,
                 ProcessedAtUtc: nowUtc,
                 LastRevision: revision,
-                RecordEndUtc: record.EndUtc.ToUniversalTime()));
+                RecordEndUtc: record.EndUtc.ToUniversalTime(),
+                LocalDay: existing.LocalDay));
 
             DateTimeOffset endUtc = record.EndUtc.ToUniversalTime();
             if (endUtc > maxTrustedEndUtc)
@@ -1503,6 +1506,13 @@ namespace WalkGame.Application
 
         /// <summary>Discovery journal snapshot: every authored discovery with its flags.</summary>
         /// <summary>Story journal snapshot derived from restoration state (D-076).</summary>
+        /// <summary>Days walked (D-103): maintained count plus whether it is a lower bound.</summary>
+        public DaysWalkedReadModel GetDaysWalked()
+        {
+            var processed = RequireState().ProcessedRecords;
+            return new DaysWalkedReadModel(processed.DaysWalkedCount, processed.DaysWalkedIsLowerBound);
+        }
+
         public StoryReadModel GetStory()
         {
             var game = RequireState();

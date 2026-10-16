@@ -53,6 +53,7 @@ namespace WalkGame.Infrastructure.Persistence
         public static ISaveMigration[] All { get; } =
         {
             new MigrationV1ToV2(),
+            new MigrationV2ToV3(),
         };
     }
 

@@ -391,6 +391,29 @@ namespace WalkGame.Domain.Validation
             if (state.ProcessedRecords.UnappliedReversalVitality < 0L)
                 violations.Add("Unapplied reversal counter is negative.");
 
+            // Days walked (D-103): the maintained day set must be sorted, distinct and cover
+            // every retained credited row that carries a local day.
+            var days = state.ProcessedRecords.WalkedLocalDays;
+            for (int i = 0; i < days.Count; i++)
+            {
+                if (days[i] < 0 || (i > 0 && days[i] <= days[i - 1]))
+                {
+                    violations.Add("Days-walked set ProcessedRecords.WalkedLocalDays is not strictly ascending and non-negative.");
+                    break;
+                }
+            }
+            if (state.ProcessedRecords.LegacyDaysLowerBound < 0)
+                violations.Add("Days-walked legacy lower bound is negative.");
+            foreach (var pair in state.ProcessedRecords.Entries)
+            {
+                var e = pair.Value;
+                if (e != null && e.LocalDay is int ld && e.EligibleSteps > 0L && days.BinarySearch(ld) < 0)
+                {
+                    violations.Add($"Processed-record entry '{pair.Key}' local day {ld} is missing from the days-walked set.");
+                    break;
+                }
+            }
+
             // Maintained lifetime aggregates (D-066) must equal a full recomputation over
             // retained history plus the durably recorded retired total. A mismatch means the
             // O(1) value cannot be trusted, so it is a violation naming the aggregate.

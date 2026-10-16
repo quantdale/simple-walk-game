@@ -49,6 +49,25 @@ namespace WalkGame.Shell.Tests
             Assert.IsFalse(m.Actions.Any(a => a.Id.StartsWith("queue:") || a.Id.StartsWith("toggle:")), "progress is read-only");
         }
 
+        [Test] public void Days_walked_line_is_calm_and_says_at_least_for_a_lower_bound()
+        {
+            Assert.IsNull(ShellController.DaysWalkedLine(0, false));
+            Assert.IsNull(ShellController.DaysWalkedLine(0, true));
+            Assert.AreEqual("You have walked on 1 day.", ShellController.DaysWalkedLine(1, false));
+            Assert.AreEqual("You have walked on 12 days.", ShellController.DaysWalkedLine(12, false));
+            Assert.AreEqual("You have walked on at least 12 days.", ShellController.DaysWalkedLine(12, true));
+            Calm(ShellController.DaysWalkedLine(12, true));
+        }
+
+        [Test] public void Undated_dev_walks_add_no_days_line_and_keep_the_closing_line_last()
+        {
+            var c = Played(2);
+            c.Invoke("nav:Progress");
+            var m = c.Render();
+            Assert.IsFalse(m.Lines.Any(l => l.StartsWith("You have walked on")), string.Join("\n", m.Lines));
+            Assert.AreEqual("Nothing here expires. Every walk counts, whenever it happens.", m.Lines.Last());
+        }
+
         [Test] public void After_walking_shows_lifetime_vitality_and_steps()
         {
             var c = Played(3);
