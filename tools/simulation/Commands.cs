@@ -241,6 +241,11 @@ internal static class Cli
         long totalSteps = 0, eligibleStepsTotal = 0, vitalityCredited = 0;
         int day = 0;
         bool completed = false;
+        bool cadence = a.Has("--cadence");
+        var tracker = new VisibleChangeTracker();
+        var initial = CreateSession(new ManualClock(clockBase), a.SaveDir);
+        if (Boot(initial, allowFreshStart: false, freshSeed: 0).ExitCode == 0)
+            tracker.Observe(0, initial.GetRegion(), initial.GetDiscoveries());
 
         while (day < horizon && !completed)
         {
@@ -301,6 +306,7 @@ internal static class Cli
                     cappedProducerDays++;
 
             completed = region.RegionCompleted;
+            tracker.Observe(day, region, journal);
         }
 
         var finalState = DecodeForInspection(a.SaveDir, NewCodec(), out _);
@@ -361,6 +367,9 @@ internal static class Cli
         if (finalState != null)
             Console.WriteLine($"final arcs: ecology {finalState.Region.EcologyStage}/{content.EcologyProgression.Stages.Count}, settlement {finalState.Region.SettlementStage}/{content.SettlementProgression.Stages.Count}");
         Console.WriteLine("validator-clean: " + (violations.Count == 0 ? "yes" : "NO — " + string.Join("; ", violations)));
+        // D-070: opt-in so the committed pacing evidence still reproduces byte-for-byte.
+        if (cadence)
+            Console.WriteLine("cadence: " + CadenceReport.Analyze(tracker.ChangeDays, day).ToLine());
 
         // A profile that must close and did not is a BALANCE FAILURE, not a report line. The
         // shortfall sat open for a whole milestone precisely because the harness reported it
@@ -772,7 +781,7 @@ internal static class Cli
                    M3 ACCEPTANCE PATH: normalized synthetic records through the real
                    IngestActivityBatch pipeline; session recreated from disk every window;
                    --replay repeats the same window (--at required) and must credit nothing
-               profile   --save <dir> --profile low|moderate|high|irregular|weekend-heavy|inactivity|pathological [--days N] [--seed N] [--at ISO8601]
+               profile   --save <dir> --profile low|moderate|high|irregular|weekend-heavy|inactivity|pathological [--days N] [--seed N] [--at ISO8601] [--cadence]
                    M4 PACING REPORT: deterministic Region 1 playthrough of the real
                    pipeline with a representative activity profile; prints completion
                    day, decisions, queue-empty days, producer caps, discovery/expedition

@@ -304,6 +304,8 @@ All seven reports are committed under `docs/evidence/m4/` and reproduce byte-for
 
 ---
 
+> **Balance cadence (2026-10-16, automated verified, headless):** `profile --cadence` and `VisibleChangeCadenceTests` measure how long each profile waits to see the valley change (D-070). high and irregular are healthy (longest gaps 20 and 29 days). low (78), moderate (50) and weekend-heavy (42) exceed the proposed 30-day target, recorded as KI-017 pending an owner decision.
+
 # M5 — Mobile shell and low-attention UX
 
 > **M5-H1 headless contract campaign (2026-08-26): the platform-neutral UX state layer is implemented and automated verified** (295 automated tests): durable local preferences/onboarding store with documented corruption/future-version policy and byte-proven canonical isolation (D-042); platform-neutral activity connection/permission status projection with documented precedence, conformance tables, and durable refresh-failure evidence (D-043); shell-facing read models for onboarding/settings/activity-status/support-diagnostics plus explicit Home attention classification; explicit empty/error/recovery semantics incl. save-recovery and future-schema fail-closed states (D-044); eleven named low-attention acceptance scenarios (first-run grant/denial, 1/7/30-day returns, queue-empty, source-failure, external revocation, save recovery, preference isolation, replay-after-UX zero-recredit) plus adversarial hardening suites.

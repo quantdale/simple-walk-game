@@ -19,3 +19,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Merged PR #23: Health Connect change-log deletions (D-069), closing KI-016(a) at contract level.
 - M6 Region restoration visuals: a procedural valley picture with created assets (docs/ASSET_LICENSES.md). EditMode 35/35, PlayMode 2/2; device rendering UNVERIFIED.
 - Next slice: return-summary restoration moments (UX_DESIGN §8: show what changed on the valley picture), or a device run if KI-002 unblocks.
+
+## Session note 2026-10-16 (grok1207)
+- Merged #25 (return-summary restoration moments). #26: editor-rendered Region PNG (llvmpipe/Xvfb) plus capture tooling.
+- Balance cadence (D-070, KI-017): low/moderate/weekend-heavy players wait 42–78 days between visible changes. Needs an owner decision on target and lever before any rebalance.
+- Next slice: once KI-017 is decided, rebalance with `profile --cadence` as the gate. Otherwise M8 lifecycle headless items, or more captures via tools/unity/capture-valley.sh.
