@@ -2136,3 +2136,15 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - The Discoveries screen shows, under each found discovery, its body and "Where it came from: …". Unfound discoveries still show nothing (no spoilers). A key without copy is skipped; a raw key never reaches the screen.
 
 **Evidence.** `DiscoveryCopyTests` (6 .NET cases: every discovery has body+origin, no placeholders or keys, length bounds, no orphan copy, unknown keys return null). `DiscoveriesScreenTests` +2 EditMode cases (copy shown under found discoveries in order; unfound copy never shown). EditMode 103/103 (`docs/evidence/b-discovery-copy/`, Unity-editor-tested). Device UNVERIFIED (KI-002).
+
+## D-088 — Performance pass: pooled body-line labels, release-silent render log (2026-10-16)
+
+**Context.** D-074 budgeted structure and wall time but never measured allocation per screen switch, and it left Story and Discoveries out of the screen set.
+
+**Decision.**
+- Measure: `ShellPerformanceTests.Screen_switch_allocations_are_measured_and_bounded` logs approximate managed bytes for the model and the view per render on all 8 game screens of the 365-day save. Unity Mono has no per-thread allocation counter, so it uses `GC.GetTotalMemory` growth, the median of 60 samples with collections dropped, at 4 KB resolution. A loose 1 MB ceiling catches only order-of-magnitude regressions; wall-times are not gated.
+- Fix the measured hotspot: `ShellView.Render` reuses pooled body-line labels per root instead of creating a Label and its style per line on every render. A test proves that no stale text or `empty-state` name carries across screens.
+- The `WG_RENDER` per-render `Debug.Log` runs only in debug builds (release builds paid for string building and a stack trace on every screen switch).
+- The model side measured ≤ ~20 KB and mostly ~0, so it was left unchanged.
+
+**Evidence.** `docs/evidence/c-perf-pass/PERFORMANCE_PASS.md` has the before/after tables. Story view ~86 KB → ~12 KB, Projects ~78 KB → ~8 KB, 3,000 enter/exits 678 → 392 ms, live-panel growth ~116 → ~78 B/render. EditMode 103/103, PlayMode 4 passed + 1 capture-only ignored (Unity-editor-tested). Device UNVERIFIED (KI-002); KI-018 stays open.
