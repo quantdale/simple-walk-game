@@ -95,3 +95,11 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR (D-099): the "Your progress" screen. EditMode 139/139 merged; editor-rendered PNG.
 - `dev:walk` ingests relative to the real `UtcNow`. A shell test that walks must use `new ManualClock(DateTimeOffset.UtcNow)`, or nothing is credited.
 - Next: lifetime "days walked" (needs a persisted aggregate and a D-entry); richer project-completion moments; device lane (KI-002). Region 2 is still PROPOSED only.
+
+## Session note 2026-10-16 (grok1954)
+- #71 (D-100): a finished project in the return summary gets one calm line: the landmark stage it brings and its story chapter (`ProjectCompletionMoments`, derived at render time; stored text unchanged).
+- #72 (D-101): valley ambience: footpaths between recovered neighbours, meadow flowers, birds; MaxShapes 86→100 (the existing cap); editor-rendered before/after PNGs in `docs/evidence/d101-valley/`.
+- D-102: lifetime "days walked" is deferred. Retired rows keep no date, and records have no local day, so a v3 migration would be dishonest. The future OpenSpec design is in D-102. Hardening: `TitleMatchingInvariantTests`.
+- Removed the 4 merged, clean -grok1929 worktrees (plain `git worktree remove`). Region 2 is still PROPOSED only.
+- Merged-tree check on this branch: .NET 703/703, EditMode 144/144 (Unity-editor-tested).
+- Next: the D-102 OpenSpec (local date per record); device lane (KI-002).
