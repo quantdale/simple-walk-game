@@ -2188,7 +2188,18 @@ namespace WalkGame.Application
                     failedStateValidation: false);
             }
 
-            var violations = GameStateValidator.Validate(decoded.State, _content);
+            IReadOnlyList<string> violations;
+            try
+            {
+                violations = GameStateValidator.Validate(decoded.State, _content);
+            }
+            catch (Exception ex) when (ex is NullReferenceException || ex is InvalidOperationException
+                                       || ex is ArgumentException || ex is OverflowException || ex is KeyNotFoundException)
+            {
+                // D-098: a structurally broken payload (e.g. a null dedup entry) used to throw out
+                // of the validator. Any such shape is invalid state: fail closed, file untouched.
+                violations = new[] { "Save state is structurally incomplete (" + ex.GetType().Name + ")." };
+            }
             if (violations.Count > 0)
             {
                 _lastBootCodecFailure = CodecFailureCategory.StateValidationFailed;
