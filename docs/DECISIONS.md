@@ -2537,3 +2537,16 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Save compatibility.** No save or content change. The preferences file format is unchanged; only values that `SetDailyReminder` could never write are now ignored on load.
 
 **Labels.** Java logic headless-tested; the APK compile is part of the RC run. Device delivery UNVERIFIED (KI-002).
+
+## D-124 — System.Text.Json 10.0.13 (LTS) replaces 8.0.5 in the core and Unity plugins (2026-10-17)
+
+**Context.** KI-024: STJ 8.0 support ends in November 2026. STJ is the only shipped runtime package, and it is published into the Unity plugin folder (D-007, D-064). Dependabot #5 was closed because nothing in Unity had been checked.
+
+**Decision.** Pin `System.Text.Json` 10.0.13 (the .NET 10 LTS line, supported to Nov 2028) in `Directory.Packages.props`. `tools/unity/sync-plugins.sh` also copies `System.IO.Pipelines`, which STJ 10 references on netstandard2.x. `link.xml` is unchanged: STJ and Encodings.Web stay preserve="all", and the linker keeps the Pipelines members STJ uses. Dependabot still ignores STJ majors; minor and patch updates on 10.x stay manual until the Unity lane runs in CI.
+
+**Evidence.** `docs/evidence/stj10-grok0215/RESULTS.md`: .NET 815/815, EditMode 205/205, PlayMode 4 passed + 1 ignored (capture), arm64 IL2CPP APK built, iOS Xcode export built locally (not pushed, D-116), stripped assemblies inspected, dependency-health PASS.
+
+**Save compatibility.** No save, schema or content change. The JSON format is produced by the same codec options, and the full .NET save-compat and fixture suites pass unchanged.
+
+**Residual.** IL2CPP runtime save/load on a device and a macOS xcodebuild of the export are UNVERIFIED (KI-002, D-116).
+

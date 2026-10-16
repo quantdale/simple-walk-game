@@ -25,7 +25,7 @@ review-triggering change.
 
 ## 2. Dependencies
 
-- Runtime NuGet dependency (all `src/`): **`System.Text.Json` 8.0.5**
+- Runtime NuGet dependency (all `src/`): **`System.Text.Json` 10.0.13** (D-124)
   (`WalkGame.Infrastructure` only) — Microsoft first-party, no transitive
   third-party runtime packages observed in production assemblies.
 - Test-only packages (xunit, `Microsoft.NET.Test.Sdk`, `coverlet.collector`)

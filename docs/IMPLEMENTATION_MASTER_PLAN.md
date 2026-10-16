@@ -154,7 +154,7 @@ described in §5.
 |---|---|---|
 | Domain | `src/WalkGame.Domain/` | Pure rules, state, simulation. No project refs, no packages, no filesystem, no engine namespace. |
 | Application | `src/WalkGame.Application/` | Use-case orchestration and read models. References Domain only. No filesystem access. |
-| Infrastructure | `src/WalkGame.Infrastructure/` | Save codec, atomic file store, local preferences store, migrations, system clock, fixture reader. Only runtime dep: `System.Text.Json` 8.0.5. |
+| Infrastructure | `src/WalkGame.Infrastructure/` | Save codec, atomic file store, local preferences store, migrations, system clock, fixture reader. Only runtime dep: `System.Text.Json` 10.0.13 (D-124). |
 | Simulation CLI | `tools/simulation/` | Headless dev/release-evidence tool. Verbs: `new credit advance simulate walk profile longhaul bench scenarios ack dump validate`. |
 | Tests | `tests/` | 3 xUnit projects — Domain 148, Infrastructure 49, Application 269 = **466, all green**. |
 | Guard/tooling | `scripts/`, `.githooks/`, `tests/guards/` | Repo identity guard, single-writer lease, worktree helper, CI-step reproduction, architecture fitness, evidence gates. |
