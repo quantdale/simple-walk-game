@@ -8,6 +8,10 @@
 # and ACQUIRES that worktree's writer lease before printing next steps.
 # Lease session id: an exported SWG_SESSION_ID is honoured, so the calling session can
 # later release/resume its own lease (KI-008); otherwise it defaults to wt-<campaign>-<session-id>.
+# Base: the branch is ALWAYS cut from a freshly fetched <remote>/main (never the local, possibly
+# stale, checkout HEAD). A failed fetch refuses rather than silently using a stale base.
+# SWG_WORKTREE_BASE_REMOTE (default: origin) exists only so the guard suite can fetch from a
+# throwaway fixture remote; real sessions must leave it unset.
 set -eu
 
 [ $# -eq 2 ] || { echo "usage: new-agent-worktree.sh <campaign> <session-id>" >&2; exit 1; }
@@ -28,7 +32,14 @@ if [ -e "$WT" ]; then
     exit 1
 fi
 
-git -C "$root" worktree add -b "$BRANCH" "$WT"
+BASE_REMOTE="${SWG_WORKTREE_BASE_REMOTE:-origin}"
+if ! git -C "$root" fetch --quiet "$BASE_REMOTE" "+refs/heads/main:refs/remotes/$BASE_REMOTE/main"; then
+    echo "fetch of $BASE_REMOTE/main failed; refusing to branch from a possibly stale base." >&2
+    exit 1
+fi
+BASE_SHA="$(git -C "$root" rev-parse --verify "refs/remotes/$BASE_REMOTE/main^{commit}")"
+echo "Base: freshly fetched $BASE_REMOTE/main at $BASE_SHA"
+git -C "$root" worktree add --no-track -b "$BRANCH" "$WT" "$BASE_SHA"
 echo ""
 echo "WORKTREE READY: $WT (branch $BRANCH)"
 echo "Configuring guards inside the new worktree..."
