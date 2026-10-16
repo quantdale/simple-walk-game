@@ -731,8 +731,31 @@ namespace WalkGame.Shell
                 foreach (var l in letters.Letters.Where(x => x.Found && x.Body != null).OrderBy(x => x.Order))
                     m.Lines.Add(LetterLine(l));
             }
+            m.Lines.AddRange(EpilogueLines(_session.GetEpilogue()));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
+        }
+
+        /// <summary>
+        /// D-129: the Region 1 epilogue in the Story journal, only after completion: the final
+        /// journal entry, Nell's closing letters, "in the valley now" and earlier valley notes.
+        /// No counts or "N of M" (nothing to collect), no Region 2 hook.
+        /// </summary>
+        public static System.Collections.Generic.List<string> EpilogueLines(WalkGame.Application.ReadModels.EpilogueReadModel e)
+        {
+            var lines = new System.Collections.Generic.List<string>();
+            if (e == null || !e.Available) return lines;
+            lines.Add(PlayerStrings.T("epilogue.heading"));
+            if (!string.IsNullOrWhiteSpace(e.JournalEntry)) lines.Add(e.JournalEntry!);
+            foreach (var l in e.ClosingLetters) if (!string.IsNullOrWhiteSpace(l)) lines.Add(PlayerStrings.F("epilogue.letter", WalkGame.Application.Content.Region1Letters.Writer, l));
+            if (!string.IsNullOrWhiteSpace(e.CurrentNote)) lines.Add(PlayerStrings.F("epilogue.now", e.CurrentNote!));
+            var earlier = e.ValleyNotes.Where(n => !string.IsNullOrWhiteSpace(n) && n != e.CurrentNote).ToList();
+            if (earlier.Count > 0)
+            {
+                lines.Add(PlayerStrings.T("epilogue.earlier"));
+                lines.AddRange(earlier);
+            }
+            return lines;
         }
 
         /// <summary>D-118: "Letters from Nell Hartley: 2 of 6 found."</summary>

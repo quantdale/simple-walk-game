@@ -1579,6 +1579,26 @@ namespace WalkGame.Application
             return new LettersReadModel(rows);
         }
 
+        /// <summary>
+        /// D-129: the Region 1 epilogue, a pure read-only projection of the region's completion
+        /// time and the trusted clock. Nothing before completion; afterwards the closing letters,
+        /// the final journal entry and the valley notes reveal gently and never disappear.
+        /// </summary>
+        public EpilogueReadModel GetEpilogue()
+        {
+            var game = RequireState();
+            if (!game.Region.IsCompleted || game.Region.RegionCompletedAtUtc == null) return EpilogueReadModel.None;
+            int days = WalkGame.Application.Content.Region1Epilogue.DaysSince(game.Region.RegionCompletedAtUtc.Value, _clock.UtcNow);
+            var text = ContentLocale;
+            string R(WalkGame.Application.Content.Region1Epilogue.Entry e) => text.Resolve(e.Id, WalkGame.Application.Content.ContentText.Fields.Body, e.Body);
+            var letters = new List<string>();
+            foreach (var e in WalkGame.Application.Content.Region1Epilogue.ClosingLetters) if (days >= e.DayAfterCompletion) letters.Add(R(e));
+            var notes = new List<string>();
+            foreach (var e in WalkGame.Application.Content.Region1Epilogue.ValleyNotes) if (days >= e.DayAfterCompletion) notes.Add(R(e));
+            var current = R(WalkGame.Application.Content.Region1Epilogue.ValleyNotes[WalkGame.Application.Content.Region1Epilogue.CurrentNoteIndex(days)]);
+            return new EpilogueReadModel(true, R(WalkGame.Application.Content.Region1Epilogue.JournalEntry), letters, notes, current);
+        }
+
         public DiscoveriesReadModel GetDiscoveries()
         {
             var game = RequireState();

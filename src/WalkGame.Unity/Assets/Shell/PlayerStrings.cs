@@ -48,6 +48,10 @@ namespace WalkGame.Shell
             ["letters.count"] = "Letters from {0}: {1} of {2} found.",
             ["letters.line"] = "Found at {0}: \"{1}\"",
             ["letters.inJournal"] = "Read them in the Story journal.",
+            ["epilogue.heading"] = "Epilogue · Millbrook, whole again",
+            ["epilogue.letter"] = "A letter from {0}: \"{1}\"",
+            ["epilogue.now"] = "In the valley now: {0}",
+            ["epilogue.earlier"] = "Earlier valley notes:",
             // Player copy tables (PlayerCopy, KI-023)
             ["project.status.available"] = "ready to start",
             ["project.status.active"] = "being restored now",
