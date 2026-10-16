@@ -112,4 +112,7 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Counts: .NET 728/728 on main after #77; EditMode 151/151 on this branch merged with main before D-105 (Unity-editor-tested).
 - Removed the 3 merged, clean -grok1954 worktrees with plain `git worktree remove`. Region 2 is still PROPOSED only.
 - Next: Home layout polish with a PNG; device lane (KI-002); an APK build to compile the Java offset change.
+
+## Session note 2026-10-16 (grok2058)
+- The APK built from main `62f33d4` compiles the D-103 Java offset change: `getEndZoneOffset` is in `classes3.dex`, and no fix was needed. The full rerun on main after D-105 gave .NET 728/728, EditMode 151/151 and PlayMode 4 + 1 ignored. Evidence: `docs/evidence/apk-d103/RESULTS.md`. Device: UNVERIFIED (KI-002).
 - #78 (`7ae6de3`) records that evidence. D-106: Home layout polish (no repeated line, no doubled empty-state message); before/after PNGs in `docs/evidence/d106-home/` (editor-rendered); EditMode 154/154 (Unity-editor-tested).
