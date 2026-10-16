@@ -7,14 +7,14 @@ Distro version:          #1 SMP PREEMPT_DYNAMIC Mon Oct 12 19:59:53 UTC 2026
 Kernel version:          6.12.94+
 Architecture:            x86_64
 Available memory:        16002 MB
-Date:                    2026-10-16T04:21:26Z
-VBCSCompilerServerWatchdog: watching VBCSCompiler (PID 76559)
+Date:                    2026-10-16T04:39:01Z
+VBCSCompilerServerWatchdog: watching VBCSCompiler (PID 96063)
 [Licensing::Module] Trying to connect to existing licensing client channel...
 [Licensing::IpcConnector] Channel LicenseClient-box doesn't exist
-[Licensing::Module] Successfully launched the LicensingClient (PId: 76562)
+[Licensing::Module] Successfully launched the LicensingClient (PId: 96067)
 Selected window backend: (null) 
 
-(Unity:76543): dbind-WARNING **: 12:21:26.531: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.ServiceUnknown: The name org.a11y.Bus was not provided by any .service files
+(Unity:96053): dbind-WARNING **: 12:39:01.990: AT-SPI: Error retrieving accessibility bus address: org.freedesktop.DBus.Error.ServiceUnknown: The name org.a11y.Bus was not provided by any .service files
 Desktop is 1280 x 1024 @ 60 Hz
 Initialize udev device monitor.
 
@@ -23,18 +23,18 @@ COMMAND LINE ARGUMENTS:
 -batchmode
 -force-glcore
 -projectPath
-/workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity
+/workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity
 -runTests
 -testPlatform
 PlayMode
 -testFilter
 ValleyCaptureTests
 -testResults
-/workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/docs/evidence/m6-region/capture-results.xml
+/workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/docs/evidence/m6-region/capture-results.xml
 -logFile
-/workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/docs/evidence/m6-region/capture-run.log
-Successfully changed project path to: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity
-/workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity
+/workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/docs/evidence/m6-region/capture-run.log
+Successfully changed project path to: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity
+/workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity
 [UnityMemory] Configuration Parameters - Can be set up in boot.config
     "memorysetup-allocator-temp-initial-block-size-main=262144"
     "memorysetup-allocator-temp-initial-block-size-worker=262144"
@@ -71,30 +71,30 @@ Successfully changed project path to: /workspace/simple-walk-game-wt-m6c-valley-
     "memorysetup-job-temp-allocator-block-size-background=1048576"
     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
     "memorysetup-temp-allocator-size-gfx=262144"
-Player connection [140628199644032]  Target information:
+Player connection [140368542784384]  Target information:
 
-Player connection [140628199644032]  * "[IP] 172.30.0.2 [Port] 55504 [Flags] 2 [Guid] 208691514 [EditorId] 208691514 [Version] 1048832 [Id] LinuxEditor(16,172.30.0.2) [Debug] 1 [PackageName] LinuxEditor [ProjectName] Editor" 
+Player connection [140368542784384]  * "[IP] 172.30.0.2 [Port] 55504 [Flags] 2 [Guid] 1135312470 [EditorId] 1135312470 [Version] 1048832 [Id] LinuxEditor(16,172.30.0.2) [Debug] 1 [PackageName] LinuxEditor [ProjectName] Editor" 
 
-Player connection [140628199644032]  * "[IP] 172.17.0.1 [Port] 55504 [Flags] 2 [Guid] 208691514 [EditorId] 208691514 [Version] 1048832 [Id] LinuxEditor(16,172.30.0.2) [Debug] 1 [PackageName] LinuxEditor [ProjectName] Editor" 
+Player connection [140368542784384]  * "[IP] 172.17.0.1 [Port] 55504 [Flags] 2 [Guid] 1135312470 [EditorId] 1135312470 [Version] 1048832 [Id] LinuxEditor(16,172.30.0.2) [Debug] 1 [PackageName] LinuxEditor [ProjectName] Editor" 
 
-Player connection [140628199644032] Host joined multi-casting on [225.0.0.222:54997]...
-Player connection [140628199644032] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Player connection [140368542784384] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [140368542784384] Host joined alternative multi-casting on [225.0.0.222:34997]...
 Input System module state changed to: Initialized.
 [Physics::Module] Initialized fallback backend.
 [Physics::Module] Id: 0xdecafbad
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-box" at "2026-10-16T04:21:26.849327Z"
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-box" at "2026-10-16T04:39:02.323521Z"
 [SignatureVerifier] Application signature verification not supported on this platform.
-[Package Manager] Connected to IPC stream "Upm-76543" after 0.2 seconds.
+[Package Manager] Connected to IPC stream "Upm-96053" after 0.2 seconds.
 [Licensing::Module] Licensing is not yet initialized.
 [Licensing::Client] Handshaking with LicensingClient:
   Version:                 1.18.3+d7ffd15
-  Session Id:              cf51ca7943384df7bd86394853607996
-  Correlation Id:          a25a70041a7af5fdc14f20ec92461a0d
-  External correlation Id: 4164174855964316122
+  Session Id:              a44d3820ca994082868c52412e6dddf2
+  Correlation Id:          63e204f8f9d74ec3bade427fb0a37106
+  External correlation Id: 3397665020849500795
   Machine Id:              [REDACTED]
-[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-box" (connect: 0.38s, validation: 0.07s, handshake: 0.00s)
-[Licensing::IpcConnector] Successfully connected to: "LicenseClient-box-notifications" at "2026-10-16T04:21:26.917359Z"
-[Licensing::Module] Connected to LicensingClient (PId: 76562, launch time: 0.00, total connection time: 0.45s)
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-box" (connect: 0.38s, validation: 0.13s, handshake: 0.00s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-box-notifications" at "2026-10-16T04:39:02.45716Z"
+[Licensing::Module] Connected to LicensingClient (PId: 96067, launch time: 0.00, total connection time: 0.51s)
 [Licensing::Module] Error: Access token is unavailable; failed to update
 [Licensing::Client] Successfully resolved entitlement details
 [Licensing::Module] License group: [REDACTED]
@@ -103,8 +103,8 @@ Input System module state changed to: Initialized.
   Type: Assigned
   Expiration: Unlimited
 [Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
-[Licensing::Module] Licensing Background thread has ended after 0.48s
-[Licensing::Module] Licensing is initialized (took 0.06s).
+[Licensing::Module] Licensing Background thread has ended after 0.54s
+[Licensing::Module] Licensing is initialized (took 0.13s).
 [Licensing::Client] Successfully resolved entitlement details
 Library Redirect Path: Library/
 ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
@@ -133,11 +133,11 @@ FMOD initialized on nosound output
 [Physics::Module] SDK Version: 4.1.2
 [Physics::Module] Integration Version: 1.0.0
 [Physics::Module] Threading Mode: Multi-Threaded
-Refreshing native plugins compatible for Editor in 0.05 ms, found 0 plugins.
+Refreshing native plugins compatible for Editor in 0.08 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
 Initialize engine version: 6000.3.26f1 (de8167e7440c)
 [Subsystems] Discovering subsystems at path /home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/Resources/UnitySubsystems
-[Subsystems] Discovering subsystems at path /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Assets
+[Subsystems] Discovering subsystems at path /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Assets
 Forcing GfxDevice: OpenGL Core
 kGfxThreadingModeNonThreaded is not supported on OpenGL Core. Reverting to kGfxThreadingModeDirect instead.
 GfxDevice: creating device client; kGfxThreadingModeDirect
@@ -152,12 +152,12 @@ _ARB_query_buffer_object GL_ARB_robust_buffer_access_behavior GL_ARB_robustness 
 RB_texture_compression_bptc GL_ARB_texture_compression_rgtc GL_ARB_texture_cube_map_array GL_ARB_texture_filter_anisotropic GL_ARB_texture_filter_minmax GL_ARB_texture_float GL_ARB_texture_gather GL_ARB_texture_mirror_clamp_to_edge GL_ARB_texture_multisample GL_ARB_texture_non_power_of_two GL_ARB_texture_query_levels GL_ARB_texture_query_lod GL_ARB_texture_rectangle GL_ARB_texture_rg GL_ARB_texture_rgb10_a2ui GL_ARB_texture_stencil8 GL_ARB_texture_storage GL_ARB_texture_storage_multisample GL_ARB_texture_swizzle GL_ARB_texture_view GL_ARB_timer_query GL_ARB_transform_feedback2 GL_ARB_transform_feedback3 GL_ARB_transform_feedback_instanced GL_ARB_transform_feedback_overflow_query GL_ARB_uniform_buffer_object GL_ARB_vertex_array_bgra GL_ARB_vertex_array_object GL_ARB_vertex_attrib_64bit GL_ARB_vertex_attrib_binding GL_ARB_vertex_buffer_object GL_ARB_vertex_shader GL_ARB_vertex_type_10f_11f_11f_rev GL_ARB_vertex_type_2_10_10_10_rev GL_ARB_viewport_array GL_ARM_shader_framebuffer_fetch_depth_stencil GL_ATI_blend
 _equation_separate GL_ATI_meminfo GL_ATI_texture_float GL_ATI_texture_mirror_once GL_EXT_EGL_image_storage GL_EXT_EGL_image_storage_compression GL_EXT_EGL_sync GL_EXT_abgr GL_EXT_blend_equation_separate GL_EXT_debug_label GL_EXT_draw_buffers2 GL_EXT_draw_instanced GL_EXT_framebuffer_blit GL_EXT_framebuffer_multisample GL_EXT_framebuffer_multisample_blit_scaled GL_EXT_framebuffer_object GL_EXT_framebuffer_sRGB GL_EXT_memory_object GL_EXT_memory_object_fd GL_EXT_packed_depth_stencil GL_EXT_packed_float GL_EXT_pixel_buffer_object GL_EXT_polygon_offset_clamp GL_EXT_provoking_vertex GL_EXT_shader_framebuffer_fetch GL_EXT_shader_framebuffer_fetch_non_coherent GL_EXT_shader_image_load_formatted GL_EXT_shader_integer_mix GL_EXT_texture_array GL_EXT_texture_compression_dxt1 GL_EXT_texture_compression_rgtc GL_EXT_texture_compression_s3tc GL_EXT_texture_filter_anisotropic GL_EXT_texture_filter_minmax GL_EXT_texture_integer GL_EXT_texture_mirror_clamp GL_EXT_texture_sRGB GL_EXT_texture_sRGB_R8 GL_EXT_texture_sRGB_RG8 GL
 _EXT_texture_sRGB_decode GL_EXT_texture_shadow_lod GL_EXT_texture_shared_exponent GL_EXT_texture_snorm GL_EXT_texture_storage GL_EXT_texture_swizzle GL_EXT_timer_query GL_EXT_transform_feedback GL_EXT_vertex_array_bgra GL_EXT_vertex_attrib_64bit GL_IBM_multimode_draw_arrays GL_INTEL_shader_atomic_float_minmax GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent GL_KHR_context_flush_control GL_KHR_debug GL_KHR_no_error GL_KHR_parallel_shader_compile GL_KHR_robust_buffer_access_behavior GL_KHR_robustness GL_KHR_texture_compression_astc_ldr GL_KHR_texture_compression_astc_sliced_3d GL_MESA_framebuffer_flip_y GL_MESA_pack_invert GL_MESA_shader_integer_functions GL_MESA_texture_signed_rgba GL_NVX_gpu_memory_info GL_NV_alpha_to_coverage_dither_control GL_NV_conditional_render GL_NV_copy_image GL_NV_depth_clamp GL_NV_packed_depth_stencil GL_NV_shader_atomic_float GL_NV_texture_barrier GL_OES_EGL_image GL_OVR_multiview GL_OVR_multiview2 GL_S3_s3tc
-OPENGL LOG: Creating OpenGL 4.5 graphics device ; Context level  <OpenGL 4.5> ; Context handle 944964736
+OPENGL LOG: Creating OpenGL 4.5 graphics device ; Context level  <OpenGL 4.5> ; Context handle 294906192
 Initialize mono
 Mono path[0] = '/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/Managed'
 Mono path[1] = '/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-linux'
 Mono config path = '/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/MonoBleedingEdge/etc'
-Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56543
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56053
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
 ImportWorker Server TCP listen port: 0
@@ -167,43 +167,43 @@ Registering precompiled unity dll's ...
 [Licensing::Client] Successfully resolved entitlement details
 Register platform support module: /home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll
 Register platform support module: /home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/PlaybackEngines/LinuxStandaloneSupport/UnityEditor.LinuxStandalone.Extensions.dll
-Registered in 0.003633 seconds.
-- Loaded All Assemblies, in  0.474 seconds
+Registered in 0.003866 seconds.
+- Loaded All Assemblies, in  0.431 seconds
 Native extension for LinuxStandalone target not found
 Native extension for Android target not found
 Package Manager log level set to [2]
 [Licensing::Client] Successfully resolved entitlement details
 ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:False
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  1.552 seconds
-Domain Reload Profiling: 2026ms
-	BeginReloadAssembly (160ms)
+- Finished resetting the current domain, in  1.590 seconds
+Domain Reload Profiling: 2020ms
+	BeginReloadAssembly (132ms)
 		ExecutionOrderSort (0ms)
 		DisableScriptedObjects (0ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (15ms)
-	RebuildCommonClasses (49ms)
-	RebuildNativeTypeToScriptingClass (7ms)
-	initialDomainReloadingComplete (57ms)
-	LoadAllAssembliesAndSetupDomain (200ms)
-		LoadAssemblies (147ms)
+		CreateAndSetChildDomain (6ms)
+	RebuildCommonClasses (43ms)
+	RebuildNativeTypeToScriptingClass (8ms)
+	initialDomainReloadingComplete (54ms)
+	LoadAllAssembliesAndSetupDomain (194ms)
+		LoadAssemblies (127ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (195ms)
-			TypeCache.Refresh (193ms)
-				TypeCache.ScanAssembly (171ms)
+		AnalyzeDomain (190ms)
+			TypeCache.Refresh (189ms)
+				TypeCache.ScanAssembly (169ms)
 			BuildScriptInfoCaches (0ms)
 			ResolveRequiredComponents (1ms)
-	FinalizeReload (1552ms)
+	FinalizeReload (1590ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (1513ms)
+		SetupLoadedEditorAssemblies (1551ms)
 			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (49ms)
+			InitializePlatformSupportModulesInManaged (52ms)
 			SetLoadedEditorAssemblies (5ms)
-			BeforeProcessingInitializeOnLoad (77ms)
-			ProcessInitializeOnLoadAttributes (134ms)
-			ProcessInitializeOnLoadMethodAttributes (1246ms)
+			BeforeProcessingInitializeOnLoad (91ms)
+			ProcessInitializeOnLoadAttributes (154ms)
+			ProcessInitializeOnLoadMethodAttributes (1248ms)
 			AfterProcessingInitializeOnLoad (0ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
@@ -214,27 +214,27 @@ Application.AssetDatabase Initial Refresh Start
 [Licensing::Client] Successfully resolved entitlement details
 [Package Manager] Registered 10 packages:
   Built-in packages:
-    com.unity.test-framework@1.6.0 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.test-framework@0bd5c5194236)
-    com.unity.modules.accessibility@1.0.0 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.accessibility)
-    com.unity.modules.androidjni@1.0.0 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.androidjni)
-    com.unity.modules.imgui@1.0.0 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.imgui)
-    com.unity.modules.jsonserialize@1.0.0 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.jsonserialize)
-    com.unity.modules.ui@1.0.0 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.ui)
-    com.unity.modules.uielements@1.0.0 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.uielements)
-    com.unity.modules.hierarchycore@1.0.0 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.hierarchycore)
-    com.unity.modules.physics@1.0.0 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.physics)
-    com.unity.ext.nunit@2.0.5 (location: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/Library/PackageCache/com.unity.ext.nunit@ec2d0043d6fc)
+    com.unity.test-framework@1.6.0 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.test-framework@0bd5c5194236)
+    com.unity.modules.accessibility@1.0.0 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.accessibility)
+    com.unity.modules.androidjni@1.0.0 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.androidjni)
+    com.unity.modules.imgui@1.0.0 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.jsonserialize)
+    com.unity.modules.ui@1.0.0 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.uielements)
+    com.unity.modules.hierarchycore@1.0.0 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.hierarchycore)
+    com.unity.modules.physics@1.0.0 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.physics)
+    com.unity.ext.nunit@2.0.5 (location: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/Library/PackageCache/com.unity.ext.nunit@ec2d0043d6fc)
 [Subsystems] No new subsystems found in resolved package list.
 [Package Manager] Done registering packages in 0.00 seconds
 [ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
 [40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[14]
-      Now listening on: http://unix:/tmp/ilpp.sock-2db24782b2af435c58b867a726050ff8
+      Now listening on: http://unix:/tmp/ilpp.sock-97ae088bbba03501a3a8eb4a3dc13ec2
 [40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
       Application started. Press Ctrl+C to shut down.
 [40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
       Hosting environment: Production
 [40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
-      Content root path: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity/
+      Content root path: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity/
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
       Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc -
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
@@ -242,120 +242,122 @@ Application.AssetDatabase Initial Refresh Start
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
       Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
 [40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
-      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 40.7921ms
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 117.5338ms
 Starting: /home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/Tools/BuildPipeline/bee_backend --ipc --defer-dag-verification --dagfile="Library/Bee/2400b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
-WorkingDir: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/src/WalkGame.Unity
+WorkingDir: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/src/WalkGame.Unity
 DisplayProgressbar: Compiling Scripts
-ExitCode: 0 Duration: 1s4ms
-[189/192    0s] Csc Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.PlayModeTests.dll (+2 others)
-[190/192    0s] CopyFiles Library/ScriptAssemblies/WalkGame.Shell.PlayModeTests.dll
-[191/192    0s] CopyFiles Library/ScriptAssemblies/WalkGame.Shell.PlayModeTests.pdb
-*** Tundra build success (0.96 seconds), 3 items updated, 192 evaluated
+ExitCode: 0 Duration: 1s139ms
+[180/192    1s] Csc Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.dll (+2 others)
+Assets/Shell/PlayerCopy.cs(50,33): warning CS8603: Possible null reference return.
+[190/192    0s] CopyFiles Library/ScriptAssemblies/WalkGame.Shell.pdb
+[191/192    0s] CopyFiles Library/ScriptAssemblies/WalkGame.Shell.dll
+*** Tundra build success (1.09 seconds), 3 items updated, 192 evaluated
+Assets/Shell/PlayerCopy.cs(50,33): warning CS8603: Possible null reference return.
 Total cache size 43770862
-AssetDatabase: script compilation time: 1.419764s
-Total cache size after purge 43770862, took 00:00:00.0086281
+Total cache size after purge 43770862, took 00:00:00.0097889
+AssetDatabase: script compilation time: 1.702977s
 Begin MonoManager ReloadAssembly
-- Loaded All Assemblies, in  0.435 seconds
+- Loaded All Assemblies, in  0.443 seconds
 Refreshing native plugins compatible for Editor in 0.06 ms, found 0 plugins.
 Native extension for LinuxStandalone target not found
 Native extension for Android target not found
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:False
 Mono: successfully reloaded assembly
-- Finished resetting the current domain, in  0.421 seconds
-Domain Reload Profiling: 856ms
-	BeginReloadAssembly (192ms)
+- Finished resetting the current domain, in  0.446 seconds
+Domain Reload Profiling: 889ms
+	BeginReloadAssembly (196ms)
 		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (21ms)
+		DisableScriptedObjects (17ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (68ms)
-	RebuildCommonClasses (33ms)
-	RebuildNativeTypeToScriptingClass (7ms)
-	initialDomainReloadingComplete (25ms)
+		CreateAndSetChildDomain (63ms)
+	RebuildCommonClasses (36ms)
+	RebuildNativeTypeToScriptingClass (8ms)
+	initialDomainReloadingComplete (26ms)
 	LoadAllAssembliesAndSetupDomain (177ms)
-		LoadAssemblies (206ms)
+		LoadAssemblies (214ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (35ms)
+		AnalyzeDomain (40ms)
 			TypeCache.Refresh (28ms)
 				TypeCache.ScanAssembly (18ms)
-			BuildScriptInfoCaches (4ms)
+			BuildScriptInfoCaches (10ms)
 			ResolveRequiredComponents (0ms)
-	FinalizeReload (422ms)
+	FinalizeReload (446ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (306ms)
+		SetupLoadedEditorAssemblies (335ms)
 			LogAssemblyErrors (0ms)
 			InitializePlatformSupportModulesInManaged (30ms)
 			SetLoadedEditorAssemblies (3ms)
-			BeforeProcessingInitializeOnLoad (111ms)
-			ProcessInitializeOnLoadAttributes (115ms)
+			BeforeProcessingInitializeOnLoad (156ms)
+			ProcessInitializeOnLoadAttributes (100ms)
 			ProcessInitializeOnLoadMethodAttributes (44ms)
 			AfterProcessingInitializeOnLoad (3ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (15ms)
+		AwakeInstancesAfterBackupRestoration (13ms)
 Refreshing native plugins compatible for Editor in 0.08 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
-Asset Pipeline Refresh (id=d10eafe8158d6925aa30f70383192d56): Total: 2.486 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+Asset Pipeline Refresh (id=23003fa29c0973bf28382912210da520): Total: 2.828 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=559 ms
-		Asset DB Callback time: managed=57 ms, native=5 ms
-		Scripting: domain reloads=1, domain reload time=435 ms, compile time=1421 ms, other=6 ms
+		Asset DB Process Time: managed=0 ms, native=611 ms
+		Asset DB Callback time: managed=54 ms, native=4 ms
+		Scripting: domain reloads=1, domain reload time=443 ms, compile time=1704 ms, other=9 ms
 		Project Asset Count: scripts=108, non-scripts=20
 		Asset File Changes: new=0, changed=1, moved=0, deleted=0
 		Scan Filter Count: 1
-	InvokeCustomDependenciesCallbacks: 0.004ms
-	InvokePackagesCallback: 4.518ms
-	ApplyChangesToAssetFolders: 0.160ms
-	Scan: 47.945ms
-	OnSourceAssetsModified: 0.716ms
-	CategorizeAssetsWithTransientArtifact: 3.001ms
-	ProcessAssetsWithTransientArtifactChanges: 4.964ms
-	CategorizeAssets: 1.012ms
-	ImportOutOfDateAssets: 424.696ms (-998.467ms without children)
-		CompileScripts: 1421.065ms
+	InvokeCustomDependenciesCallbacks: 0.007ms
+	InvokePackagesCallback: 3.788ms
+	ApplyChangesToAssetFolders: 0.166ms
+	Scan: 68.619ms
+	OnSourceAssetsModified: 0.744ms
+	CategorizeAssetsWithTransientArtifact: 3.478ms
+	ProcessAssetsWithTransientArtifactChanges: 4.869ms
+	CategorizeAssets: 1.024ms
+	ImportOutOfDateAssets: 449.575ms (-1257.213ms without children)
+		CompileScripts: 1704.461ms
 		ReloadNativeAssets: 0.001ms
-		UnloadImportedAssets: 1.828ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.027ms
+		UnloadImportedAssets: 1.940ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.028ms
 		InitializingProgressBar: 0.000ms
 		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
-		OnDemandSchedulerStart: 0.242ms
-	PostProcessAllAssets: 58.095ms
-	Hotreload: 0.498ms
+		OnDemandSchedulerStart: 0.359ms
+	PostProcessAllAssets: 54.370ms
+	Hotreload: 0.604ms
 	GatherAllCurrentPrimaryArtifactRevisions: 0.001ms
-	UnloadStreamsBegin: 1.220ms
-	PersistCurrentRevisions: 0.004ms
+	UnloadStreamsBegin: 1.262ms
+	PersistCurrentRevisions: 0.005ms
 	UnloadStreamsEnd: 0.001ms
-	GenerateScriptTypeHashes: 0.213ms
-	Untracked: 1939.114ms
+	GenerateScriptTypeHashes: 0.207ms
+	Untracked: 2239.285ms
 
 Application.AssetDatabase Initial Refresh End
 Launched and connected shader compiler UnityShaderCompiler after 0.02 seconds
-Scanning for USB devices : 0.077ms
+Scanning for USB devices : 0.083ms
 Initializing Unity extensions:
 UpdateMenuTitleForLanguage: 10
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
 [MODES] Loading mode Default (0) for mode-current-id-Simple Walk Game
 Unloading 3 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 427 unused Assets / (376.4 KB). Loaded Objects now: 1050.
-Memory consumption went from 81.7 MB to 81.3 MB.
-Total: 10.760417 ms (FindLiveObjects: 0.078929 ms CreateObjectMapping: 0.020908 ms MarkObjects: 10.149022 ms  DeleteObjects: 0.509929 ms)
+Unloading 428 unused Assets / (375.6 KB). Loaded Objects now: 1051.
+Memory consumption went from 81.7 MB to 81.4 MB.
+Total: 8.370764 ms (FindLiveObjects: 0.084715 ms CreateObjectMapping: 0.021343 ms MarkObjects: 7.718287 ms  DeleteObjects: 0.544445 ms)
 
-[Project] Loading completed in 5.625 seconds
-	Project init time: 				5.150 seconds
+[Project] Loading completed in 5.988 seconds
+	Project init time: 				5.607 seconds
 		Template init time: 		0.000 seconds
-		Package Manager init time: 		0.243 seconds
-		Asset Database init time: 		0.047 seconds
+		Package Manager init time: 		0.319 seconds
+		Asset Database init time: 		0.048 seconds
 		Global illumination init time: 	0.006 seconds
-		Assemblies load time: 			2.040 seconds
+		Assemblies load time: 			2.035 seconds
 		Unity extensions init time: 	0.001 seconds
-		Asset Database refresh time: 	2.486 seconds
-	Scene opening time: 			0.201 seconds
-##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1792124492009,"processId":76543,"projectLoad":5.624966736,"projectInit":5.149827805,"templateInit":0.0,"packageManagerInit":0.242800973,"assetDatabaseInit":0.046646665,"globalIlluminationInit":0.006254338,"assembliesLoad":2.040452314,"unityExtensionsInit":0.00089968,"assetDatabaseRefresh":2.486031133,"sceneOpening":0.201477078}
-##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1792124492009,"processId":76543,"editorVersion":"6000.3.26f1 (de8167e7440c)","branch":"6000.3/staging","buildType":"Release","platform":"Linux"}
-Asset Pipeline Refresh (id=bea3cb73d3600d1d0bbc5d3ee40d4b30): Total: 0.022 seconds - Initiated by RefreshV2(ForceSynchronousImport)
+		Asset Database refresh time: 	2.828 seconds
+	Scene opening time: 			0.203 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1792125547923,"processId":96053,"projectLoad":5.988078549,"projectInit":5.607321384,"templateInit":0.0,"packageManagerInit":0.318724073,"assetDatabaseInit":0.047857487,"globalIlluminationInit":0.005987649,"assembliesLoad":2.03501924,"unityExtensionsInit":0.00096532,"assetDatabaseRefresh":2.827855895,"sceneOpening":0.20302161}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1792125547923,"processId":96053,"editorVersion":"6000.3.26f1 (de8167e7440c)","branch":"6000.3/staging","buildType":"Release","platform":"Linux"}
+Asset Pipeline Refresh (id=9a88496302fc743a996ad0bbb430f504): Total: 0.027 seconds - Initiated by RefreshV2(ForceSynchronousImport)
 [Licensing::Client] Successfully resolved entitlement details
 Running tests for ExecutionSettings with details:
 targetPlatform = 
@@ -384,102 +386,102 @@ UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /home/bokken/b
 (Filename: ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 53)
 
 [UnityConnectServicesConfig] config is NOT valid, switching to default
-Created GICache directory at /home/box/.cache/unity3d/GiCache. Took: 0.001s, timestamps: [5.628 - 5.629]
+Created GICache directory at /home/box/.cache/unity3d/GiCache. Took: 0.001s, timestamps: [5.991 - 5.993]
 Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 1 unused Assets / (43.9 KB). Loaded Objects now: 1065.
+Unloading 1 unused Assets / (43.9 KB). Loaded Objects now: 1066.
 Memory consumption went from 81.2 MB to 81.2 MB.
-Total: 7.341498 ms (FindLiveObjects: 0.064587 ms CreateObjectMapping: 0.015029 ms MarkObjects: 7.239893 ms  DeleteObjects: 0.020980 ms)
+Total: 7.481903 ms (FindLiveObjects: 0.069213 ms CreateObjectMapping: 0.015145 ms MarkObjects: 7.373707 ms  DeleteObjects: 0.022791 ms)
 
-Start importing Assets/InitTestScene2da1cf2e-a905-4b7a-8fdc-e2c037c82ca6.unity using Guid(2cc280023ec7085a4bbfdf85f4c38846) (DefaultImporter) -> (artifact id: 'a5c6a25adca3f0692e3b3d530051c4ee') in 0.00499647 seconds
-Refreshing native plugins compatible for Editor in 0.08 ms, found 0 plugins.
+Start importing Assets/InitTestSceneec0300ce-0656-487a-9e7d-2f3265d9812c.unity using Guid(bdc0f4f1e76b7e8c79cdbd6eb0c1ace9) (DefaultImporter) -> (artifact id: 'e6da6631c68ef8f76cc4377cc33e7306') in 0.004280952 seconds
+Refreshing native plugins compatible for Editor in 0.05 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
-Asset Pipeline Refresh (id=fb1159a45f27297ac9269be2b65acf32): Total: 0.014 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=4ea4618bd66e6ed01877ebdc14e6609e): Total: 0.013 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 Reloading assemblies for play mode.
 Reloading assemblies after forced synchronous recompile.
 Begin MonoManager ReloadAssembly
-- Loaded All Assemblies, in  0.273 seconds
-Refreshing native plugins compatible for Editor in 0.05 ms, found 0 plugins.
+- Loaded All Assemblies, in  0.270 seconds
+Refreshing native plugins compatible for Editor in 0.04 ms, found 0 plugins.
 Native extension for LinuxStandalone target not found
 Native extension for Android target not found
 ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:False
 Mono: successfully reloaded assembly
 [MODES] ModeService[none].Initialize
 [MODES] ModeService[none].LoadModes
-- Finished resetting the current domain, in  0.578 seconds
-Domain Reload Profiling: 852ms
-	BeginReloadAssembly (154ms)
+- Finished resetting the current domain, in  0.573 seconds
+Domain Reload Profiling: 844ms
+	BeginReloadAssembly (168ms)
 		ExecutionOrderSort (0ms)
-		DisableScriptedObjects (17ms)
+		DisableScriptedObjects (16ms)
 		BackupInstance (0ms)
 		ReleaseScriptingObjects (0ms)
-		CreateAndSetChildDomain (47ms)
-	RebuildCommonClasses (44ms)
-	RebuildNativeTypeToScriptingClass (9ms)
-	initialDomainReloadingComplete (36ms)
-	LoadAllAssembliesAndSetupDomain (30ms)
-		LoadAssemblies (79ms)
+		CreateAndSetChildDomain (61ms)
+	RebuildCommonClasses (35ms)
+	RebuildNativeTypeToScriptingClass (7ms)
+	initialDomainReloadingComplete (27ms)
+	LoadAllAssembliesAndSetupDomain (34ms)
+		LoadAssemblies (81ms)
 		RebuildTransferFunctionScriptingTraits (0ms)
-		AnalyzeDomain (22ms)
-			TypeCache.Refresh (7ms)
+		AnalyzeDomain (24ms)
+			TypeCache.Refresh (8ms)
 				TypeCache.ScanAssembly (0ms)
-			BuildScriptInfoCaches (12ms)
+			BuildScriptInfoCaches (15ms)
 			ResolveRequiredComponents (0ms)
-	FinalizeReload (578ms)
+	FinalizeReload (574ms)
 		ReleaseScriptCaches (0ms)
 		RebuildScriptCaches (0ms)
-		SetupLoadedEditorAssemblies (360ms)
+		SetupLoadedEditorAssemblies (356ms)
 			LogAssemblyErrors (0ms)
-			InitializePlatformSupportModulesInManaged (32ms)
+			InitializePlatformSupportModulesInManaged (30ms)
 			SetLoadedEditorAssemblies (8ms)
-			BeforeProcessingInitializeOnLoad (105ms)
-			ProcessInitializeOnLoadAttributes (101ms)
-			ProcessInitializeOnLoadMethodAttributes (111ms)
-			AfterProcessingInitializeOnLoad (3ms)
+			BeforeProcessingInitializeOnLoad (109ms)
+			ProcessInitializeOnLoadAttributes (99ms)
+			ProcessInitializeOnLoadMethodAttributes (106ms)
+			AfterProcessingInitializeOnLoad (4ms)
 			EditorAssembliesLoaded (0ms)
 		ExecutionOrderSort2 (0ms)
-		AwakeInstancesAfterBackupRestoration (18ms)
-Asset Pipeline Refresh (id=4436f0a5617bc9bf08072a69a6c286a9): Total: 0.886 seconds - Initiated by StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)
+		AwakeInstancesAfterBackupRestoration (20ms)
+Asset Pipeline Refresh (id=d35a8a4aed0d9734ba8972e501d92324): Total: 0.879 seconds - Initiated by StopAssetImportingV2(ForceSynchronousImport | ForceDomainReload)
 	Summary:
 		Imports: total=0 (actual=0, local cache=0, cache server=0)
-		Asset DB Process Time: managed=0 ms, native=595 ms
-		Asset DB Callback time: managed=9 ms, native=0 ms
-		Scripting: domain reloads=1, domain reload time=279 ms, compile time=1 ms, other=0 ms
+		Asset DB Process Time: managed=0 ms, native=591 ms
+		Asset DB Callback time: managed=10 ms, native=0 ms
+		Scripting: domain reloads=1, domain reload time=275 ms, compile time=1 ms, other=0 ms
 		Project Asset Count: scripts=108, non-scripts=21
 		Asset File Changes: new=0, changed=0, moved=0, deleted=0
 		Scan Filter Count: 0
 	InvokeCustomDependenciesCallbacks: 0.002ms
-	InvokePackagesCallback: 0.348ms
-	ApplyChangesToAssetFolders: 0.080ms
+	InvokePackagesCallback: 0.337ms
+	ApplyChangesToAssetFolders: 0.078ms
 	Scan: 0.001ms
-	OnSourceAssetsModified: 0.001ms
-	CategorizeAssetsWithTransientArtifact: 0.002ms
-	ProcessAssetsWithTransientArtifactChanges: 0.270ms
-	CategorizeAssets: 0.835ms
-	ImportOutOfDateAssets: 579.052ms (577.677ms without children)
-		CompileScripts: 1.157ms
-		CollectScriptTypesHashes: 0.001ms
+	OnSourceAssetsModified: 0.002ms
+	CategorizeAssetsWithTransientArtifact: 0.003ms
+	ProcessAssetsWithTransientArtifactChanges: 0.262ms
+	CategorizeAssets: 0.847ms
+	ImportOutOfDateAssets: 574.620ms (573.102ms without children)
+		CompileScripts: 1.304ms
+		CollectScriptTypesHashes: 0.010ms
 		ReloadNativeAssets: 0.001ms
 		UnloadImportedAssets: 0.015ms
-		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.017ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.021ms
 		InitializingProgressBar: 0.000ms
 		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
-		OnDemandSchedulerStart: 0.183ms
-	PostProcessAllAssets: 9.672ms
-	GatherAllCurrentPrimaryArtifactRevisions: 0.014ms
+		OnDemandSchedulerStart: 0.168ms
+	PostProcessAllAssets: 10.072ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.009ms
 	UnloadStreamsBegin: 0.002ms
-	PersistCurrentRevisions: 0.005ms
-	UnloadStreamsEnd: 0.001ms
-	GenerateScriptTypeHashes: 0.082ms
-	Untracked: 295.235ms
+	PersistCurrentRevisions: 0.004ms
+	UnloadStreamsEnd: 0.000ms
+	GenerateScriptTypeHashes: 0.092ms
+	Untracked: 292.801ms
 
 Loaded scene 'Temp/__Backupscenes/0.backup'
-	Deserialize:            0.923 ms
-	Integration:            14.337 ms
-	Integration of assets:  0.003 ms
-	Thread Wait Time:       0.152 ms
-	Total Operation Time:   15.414 ms
+	Deserialize:            0.922 ms
+	Integration:            15.176 ms
+	Integration of assets:  0.001 ms
+	Thread Wait Time:       0.016 ms
+	Total Operation Time:   16.117 ms
 [Licensing::Client] Successfully resolved entitlement details
-WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=17 path=/workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/docs/evidence/m6-region/valley-editor-rendered.png
+WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=30 path=/workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/docs/evidence/m6-region/valley-editor-rendered-m6b.png
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
 UnityEngine.StackTraceUtility:ExtractStackTrace () (at /home/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
 UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
@@ -505,26 +507,26 @@ UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr
 
 (Filename: Assets/Tests/PlayMode/ValleyCaptureTests.cs Line: 68)
 
-Saving results to: /workspace/simple-walk-game-wt-m6c-valley-capture-grok1207/docs/evidence/m6-region/capture-results.xml
+Saving results to: /workspace/simple-walk-game-wt-m6b-valley-readability-grok1229/docs/evidence/m6-region/capture-results.xml
 Unloading 4 Unused Serialized files (Serialized files now loaded: 0)
 Loaded scene 'Temp/__Backupscenes/0.backup'
-	Deserialize:            0.597 ms
-	Integration:            8.940 ms
-	Integration of assets:  0.002 ms
-	Thread Wait Time:       0.014 ms
-	Total Operation Time:   9.553 ms
-Unloading 6 unused Assets / (88.7 KB). Loaded Objects now: 1328.
+	Deserialize:            0.627 ms
+	Integration:            7.845 ms
+	Integration of assets:  0.003 ms
+	Thread Wait Time:       0.015 ms
+	Total Operation Time:   8.489 ms
+Unloading 6 unused Assets / (88.4 KB). Loaded Objects now: 1329.
 Memory consumption went from 196.0 MB to 195.9 MB.
-Total: 14.599507 ms (FindLiveObjects: 0.107741 ms CreateObjectMapping: 0.024884 ms MarkObjects: 14.317537 ms  DeleteObjects: 0.148069 ms)
+Total: 12.148509 ms (FindLiveObjects: 0.083149 ms CreateObjectMapping: 0.017481 ms MarkObjects: 11.923032 ms  DeleteObjects: 0.123476 ms)
 
 Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
-Unloading 0 unused Assets / (0 B). Loaded Objects now: 1333.
+Unloading 0 unused Assets / (0 B). Loaded Objects now: 1334.
 Memory consumption went from 193.6 MB to 193.6 MB.
-Total: 11.140407 ms (FindLiveObjects: 0.063854 ms CreateObjectMapping: 0.015533 ms MarkObjects: 11.051611 ms  DeleteObjects: 0.008195 ms)
+Total: 10.703398 ms (FindLiveObjects: 0.057110 ms CreateObjectMapping: 0.012598 ms MarkObjects: 10.626530 ms  DeleteObjects: 0.006271 ms)
 
-Refreshing native plugins compatible for Editor in 0.09 ms, found 0 plugins.
+Refreshing native plugins compatible for Editor in 0.07 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
-Asset Pipeline Refresh (id=74671b7b6287309de8872f0a3ba927b6): Total: 0.041 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=2cb624bf54ad6ca3b926336fdf984339): Total: 0.039 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 DisplayProgressbar: Undo
 Test run completed. Exiting with code 0 (Ok). Run completed.
 UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
@@ -539,11 +541,11 @@ UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /home/bokken/b
 
 (Filename: ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 81)
 
-Killing ADB server in 0.032159 seconds.
-Start importing ProjectSettings/ProjectSettings.asset using Guid(00000000000000004000000000000000) (LibraryAssetImporter) -> (artifact id: '829d3d2109d6f3bfbdfff7cd1793898d') in 0.005567692 seconds
-Refreshing native plugins compatible for Editor in 0.08 ms, found 0 plugins.
+Killing ADB server in 0.030973 seconds.
+Start importing ProjectSettings/ProjectSettings.asset using Guid(00000000000000004000000000000000) (LibraryAssetImporter) -> (artifact id: '829d3d2109d6f3bfbdfff7cd1793898d') in 0.005907434 seconds
+Refreshing native plugins compatible for Editor in 0.07 ms, found 0 plugins.
 Preloading 0 native plugins for Editor in 0.00 ms.
-Asset Pipeline Refresh (id=e4e72b7c4db158422b636b4ccf74980e): Total: 0.014 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+Asset Pipeline Refresh (id=883258aa1bfb7840cbdfd8e84c6fbabb): Total: 0.014 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
 [Physics::Module] Cleanup current backend.
 [Physics::Module] Id: 0xf2b8ea05
 Input System module state changed to: ShutdownInProgress.
@@ -559,4 +561,4 @@ debugger-agent: Unable to listen on 47
 [Package Manager] Server process was shutdown
 Checking for leaked weakptr:
   Found no leaked weakptrs.
-##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1792124499467,"processId":76543,"allocatedMemory":6862032,"memoryLabels":[{"Default":14105},{"Permanent":15960},{"Thread":1084616},{"Manager":24397},{"VertexData":8},{"Geometry":408},{"Texture":296},{"Shader":79876},{"Material":24},{"GfxDevice":36184},{"Animation":456},{"Audio":2656},{"FreeType":8},{"FontEngine":736},{"Physics":1970},{"Physics2D":16},{"Serialization":456},{"Input":26888},{"JobScheduler":33024},{"TextLib":280},{"Mono":32},{"ScriptingNativeRuntime":155096},{"BaseObject":1622952},{"Resource":1064},{"Renderer":3000},{"Transform":4717},{"File":3745},{"WebCam":80},{"Culling":32},{"Terrain":11298},{"Wind":24},{"String":16969},{"DynamicArray":83233},{"HashMap":70881},{"Utility":2660352},{"Curl":4190},{"PoolAlloc":1856},{"AI":80},{"TypeTree":14981},{"ScriptManager":512},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":112},{"GI":7384},{"Director":8208},{"CloudService":432},{"WebRequest":552},{"VR":47754},{"SceneManager":536},{"Video":64},{"LazyScriptCache":32},{"Camera":17},{"Secure":2377},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57552},{"StaticSafetyDebugInfo":278528},{"Analytics":336},{"Hierarchy":1416},{"CoreStats":13112},{"Identifiers":6480},{"Gui":128},{"EditorUtility":83852},{"VersionControl":4},{"Undo":979},{"AssetDatabase":317424},{"EditorGi":328},{"UnityConnect":29432},{"Upm":1744},{"AssetCompliance":64},{"DrivenProperties":72},{"LocalIPC":146},{"ProfilerEditor":9746},{"CoreBusinessMetrics":2379},{"Licensing":1128},{"AssetReference":32},{"IPCStream":32}]}
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1792125555091,"processId":96053,"allocatedMemory":6862092,"memoryLabels":[{"Default":14105},{"Permanent":15960},{"Thread":1084616},{"Manager":24397},{"VertexData":8},{"Geometry":408},{"Texture":296},{"Shader":79876},{"Material":24},{"GfxDevice":36184},{"Animation":456},{"Audio":2656},{"FreeType":8},{"FontEngine":736},{"Physics":1970},{"Physics2D":16},{"Serialization":456},{"Input":26888},{"JobScheduler":33024},{"TextLib":280},{"Mono":32},{"ScriptingNativeRuntime":155096},{"BaseObject":1622952},{"Resource":1064},{"Renderer":3000},{"Transform":4717},{"File":3745},{"WebCam":80},{"Culling":32},{"Terrain":11298},{"Wind":24},{"String":16989},{"DynamicArray":83233},{"HashMap":70921},{"Utility":2660352},{"Curl":4190},{"PoolAlloc":1856},{"AI":80},{"TypeTree":14981},{"ScriptManager":512},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":112},{"GI":7384},{"Director":8208},{"CloudService":432},{"WebRequest":552},{"VR":47754},{"SceneManager":536},{"Video":64},{"LazyScriptCache":32},{"Camera":17},{"Secure":2377},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57552},{"StaticSafetyDebugInfo":278528},{"Analytics":336},{"Hierarchy":1416},{"CoreStats":13112},{"Identifiers":6480},{"Gui":128},{"EditorUtility":83852},{"VersionControl":4},{"Undo":979},{"AssetDatabase":317424},{"EditorGi":328},{"UnityConnect":29432},{"Upm":1744},{"AssetCompliance":64},{"DrivenProperties":72},{"LocalIPC":146},{"ProfilerEditor":9746},{"CoreBusinessMetrics":2379},{"Licensing":1128},{"AssetReference":32},{"IPCStream":32}]}
