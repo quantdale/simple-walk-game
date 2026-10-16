@@ -27,7 +27,7 @@ namespace WalkGame.Shell
         }
         public ShellScreen Screen { get; }
         public ScreenState State { get; }
-        public string Title { get; }
+        public string Title { get; set; }
         public string? Notice { get; set; }
         public List<string> Lines { get; } = new List<string>();
         public List<ShellAction> Actions { get; } = new List<ShellAction>();

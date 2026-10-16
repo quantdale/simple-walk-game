@@ -46,3 +46,5 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 ## Session note 2026-10-16 (hardening + B, grok1628)
 - #43 renamed the A4 journal PNG to `docs/evidence/story/journal-editor-rendered.png`.
 - KI-019 closed by D-079 (per-provider sub-unit step carry); `StepCarryTests` 7 cases; pacing-pathological +1 Vitality regenerated.
+- B1: Region 1 completion celebration in the return summary (D-080), EditMode 65/65.
+- Next B candidates: discoveries/expeditions detail screen; settings polish (text size preview).

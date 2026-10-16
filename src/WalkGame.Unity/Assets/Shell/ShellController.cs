@@ -236,7 +236,9 @@ namespace WalkGame.Shell
                 }
                 foreach (var item in s.Items) m.Lines.Add((item.IsCurrent ? "" : "Earlier: ") + item.Text);
             }
+            bool celebrating = s != null && Celebrate(m, s.Items.Where(i => i.IsCurrent).Select(i => i.Text));
             if (s != null) m.Actions.Add(new ShellAction("ack", "Continue"));
+            if (celebrating) m.Actions.Add(new ShellAction("nav:Region", "See the restored valley"));
             // D-076: a chapter moment is a Transformation item; offer the journal after the primary Continue.
             if (s != null && s.Items.Any(i => i.IsCurrent && i.Text.StartsWith(ChapterMomentPrefix, StringComparison.Ordinal)))
                 m.Actions.Add(new ShellAction("nav:Story", "Read the new chapter"));
@@ -293,6 +295,28 @@ namespace WalkGame.Shell
                 : r.ExpeditionsAvailable + " expedition routes open, " + r.ExpeditionsCompleted + " completed.");
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
+        }
+
+        /// <summary>Suffix the composer uses for the region-complete moment (ReturnSummaryComposer, RegionCompleted).</summary>
+        public const string RegionCompleteSuffix = "'s restoration is complete.";
+
+        /// <summary>Celebration headline for Region 1 completion (D-080).</summary>
+        public const string CelebrationHeadline = "You restored the whole valley.";
+
+        /// <summary>
+        /// Region 1 completion celebration (D-080): when the summary carries the region-complete
+        /// moment, the screen is retitled and leads with a calm, static headline. No animation,
+        /// no new state; it is shown once because the summary itself is acknowledged durably.
+        /// Returns true when the celebration applied.
+        /// </summary>
+        public static bool Celebrate(ScreenModel m, IEnumerable<string> currentItemTexts)
+        {
+            if (m == null || currentItemTexts == null) return false;
+            if (!currentItemTexts.Any(t => t != null && t.EndsWith(RegionCompleteSuffix, StringComparison.Ordinal))) return false;
+            m.Title = "The valley is restored";
+            m.Lines.Insert(0, CelebrationHeadline);
+            m.Lines.Insert(1, "Every place you brought back stays restored. Your walks keep the valley flourishing.");
+            return true;
         }
 
         /// <summary>Prefix the composer uses for chapter moments (ReturnSummaryComposer, D-076).</summary>

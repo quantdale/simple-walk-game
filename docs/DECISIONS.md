@@ -2059,3 +2059,11 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - **Pacing:** synthetic profiles use day-sized records, so pacing gains at most one Vitality per day.
 
 **Evidence.** `StepCarryTests` (7 cases: many small records, sub-100 records across reload, per-provider pools, replay, deletion, correction, validator bound).
+
+## D-080 — Region 1 completion is celebrated in the return summary, calmly and once (2026-10-16)
+
+**Context.** Finishing Region 1 produced a single summary line ("…'s restoration is complete.") among ordinary items. UX_DESIGN asks for a restoration celebration, without pressure, blocking sequences or required motion.
+
+**Decision.** When the pending summary carries the region-complete moment, the shell retitles it "The valley is restored" and leads with two static lines. A "See the restored valley" action follows the primary Continue. There is no new saved state: the summary is acknowledged durably, so the celebration shows once. It is text-first, so it works with reduced motion and screen readers (D-073 outline order), and the copy passes the no-guilt check.
+
+**Evidence.** `RegionCelebrationTests` (4 EditMode cases); EditMode 65/65 in `docs/evidence/b-celebration/`. Device UNVERIFIED (KI-002).
