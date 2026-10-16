@@ -404,6 +404,30 @@ namespace WalkGame.Domain.Validation
             }
             if (state.ProcessedRecords.LegacyDaysLowerBound < 0)
                 violations.Add("Days-walked legacy lower bound is negative.");
+
+            // Plausible range (D-105): a credited record ends at most 45 days before the profile
+            // existed (the new-profile acceptance floor) and never after trusted progress, and its
+            // local date is within a day of its UTC date. A tampered count beyond that span, or a day
+            // outside it, is rejected instead of being shown to the player as fact.
+            DateTimeOffset latest = state.LastAdvancedUtc > state.IngestionCheckpointUtc ? state.LastAdvancedUtc : state.IngestionCheckpointUtc;
+            if (state.CreatedAtUtc != default && latest >= state.CreatedAtUtc)
+            {
+                long firstDay = (long)LocalDayCalendar.UtcDayOf(state.CreatedAtUtc) - 47L;
+                long lastDay = (long)LocalDayCalendar.UtcDayOf(latest) + 2L;
+                long span = lastDay - firstDay + 1L;
+                foreach (var d in days)
+                {
+                    if (d < firstDay || d > lastDay)
+                    {
+                        violations.Add($"Days-walked day {d} lies outside the profile's plausible range.");
+                        break;
+                    }
+                }
+                if (state.ProcessedRecords.LegacyDaysLowerBound > span || state.ProcessedRecords.DaysWalkedCount > span)
+                    violations.Add("Days-walked count exceeds the number of days the profile has existed.");
+                if (state.ProcessedRecords.LegacyLastUtcDay is int lastLegacy && (lastLegacy < firstDay || lastLegacy > lastDay))
+                    violations.Add("Days-walked legacy boundary lies outside the profile's plausible range.");
+            }
             foreach (var pair in state.ProcessedRecords.Entries)
             {
                 var e = pair.Value;

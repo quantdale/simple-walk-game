@@ -2298,3 +2298,11 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Tests:** `DaysWalkedTests` (Domain, 9), `DaysWalkedSessionTests` (5), `MigrationV2ToV3Tests` (3), adapter sixth-field tests (3), EditMode `ProgressScreenTests` +2. Existing schema-literal assertions now use `SchemaVersions.Current` and the extended chain; no test was deleted.
 
 **Gaps:** The Health Connect `endZoneOffset` read on a device is UNVERIFIED (KI-002). The Java change is compiled only when the APK is built.
+
+## D-105 — Hardening: days-walked plausible range, tamper and fuzz (2026-10-16)
+
+**Context.** D-103 added persisted days-walked fields. A tampered or corrupted save could show the player an impossible count, for example 5,000 days on a three-week-old profile.
+
+**Decision.** `GameStateValidator` now checks a plausible range. Every walked day, and the legacy boundary, must lie between the UTC day of `CreatedAtUtc` − 47 (records can be up to 45 days older than a new profile, and a local date is at most a day off its UTC date) and the UTC day of the later of `LastAdvancedUtc` and `IngestionCheckpointUtc`, + 2. Neither the count nor the legacy lower bound may exceed that span. A violation fails closed and leaves the save untouched, as with every other validator rule.
+
+**Tests:** `DaysWalkedHardeningTests` (5 cases): inflated legacy count rejected and file untouched; far-future and ancient days rejected; an honest +14 h edge stays valid; a 300-case fuzz of the `processedRecords` subtree on both v2 (migration path) and v3 saves, where each case loads valid or fails closed untouched.
