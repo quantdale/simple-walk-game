@@ -1,0 +1,13 @@
+== building simulation CLI ==
+== shipped content validates ==
+  PASS: the shipped Region 1 content constructs and validates
+== mature saves resolve against the shipped content ==
+  PASS: profile 'low' (12d): validate: schema=v2 violations=0 contentVersion=4/4 content=EXACT-MATCH
+  PASS: profile 'moderate' (40d): validate: schema=v2 violations=0 contentVersion=4/4 content=EXACT-MATCH
+  PASS: profile 'high' (80d): validate: schema=v2 violations=0 contentVersion=4/4 content=EXACT-MATCH
+  PASS: profile 'irregular' (60d): validate: schema=v2 violations=0 contentVersion=4/4 content=EXACT-MATCH
+  PASS: profile 'weekend-heavy' (50d): validate: schema=v2 violations=0 contentVersion=4/4 content=EXACT-MATCH
+
+======================================
+CONTENT COMPATIBILITY: all checks passed
+======================================
