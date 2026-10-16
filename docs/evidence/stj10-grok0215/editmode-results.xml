@@ -1,0 +1,1388 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="205" result="Passed" total="205" passed="205" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:54Z" duration="5.8800227">
+  <test-suite type="TestSuite" id="1000" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="205" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:54Z" duration="5.880023" total="205" passed="205" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1243" name="WalkGame.Shell.Tests.dll" fullname="/workspace/simple-walk-game-wt-stj-grok0215/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.Tests.dll" runstate="Runnable" testcasecount="205" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:54Z" duration="5.870690" total="205" passed="205" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="739873" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1244" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="205" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:54Z" duration="5.870379" total="205" passed="205" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1245" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="205" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:54Z" duration="5.870290" total="205" passed="205" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1246" name="Tests" fullname="WalkGame.Shell.Tests" runstate="Runnable" testcasecount="205" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:54Z" duration="5.869929" total="205" passed="205" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1002" name="AccessibilityAuditTests" fullname="WalkGame.Shell.Tests.AccessibilityAuditTests" classname="WalkGame.Shell.Tests.AccessibilityAuditTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.469419" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1005" name="Every_control_has_a_unique_human_label" fullname="WalkGame.Shell.Tests.AccessibilityAuditTests.Every_control_has_a_unique_human_label" methodname="Every_control_has_a_unique_human_label" classname="WalkGame.Shell.Tests.AccessibilityAuditTests" runstate="Runnable" seed="96440833" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.324471" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1006" name="Every_touch_target_meets_the_android_minimum_at_every_text_scale" fullname="WalkGame.Shell.Tests.AccessibilityAuditTests.Every_touch_target_meets_the_android_minimum_at_every_text_scale" methodname="Every_touch_target_meets_the_android_minimum_at_every_text_scale" classname="WalkGame.Shell.Tests.AccessibilityAuditTests" runstate="Runnable" seed="385078106" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.030651" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1004" name="Focus_order_follows_reading_order_and_every_action_is_focusable" fullname="WalkGame.Shell.Tests.AccessibilityAuditTests.Focus_order_follows_reading_order_and_every_action_is_focusable" methodname="Focus_order_follows_reading_order_and_every_action_is_focusable" classname="WalkGame.Shell.Tests.AccessibilityAuditTests" runstate="Runnable" seed="1342925611" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.013558" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1010" name="No_screen_animates_so_reduced_motion_holds_with_the_setting_on_or_off" fullname="WalkGame.Shell.Tests.AccessibilityAuditTests.No_screen_animates_so_reduced_motion_holds_with_the_setting_on_or_off" methodname="No_screen_animates_so_reduced_motion_holds_with_the_setting_on_or_off" classname="WalkGame.Shell.Tests.AccessibilityAuditTests" runstate="Runnable" seed="1382212791" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.063854" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1008" name="Non_text_indicators_meet_3_to_1" fullname="WalkGame.Shell.Tests.AccessibilityAuditTests.Non_text_indicators_meet_3_to_1" methodname="Non_text_indicators_meet_3_to_1" classname="WalkGame.Shell.Tests.AccessibilityAuditTests" runstate="Runnable" seed="737525718" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.001250" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1009" name="Rendered_screens_only_use_audited_colour_pairs" fullname="WalkGame.Shell.Tests.AccessibilityAuditTests.Rendered_screens_only_use_audited_colour_pairs" methodname="Rendered_screens_only_use_audited_colour_pairs" classname="WalkGame.Shell.Tests.AccessibilityAuditTests" runstate="Runnable" seed="1251928699" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.014746" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1003" name="The_audit_covers_every_screen" fullname="WalkGame.Shell.Tests.AccessibilityAuditTests.The_audit_covers_every_screen" methodname="The_audit_covers_every_screen" classname="WalkGame.Shell.Tests.AccessibilityAuditTests" runstate="Runnable" seed="1841139419" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.008323" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1007" name="Theme_text_colours_meet_the_documented_7_to_1_body_contrast" fullname="WalkGame.Shell.Tests.AccessibilityAuditTests.Theme_text_colours_meet_the_documented_7_to_1_body_contrast" methodname="Theme_text_colours_meet_the_documented_7_to_1_body_contrast" classname="WalkGame.Shell.Tests.AccessibilityAuditTests" runstate="Runnable" seed="936031955" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.000708" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1011" name="AccessibilityHeadlessTests" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.126670" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1016" name="Bridge_builds_one_node_per_stop_with_mapped_roles_and_primary_hint" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Bridge_builds_one_node_per_stop_with_mapped_roles_and_primary_hint" methodname="Bridge_builds_one_node_per_stop_with_mapped_roles_and_primary_hint" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="1921892811" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.006199" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1017" name="Empty_states_explain_the_next_step_at_body_size_and_never_dead_end" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Empty_states_explain_the_next_step_at_body_size_and_never_dead_end" methodname="Empty_states_explain_the_next_step_at_body_size_and_never_dead_end" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="1170815671" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.004821" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1015" name="Errors_are_announced_as_problems_before_anything_else" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Errors_are_announced_as_problems_before_anything_else" methodname="Errors_are_announced_as_problems_before_anything_else" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="686891983" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.000536" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1014" name="Every_screen_has_a_complete_ordered_screen_reader_outline" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Every_screen_has_a_complete_ordered_screen_reader_outline" methodname="Every_screen_has_a_complete_ordered_screen_reader_outline" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="1338421553" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.003413" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1013" name="Font_scale_is_clamped_so_text_never_shrinks_or_explodes" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Font_scale_is_clamped_so_text_never_shrinks_or_explodes" methodname="Font_scale_is_clamped_so_text_never_shrinks_or_explodes" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="71195049" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.001309" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1012" name="Large_text_scales_title_body_and_touch_targets_and_everything_wraps" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Large_text_scales_title_body_and_touch_targets_and_everything_wraps" methodname="Large_text_scales_title_body_and_touch_targets_and_everything_wraps" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="190897657" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.005556" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1020" name="Returning_after_walking_away_lands_on_a_calm_summary_with_one_clear_continue" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Returning_after_walking_away_lands_on_a_calm_summary_with_one_clear_continue" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.075495" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1018" name="Returning_after_walking_away_lands_on_a_calm_summary_with_one_clear_continue(7)" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Returning_after_walking_away_lands_on_a_calm_summary_with_one_clear_continue(7)" methodname="Returning_after_walking_away_lands_on_a_calm_summary_with_one_clear_continue" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="1952962111" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.058204" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1019" name="Returning_after_walking_away_lands_on_a_calm_summary_with_one_clear_continue(30)" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Returning_after_walking_away_lands_on_a_calm_summary_with_one_clear_continue(30)" methodname="Returning_after_walking_away_lands_on_a_calm_summary_with_one_clear_continue" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="1651530525" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.016560" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1023" name="Returning_without_any_walking_keeps_everything_and_never_scolds" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Returning_without_any_walking_keeps_everything_and_never_scolds" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.026674" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1021" name="Returning_without_any_walking_keeps_everything_and_never_scolds(7)" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Returning_without_any_walking_keeps_everything_and_never_scolds(7)" methodname="Returning_without_any_walking_keeps_everything_and_never_scolds" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="1953587864" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.013959" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1022" name="Returning_without_any_walking_keeps_everything_and_never_scolds(30)" fullname="WalkGame.Shell.Tests.AccessibilityHeadlessTests.Returning_without_any_walking_keeps_everything_and_never_scolds(30)" methodname="Returning_without_any_walking_keeps_everything_and_never_scolds" classname="WalkGame.Shell.Tests.AccessibilityHeadlessTests" runstate="Runnable" seed="1500762655" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.012022" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="1024" name="BackgroundSyncBudgetTests" fullname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests" classname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.074274" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1026" name="Each_return_to_the_foreground_reads_exactly_once" fullname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests.Each_return_to_the_foreground_reads_exactly_once" methodname="Each_return_to_the_foreground_reads_exactly_once" classname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests" runstate="Runnable" seed="1107649512" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.022592" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1027" name="Every_read_window_is_bounded_to_the_sync_window" fullname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests.Every_read_window_is_bounded_to_the_sync_window" methodname="Every_read_window_is_bounded_to_the_sync_window" classname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests" runstate="Runnable" seed="1127744684" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.013752" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1025" name="Navigation_and_rendering_never_read_walking_data" fullname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests.Navigation_and_rendering_never_read_walking_data" methodname="Navigation_and_rendering_never_read_walking_data" classname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests" runstate="Runnable" seed="981882951" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.011197" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1029" name="Shell_source_has_no_polling_or_timer_wakeups" fullname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests.Shell_source_has_no_polling_or_timer_wakeups" methodname="Shell_source_has_no_polling_or_timer_wakeups" classname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests" runstate="Runnable" seed="1641144845" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.012568" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1028" name="Status_checks_per_screen_render_are_bounded" fullname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests.Status_checks_per_screen_render_are_bounded" methodname="Status_checks_per_screen_render_are_bounded" classname="WalkGame.Shell.Tests.BackgroundSyncBudgetTests" runstate="Runnable" seed="229792828" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.012788" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_SYNC_BUDGET status-calls-per-render=0.89
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1030" name="CopyPolishTests" fullname="WalkGame.Shell.Tests.CopyPolishTests" classname="WalkGame.Shell.Tests.CopyPolishTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.049872" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1035" name="Error_notices_never_echo_ids_or_codes" fullname="WalkGame.Shell.Tests.CopyPolishTests.Error_notices_never_echo_ids_or_codes" methodname="Error_notices_never_echo_ids_or_codes" classname="WalkGame.Shell.Tests.CopyPolishTests" runstate="Runnable" seed="1436635053" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.004398" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1033" name="Every_activity_status_and_action_reads_calmly" fullname="WalkGame.Shell.Tests.CopyPolishTests.Every_activity_status_and_action_reads_calmly" methodname="Every_activity_status_and_action_reads_calmly" classname="WalkGame.Shell.Tests.CopyPolishTests" runstate="Runnable" seed="1041104741" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.001247" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1034" name="Every_boot_outcome_reassures_and_shows_no_codes" fullname="WalkGame.Shell.Tests.CopyPolishTests.Every_boot_outcome_reassures_and_shows_no_codes" methodname="Every_boot_outcome_reassures_and_shows_no_codes" classname="WalkGame.Shell.Tests.CopyPolishTests" runstate="Runnable" seed="913064720" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.000685" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1036" name="Home_summary_lines_read_calmly_across_states" fullname="WalkGame.Shell.Tests.CopyPolishTests.Home_summary_lines_read_calmly_across_states" methodname="Home_summary_lines_read_calmly_across_states" classname="WalkGame.Shell.Tests.CopyPolishTests" runstate="Runnable" seed="1243142854" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.022781" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1037" name="Settings_status_lines_are_plain_sentences" fullname="WalkGame.Shell.Tests.CopyPolishTests.Settings_status_lines_are_plain_sentences" methodname="Settings_status_lines_are_plain_sentences" classname="WalkGame.Shell.Tests.CopyPolishTests" runstate="Runnable" seed="1814234158" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.001035" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1032" name="Shell_copy_passes_the_no_guilt_check" fullname="WalkGame.Shell.Tests.CopyPolishTests.Shell_copy_passes_the_no_guilt_check" classname="WalkGame.Shell.Tests.CopyPolishTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.017940" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1031" name="Shell_copy_passes_the_no_guilt_check(&quot;PlayerStrings.cs&quot;)" fullname="WalkGame.Shell.Tests.CopyPolishTests.Shell_copy_passes_the_no_guilt_check(&quot;PlayerStrings.cs&quot;)" methodname="Shell_copy_passes_the_no_guilt_check" classname="WalkGame.Shell.Tests.CopyPolishTests" runstate="Runnable" seed="1038837207" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:49Z" duration="0.017419" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="1038" name="DiscoveriesScreenTests" fullname="WalkGame.Shell.Tests.DiscoveriesScreenTests" classname="WalkGame.Shell.Tests.DiscoveriesScreenTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:50Z" duration="0.710931" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1041" name="Completed_region_lists_every_find_and_route_without_raw_keys" fullname="WalkGame.Shell.Tests.DiscoveriesScreenTests.Completed_region_lists_every_find_and_route_without_raw_keys" methodname="Completed_region_lists_every_find_and_route_without_raw_keys" classname="WalkGame.Shell.Tests.DiscoveriesScreenTests" runstate="Runnable" seed="1569981226" result="Passed" start-time="2026-10-16 18:20:49Z" end-time="2026-10-16 18:20:50Z" duration="0.324134" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1042" name="Found_discoveries_show_their_story_and_origin" fullname="WalkGame.Shell.Tests.DiscoveriesScreenTests.Found_discoveries_show_their_story_and_origin" methodname="Found_discoveries_show_their_story_and_origin" classname="WalkGame.Shell.Tests.DiscoveriesScreenTests" runstate="Runnable" seed="1696559536" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.285974" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1044" name="Locked_routes_explain_what_opens_them_in_player_words" fullname="WalkGame.Shell.Tests.DiscoveriesScreenTests.Locked_routes_explain_what_opens_them_in_player_words" methodname="Locked_routes_explain_what_opens_them_in_player_words" classname="WalkGame.Shell.Tests.DiscoveriesScreenTests" runstate="Runnable" seed="620649746" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004938" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1039" name="Region_links_to_the_detail_screen_and_a_new_game_is_an_empty_state" fullname="WalkGame.Shell.Tests.DiscoveriesScreenTests.Region_links_to_the_detail_screen_and_a_new_game_is_an_empty_state" methodname="Region_links_to_the_detail_screen_and_a_new_game_is_an_empty_state" classname="WalkGame.Shell.Tests.DiscoveriesScreenTests" runstate="Runnable" seed="1210624005" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004398" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1045" name="Stage_need_never_leaks_raw_ids" fullname="WalkGame.Shell.Tests.DiscoveriesScreenTests.Stage_need_never_leaks_raw_ids" methodname="Stage_need_never_leaks_raw_ids" classname="WalkGame.Shell.Tests.DiscoveriesScreenTests" runstate="Runnable" seed="93067009" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000559" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1040" name="Unfound_discoveries_are_never_named" fullname="WalkGame.Shell.Tests.DiscoveriesScreenTests.Unfound_discoveries_are_never_named" methodname="Unfound_discoveries_are_never_named" classname="WalkGame.Shell.Tests.DiscoveriesScreenTests" runstate="Runnable" seed="611323057" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.023464" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1043" name="Unfound_discovery_copy_is_never_shown" fullname="WalkGame.Shell.Tests.DiscoveriesScreenTests.Unfound_discovery_copy_is_never_shown" methodname="Unfound_discovery_copy_is_never_shown" classname="WalkGame.Shell.Tests.DiscoveriesScreenTests" runstate="Runnable" seed="723366165" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.026050" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1046" name="Viewing_changes_no_progression_and_copy_is_calm" fullname="WalkGame.Shell.Tests.DiscoveriesScreenTests.Viewing_changes_no_progression_and_copy_is_calm" methodname="Viewing_changes_no_progression_and_copy_is_calm" classname="WalkGame.Shell.Tests.DiscoveriesScreenTests" runstate="Runnable" seed="462776475" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.039346" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1047" name="GentleReminderTests" fullname="WalkGame.Shell.Tests.GentleReminderTests" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" testcasecount="20" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.066784" total="20" passed="20" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1067" name="Moving_the_time_does_nothing_while_the_reminder_is_off" fullname="WalkGame.Shell.Tests.GentleReminderTests.Moving_the_time_does_nothing_while_the_reminder_is_off" methodname="Moving_the_time_does_nothing_while_the_reminder_is_off" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="1323735357" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004303" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1066" name="Moving_the_time_saves_it_reschedules_once_and_confirms_calmly" fullname="WalkGame.Shell.Tests.GentleReminderTests.Moving_the_time_saves_it_reschedules_once_and_confirms_calmly" methodname="Moving_the_time_saves_it_reschedules_once_and_confirms_calmly" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="12147704" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005469" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1064" name="Next_reminder_time_always_lands_on_the_grid_inside_the_window_and_moves_the_right_way" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_always_lands_on_the_grid_inside_the_window_and_moves_the_right_way" methodname="Next_reminder_time_always_lands_on_the_grid_inside_the_window_and_moves_the_right_way" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="990936392" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.022838" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1063" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004265" total="10" passed="10" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1053" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(480,-1,450)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(480,-1,450)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="1810560486" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000662" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1054" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(480,1,510)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(480,1,510)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="1860245445" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000263" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1055" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(465,-1,450)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(465,-1,450)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="378055968" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000267" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1056" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(465,1,480)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(465,1,480)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="62139391" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000215" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1057" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(360,-1,360)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(360,-1,360)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="532443877" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000207" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1058" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(1260,1,1260)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(1260,1,1260)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="1511246813" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000207" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1059" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(1380,-1,1260)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(1380,-1,1260)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="628443328" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000211" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1060" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(1380,1,1380)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(1380,1,1380)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="2103746131" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000219" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1061" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(120,1,360)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(120,1,360)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="373296120" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000222" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1062" name="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(120,-1,120)" fullname="WalkGame.Shell.Tests.GentleReminderTests.Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(120,-1,120)" methodname="Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="1381080022" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000230" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1048" name="Off_by_default_and_never_scheduled_or_asked_without_opt_in" fullname="WalkGame.Shell.Tests.GentleReminderTests.Off_by_default_and_never_scheduled_or_asked_without_opt_in" methodname="Off_by_default_and_never_scheduled_or_asked_without_opt_in" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="1052848810" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.007482" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1052" name="Reminder_copy_has_no_streak_guilt_or_pressure_language" fullname="WalkGame.Shell.Tests.GentleReminderTests.Reminder_copy_has_no_streak_guilt_or_pressure_language" methodname="Reminder_copy_has_no_streak_guilt_or_pressure_language" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="793076093" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.001012" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1065" name="Time_buttons_appear_only_when_the_reminder_is_on_and_name_the_new_time" fullname="WalkGame.Shell.Tests.GentleReminderTests.Time_buttons_appear_only_when_the_reminder_is_on_and_name_the_new_time" methodname="Time_buttons_appear_only_when_the_reminder_is_on_and_name_the_new_time" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="96832497" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.003139" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1068" name="Time_controls_are_calm_and_in_the_table" fullname="WalkGame.Shell.Tests.GentleReminderTests.Time_controls_are_calm_and_in_the_table" methodname="Time_controls_are_calm_and_in_the_table" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="340558457" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000901" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1050" name="Turning_off_cancels_and_a_revoked_permission_cancels_on_resume" fullname="WalkGame.Shell.Tests.GentleReminderTests.Turning_off_cancels_and_a_revoked_permission_cancels_on_resume" methodname="Turning_off_cancels_and_a_revoked_permission_cancels_on_resume" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="705711886" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.007029" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1049" name="Turning_on_asks_the_OS_and_schedules_only_once_permission_is_granted" fullname="WalkGame.Shell.Tests.GentleReminderTests.Turning_on_asks_the_OS_and_schedules_only_once_permission_is_granted" methodname="Turning_on_asks_the_OS_and_schedules_only_once_permission_is_granted" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="231956763" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005528" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1051" name="Without_a_scheduler_the_setting_says_not_available_and_offers_no_toggle" fullname="WalkGame.Shell.Tests.GentleReminderTests.Without_a_scheduler_the_setting_says_not_available_and_offers_no_toggle" methodname="Without_a_scheduler_the_setting_says_not_available_and_offers_no_toggle" classname="WalkGame.Shell.Tests.GentleReminderTests" runstate="Runnable" seed="549104204" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.001732" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1069" name="HomeLayoutPolishTests" fullname="WalkGame.Shell.Tests.HomeLayoutPolishTests" classname="WalkGame.Shell.Tests.HomeLayoutPolishTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.014345" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1073" name="Empty_home_says_nothing_is_restored_only_once" fullname="WalkGame.Shell.Tests.HomeLayoutPolishTests.Empty_home_says_nothing_is_restored_only_once" methodname="Empty_home_says_nothing_is_restored_only_once" classname="WalkGame.Shell.Tests.HomeLayoutPolishTests" runstate="Runnable" seed="457452862" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.003035" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1072" name="Home_shows_each_line_once" fullname="WalkGame.Shell.Tests.HomeLayoutPolishTests.Home_shows_each_line_once" classname="WalkGame.Shell.Tests.HomeLayoutPolishTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.010122" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1070" name="Home_shows_each_line_once(True)" fullname="WalkGame.Shell.Tests.HomeLayoutPolishTests.Home_shows_each_line_once(True)" methodname="Home_shows_each_line_once" classname="WalkGame.Shell.Tests.HomeLayoutPolishTests" runstate="Runnable" seed="1710316676" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005136" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1071" name="Home_shows_each_line_once(False)" fullname="WalkGame.Shell.Tests.HomeLayoutPolishTests.Home_shows_each_line_once(False)" methodname="Home_shows_each_line_once" classname="WalkGame.Shell.Tests.HomeLayoutPolishTests" runstate="Runnable" seed="1799906534" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004475" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="1074" name="LettersJournalTests" fullname="WalkGame.Shell.Tests.LettersJournalTests" classname="WalkGame.Shell.Tests.LettersJournalTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.025680" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1076" name="A_found_letter_shows_in_the_journal_and_is_counted_in_discoveries" fullname="WalkGame.Shell.Tests.LettersJournalTests.A_found_letter_shows_in_the_journal_and_is_counted_in_discoveries" methodname="A_found_letter_shows_in_the_journal_and_is_counted_in_discoveries" classname="WalkGame.Shell.Tests.LettersJournalTests" runstate="Runnable" seed="749631774" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.016591" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1075" name="A_new_game_lists_no_letters_anywhere" fullname="WalkGame.Shell.Tests.LettersJournalTests.A_new_game_lists_no_letters_anywhere" methodname="A_new_game_lists_no_letters_anywhere" classname="WalkGame.Shell.Tests.LettersJournalTests" runstate="Runnable" seed="662895079" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.007380" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1077" name="Letter_copy_has_no_guilt_or_pressure_language" fullname="WalkGame.Shell.Tests.LettersJournalTests.Letter_copy_has_no_guilt_or_pressure_language" methodname="Letter_copy_has_no_guilt_or_pressure_language" classname="WalkGame.Shell.Tests.LettersJournalTests" runstate="Runnable" seed="28778435" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000698" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1078" name="LocalizationReadinessTests" fullname="WalkGame.Shell.Tests.LocalizationReadinessTests" classname="WalkGame.Shell.Tests.LocalizationReadinessTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.026850" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1084" name="Every_key_used_in_shell_code_exists_in_the_table" fullname="WalkGame.Shell.Tests.LocalizationReadinessTests.Every_key_used_in_shell_code_exists_in_the_table" methodname="Every_key_used_in_shell_code_exists_in_the_table" classname="WalkGame.Shell.Tests.LocalizationReadinessTests" runstate="Runnable" seed="1610533174" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002295" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1082" name="Every_table_entry_is_non_empty_and_its_template_formats" fullname="WalkGame.Shell.Tests.LocalizationReadinessTests.Every_table_entry_is_non_empty_and_its_template_formats" methodname="Every_table_entry_is_non_empty_and_its_template_formats" classname="WalkGame.Shell.Tests.LocalizationReadinessTests" runstate="Runnable" seed="1474341924" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002323" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1080" name="Migrated_files_have_no_hard_coded_player_strings" fullname="WalkGame.Shell.Tests.LocalizationReadinessTests.Migrated_files_have_no_hard_coded_player_strings" methodname="Migrated_files_have_no_hard_coded_player_strings" classname="WalkGame.Shell.Tests.LocalizationReadinessTests" runstate="Runnable" seed="2099563375" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.016341" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1083" name="Migrated_player_copy_reads_exactly_as_before" fullname="WalkGame.Shell.Tests.LocalizationReadinessTests.Migrated_player_copy_reads_exactly_as_before" methodname="Migrated_player_copy_reads_exactly_as_before" classname="WalkGame.Shell.Tests.LocalizationReadinessTests" runstate="Runnable" seed="750625404" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.001145" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1081" name="No_shell_file_gains_hard_coded_player_strings" fullname="WalkGame.Shell.Tests.LocalizationReadinessTests.No_shell_file_gains_hard_coded_player_strings" methodname="No_shell_file_gains_hard_coded_player_strings" classname="WalkGame.Shell.Tests.LocalizationReadinessTests" runstate="Runnable" seed="1617900915" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002967" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1079" name="The_scanner_counts_player_copy_and_ignores_comments_and_marked_lines" fullname="WalkGame.Shell.Tests.LocalizationReadinessTests.The_scanner_counts_player_copy_and_ignores_comments_and_marked_lines" methodname="The_scanner_counts_player_copy_and_ignores_comments_and_marked_lines" classname="WalkGame.Shell.Tests.LocalizationReadinessTests" runstate="Runnable" seed="262891235" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000173" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1085" name="OnboardingPermissionEdgeTests" fullname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests" classname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.066683" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1086" name="Deny_then_grant_mid_onboarding_keeps_the_step_and_starts_syncing" fullname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests.Deny_then_grant_mid_onboarding_keeps_the_step_and_starts_syncing" methodname="Deny_then_grant_mid_onboarding_keeps_the_step_and_starts_syncing" classname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests" runstate="Runnable" seed="517260672" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.016503" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1090" name="Killed_at_the_first_project_step_resumes_there_after_a_denial" fullname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests.Killed_at_the_first_project_step_resumes_there_after_a_denial" methodname="Killed_at_the_first_project_step_resumes_there_after_a_denial" classname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests" runstate="Runnable" seed="2024743047" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.010724" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1091" name="Killed_mid_delete_all_does_not_skip_onboarding_for_the_new_world" fullname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests.Killed_mid_delete_all_does_not_skip_onboarding_for_the_new_world" methodname="Killed_mid_delete_all_does_not_skip_onboarding_for_the_new_world" classname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests" runstate="Runnable" seed="324591850" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.011269" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1089" name="Killed_right_after_start_resumes_the_guide_not_a_new_game" fullname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests.Killed_right_after_start_resumes_the_guide_not_a_new_game" methodname="Killed_right_after_start_resumes_the_guide_not_a_new_game" classname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests" runstate="Runnable" seed="750923796" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004443" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1087" name="Outdated_health_connect_shows_update_required_not_connect" fullname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests.Outdated_health_connect_shows_update_required_not_connect" methodname="Outdated_health_connect_shows_update_required_not_connect" classname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests" runstate="Runnable" seed="806003152" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.011691" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1088" name="Revoke_after_onboarding_never_reopens_the_guide_or_reads_steps" fullname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests.Revoke_after_onboarding_never_reopens_the_guide_or_reads_steps" methodname="Revoke_after_onboarding_never_reopens_the_guide_or_reads_steps" classname="WalkGame.Shell.Tests.OnboardingPermissionEdgeTests" runstate="Runnable" seed="522750212" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.010256" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1092" name="PlatformParityTests" fullname="WalkGame.Shell.Tests.PlatformParityTests" classname="WalkGame.Shell.Tests.PlatformParityTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.017356" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1095" name="Activity_screen_without_a_provider_is_honest_and_never_leaks_diagnostics" fullname="WalkGame.Shell.Tests.PlatformParityTests.Activity_screen_without_a_provider_is_honest_and_never_leaks_diagnostics" methodname="Activity_screen_without_a_provider_is_honest_and_never_leaks_diagnostics" classname="WalkGame.Shell.Tests.PlatformParityTests" runstate="Runnable" seed="35877942" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004050" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1097" name="Bootstrap_does_not_compose_the_unverified_healthkit_bridge" fullname="WalkGame.Shell.Tests.PlatformParityTests.Bootstrap_does_not_compose_the_unverified_healthkit_bridge" methodname="Bootstrap_does_not_compose_the_unverified_healthkit_bridge" classname="WalkGame.Shell.Tests.PlatformParityTests" runstate="Runnable" seed="1437755787" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000790" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1098" name="Healthkit_prune_window_matches_the_shell_sync_window_and_prep_stays_unwired" fullname="WalkGame.Shell.Tests.PlatformParityTests.Healthkit_prune_window_matches_the_shell_sync_window_and_prep_stays_unwired" methodname="Healthkit_prune_window_matches_the_shell_sync_window_and_prep_stays_unwired" classname="WalkGame.Shell.Tests.PlatformParityTests" runstate="Runnable" seed="28894609" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.001433" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1094" name="Onboarding_without_a_provider_has_no_connect_dead_end_and_completes" fullname="WalkGame.Shell.Tests.PlatformParityTests.Onboarding_without_a_provider_has_no_connect_dead_end_and_completes" methodname="Onboarding_without_a_provider_has_no_connect_dead_end_and_completes" classname="WalkGame.Shell.Tests.PlatformParityTests" runstate="Runnable" seed="1739563138" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.006760" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1096" name="Release_build_offers_no_development_walking" fullname="WalkGame.Shell.Tests.PlatformParityTests.Release_build_offers_no_development_walking" methodname="Release_build_offers_no_development_walking" classname="WalkGame.Shell.Tests.PlatformParityTests" runstate="Runnable" seed="1762121203" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002134" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1093" name="Release_port_reports_unsupported_with_a_traceable_detail" fullname="WalkGame.Shell.Tests.PlatformParityTests.Release_port_reports_unsupported_with_a_traceable_detail" methodname="Release_port_reports_unsupported_with_a_traceable_detail" classname="WalkGame.Shell.Tests.PlatformParityTests" runstate="Runnable" seed="1285135672" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000495" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1099" name="PrivacyScreenTests" fullname="WalkGame.Shell.Tests.PrivacyScreenTests" classname="WalkGame.Shell.Tests.PrivacyScreenTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.048076" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1103" name="A_failing_or_throwing_share_sheet_is_a_calm_error" fullname="WalkGame.Shell.Tests.PrivacyScreenTests.A_failing_or_throwing_share_sheet_is_a_calm_error" methodname="A_failing_or_throwing_share_sheet_is_a_calm_error" classname="WalkGame.Shell.Tests.PrivacyScreenTests" runstate="Runnable" seed="1238987884" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.027956" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1104" name="Export_and_privacy_are_refused_before_a_game_is_loaded" fullname="WalkGame.Shell.Tests.PrivacyScreenTests.Export_and_privacy_are_refused_before_a_game_is_loaded" methodname="Export_and_privacy_are_refused_before_a_game_is_loaded" classname="WalkGame.Shell.Tests.PrivacyScreenTests" runstate="Runnable" seed="1410582198" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000756" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1101" name="Export_shares_a_readable_json_copy_and_changes_nothing_on_disk" fullname="WalkGame.Shell.Tests.PrivacyScreenTests.Export_shares_a_readable_json_copy_and_changes_nothing_on_disk" methodname="Export_shares_a_readable_json_copy_and_changes_nothing_on_disk" classname="WalkGame.Shell.Tests.PrivacyScreenTests" runstate="Runnable" seed="1027053736" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004710" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1102" name="No_share_sheet_is_a_calm_error" fullname="WalkGame.Shell.Tests.PrivacyScreenTests.No_share_sheet_is_a_calm_error" methodname="No_share_sheet_is_a_calm_error" classname="WalkGame.Shell.Tests.PrivacyScreenTests" runstate="Runnable" seed="2070821262" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002085" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1105" name="Privacy_copy_has_no_raw_identifiers" fullname="WalkGame.Shell.Tests.PrivacyScreenTests.Privacy_copy_has_no_raw_identifiers" methodname="Privacy_copy_has_no_raw_identifiers" classname="WalkGame.Shell.Tests.PrivacyScreenTests" runstate="Runnable" seed="1280175578" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000610" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1100" name="Settings_leads_to_privacy_and_back" fullname="WalkGame.Shell.Tests.PrivacyScreenTests.Settings_leads_to_privacy_and_back" methodname="Settings_leads_to_privacy_and_back" classname="WalkGame.Shell.Tests.PrivacyScreenTests" runstate="Runnable" seed="1579201587" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.003463" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1106" name="Share_sheet_source_makes_no_network_call" fullname="WalkGame.Shell.Tests.PrivacyScreenTests.Share_sheet_source_makes_no_network_call" methodname="Share_sheet_source_makes_no_network_call" classname="WalkGame.Shell.Tests.PrivacyScreenTests" runstate="Runnable" seed="1183661253" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.006868" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1107" name="ProgressScreenTests" fullname="WalkGame.Shell.Tests.ProgressScreenTests" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.044928" total="8" passed="8" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1111" name="After_walking_shows_lifetime_vitality_and_steps" fullname="WalkGame.Shell.Tests.ProgressScreenTests.After_walking_shows_lifetime_vitality_and_steps" methodname="After_walking_shows_lifetime_vitality_and_steps" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" seed="991787145" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.014317" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1109" name="Days_walked_line_is_calm_and_says_at_least_for_a_lower_bound" fullname="WalkGame.Shell.Tests.ProgressScreenTests.Days_walked_line_is_calm_and_says_at_least_for_a_lower_bound" methodname="Days_walked_line_is_calm_and_says_at_least_for_a_lower_bound" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" seed="1864250246" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000440" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1108" name="Home_links_to_progress_and_back" fullname="WalkGame.Shell.Tests.ProgressScreenTests.Home_links_to_progress_and_back" methodname="Home_links_to_progress_and_back" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" seed="1589351149" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005736" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1116" name="Progress_copy_is_calm_in_every_state" fullname="WalkGame.Shell.Tests.ProgressScreenTests.Progress_copy_is_calm_in_every_state" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002738" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1113" name="Progress_copy_is_calm_in_every_state(0L,0,False)" fullname="WalkGame.Shell.Tests.ProgressScreenTests.Progress_copy_is_calm_in_every_state(0L,0,False)" methodname="Progress_copy_is_calm_in_every_state" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" seed="1975020476" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.001115" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1114" name="Progress_copy_is_calm_in_every_state(1234L,3,False)" fullname="WalkGame.Shell.Tests.ProgressScreenTests.Progress_copy_is_calm_in_every_state(1234L,3,False)" methodname="Progress_copy_is_calm_in_every_state" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" seed="849398741" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000567" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1115" name="Progress_copy_is_calm_in_every_state(98765L,23,True)" fullname="WalkGame.Shell.Tests.ProgressScreenTests.Progress_copy_is_calm_in_every_state(98765L,23,True)" methodname="Progress_copy_is_calm_in_every_state" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" seed="334886833" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000529" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1112" name="Rendering_progress_does_not_change_the_save" fullname="WalkGame.Shell.Tests.ProgressScreenTests.Rendering_progress_does_not_change_the_save" methodname="Rendering_progress_does_not_change_the_save" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" seed="1957918135" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.013481" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1110" name="Undated_dev_walks_add_no_days_line_and_keep_the_closing_line_last" fullname="WalkGame.Shell.Tests.ProgressScreenTests.Undated_dev_walks_add_no_days_line_and_keep_the_closing_line_last" methodname="Undated_dev_walks_add_no_days_line_and_keep_the_closing_line_last" classname="WalkGame.Shell.Tests.ProgressScreenTests" runstate="Runnable" seed="358357408" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.006728" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1117" name="ProjectCompletionMomentTests" fullname="WalkGame.Shell.Tests.ProjectCompletionMomentTests" classname="WalkGame.Shell.Tests.ProjectCompletionMomentTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.006472" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1118" name="Finished_trailhead_shows_landmark_and_story_line_in_the_summary" fullname="WalkGame.Shell.Tests.ProjectCompletionMomentTests.Finished_trailhead_shows_landmark_and_story_line_in_the_summary" methodname="Finished_trailhead_shows_landmark_and_story_line_in_the_summary" classname="WalkGame.Shell.Tests.ProjectCompletionMomentTests" runstate="Runnable" seed="2091614908" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005921" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1119" name="RegionCelebrationTests" fullname="WalkGame.Shell.Tests.RegionCelebrationTests" classname="WalkGame.Shell.Tests.RegionCelebrationTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.008454" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1123" name="A_new_game_summary_has_no_celebration_link" fullname="WalkGame.Shell.Tests.RegionCelebrationTests.A_new_game_summary_has_no_celebration_link" methodname="A_new_game_summary_has_no_celebration_link" classname="WalkGame.Shell.Tests.RegionCelebrationTests" runstate="Runnable" seed="1024686655" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.006644" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1122" name="Celebration_copy_is_calm_and_reads_in_order" fullname="WalkGame.Shell.Tests.RegionCelebrationTests.Celebration_copy_is_calm_and_reads_in_order" methodname="Celebration_copy_is_calm_and_reads_in_order" classname="WalkGame.Shell.Tests.RegionCelebrationTests" runstate="Runnable" seed="1731469452" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000604" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1121" name="Ordinary_summaries_are_not_celebrations" fullname="WalkGame.Shell.Tests.RegionCelebrationTests.Ordinary_summaries_are_not_celebrations" methodname="Ordinary_summaries_are_not_celebrations" classname="WalkGame.Shell.Tests.RegionCelebrationTests" runstate="Runnable" seed="144964419" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000173" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1120" name="Region_complete_moment_retitles_and_leads_with_the_headline" fullname="WalkGame.Shell.Tests.RegionCelebrationTests.Region_complete_moment_retitles_and_leads_with_the_headline" methodname="Region_complete_moment_retitles_and_leads_with_the_headline" classname="WalkGame.Shell.Tests.RegionCelebrationTests" runstate="Runnable" seed="890735521" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000161" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1124" name="RegionSceneTests" fullname="WalkGame.Shell.Tests.RegionSceneTests" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" testcasecount="14" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.052470" total="14" passed="14" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1128" name="Every_stage_has_a_distinct_colour_and_higher_stages_draw_more" fullname="WalkGame.Shell.Tests.RegionSceneTests.Every_stage_has_a_distinct_colour_and_higher_stages_draw_more" methodname="Every_stage_has_a_distinct_colour_and_higher_stages_draw_more" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="1261811870" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.003859" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1129" name="Hills_turn_from_dry_to_green_monotonically" fullname="WalkGame.Shell.Tests.RegionSceneTests.Hills_turn_from_dry_to_green_monotonically" methodname="Hills_turn_from_dry_to_green_monotonically" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="1540766249" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.001104" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1137" name="Moment_ring_always_stays_inside_the_picture_and_around_its_landmark" fullname="WalkGame.Shell.Tests.RegionSceneTests.Moment_ring_always_stays_inside_the_picture_and_around_its_landmark" methodname="Moment_ring_always_stays_inside_the_picture_and_around_its_landmark" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="375934464" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.015815" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1138" name="Moment_ring_is_unchanged_when_there_is_room" fullname="WalkGame.Shell.Tests.RegionSceneTests.Moment_ring_is_unchanged_when_there_is_room" methodname="Moment_ring_is_unchanged_when_there_is_room" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="1442900739" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000408" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1126" name="Other_screens_carry_no_scene" fullname="WalkGame.Shell.Tests.RegionSceneTests.Other_screens_carry_no_scene" methodname="Other_screens_carry_no_scene" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="142431247" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004461" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1131" name="Picture_has_a_text_alternative_without_identifiers" fullname="WalkGame.Shell.Tests.RegionSceneTests.Picture_has_a_text_alternative_without_identifiers" methodname="Picture_has_a_text_alternative_without_identifiers" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="721574487" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002219" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1125" name="Region_screen_carries_a_scene_with_one_visual_per_landmark" fullname="WalkGame.Shell.Tests.RegionSceneTests.Region_screen_carries_a_scene_with_one_visual_per_landmark" methodname="Region_screen_carries_a_scene_with_one_visual_per_landmark" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="1716604658" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.003002" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1135" name="Region1_landmarks_each_get_a_distinct_readable_silhouette" fullname="WalkGame.Shell.Tests.RegionSceneTests.Region1_landmarks_each_get_a_distinct_readable_silhouette" methodname="Region1_landmarks_each_get_a_distinct_readable_silhouette" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="704810901" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.006149" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1127" name="Scene_is_deterministic_for_the_same_state" fullname="WalkGame.Shell.Tests.RegionSceneTests.Scene_is_deterministic_for_the_same_state" methodname="Scene_is_deterministic_for_the_same_state" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="299056430" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005955" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1130" name="Shape_count_stays_within_the_performance_budget" fullname="WalkGame.Shell.Tests.RegionSceneTests.Shape_count_stays_within_the_performance_budget" methodname="Shape_count_stays_within_the_performance_budget" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="1383225208" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002250" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1133" name="Staged_active_project_shows_a_build_site_that_rises_per_stage" fullname="WalkGame.Shell.Tests.RegionSceneTests.Staged_active_project_shows_a_build_site_that_rises_per_stage" methodname="Staged_active_project_shows_a_build_site_that_rises_per_stage" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="1908200887" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000867" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1136" name="Unknown_landmark_falls_back_to_a_generic_hut" fullname="WalkGame.Shell.Tests.RegionSceneTests.Unknown_landmark_falls_back_to_a_generic_hut" methodname="Unknown_landmark_falls_back_to_a_generic_hut" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="648592223" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000363" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1134" name="Unstaged_or_idle_project_shows_no_build_site" fullname="WalkGame.Shell.Tests.RegionSceneTests.Unstaged_or_idle_project_shows_no_build_site" methodname="Unstaged_or_idle_project_shows_no_build_site" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="1525367977" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000375" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1132" name="View_adds_the_valley_element_with_alt_tooltip" fullname="WalkGame.Shell.Tests.RegionSceneTests.View_adds_the_valley_element_with_alt_tooltip" methodname="View_adds_the_valley_element_with_alt_tooltip" classname="WalkGame.Shell.Tests.RegionSceneTests" runstate="Runnable" seed="515439400" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.003477" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1139" name="ReturnMomentTests" fullname="WalkGame.Shell.Tests.ReturnMomentTests" classname="WalkGame.Shell.Tests.ReturnMomentTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.027667" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1140" name="A_landmark_transformation_shows_the_valley_with_the_changed_landmark_circled" fullname="WalkGame.Shell.Tests.ReturnMomentTests.A_landmark_transformation_shows_the_valley_with_the_changed_landmark_circled" methodname="A_landmark_transformation_shows_the_valley_with_the_changed_landmark_circled" classname="WalkGame.Shell.Tests.ReturnMomentTests" runstate="Runnable" seed="874468911" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.012094" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1142" name="Dismissed_summary_has_no_moments" fullname="WalkGame.Shell.Tests.ReturnMomentTests.Dismissed_summary_has_no_moments" methodname="Dismissed_summary_has_no_moments" classname="WalkGame.Shell.Tests.ReturnMomentTests" runstate="Runnable" seed="60830292" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.006710" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1141" name="Moments_never_block_one_primary_continue_and_home_remain" fullname="WalkGame.Shell.Tests.ReturnMomentTests.Moments_never_block_one_primary_continue_and_home_remain" methodname="Moments_never_block_one_primary_continue_and_home_remain" classname="WalkGame.Shell.Tests.ReturnMomentTests" runstate="Runnable" seed="1521798983" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005722" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1143" name="Only_titles_named_in_transformation_lines_are_marked" fullname="WalkGame.Shell.Tests.ReturnMomentTests.Only_titles_named_in_transformation_lines_are_marked" methodname="Only_titles_named_in_transformation_lines_are_marked" classname="WalkGame.Shell.Tests.ReturnMomentTests" runstate="Runnable" seed="1276544615" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.001905" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1144" name="ScreenTourCopyTests" fullname="WalkGame.Shell.Tests.ScreenTourCopyTests" classname="WalkGame.Shell.Tests.ScreenTourCopyTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.010915" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1145" name="Boot_error_shows_no_raw_status_identifier" fullname="WalkGame.Shell.Tests.ScreenTourCopyTests.Boot_error_shows_no_raw_status_identifier" methodname="Boot_error_shows_no_raw_status_identifier" classname="WalkGame.Shell.Tests.ScreenTourCopyTests" runstate="Runnable" seed="899767251" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004517" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1146" name="Queue_buttons_never_double_the_verb" fullname="WalkGame.Shell.Tests.ScreenTourCopyTests.Queue_buttons_never_double_the_verb" methodname="Queue_buttons_never_double_the_verb" classname="WalkGame.Shell.Tests.ScreenTourCopyTests" runstate="Runnable" seed="192587905" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005402" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1147" name="ScreenTourCoverageTests" fullname="WalkGame.Shell.Tests.ScreenTourCoverageTests" classname="WalkGame.Shell.Tests.ScreenTourCoverageTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002350" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1148" name="Tour_lists_every_shell_screen" fullname="WalkGame.Shell.Tests.ScreenTourCoverageTests.Tour_lists_every_shell_screen" methodname="Tour_lists_every_shell_screen" classname="WalkGame.Shell.Tests.ScreenTourCoverageTests" runstate="Runnable" seed="1755590154" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.001078" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1149" name="Tour_lists_only_real_screens_once" fullname="WalkGame.Shell.Tests.ScreenTourCoverageTests.Tour_lists_only_real_screens_once" methodname="Tour_lists_only_real_screens_once" classname="WalkGame.Shell.Tests.ScreenTourCoverageTests" runstate="Runnable" seed="994609290" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000594" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1150" name="ShellControllerTests" fullname="WalkGame.Shell.Tests.ShellControllerTests" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" testcasecount="27" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:51Z" duration="0.139972" total="27" passed="27" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1158" name="Continue_round_trips_through_the_codec_in_unity_runtime" fullname="WalkGame.Shell.Tests.ShellControllerTests.Continue_round_trips_through_the_codec_in_unity_runtime" methodname="Continue_round_trips_through_the_codec_in_unity_runtime" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="86737615" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.006923" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1162" name="Delete_cancel_keeps_data" fullname="WalkGame.Shell.Tests.ShellControllerTests.Delete_cancel_keeps_data" methodname="Delete_cancel_keeps_data" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1245846188" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005175" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1163" name="Delete_confirm_erases_and_returns_to_onboarding" fullname="WalkGame.Shell.Tests.ShellControllerTests.Delete_confirm_erases_and_returns_to_onboarding" methodname="Delete_confirm_erases_and_returns_to_onboarding" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1348919728" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.003575" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1165" name="Empty_states_explain_the_next_action" fullname="WalkGame.Shell.Tests.ShellControllerTests.Empty_states_explain_the_next_action" methodname="Empty_states_explain_the_next_action" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1084297186" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004394" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1168" name="Every_activity_status_and_action_has_player_copy" fullname="WalkGame.Shell.Tests.ShellControllerTests.Every_activity_status_and_action_has_player_copy" methodname="Every_activity_status_and_action_has_player_copy" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="74865642" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000795" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1159" name="Every_screen_renders_without_error_after_new_game" fullname="WalkGame.Shell.Tests.ShellControllerTests.Every_screen_renders_without_error_after_new_game" methodname="Every_screen_renders_without_error_after_new_game" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1072327238" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.001921" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1177" name="Failing_provider_never_blocks_boot_or_navigation" fullname="WalkGame.Shell.Tests.ShellControllerTests.Failing_provider_never_blocks_boot_or_navigation" methodname="Failing_provider_never_blocks_boot_or_navigation" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1362424401" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.004748" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1170" name="First_project_step_offers_no_skip" fullname="WalkGame.Shell.Tests.ShellControllerTests.First_project_step_offers_no_skip" methodname="First_project_step_offers_no_skip" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="663099691" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.002914" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1156" name="Fresh_install_goes_to_premise_then_guide" fullname="WalkGame.Shell.Tests.ShellControllerTests.Fresh_install_goes_to_premise_then_guide" methodname="Fresh_install_goes_to_premise_then_guide" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="721303354" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005847" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1157" name="Garbage_save_shows_error_and_is_never_overwritten" fullname="WalkGame.Shell.Tests.ShellControllerTests.Garbage_save_shows_error_and_is_never_overwritten" methodname="Garbage_save_shows_error_and_is_never_overwritten" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="149203433" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.003948" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1175" name="Granted_health_connect_steps_are_credited_on_boot_and_only_once" fullname="WalkGame.Shell.Tests.ShellControllerTests.Granted_health_connect_steps_are_credited_on_boot_and_only_once" methodname="Granted_health_connect_steps_are_credited_on_boot_and_only_once" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="301313897" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.010203" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1174" name="Guide_progress_maps_every_stage_within_bounds" fullname="WalkGame.Shell.Tests.ShellControllerTests.Guide_progress_maps_every_stage_within_bounds" methodname="Guide_progress_maps_every_stage_within_bounds" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1462870247" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.000607" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1172" name="Guide_screens_never_show_identifiers_keys_or_stage_names" fullname="WalkGame.Shell.Tests.ShellControllerTests.Guide_screens_never_show_identifiers_keys_or_stage_names" methodname="Guide_screens_never_show_identifiers_keys_or_stage_names" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1505633796" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.005910" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1173" name="Guide_shows_monotonic_step_progress_ending_at_last_step" fullname="WalkGame.Shell.Tests.ShellControllerTests.Guide_shows_monotonic_step_progress_ending_at_last_step" methodname="Guide_shows_monotonic_step_progress_ending_at_last_step" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1483635312" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:50Z" duration="0.006804" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1164" name="No_screen_shows_enum_identifiers_or_content_keys" fullname="WalkGame.Shell.Tests.ShellControllerTests.No_screen_shows_enum_identifiers_or_content_keys" methodname="No_screen_shows_enum_identifiers_or_content_keys" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="2020052559" result="Passed" start-time="2026-10-16 18:20:50Z" end-time="2026-10-16 18:20:51Z" duration="0.036033" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1176" name="Not_requested_offers_connect_which_calls_the_native_request" fullname="WalkGame.Shell.Tests.ShellControllerTests.Not_requested_offers_connect_which_calls_the_native_request" methodname="Not_requested_offers_connect_which_calls_the_native_request" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="75177814" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.003940" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1169" name="Onboarding_walks_every_stage_and_lands_on_home" fullname="WalkGame.Shell.Tests.ShellControllerTests.Onboarding_walks_every_stage_and_lands_on_home" methodname="Onboarding_walks_every_stage_and_lands_on_home" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1495180734" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.007316" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1160" name="Projects_queue_action_queues_a_project" fullname="WalkGame.Shell.Tests.ShellControllerTests.Projects_queue_action_queues_a_project" methodname="Projects_queue_action_queues_a_project" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="784725824" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.004287" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1166" name="Region_screen_lists_landmarks_as_phrases_and_is_reachable_from_home" fullname="WalkGame.Shell.Tests.ShellControllerTests.Region_screen_lists_landmarks_as_phrases_and_is_reachable_from_home" methodname="Region_screen_lists_landmarks_as_phrases_and_is_reachable_from_home" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="351514605" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.004822" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1151" name="Router_maps_every_start_status" fullname="WalkGame.Shell.Tests.ShellControllerTests.Router_maps_every_start_status" methodname="Router_maps_every_start_status" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="2093588933" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000649" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1155" name="Router_sends_unreadable_outcomes_to_non_destructive_error" fullname="WalkGame.Shell.Tests.ShellControllerTests.Router_sends_unreadable_outcomes_to_non_destructive_error" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.001978" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1152" name="Router_sends_unreadable_outcomes_to_non_destructive_error(SaveUnreadable)" fullname="WalkGame.Shell.Tests.ShellControllerTests.Router_sends_unreadable_outcomes_to_non_destructive_error(SaveUnreadable)" methodname="Router_sends_unreadable_outcomes_to_non_destructive_error" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="162507555" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000430" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1153" name="Router_sends_unreadable_outcomes_to_non_destructive_error(StateInvalid)" fullname="WalkGame.Shell.Tests.ShellControllerTests.Router_sends_unreadable_outcomes_to_non_destructive_error(StateInvalid)" methodname="Router_sends_unreadable_outcomes_to_non_destructive_error" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1649492732" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000274" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1154" name="Router_sends_unreadable_outcomes_to_non_destructive_error(ContentIncompatible)" fullname="WalkGame.Shell.Tests.ShellControllerTests.Router_sends_unreadable_outcomes_to_non_destructive_error(ContentIncompatible)" methodname="Router_sends_unreadable_outcomes_to_non_destructive_error" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="390952346" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000269" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1171" name="Save_directory_is_under_persistent_data_path" fullname="WalkGame.Shell.Tests.ShellControllerTests.Save_directory_is_under_persistent_data_path" methodname="Save_directory_is_under_persistent_data_path" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="211345784" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000641" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1167" name="Settings_toggle_labels_describe_the_resulting_change" fullname="WalkGame.Shell.Tests.ShellControllerTests.Settings_toggle_labels_describe_the_resulting_change" methodname="Settings_toggle_labels_describe_the_resulting_change" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1527415413" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.004177" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1161" name="Settings_toggle_persists_across_sessions" fullname="WalkGame.Shell.Tests.ShellControllerTests.Settings_toggle_persists_across_sessions" methodname="Settings_toggle_persists_across_sessions" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1827078459" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.005939" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1178" name="Unsupported_device_never_offers_connect" fullname="WalkGame.Shell.Tests.ShellControllerTests.Unsupported_device_never_offers_connect" methodname="Unsupported_device_never_offers_connect" classname="WalkGame.Shell.Tests.ShellControllerTests" runstate="Runnable" seed="1201155602" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.002652" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1179" name="ShellInputHardeningTests" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" testcasecount="24" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.058225" total="24" passed="24" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1205" name="After_delete_all_a_new_game_can_still_start" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.After_delete_all_a_new_game_can_still_start" methodname="After_delete_all_a_new_game_can_still_start" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1700682298" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.006436" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1203" name="BootError_is_refused_while_a_game_is_loaded" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.BootError_is_refused_while_a_game_is_loaded" methodname="BootError_is_refused_while_a_game_is_loaded" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1661662474" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.006084" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1204" name="BootError_stays_reachable_before_a_game_is_loaded" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.BootError_stays_reachable_before_a_game_is_loaded" methodname="BootError_stays_reachable_before_a_game_is_loaded" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="422927198" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000529" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1199" name="Game_actions_before_a_game_exists_never_throw" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" testcasecount="11" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.009475" total="11" passed="11" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1188" name="Game_actions_before_a_game_exists_never_throw(&quot;nav:Home&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;nav:Home&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1253026646" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000716" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1189" name="Game_actions_before_a_game_exists_never_throw(&quot;nav:Story&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;nav:Story&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="301877122" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000387" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1190" name="Game_actions_before_a_game_exists_never_throw(&quot;nav:Discoveries&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;nav:Discoveries&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1110224305" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000589" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1191" name="Game_actions_before_a_game_exists_never_throw(&quot;queue:proj.x&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;queue:proj.x&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="815517635" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000551" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1192" name="Game_actions_before_a_game_exists_never_throw(&quot;ack&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;ack&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1085322688" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000786" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1193" name="Game_actions_before_a_game_exists_never_throw(&quot;toggle:sound&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;toggle:sound&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="568220661" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000745" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1194" name="Game_actions_before_a_game_exists_never_throw(&quot;dev:walk&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;dev:walk&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="912025700" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000584" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1195" name="Game_actions_before_a_game_exists_never_throw(&quot;guide:next&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;guide:next&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1312234028" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000576" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1196" name="Game_actions_before_a_game_exists_never_throw(&quot;delete:confirm&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;delete:confirm&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1056294469" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000732" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1197" name="Game_actions_before_a_game_exists_never_throw(&quot;&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(&quot;&quot;)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1580043682" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000633" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1198" name="Game_actions_before_a_game_exists_never_throw(null)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Game_actions_before_a_game_exists_never_throw(null)" methodname="Game_actions_before_a_game_exists_never_throw" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1689832387" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.000496" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="1187" name="Malformed_navigation_is_a_calm_error_not_an_exception" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Malformed_navigation_is_a_calm_error_not_an_exception" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.020793" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1180" name="Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:&quot;)" methodname="Malformed_navigation_is_a_calm_error_not_an_exception" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1977512881" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.007714" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1181" name="Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:Nowhere&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:Nowhere&quot;)" methodname="Malformed_navigation_is_a_calm_error_not_an_exception" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1037277110" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.003184" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1182" name="Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:home&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:home&quot;)" methodname="Malformed_navigation_is_a_calm_error_not_an_exception" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="731726953" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.001588" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1183" name="Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:1&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:1&quot;)" methodname="Malformed_navigation_is_a_calm_error_not_an_exception" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1926064437" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.001992" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1184" name="Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:99&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:99&quot;)" methodname="Malformed_navigation_is_a_calm_error_not_an_exception" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="513886521" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.001694" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1185" name="Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:Home,Story&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav:Home,Story&quot;)" methodname="Malformed_navigation_is_a_calm_error_not_an_exception" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="751132462" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.002023" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1186" name="Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav: Home&quot;)" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Malformed_navigation_is_a_calm_error_not_an_exception(&quot;nav: Home&quot;)" methodname="Malformed_navigation_is_a_calm_error_not_an_exception" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="2900893" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.001276" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1201" name="Start_never_overwrites_an_unreadable_save" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Start_never_overwrites_an_unreadable_save" methodname="Start_never_overwrites_an_unreadable_save" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1261221009" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.001952" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1200" name="Start_never_replaces_a_loaded_game" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Start_never_replaces_a_loaded_game" methodname="Start_never_replaces_a_loaded_game" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="293042523" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.005523" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1202" name="Start_refuses_a_save_that_appeared_after_boot" fullname="WalkGame.Shell.Tests.ShellInputHardeningTests.Start_refuses_a_save_that_appeared_after_boot" methodname="Start_refuses_a_save_that_appeared_after_boot" classname="WalkGame.Shell.Tests.ShellInputHardeningTests" runstate="Runnable" seed="1191691956" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:51Z" duration="0.005478" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1206" name="ShellPerformanceTests" fullname="WalkGame.Shell.Tests.ShellPerformanceTests" classname="WalkGame.Shell.Tests.ShellPerformanceTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-16 18:20:51Z" end-time="2026-10-16 18:20:54Z" duration="3.705754" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <output><![CDATA[WG_PERF mature_save_build_365_days_ms=3423 save_bytes=119895
+WG_PERF warm_boot_mature_ms=5
+]]></output>
+              <test-case id="1208" name="Every_screen_on_a_mature_restored_save_stays_within_structural_budgets" fullname="WalkGame.Shell.Tests.ShellPerformanceTests.Every_screen_on_a_mature_restored_save_stays_within_structural_budgets" methodname="Every_screen_on_a_mature_restored_save_stays_within_structural_budgets" classname="WalkGame.Shell.Tests.ShellPerformanceTests" runstate="Runnable" seed="1903608787" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.016788" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_PERF screen=Home median_model_plus_render_ms=0.039 elements=17 lines=6
+WG_PERF screen=Projects median_model_plus_render_ms=0.062 elements=25 lines=20
+WG_PERF screen=Region median_model_plus_render_ms=0.034 elements=19 lines=12
+WG_PERF screen=Settings median_model_plus_render_ms=0.028 elements=16 lines=5
+WG_PERF screen=ActivityStatus median_model_plus_render_ms=0.013 elements=7 lines=2
+WG_PERF screen=ReturnSummary median_model_plus_render_ms=0.028 elements=18 lines=12
+]]></output>
+              </test-case>
+              <test-case id="1207" name="Mature_save_reaches_the_restored_end_state" fullname="WalkGame.Shell.Tests.ShellPerformanceTests.Mature_save_reaches_the_restored_end_state" methodname="Mature_save_reaches_the_restored_end_state" classname="WalkGame.Shell.Tests.ShellPerformanceTests" runstate="Runnable" seed="1959693693" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000413" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1212" name="Pooled_buttons_match_each_screen_and_fire_the_current_action" fullname="WalkGame.Shell.Tests.ShellPerformanceTests.Pooled_buttons_match_each_screen_and_fire_the_current_action" methodname="Pooled_buttons_match_each_screen_and_fire_the_current_action" classname="WalkGame.Shell.Tests.ShellPerformanceTests" runstate="Runnable" seed="725427671" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.003703" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1211" name="Pooled_line_labels_never_carry_stale_text_or_names_between_screens" fullname="WalkGame.Shell.Tests.ShellPerformanceTests.Pooled_line_labels_never_carry_stale_text_or_names_between_screens" methodname="Pooled_line_labels_never_carry_stale_text_or_names_between_screens" classname="WalkGame.Shell.Tests.ShellPerformanceTests" runstate="Runnable" seed="344947615" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.002207" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1209" name="Repeated_screen_enter_exit_never_stacks_elements" fullname="WalkGame.Shell.Tests.ShellPerformanceTests.Repeated_screen_enter_exit_never_stacks_elements" methodname="Repeated_screen_enter_exit_never_stacks_elements" classname="WalkGame.Shell.Tests.ShellPerformanceTests" runstate="Runnable" seed="1545204962" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.199206" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_PERF enter_exit_3000_ms=185
+]]></output>
+              </test-case>
+              <test-case id="1210" name="Screen_switch_allocations_are_measured_and_bounded" fullname="WalkGame.Shell.Tests.ShellPerformanceTests.Screen_switch_allocations_are_measured_and_bounded" methodname="Screen_switch_allocations_are_measured_and_bounded" classname="WalkGame.Shell.Tests.ShellPerformanceTests" runstate="Runnable" seed="1734092136" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.049138" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_PERF alloc screen=Home model_bytes~0 view_bytes~0 nav_invoke_us=1.0
+WG_PERF alloc screen=Projects model_bytes~4096 view_bytes~4096 nav_invoke_us=1.1
+WG_PERF alloc screen=Region model_bytes~0 view_bytes~4096 nav_invoke_us=1.2
+WG_PERF alloc screen=Settings model_bytes~0 view_bytes~8192 nav_invoke_us=1.2
+WG_PERF alloc screen=ActivityStatus model_bytes~0 view_bytes~4096 nav_invoke_us=1.2
+WG_PERF alloc screen=ReturnSummary model_bytes~4096 view_bytes~4096 nav_invoke_us=4.1
+WG_PERF alloc screen=Story model_bytes~4096 view_bytes~0 nav_invoke_us=1.3
+WG_PERF alloc screen=Discoveries model_bytes~4096 view_bytes~0 nav_invoke_us=17.8
+]]></output>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1213" name="SoundCueTests" fullname="WalkGame.Shell.Tests.SoundCueTests" classname="WalkGame.Shell.Tests.SoundCueTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.048871" total="5" passed="5" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1218" name="A_real_return_summary_carries_a_cue_only_with_sound_on" fullname="WalkGame.Shell.Tests.SoundCueTests.A_real_return_summary_carries_a_cue_only_with_sound_on" methodname="A_real_return_summary_carries_a_cue_only_with_sound_on" classname="WalkGame.Shell.Tests.SoundCueTests" runstate="Runnable" seed="1950035121" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.008984" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1215" name="Cue_priority_celebration_then_chapter_then_restoration" fullname="WalkGame.Shell.Tests.SoundCueTests.Cue_priority_celebration_then_chapter_then_restoration" methodname="Cue_priority_celebration_then_chapter_then_restoration" classname="WalkGame.Shell.Tests.SoundCueTests" runstate="Runnable" seed="2049104311" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000534" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1216" name="Plays_only_on_arrival_never_on_redraw" fullname="WalkGame.Shell.Tests.SoundCueTests.Plays_only_on_arrival_never_on_redraw" methodname="Plays_only_on_arrival_never_on_redraw" classname="WalkGame.Shell.Tests.SoundCueTests" runstate="Runnable" seed="829994842" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000604" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1217" name="Samples_are_quiet_short_click_free_and_deterministic" fullname="WalkGame.Shell.Tests.SoundCueTests.Samples_are_quiet_short_click_free_and_deterministic" methodname="Samples_are_quiet_short_click_free_and_deterministic" classname="WalkGame.Shell.Tests.SoundCueTests" runstate="Runnable" seed="745390380" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.036567" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1214" name="Sound_off_means_no_cue_ever" fullname="WalkGame.Shell.Tests.SoundCueTests.Sound_off_means_no_cue_ever" methodname="Sound_off_means_no_cue_ever" classname="WalkGame.Shell.Tests.SoundCueTests" runstate="Runnable" seed="1479463599" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000544" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1219" name="StoryJournalTests" fullname="WalkGame.Shell.Tests.StoryJournalTests" classname="WalkGame.Shell.Tests.StoryJournalTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.044008" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1225" name="A_summary_without_a_chapter_moment_has_no_journal_link" fullname="WalkGame.Shell.Tests.StoryJournalTests.A_summary_without_a_chapter_moment_has_no_journal_link" methodname="A_summary_without_a_chapter_moment_has_no_journal_link" classname="WalkGame.Shell.Tests.StoryJournalTests" runstate="Runnable" seed="1967222932" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.013055" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1224" name="A_walk_that_completes_a_milestone_yields_a_chapter_moment_with_a_journal_link" fullname="WalkGame.Shell.Tests.StoryJournalTests.A_walk_that_completes_a_milestone_yields_a_chapter_moment_with_a_journal_link" methodname="A_walk_that_completes_a_milestone_yields_a_chapter_moment_with_a_journal_link" classname="WalkGame.Shell.Tests.StoryJournalTests" runstate="Runnable" seed="232339565" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.007102" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1223" name="Copy_has_no_guilt_or_pressure_language" fullname="WalkGame.Shell.Tests.StoryJournalTests.Copy_has_no_guilt_or_pressure_language" methodname="Copy_has_no_guilt_or_pressure_language" classname="WalkGame.Shell.Tests.StoryJournalTests" runstate="Runnable" seed="1873643001" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.002681" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1220" name="Home_offers_the_story_and_a_new_game_shows_only_the_prologue_text" fullname="WalkGame.Shell.Tests.StoryJournalTests.Home_offers_the_story_and_a_new_game_shows_only_the_prologue_text" methodname="Home_offers_the_story_and_a_new_game_shows_only_the_prologue_text" classname="WalkGame.Shell.Tests.StoryJournalTests" runstate="Runnable" seed="274736438" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.003891" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1221" name="Home_shows_the_current_chapter_and_the_next_hint_without_spoilers" fullname="WalkGame.Shell.Tests.StoryJournalTests.Home_shows_the_current_chapter_and_the_next_hint_without_spoilers" methodname="Home_shows_the_current_chapter_and_the_next_hint_without_spoilers" classname="WalkGame.Shell.Tests.StoryJournalTests" runstate="Runnable" seed="799652636" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.010743" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1222" name="Home_story_line_becomes_the_epilogue_when_every_chapter_is_unlocked" fullname="WalkGame.Shell.Tests.StoryJournalTests.Home_story_line_becomes_the_epilogue_when_every_chapter_is_unlocked" methodname="Home_story_line_becomes_the_epilogue_when_every_chapter_is_unlocked" classname="WalkGame.Shell.Tests.StoryJournalTests" runstate="Runnable" seed="1665642103" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.001680" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1226" name="Journal_outline_reads_header_status_chapters_then_home_button" fullname="WalkGame.Shell.Tests.StoryJournalTests.Journal_outline_reads_header_status_chapters_then_home_button" methodname="Journal_outline_reads_header_status_chapters_then_home_button" classname="WalkGame.Shell.Tests.StoryJournalTests" runstate="Runnable" seed="1582294789" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.003280" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1227" name="TextSizePreviewTests" fullname="WalkGame.Shell.Tests.TextSizePreviewTests" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.015712" total="9" passed="9" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1236" name="A_throwing_scale_source_never_breaks_settings" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.A_throwing_scale_source_never_breaks_settings" methodname="A_throwing_scale_source_never_breaks_settings" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" seed="228441273" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.004300" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1235" name="Hostile_or_out_of_range_scales_are_clamped" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.Hostile_or_out_of_range_scales_are_clamped" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.002347" total="6" passed="6" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1229" name="Hostile_or_out_of_range_scales_are_clamped(0.5f,&quot;Text size: 100%.&quot;)" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.Hostile_or_out_of_range_scales_are_clamped(0.5f,&quot;Text size: 100%.&quot;)" methodname="Hostile_or_out_of_range_scales_are_clamped" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" seed="1479446703" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000482" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1230" name="Hostile_or_out_of_range_scales_are_clamped(float.NaN,&quot;Text size: 100%.&quot;)" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.Hostile_or_out_of_range_scales_are_clamped(float.NaN,&quot;Text size: 100%.&quot;)" methodname="Hostile_or_out_of_range_scales_are_clamped" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" seed="1397036459" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000256" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1231" name="Hostile_or_out_of_range_scales_are_clamped(float.NegativeInfinity,&quot;Text size: 100%.&quot;)" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.Hostile_or_out_of_range_scales_are_clamped(float.NegativeInfinity,&quot;Text size: 100%.&quot;)" methodname="Hostile_or_out_of_range_scales_are_clamped" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" seed="1965767970" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000244" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1232" name="Hostile_or_out_of_range_scales_are_clamped(3.5f,&quot;Text size: 200%, the largest this game supports.&quot;)" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.Hostile_or_out_of_range_scales_are_clamped(3.5f,&quot;Text size: 200%, the largest this game supports.&quot;)" methodname="Hostile_or_out_of_range_scales_are_clamped" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" seed="1222386854" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000222" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1233" name="Hostile_or_out_of_range_scales_are_clamped(float.PositiveInfinity,&quot;Text size: 200%, the largest this game supports.&quot;)" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.Hostile_or_out_of_range_scales_are_clamped(float.PositiveInfinity,&quot;Text size: 200%, the largest this game supports.&quot;)" methodname="Hostile_or_out_of_range_scales_are_clamped" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" seed="235336016" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000199" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1234" name="Hostile_or_out_of_range_scales_are_clamped(2.0f,&quot;Text size: 200%.&quot;)" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.Hostile_or_out_of_range_scales_are_clamped(2.0f,&quot;Text size: 200%.&quot;)" methodname="Hostile_or_out_of_range_scales_are_clamped" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" seed="1909195152" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000196" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1228" name="Settings_shows_the_effective_text_size_and_a_preview" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.Settings_shows_the_effective_text_size_and_a_preview" methodname="Settings_shows_the_effective_text_size_and_a_preview" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" seed="1995208071" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.002907" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1237" name="The_preview_renders_at_the_effective_scale_and_only_on_settings" fullname="WalkGame.Shell.Tests.TextSizePreviewTests.The_preview_renders_at_the_effective_scale_and_only_on_settings" methodname="The_preview_renders_at_the_effective_scale_and_only_on_settings" classname="WalkGame.Shell.Tests.TextSizePreviewTests" runstate="Runnable" seed="916426181" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.004879" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1238" name="ValleyAmbienceTests" fullname="WalkGame.Shell.Tests.ValleyAmbienceTests" classname="WalkGame.Shell.Tests.ValleyAmbienceTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.002984" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1241" name="Ambience_grows_monotonically_with_greenness" fullname="WalkGame.Shell.Tests.ValleyAmbienceTests.Ambience_grows_monotonically_with_greenness" methodname="Ambience_grows_monotonically_with_greenness" classname="WalkGame.Shell.Tests.ValleyAmbienceTests" runstate="Runnable" seed="118893502" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.001414" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1240" name="Footpaths_link_only_recovered_neighbours" fullname="WalkGame.Shell.Tests.ValleyAmbienceTests.Footpaths_link_only_recovered_neighbours" methodname="Footpaths_link_only_recovered_neighbours" classname="WalkGame.Shell.Tests.ValleyAmbienceTests" runstate="Runnable" seed="346143768" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000186" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1239" name="Fresh_valley_has_no_ambience" fullname="WalkGame.Shell.Tests.ValleyAmbienceTests.Fresh_valley_has_no_ambience" methodname="Fresh_valley_has_no_ambience" classname="WalkGame.Shell.Tests.ValleyAmbienceTests" runstate="Runnable" seed="2103451182" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000163" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1242" name="Worst_case_stays_inside_the_phone_safe_budget" fullname="WalkGame.Shell.Tests.ValleyAmbienceTests.Worst_case_stays_inside_the_phone_safe_budget" methodname="Worst_case_stays_inside_the_phone_safe_budget" classname="WalkGame.Shell.Tests.ValleyAmbienceTests" runstate="Runnable" seed="368532055" result="Passed" start-time="2026-10-16 18:20:54Z" end-time="2026-10-16 18:20:54Z" duration="0.000201" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /tmp/stj/ev/editmode-results.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
