@@ -176,7 +176,12 @@ namespace WalkGame.Infrastructure.Persistence
                 if (NotifyExpeditionResults.HasValue) state.NotifyExpeditionResults = NotifyExpeditionResults.Value;
                 if (NotifyDiscoveries.HasValue) state.NotifyDiscoveries = NotifyDiscoveries.Value;
                 if (DailyReminderEnabled.HasValue) state.DailyReminderEnabled = DailyReminderEnabled.Value;
-                if (DailyReminderMinutesOfDay.HasValue) state.DailyReminderMinutesOfDay = DailyReminderMinutesOfDay.Value;
+                // D-123: an out-of-range stored time (hand-edited or damaged file) keeps the default.
+                // Applying it would make "turn on the reminder" fail validation forever (a dead end).
+                if (DailyReminderMinutesOfDay.HasValue
+                    && DailyReminderMinutesOfDay.Value >= UxPreferencesState.ReminderMinutesMin
+                    && DailyReminderMinutesOfDay.Value <= UxPreferencesState.ReminderMinutesMax)
+                    state.DailyReminderMinutesOfDay = DailyReminderMinutesOfDay.Value;
                 if (DiagnosticsVisible.HasValue) state.DiagnosticsVisible = DiagnosticsVisible.Value;
             }
         }
