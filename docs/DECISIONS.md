@@ -2643,3 +2643,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** EditMode `D133_progress_line_after_restoration_points_to_tending_not_restoring`. Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None (presentation only).
+
+## D-134 — Resume during failing saves still runs offline catch-up (2026-10-17)
+
+**Context.** D-131 gap: when `RetryPendingSave()` failed on resume, `ShellController.BootCore` returned early. It kept the in-memory world but skipped the offline catch-up a boot runs, so time away produced nothing and no return summary was shown until storage recovered.
+
+**Decision.** `GameSession.CatchUpWithoutReload()` runs the same `OfflineAdvancer.Advance` + pending-summary composition as `FinishBoot`, on the in-memory state, then tries one whole-state commit (never throws for I/O; returns true when durable). Exactly once comes from the existing monotonic checkpoints (`LastAdvancedUtc`, per-producer `LastTickUtc`): repeating it at the same clock credits nothing, stepwise catch-up equals one catch-up over the span, and a backward clock never regresses. The shell calls it on the failed-retry path and routes to Guide or ReturnSummary as a boot would; the calm `shell.notSavedYet` notice stays while storage fails.
+
+**Tests.** `ResumeCatchUpGapTests` (.NET, 6: matches a healthy reboot, repeat is a no-op, stepwise = single, recovery commits once and replay credits 0, backward clock, no state fails closed). EditMode `D134_resumes_during_failing_saves_catch_up_in_memory_and_land_once`. Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None (no schema or content change).

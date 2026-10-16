@@ -2383,6 +2383,25 @@ namespace WalkGame.Application
             catch (IOException) { return false; }
         }
 
+        /// <summary>
+        /// D-134 (closes the D-131 resume gap): while saves keep failing, a resume must not
+        /// reload (that would drop the unsaved progress), but offline time still passed. This
+        /// runs the same offline catch-up as a boot, in memory: producers tick from their own
+        /// monotonic checkpoints and <c>LastAdvancedUtc</c> moves forward, so calling it twice
+        /// at the same clock credits nothing more (exactly once). Any return-summary events are
+        /// merged into the pending summary. It then tries one commit of the whole state and
+        /// never throws for I/O. Returns true when the state is now durable.
+        /// </summary>
+        public bool CatchUpWithoutReload()
+        {
+            var state = RequireState();
+            var events = new List<SimulationEvent>();
+            OfflineAdvancer.Advance(state, _content, _clock.UtcNow, events);
+            ComposePendingSummary(state, events);
+            try { return PersistOrThrow(); }
+            catch (IOException) { return false; }
+        }
+
         private GameState RequireState() =>
             _state ?? throw new InvalidOperationException("No game state loaded. Call StartNewGame or Continue first.");
     }

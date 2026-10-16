@@ -248,8 +248,13 @@ namespace WalkGame.Shell
             // commit writes the whole state once) and say so calmly.
             if (_booted && _session.HasUnsavedChanges && !_session.RetryPendingSave())
             {
+                // D-134: still no reload, but offline time is caught up in memory (exactly
+                // once; LastAdvancedUtc is monotonic) and a return summary is still shown.
                 _notice = null;
-                _error = PlayerStrings.T("shell.notSavedYet");
+                bool saved = _session.CatchUpWithoutReload();
+                _error = saved ? null : PlayerStrings.T("shell.notSavedYet");
+                if (OnboardingIncomplete()) Current = ShellScreen.Guide;
+                else if (_session.GetPendingReturnSummary() != null) Current = ShellScreen.ReturnSummary;
                 return;
             }
             var result = _session.Continue();
