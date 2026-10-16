@@ -101,4 +101,5 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - #72 (D-101): valley ambience: footpaths between recovered neighbours, meadow flowers, birds; MaxShapes 86→100 (the existing cap); editor-rendered before/after PNGs in `docs/evidence/d101-valley/`.
 - D-102: lifetime "days walked" is deferred. Retired rows keep no date, and records have no local day, so a v3 migration would be dishonest. The future OpenSpec design is in D-102. Hardening: `TitleMatchingInvariantTests`.
 - Removed the 4 merged, clean -grok1929 worktrees (plain `git worktree remove`). Region 2 is still PROPOSED only.
+- Merged-tree check on this branch: .NET 703/703, EditMode 144/144 (Unity-editor-tested).
 - Next: the D-102 OpenSpec (local date per record); device lane (KI-002).
