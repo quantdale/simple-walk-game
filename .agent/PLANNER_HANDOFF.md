@@ -5,6 +5,7 @@ Additive; stricter local rules win. A planner writes `.agent/EXECUTION_PROMPT.md
 Planner obligations: never leave a superseded prompt marked ACTIVE; every execution prompt must inherit the `AGENTS.md` preflight (identity guard, writer lease, no force-push) rather than redefining it; prompts must target THIS repository's canonical slug (`quantdale/simple-walk-game`) and never reference sibling repositories.
 
 For `/goal continue`: read repository instructions, this file, the execution prompt if present, and native state; run the `AGENTS.md` preflight BEFORE any write; reconcile current Git/implementation; resume an ACTIVE prompt from the first genuinely incomplete requirement without redoing landed work; validate, fix introduced Critical/High regressions, update state, and commit/push per local policy. Otherwise use native continuation or report that planning is required.
+
 ## Session note 2026-10-16 (grok-exec-20261016-m5u3)
 - Merged PR #19 (M5-U2). Fixed RELEASE_CHECKLIST G (KI-005 closed via 589150b).
 - M5-U3 onboarding polish + first PlayMode suite (EditMode 23/23, PlayMode 1/1, Unity-editor-tested). KI-015 records the reversion findings.
@@ -42,7 +43,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - #39 A4 Story journal; #40 KI-007 `--allow-no-origin`; #41 KI-016(a) expired-token recovery (D-077), bridge tamper tests, id bounds, KI-019 logged; this PR: save tamper (D-078).
 - Next: KI-019 sub-unit carry (economy; needs a D-entry), then B (MVP features).
 
-
 ## Session note 2026-10-16 (hardening + B, grok1628)
 - #43 renamed the A4 journal PNG to `docs/evidence/story/journal-editor-rendered.png`.
 - KI-019 closed by D-079 (per-provider sub-unit step carry); `StepCarryTests` 7 cases; pacing-pathological +1 Vitality regenerated.
@@ -73,6 +73,7 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-16 (grok1814)
 - D-092: onboarding/permission edge cases. A fresh-device start resets a stale onboarding stage left by a kill mid delete-all. `StaleOnboardingResetTests` (5), `OnboardingPermissionEdgeTests` (5); .NET 675, EditMode 116/116 (Unity-editor-tested). Device permission dialog UNVERIFIED (KI-002).
+
 ## Session note 2026-10-16 (grok1814, Region 2)
 - `openspec/changes/add-region2-storyline/` is PROPOSED only. D-011 and the ROADMAP post-MVP gate forbid agent approval; logged in the KNOWN_ISSUES morning queue. No implementation.
 - Worktree cleanup: 37 merged, clean worktrees removed with `git worktree remove` (no --force). Kept: `wt-checkin-grok1537` and `wt-story-openspec-grok1520` (merged but with uncommitted changes; a human should inspect). Branches were not deleted.
