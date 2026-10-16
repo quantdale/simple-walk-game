@@ -1,6 +1,6 @@
 # HealthKit setup for an iOS build (KI-022, D-112)
 
-**Status: UNVERIFIED at runtime.** No iOS app has been built or run and there is no iOS device. The Swift
+**Status: UNVERIFIED at runtime.** No iOS app has been run and there is no iOS device. The Unity iOS Xcode export builds unsigned on hosted macOS (D-115: Xcode-built unsigned on hosted macOS, not device-tested). The Swift
 bridge alone is compiled on a GitHub-hosted macOS runner (`.github/workflows/ios-bridge-compile.yml`,
 free for this public repository; evidence `docs/evidence/macos-swift-compile/RESULTS.md`). This page lists what a human with a Mac must do and check. No claim is
 made that an iOS build works.
@@ -15,6 +15,7 @@ made that an iOS build works.
 | Swift bridge | `src/WalkGame.Unity/Assets/Plugins/iOS/WalkGameHealthKitBridge.swift` | compiled on hosted macOS (CI `ios-bridge-compile`, iOS SDK, arm64; not linked into an app, never run, not device-tested); runtime UNVERIFIED |
 | Seen-samples pruning (D-113) | `src/WalkGame.Infrastructure/Platform/HealthKit/HealthKitSampleLedger.cs`, mirrored in the Swift bridge | C# rule automated-verified (`HealthKitPrepTests`); Swift mirror UNVERIFIED |
 | iPhone/Watch dedup (D-113, wired by D-114) | `HealthKitSourceDedup.cs`, applied in `HealthKitActivityAdapter` via the bridge's sixth `source` field | C# automated-verified (headless, `HealthKitSourceFieldTests`); Swift classification compiled on hosted macOS by CI, runtime UNVERIFIED; adapter not composed |
+| Unity iOS app build (D-115) | `tools/unity/export-ios-xcode.sh` + `.github/workflows/ios-xcode-export-verify.yml` | Xcode-built unsigned on hosted macOS, not device-tested (`docs/evidence/ios-xcode-export/RESULTS.md`); Swift bridge and P/Invoke externs linked |
 | Composition | none: `ShellBootstrap` does not use the adapter yet | iOS players still get the D-108 unsupported state |
 
 ## Steps for the first macOS build
