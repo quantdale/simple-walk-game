@@ -2136,3 +2136,11 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - The Discoveries screen shows, under each found discovery, its body and "Where it came from: …". Unfound discoveries still show nothing (no spoilers). A key without copy is skipped; a raw key never reaches the screen.
 
 **Evidence.** `DiscoveryCopyTests` (6 .NET cases: every discovery has body+origin, no placeholders or keys, length bounds, no orphan copy, unknown keys return null). `DiscoveriesScreenTests` +2 EditMode cases (copy shown under found discoveries in order; unfound copy never shown). EditMode 103/103 (`docs/evidence/b-discovery-copy/`, Unity-editor-tested). Device UNVERIFIED (KI-002).
+
+## D-087 — The moment ring always fits inside the valley picture (2026-10-16)
+
+**Context.** KI-020: in the celebration capture the ring around the right-most changed landmark was cut by the picture border. The ring was drawn at radius 1.9×s around the landmark with no bounds check.
+
+**Decision.** `ValleyElement.RingGeometry(cx, cy, s, w, h)` (engine-free, public for tests) keeps the full stroke inside the picture: first shrink the radius (never below 1.2×s, so the ring still surrounds the landmark), then shift the centre only as much as needed. With room, the ring is unchanged. No layout, content or save change.
+
+**Evidence.** `RegionSceneTests.Moment_ring_always_stays_inside_the_picture_and_around_its_landmark` sweeps 6 widths × every landmark position for 1–8 landmarks × 5 levels (bounds, landmark inside ring, radius ≥ 1.2×s), plus an unchanged-with-room case. EditMode 103/103 pre-merge (`docs/evidence/b-ki020-ring/`, Unity-editor-tested). Re-captured `docs/evidence/b-ki020-ring/celebration-editor-rendered.png` (editor-rendered, llvmpipe/Xvfb, NOT device): the right-most ring is fully inside. Device UNVERIFIED (KI-002).

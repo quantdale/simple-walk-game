@@ -62,7 +62,8 @@ namespace WalkGame.Shell
                 if (l.Changed)                                                                          // moment ring (static, no motion)
                 {
                     p.strokeColor = C(0x1F2A24u); p.lineWidth = 2.5f; p.BeginPath();
-                    p.Arc(new Vector2(cx, cy - s * 0.5f), s * 1.9f, 0f, 360f); p.Stroke(); shapes++;
+                    var ring = RingGeometry(cx, cy, s, w, h);                                            // KI-020: kept inside the picture
+                    p.Arc(new Vector2(ring.X, ring.Y), ring.R, 0f, 360f); p.Stroke(); shapes++;
                 }
             }
             if (Scene.BuildSite != null)                                                                 // D-071 build site
@@ -84,6 +85,27 @@ namespace WalkGame.Shell
         /// Two filled shapes (body + top) per landmark. Ruined: squat, broken (top knocked aside
         /// and darkened). Restored stages stand to full height in the stage colour.
         /// </summary>
+        /// <summary>Stroke width of the moment ring.</summary>
+        public const float RingStroke = 2.5f;
+
+        /// <summary>
+        /// KI-020 (D-087): the moment ring around a changed landmark, shrunk and shifted only as
+        /// much as needed so the whole stroke stays inside a w×h picture. Engine-free, so tests can
+        /// check every landmark position without rendering.
+        /// </summary>
+        public static (float X, float Y, float R) RingGeometry(float cx, float cy, float s, float w, float h)
+        {
+            float m = RingStroke * 0.5f + 1f;
+            float y0 = cy - s * 0.5f;
+            // Prefer shrinking (down to 1.2×s so the ring still surrounds the landmark), then shift.
+            float room = Mathf.Min(Mathf.Min(cx - m, w - m - cx), Mathf.Min(y0 - m, h - m - y0));
+            float r = Mathf.Min(s * 1.9f, Mathf.Max(s * 1.2f, room));
+            r = Mathf.Max(0f, Mathf.Min(r, Mathf.Min(w, h) * 0.5f - m));
+            float x = Mathf.Clamp(cx, m + r, Mathf.Max(m + r, w - m - r));
+            float y = Mathf.Clamp(y0, m + r, Mathf.Max(m + r, h - m - r));
+            return (x, y, r);
+        }
+
         private static int Silhouette(Painter2D p, LandmarkKind kind, float cx, float cy, float s, bool ruined, Color col, Color dark)
         {
             float hgt = ruined ? s * 0.7f : s * 1.1f;
