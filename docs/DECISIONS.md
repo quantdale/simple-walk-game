@@ -2227,3 +2227,11 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Decision.** Rewritten calmly, with no codes or ids: "No projects are open right now. Finishing a restoration opens new ones."; "We couldn't start a new world. Nothing on this device was changed."; "Your data could not be deleted, so nothing was changed. You can try again."; "Unknown action."; any failed domain result shows "That could not be done just now. Your progress is safe."; "Your save did not pass its safety check. …"; "This save was made by a newer version of the game. Update the game to open it; nothing has been changed."; "Next: nothing to do. It will try again on its own." Copy only; no save, content or behaviour change.
 
 **Evidence.** `CopyPolishTests` (6 EditMode cases): a source scan of the player strings in ShellController, PlayerCopy and BootRouter against a guilt/pressure list (including "!"); every activity status/action and boot outcome; bad action ids never echoed. EditMode 131/131 (`docs/evidence/d096-copy-polish/`, Unity-editor-tested). Gap: Application-layer Glance copy is covered by the existing .NET GlanceLanguageTests, not by this scan.
+
+## D-097 — Copy scan covers Home summary text; settings status lines reworded (2026-10-16)
+
+**Context.** D-096 left a gap: Home shows Application-layer Glance sentences, the story line and the balance line, and none of them went through the shell copy scan. The Settings status lines were bare labels ("Reduced motion: on", "Diagnostics: hidden"), which are terse for a screen reader and say nothing about what the setting does.
+
+**Decision.** `CopyPolishTests` renders Home after the guide, after five days of walking and after a 30-day absence, and checks every line against the guilt/pressure list and the raw-code pattern. The settings lines are now full sentences from `ShellController.ReducedMotionLine/SoundLine/DiagnosticsLine`, for example "Reduced motion is on. Your choice is saved on this device." and "Support details are hidden. You only need them to look into a step-count question." The wording claims nothing the shell does not do; the shell has no animation today (UX_DESIGN). This is a copy change only, with no save, content or behaviour change.
+
+**Evidence.** 2 new EditMode cases; EditMode 133/133 (`docs/evidence/d097-copy-scan/`, Unity-editor-tested; device UNVERIFIED, KI-002).
