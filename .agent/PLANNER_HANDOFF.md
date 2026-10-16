@@ -159,3 +159,11 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - D-117 (KI-015): `scripts/verify-project-settings.sh` makes "never commit ProjectSettings.asset by accident" mechanical. Pre-commit `--staged` needs `SWG_PROJECT_SETTINGS_DECISION=D-NNN`; CI `--range` needs a `Project-Settings-Decision: D-NNN` trailer. Self-test 6/6.
 - Remaining open KIs (002, 016, 018, 022) are device- or macOS-gated. Region 2 is still PROPOSED only.
 
+
+## Session note 2026-10-17 (grok2345)
+- #101 (`5dab899`, D-118): Nell Hartley's letters. Six letters tied to project completion, a pure projection (no save or content change). OpenSpec `add-landmark-letters` (agent-approved, Region 1).
+- #102 (`7e61893`, D-119): an optional gentle daily reminder. It needs both opt-ins plus OS permission, and is never re-asked. It uses an inexact RTC alarm and a low-importance channel. OpenSpec `add-gentle-reminder`. Compiled into the arm64 APK (`docs/evidence/apk-d119/`); device delivery UNVERIFIED (KI-002). Residuals: no boot receiver, no time picker, no iOS delivery.
+- #103 (`f7b1753`, D-120): `PlayerStrings` table plus `LocalizationReadinessTests` ratchet; the remaining migration is KI-023.
+- This PR: `GetLetters` read-only hardening test and records. .NET 807/807, EditMode 191/191 on main `f7b1753` + this branch.
+- Rule: no Codex PR reviews (no @codex, no review requests); use self-review and CI only.
+- Next: continue KI-023 (ShellController 127 → 0, then the Application copy); a reminder time picker; device lane (KI-002). Region 2 is still PROPOSED only.

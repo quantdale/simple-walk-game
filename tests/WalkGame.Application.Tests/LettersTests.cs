@@ -83,4 +83,17 @@ public sealed class LettersTests : IDisposable
         }
         Assert.True(previous >= 1, "a steady high walker finds at least the first letter within 120 days");
     }
+
+    [Fact]
+    public void GetLetters_IsReadOnly_SaveBytesUnchanged()
+    {
+        var s = TestSessions.Create(_temp.Path, new ManualClock(T0));
+        s.StartNewGame(42UL);
+        s.IngestFromSource(new SyntheticWalkingSource(20_000L), T0, T0.AddHours(12));
+        var files = System.IO.Directory.GetFiles(_temp.Path).OrderBy(f => f).ToArray();
+        var before = files.Select(System.IO.File.ReadAllBytes).ToArray();
+        for (int i = 0; i < 5; i++) s.GetLetters();
+        Assert.Equal(files, System.IO.Directory.GetFiles(_temp.Path).OrderBy(f => f).ToArray());
+        for (int i = 0; i < files.Length; i++) Assert.Equal(before[i], System.IO.File.ReadAllBytes(files[i]));
+    }
 }
