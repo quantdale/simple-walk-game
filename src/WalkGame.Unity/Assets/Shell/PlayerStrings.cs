@@ -193,6 +193,10 @@ namespace WalkGame.Shell
             ["shell.activity.lastBatch"] = "Your last walks added {0} vitality.",
             ["shell.textPreview"] = "Preview: The valley remembers every walk you take.",
             ["shell.celebration.headline"] = "You restored the whole valley.",
+            // Accessibility and share sheet (KI-023 part 2)
+            ["a11y.primaryHint"] = "Main action on this screen.",
+            ["share.subject"] = "Simple Walk Game save",
+            ["share.chooser"] = "Share a copy of your save",
             ["shell.story.epilogue"] = "Story: Millbrook's story is complete. The valley stays restored, and every chapter is here to reread.",
         };
 

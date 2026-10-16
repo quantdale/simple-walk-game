@@ -22,9 +22,9 @@ namespace WalkGame.Shell
                 using (var intent = new AndroidJavaObject("android.content.Intent", intentClass.GetStatic<string>("ACTION_SEND")))
                 {
                     intent.Call<AndroidJavaObject>("setType", "text/plain").Dispose();
-                    intent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_SUBJECT"), "Simple Walk Game save").Dispose();
+                    intent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_SUBJECT"), PlayerStrings.T("share.subject")).Dispose();
                     intent.Call<AndroidJavaObject>("putExtra", intentClass.GetStatic<string>("EXTRA_TEXT"), text).Dispose();
-                    using (var chooser = intentClass.CallStatic<AndroidJavaObject>("createChooser", intent, "Share a copy of your save"))
+                    using (var chooser = intentClass.CallStatic<AndroidJavaObject>("createChooser", intent, PlayerStrings.T("share.chooser")))
                         activity.Call("startActivity", chooser);
                 }
                 return true;

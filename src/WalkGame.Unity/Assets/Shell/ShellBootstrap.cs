@@ -57,12 +57,12 @@ namespace WalkGame.Shell
             // D-119: optional gentle reminder (Android only); set before the first resume sync.
             if (AndroidReminderScheduler.IsAvailable) { _controller.Reminders = new AndroidReminderScheduler(); _controller.SyncReminder(); }
             _controller.TextScaleSource = () => UnityEngine.Accessibility.AccessibilitySettings.fontScale;
-            Debug.Log("WG_BOOT status=" + _controller.LastStartStatus + " screen=" + _controller.Current + " dir=" + SaveDirectory);
+            Debug.Log("WG_BOOT status=" + _controller.LastStartStatus + " screen=" + _controller.Current + " dir=" + SaveDirectory); // l10n-ignore: developer log
 
             _document = gameObject.AddComponent<UIDocument>();
             var panel = ScriptableObject.CreateInstance<PanelSettings>();
             panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("ShellTheme");
-            if (panel.themeStyleSheet == null) Debug.LogWarning("WG_THEME missing: Resources/ShellTheme.tss");
+            if (panel.themeStyleSheet == null) Debug.LogWarning("WG_THEME missing: Resources/ShellTheme.tss"); // l10n-ignore: developer log
             // 1 UI unit = 1 dp, so the 56-unit buttons are 56 dp touch targets on every density.
             panel.scaleMode = PanelScaleMode.ConstantPhysicalSize;
             panel.referenceDpi = 160;
@@ -122,7 +122,7 @@ namespace WalkGame.Shell
             var model = _controller.Render();
             // D-088: per-render logging only in development builds (Debug.Log builds strings and
             // captures a stack trace on every screen switch in a release build too).
-            if (Debug.isDebugBuild) Debug.Log("WG_RENDER screen=" + model.Screen + " state=" + model.State + " lines=" + model.Lines.Count + " actions=" + model.Actions.Count + (model.Notice != null ? " notice=" + model.Notice : ""));
+            if (Debug.isDebugBuild) Debug.Log("WG_RENDER screen=" + model.Screen + " state=" + model.State + " lines=" + model.Lines.Count + " actions=" + model.Actions.Count + (model.Notice != null ? " notice=" + model.Notice : "")); // l10n-ignore: developer log
             System.Action<string> act = id => { _controller.Invoke(id); Redraw(); };
             ShellView.Render(_document.rootVisualElement, model, act, UnityEngine.Accessibility.AccessibilitySettings.fontScale);
             // D-104: a calm cue only on arrival at a summary that earned one, and only with sound on.
