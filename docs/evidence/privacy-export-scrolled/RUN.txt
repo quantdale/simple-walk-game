@@ -1,0 +1,6 @@
+Run 2026-10-16 22:34 PHT, worktree privpng-grok2230 (base a49dbb1), Unity 6000.3.26f1, Xvfb + Mesa llvmpipe
+Command: WG_CAPTURE_SCREEN=Privacy WG_CAPTURE_SCROLL=end WG_CAPTURE_EXPECT_BUTTON='Share a copy of your save' tools/unity/capture-valley.sh docs/evidence/privacy-export-scrolled/privacy-export-editor-rendered.png
+WG_CAPTURE_SCROLL offset=290.6666 max=290.6666
+WG_CAPTURE_BUTTON visible 'Share a copy of your save' bounds=(x:24.00, y:610.00, width:288.00, height:56.00) viewport=(x:0.00, y:0.00, width:336.00, height:780.00)
+WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/simple-walk-game-wt-privpng-grok2230/docs/evidence/privacy-export-scrolled/privacy-export-editor-rendered.png
+PlayMode results:  8 result="Passed"
