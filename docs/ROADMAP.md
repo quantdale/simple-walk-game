@@ -566,6 +566,12 @@ None are pre-authorized by this roadmap.
 - [x] A2 Domain/content/application: ten milestone-gated chapters, content v5 (additive), `GetStory()`, "New chapter" summary moments, validator rules, cadence gate (`StoryCadenceTests`)
 - [x] A4 Unity Story journal screen (Home → Story), chapter moments in the return summary with a "Read the new chapter" link; EditMode 61/61; editor-rendered PNG `docs/evidence/story/journal-editor-rendered.png` (Unity-editor-tested; device UNVERIFIED, KI-002)
 
+## Hardening (C)
+- [x] KI-019 per-provider sub-unit step carry (D-079, PR #44)
+
+## Features (B)
+- [x] B1 Region 1 completion celebration in the return summary (D-080): retitled, calm static headline, "See the restored valley" link after Continue; EditMode 65/65 (`docs/evidence/b-celebration/`; Unity-editor-tested; device UNVERIFIED, KI-002)
+
 # Cross-milestone rules
 
 Every milestone must:
