@@ -61,22 +61,22 @@ namespace WalkGame.Shell
             float k = ShellView.ClampTextScale(raw);
             string pct = Math.Round(k * 100f).ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
             return raw > ShellView.MaxTextScale
-                ? "Text size: " + pct + ", the largest this game supports. It follows your phone's font size setting."
-                : "Text size: " + pct + ". It follows your phone's font size setting.";
+                ? PlayerStrings.F("settings.textsize.max", pct)
+                : PlayerStrings.F("settings.textsize", pct);
         }
 
         /// <summary>D-097: settings status lines say what the setting does, in plain words.</summary>
         public static string ReducedMotionLine(bool on) => on
-            ? "Reduced motion is on. Your choice is saved on this device."
-            : "Reduced motion is off. You can turn it on at any time.";
+            ? PlayerStrings.T("settings.motion.on")
+            : PlayerStrings.T("settings.motion.off");
 
         public static string SoundLine(bool on) => on
-            ? "Sound is on. You can turn it off at any time."
-            : "Sound is off. The game stays quiet.";
+            ? PlayerStrings.T("settings.sound.on")
+            : PlayerStrings.T("settings.sound.off");
 
         public static string DiagnosticsLine(bool on) => on
-            ? "Support details are shown. They are only for looking into a step-count question."
-            : "Support details are hidden. You only need them to look into a step-count question.";
+            ? PlayerStrings.T("settings.diagnostics.on")
+            : PlayerStrings.T("settings.diagnostics.off");
 
         public ShellScreen Current { get; private set; } = ShellScreen.Onboarding;
         public StartStatus? LastStartStatus { get; private set; }
