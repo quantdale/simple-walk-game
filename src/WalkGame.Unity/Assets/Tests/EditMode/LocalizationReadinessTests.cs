@@ -20,13 +20,12 @@ namespace WalkGame.Shell.Tests
         private static readonly Regex Words = new Regex("[A-Za-z]{2,}[^\"]*\\s[^\"]*[A-Za-z]{2,}");
 
         /// <summary>Files fully routed through the table: zero hard-coded player literals.</summary>
-        private static readonly string[] Migrated = { "BootRouter.cs", "ReminderScheduler.cs" };
+        private static readonly string[] Migrated = { "BootRouter.cs", "ReminderScheduler.cs", "PlayerCopy.cs", "RegionScene.cs" };
 
         /// <summary>Ratchet ceilings for files not yet migrated (2026-10-16). Lower them; never raise.</summary>
         private static readonly Dictionary<string, int> Ceiling = new Dictionary<string, int>
         {
-            ["AccessibleOutline.cs"] = 1, ["AndroidShareSheet.cs"] = 2, ["PlayerCopy.cs"] = 21,
-            ["RegionScene.cs"] = 14, ["ShellBootstrap.cs"] = 3, ["ShellConnectionPort.cs"] = 2,
+            ["AccessibleOutline.cs"] = 1, ["AndroidShareSheet.cs"] = 2, ["ShellBootstrap.cs"] = 3, ["ShellConnectionPort.cs"] = 2,
             ["ShellController.cs"] = 127,
         };
 
@@ -78,6 +77,19 @@ namespace WalkGame.Shell.Tests
                 Assert.DoesNotThrow(() => PlayerStrings.F(k, "a", "b", "c"), k);
             }
             Assert.AreEqual(string.Empty, PlayerStrings.T("no.such.key"), "a missing key never shows raw");
+        }
+
+        [Test] public void Migrated_player_copy_reads_exactly_as_before()
+        {
+            Assert.AreEqual("waiting, 2nd in line", PlayerCopy.ProjectStatus(WalkGame.Domain.Projects.ProjectStatus.Queued, 1));
+            Assert.AreEqual("ready to start", PlayerCopy.ProjectStatus(WalkGame.Domain.Projects.ProjectStatus.Available, null));
+            Assert.AreEqual("restored", PlayerCopy.ProjectStatus(WalkGame.Domain.Projects.ProjectStatus.Completed, null));
+            Assert.AreEqual("Next: turn access back on in your phone's settings.",
+                PlayerCopy.ActivityAction(WalkGame.Application.Activity.ActivityRecommendedAction.OpenSettings));
+            Assert.AreEqual("plant life", PlayerCopy.DiscoveryCategory("flora"));
+            Assert.AreEqual(" Footpaths link 3 recovered places.", PlayerStrings.F("scene.alt.trail.many", 3));
+            Assert.AreEqual("A picture of the valley: 2 of 6 landmarks restored, the hills turning green.",
+                PlayerStrings.F("scene.alt.progress", 2, 6, PlayerStrings.T("scene.alt.hills.greening")));
         }
 
         [Test] public void Every_key_used_in_shell_code_exists_in_the_table()
