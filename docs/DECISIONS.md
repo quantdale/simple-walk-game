@@ -2487,3 +2487,11 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Decision.** The OpenSpec change `add-landmark-letters` is agent-approved as Region 1 / shell scope (as D-103). Six letters from Nell Hartley are each tied to one project (trailhead, river intake, workshop, east wetland, canopy walkway, valley survey). They are derived from project completion only (`GameSession.GetLetters()`), with no save or content-fingerprint change. They are shown in the Story journal, and counted in Discoveries, only after the first find. The copy is calm (no streak, guilt or pressure wording, test-pinned).
 
 **Labels.** Automated-verified (.NET 806/806); Unity-editor-tested (EditMode 181/181). Device UNVERIFIED (KI-002).
+
+## D-119 — Optional gentle daily reminder (2026-10-16)
+
+**Context.** The reminder preferences existed (D-042 era, default off) but nothing delivered them.
+
+**Decision.** The OpenSpec change `add-gentle-reminder` is agent-approved as Region 1 / shell scope (as D-103). The reminder is wanted only when both `NotificationsOptIn` and `DailyReminderEnabled` are on, and it is scheduled only when the OS permission is granted. It is re-synced on boot, resume and toggle, and the game never re-asks on its own. Android delivery uses an inexact repeating RTC alarm (never wakes the device) and a low-importance channel. There is no boot receiver and no exact-alarm permission. The copy is fixed and calm.
+
+**Labels.** Unity-editor-tested with a fake (EditMode 186/186); compiled into the arm64 APK (`docs/evidence/apk-d119/`). Device delivery UNVERIFIED (KI-002). Residuals: a device reboot clears the alarm until the game is next opened; there is no time picker yet (it uses the stored 08:00 default); no iOS delivery.
