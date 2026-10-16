@@ -2495,3 +2495,11 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Decision.** The OpenSpec change `add-gentle-reminder` is agent-approved as Region 1 / shell scope (as D-103). The reminder is wanted only when both `NotificationsOptIn` and `DailyReminderEnabled` are on, and it is scheduled only when the OS permission is granted. It is re-synced on boot, resume and toggle, and the game never re-asks on its own. Android delivery uses an inexact repeating RTC alarm (never wakes the device) and a low-importance channel. There is no boot receiver and no exact-alarm permission. The copy is fixed and calm.
 
 **Labels.** Unity-editor-tested with a fake (EditMode 186/186); compiled into the arm64 APK (`docs/evidence/apk-d119/`). Device delivery UNVERIFIED (KI-002). Residuals: a device reboot clears the alarm until the game is next opened; there is no time picker yet (it uses the stored 08:00 default); no iOS delivery.
+
+## D-120 — Localization readiness: one shell string table plus a ratchet (2026-10-16)
+
+**Context.** Player strings were literals spread across the shell, so a translation would have to edit code.
+
+**Decision.** `WalkGame.Shell.PlayerStrings` is the single table for shell player copy (`T(key)`, and `F(key, args)` with invariant `{n}` templates; a missing key yields an empty string, never the raw key). Migrated so far: BootRouter, `ReminderCopy`, the reminder lines (D-119), the letters lines (D-118) and the Settings status lines. `LocalizationReadinessTests` (EditMode, 5) scans `Assets/Shell` source. Migrated files must have zero multi-word literals; other files are capped at their current count and may only go down; `// l10n-ignore: reason` marks non-player literals. Every key used in code must exist in the table. `CopyPolishTests` now scans `PlayerStrings.cs` for guilt wording instead of BootRouter. A full migration is tracked as KI-023.
+
+**Labels.** Unity-editor-tested (EditMode 191/191). No save, content or behaviour change; every rendered string is byte-identical.

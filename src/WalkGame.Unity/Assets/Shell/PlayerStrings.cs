@@ -30,6 +30,20 @@ namespace WalkGame.Shell
             ["settings.diagnostics.off"] = "Support details are hidden. You only need them to look into a step-count question.",
             ["settings.textsize.max"] = "Text size: {0}, the largest this game supports. It follows your phone's font size setting.",
             ["settings.textsize"] = "Text size: {0}. It follows your phone's font size setting.",
+            // Gentle reminder (D-119)
+            ["reminder.title"] = "Millbrook",
+            ["reminder.body"] = "The valley is here whenever you feel like a walk.",
+            ["reminder.unavailable"] = "Daily reminder: not available on this device.",
+            ["reminder.off"] = "Daily reminder is off. If you like, the game can send one gentle note a day.",
+            ["reminder.blocked"] = "Daily reminder is on, but notifications are not allowed for this game. You can allow them in your phone's settings.",
+            ["reminder.on"] = "Daily reminder is on, around {0}. It is one quiet note, and you can turn it off at any time.",
+            ["reminder.action.on"] = "Turn on a gentle daily reminder",
+            ["reminder.action.off"] = "Turn off the daily reminder",
+            ["reminder.error.unavailable"] = "Reminders aren't available on this device.",
+            // Landmark letters (D-118)
+            ["letters.count"] = "Letters from {0}: {1} of {2} found.",
+            ["letters.line"] = "Found at {0}: \"{1}\"",
+            ["letters.inJournal"] = "Read them in the Story journal.",
         };
 
         /// <summary>The string for key; a missing key returns an empty string (never the raw key).</summary>

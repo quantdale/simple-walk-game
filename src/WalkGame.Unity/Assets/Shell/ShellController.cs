@@ -87,11 +87,11 @@ namespace WalkGame.Shell
         /// </summary>
         public static string ReminderLine(bool? wanted, ReminderPermission permission, int minutesOfDay)
         {
-            if (wanted == null) return "Daily reminder: not available on this device.";
-            if (wanted == false) return "Daily reminder is off. If you like, the game can send one gentle note a day.";
+            if (wanted == null) return PlayerStrings.T("reminder.unavailable");
+            if (wanted == false) return PlayerStrings.T("reminder.off");
             if (permission != ReminderPermission.Granted)
-                return "Daily reminder is on, but notifications are not allowed for this game. You can allow them in your phone's settings.";
-            return "Daily reminder is on, around " + ReminderTime(minutesOfDay) + ". It is one quiet note, and you can turn it off at any time.";
+                return PlayerStrings.T("reminder.blocked");
+            return PlayerStrings.F("reminder.on", ReminderTime(minutesOfDay));
         }
 
         /// <summary>"08:00" from minutes since midnight (device-local).</summary>
@@ -106,7 +106,7 @@ namespace WalkGame.Shell
 
         private void ToggleReminder()
         {
-            if (Reminders == null) { _error = "Reminders aren't available on this device."; return; }
+            if (Reminders == null) { _error = PlayerStrings.T("reminder.error.unavailable"); return; }
             var s = _session.GetSettings();
             if (ReminderWanted(s))
             {
@@ -478,7 +478,7 @@ namespace WalkGame.Shell
             if (hidden > 0) m.Lines.Add(hidden + (hidden == 1 ? " more find is" : " more finds are") + " still waiting in the valley.");
             // D-118: Nell's letters are listed with the discoveries but read in the Story journal.
             var letters = _session.GetLetters();
-            if (letters.FoundCount > 0) m.Lines.Add(LettersCountLine(letters) + " Read them in the Story journal.");
+            if (letters.FoundCount > 0) m.Lines.Add(LettersCountLine(letters) + " " + PlayerStrings.T("letters.inJournal"));
 
             m.Lines.Add("Expedition routes: " + e.AvailableCount + " open, " + e.CompletedCount + " of " + e.TotalExpeditions + " completed.");
             var projects = _session.GetProjects().Projects.ToDictionary(p => p.ProjectId, p => PlayerCopy.Title(p.TitleKey));
@@ -602,11 +602,11 @@ namespace WalkGame.Shell
 
         /// <summary>D-118: "Letters from Nell Hartley: 2 of 6 found."</summary>
         public static string LettersCountLine(WalkGame.Application.ReadModels.LettersReadModel letters) =>
-            "Letters from " + WalkGame.Application.Content.Region1Letters.Writer + ": " + letters.FoundCount + " of " + letters.TotalLetters + " found.";
+            PlayerStrings.F("letters.count", WalkGame.Application.Content.Region1Letters.Writer, letters.FoundCount, letters.TotalLetters);
 
         /// <summary>D-118: one found letter, with where it turned up.</summary>
         public static string LetterLine(WalkGame.Application.ReadModels.LettersReadModel.LetterRow l) =>
-            "Found at " + l.Place + ": \"" + l.Body + "\"";
+            PlayerStrings.F("letters.line", l.Place, l.Body);
 
         /// <summary>
         /// D-099: a calm look back at everything walking has done. Read-only; built from the
@@ -683,7 +683,7 @@ namespace WalkGame.Shell
             m.Actions.Add(new ShellAction("toggle:reducedMotion", (s.ReducedMotion ? "Turn off" : "Turn on") + " reduced motion"));
             m.Actions.Add(new ShellAction("toggle:sound", (s.SoundEnabled ? "Turn off" : "Turn on") + " sound"));
             if (Reminders != null)
-                m.Actions.Add(new ShellAction("toggle:reminder", reminderOn ? "Turn off the daily reminder" : "Turn on a gentle daily reminder"));
+                m.Actions.Add(new ShellAction("toggle:reminder", reminderOn ? PlayerStrings.T("reminder.action.off") : PlayerStrings.T("reminder.action.on")));
             m.Actions.Add(new ShellAction("toggle:diagnostics", (s.DiagnosticsVisible ? "Hide" : "Show") + " diagnostics"));
             m.Actions.Add(new ShellAction("nav:Privacy", "Privacy and your data"));
             m.Actions.Add(new ShellAction("delete:request", "Delete all local data…"));

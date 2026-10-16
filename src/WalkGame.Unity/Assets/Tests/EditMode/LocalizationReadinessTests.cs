@@ -20,14 +20,14 @@ namespace WalkGame.Shell.Tests
         private static readonly Regex Words = new Regex("[A-Za-z]{2,}[^\"]*\\s[^\"]*[A-Za-z]{2,}");
 
         /// <summary>Files fully routed through the table: zero hard-coded player literals.</summary>
-        private static readonly string[] Migrated = { "BootRouter.cs" };
+        private static readonly string[] Migrated = { "BootRouter.cs", "ReminderScheduler.cs" };
 
         /// <summary>Ratchet ceilings for files not yet migrated (2026-10-16). Lower them; never raise.</summary>
         private static readonly Dictionary<string, int> Ceiling = new Dictionary<string, int>
         {
             ["AccessibleOutline.cs"] = 1, ["AndroidShareSheet.cs"] = 2, ["PlayerCopy.cs"] = 21,
             ["RegionScene.cs"] = 14, ["ShellBootstrap.cs"] = 3, ["ShellConnectionPort.cs"] = 2,
-            ["ShellController.cs"] = 130,
+            ["ShellController.cs"] = 127,
         };
 
         private static string ShellDir => Path.Combine(UnityEngine.Application.dataPath, "Shell");
