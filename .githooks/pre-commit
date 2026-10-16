@@ -11,3 +11,5 @@ fi
 sh "$root/scripts/assert-repo-identity.sh" "$root" || exit $?
 # D-116: Unity engine binaries / export payloads must never be committed to this public repo.
 bash "$root/scripts/verify-no-engine-binaries.sh" --staged || exit $?
+# D-117 (KI-015): never commit ProjectSettings.asset by accident.
+bash "$root/scripts/verify-project-settings.sh" --staged || exit $?

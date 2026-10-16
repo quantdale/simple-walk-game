@@ -2467,3 +2467,15 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Labels.** Guard automated-verified (self-test plus a clean run on this tree). Whether GitHub still serves the deleted payload commit by SHA, or keeps it in cached Actions data, is UNVERIFIED and outside the repository (owner/GitHub support).
 
+## D-117 — ProjectSettings.asset is only committed under a named decision (2026-10-16)
+
+**Context.** KI-015: Unity tooling rewrites the tracked `src/WalkGame.Unity/ProjectSettings/ProjectSettings.asset` (platform switch, `WG_ANDROID_ARCH`, iOS export). The rule "never commit it by accident" was documentation only, so nothing stopped an accidental commit.
+
+**Decision.**
+- `scripts/verify-project-settings.sh --staged` runs in the pre-commit hook. It refuses a staged change to the file unless `SWG_PROJECT_SETTINGS_DECISION=D-NNN` names a heading that exists in `docs/DECISIONS.md`. This is the sanctioned, deliberate path, not a hook bypass.
+- CI runs `--range <merge-base with origin/main>..HEAD`. Every commit in the range that changes the file must carry the trailer `Project-Settings-Decision: D-NNN` naming an existing decision.
+- `--self-test` (6 cases) proves that both modes refuse and allow correctly. CI runs it.
+- Past changes (90f0207, 9b40267, 9be1302) predate this rule and are on main; the CI range starts at the merge base, so they are not re-judged.
+
+**Labels.** Automated-verified (self-test; CI step reproduced locally with `verify-ci-steps.sh`). No game, save or content change.
+
