@@ -214,3 +214,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-17 (grok0739)
 - D-134: closes the D-131 resume gap. While saves keep failing, a resume runs offline catch-up in memory via `GameSession.CatchUpWithoutReload()` (exactly once through monotonic checkpoints) and still shows the return summary. `ResumeCatchUpGapTests` (6) + EditMode `D134_…`. .NET 859/859, EditMode 226/226 + 1 ignored (Unity-editor-tested). Device UNVERIFIED (KI-002). No Dependabot PRs. Region 2 still PROPOSED only.
+- D-135: `LongPlayInvariantPropertyTests` (12 seeds x 300 random steps) for no double credit, accomplishments never lost, monotonic progression. No finding.

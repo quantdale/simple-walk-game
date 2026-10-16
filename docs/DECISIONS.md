@@ -2653,3 +2653,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `ResumeCatchUpGapTests` (.NET, 6: matches a healthy reboot, repeat is a no-op, stepwise = single, recovery commits once and replay credits 0, backward clock, no state fails closed). EditMode `D134_resumes_during_failing_saves_catch_up_in_memory_and_land_once`. Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None (no schema or content change).
+
+## D-135 — Long random play property tests for the core invariants (2026-10-17)
+
+**Context.** Exactly-once credit, durable accomplishments and monotonic progression were each tested in isolation, but never across long mixed sequences.
+
+**Decision.** `LongPlayInvariantPropertyTests` runs 12 seeded sequences of 300 random steps: new batches, replays of delivered records, forward and backward clock jumps with D-134 in-memory catch-up, project queueing, summary acknowledgements, reloads, and ~10% injected commit failures that are then retried. After every step: a replay credits 0, lifetime credited Vitality never decreases, completed projects and unlocked chapters only grow, and nothing stays unsaved once storage is healthy. At the end a reload reproduces the same credit and completions, and replaying the whole history credits 0. Each seed must credit activity and complete at least one project, so the properties are not vacuous. No production change; no finding.
+
+**Tests.** `LongPlayInvariantPropertyTests` (.NET, 12). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None.
