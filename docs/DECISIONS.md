@@ -2329,3 +2329,16 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Decision.** Home drops the glance "restoring now" sentence when the queue is empty (the empty-state line keeps the call to action), and shows each line once, with ordinal de-duplication and the first occurrence kept. Read models and copy are unchanged; this is shell-only, with no save or content change.
 
 **Tests:** EditMode `HomeLayoutPolishTests` (3 cases). Evidence: `docs/evidence/d106-home/` holds before/after PNGs (editor-rendered, llvmpipe) and EditMode 154/154 (Unity-editor-tested). Device rendering is UNVERIFIED (KI-002).
+
+## D-108 — iOS HealthKit parity check: honest unsupported state, gap recorded (2026-10-16)
+
+**Context.** ROADMAP M7 lists HealthKit integration, and several docs say "Health Connect/HealthKit". A code check found no HealthKit adapter, bridge, entitlement or iOS build. The non-Android release port still carried the stale detail "health connect adapter not yet implemented (M5-A)".
+
+**Decision.** Record the gap instead of implying parity. `docs/PLATFORM_PARITY.md` holds the capability matrix and the contract a future HealthKit adapter must meet. KI-022 tracks the missing adapter. `ShellConnectionPort` now carries a traceable diagnostic (`UnsupportedDetail`, citing KI-022); it is never shown to players. No behaviour, save or content change.
+
+**Tests:** EditMode `PlatformParityTests` (4): unsupported snapshot, onboarding completes with no Connect dead end, Activity screen is honest and leaks no diagnostics, no development walking in release.
+
+Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 158/158 (Unity-editor-tested).
+
+**Gaps:** No iOS adapter or build (KI-022). Needs macOS/Xcode and a device; iOS behaviour is UNVERIFIED.
+
