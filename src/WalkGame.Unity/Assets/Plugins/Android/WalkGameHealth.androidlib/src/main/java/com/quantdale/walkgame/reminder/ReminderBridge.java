@@ -8,7 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import java.util.Calendar;
+import java.util.TimeZone;
 
 /**
  * D-119: optional gentle daily reminder. Inexact repeating RTC alarm (never wakes the device,
@@ -44,22 +44,18 @@ public final class ReminderBridge {
     }
 
     public static boolean scheduleDaily(Context context, int minutesOfDay, String title, String body) {
-        if (minutesOfDay < 0 || minutesOfDay >= 24 * 60) return false;
+        if (!ReminderTime.validMinutes(minutesOfDay)) return false;
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return false;
         // D-121: remember what is armed so ReminderBootReceiver can re-arm it after a restart.
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
                 .putString("title", title).putString("body", body)
                 .putInt("minutes", minutesOfDay).putBoolean("armed", true).apply();
-        Calendar next = Calendar.getInstance();
-        next.set(Calendar.HOUR_OF_DAY, minutesOfDay / 60);
-        next.set(Calendar.MINUTE, minutesOfDay % 60);
-        next.set(Calendar.SECOND, 0);
-        next.set(Calendar.MILLISECOND, 0);
-        if (next.getTimeInMillis() <= System.currentTimeMillis()) next.add(Calendar.DAY_OF_YEAR, 1);
+        // D-123: the trigger maths is pure and property-tested headless (ReminderTimeTest).
+        long next = ReminderTime.nextTriggerMillis(System.currentTimeMillis(), minutesOfDay, TimeZone.getDefault());
         PendingIntent pi = pending(context);
         am.cancel(pi);
-        am.setInexactRepeating(AlarmManager.RTC, next.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+        am.setInexactRepeating(AlarmManager.RTC, next, AlarmManager.INTERVAL_DAY, pi);
         return true;
     }
 
@@ -69,11 +65,12 @@ public final class ReminderBridge {
      */
     static boolean rearmAfterBoot(Context context) {
         android.content.SharedPreferences p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        if (!p.getBoolean("armed", false) || !canNotify(context)) return false;
+        boolean armed = p.getBoolean("armed", false);
+        if (!armed) return false;
         int minutes = p.getInt("minutes", -1);
         String title = p.getString("title", null);
         String body = p.getString("body", null);
-        if (minutes < 0 || title == null || body == null) return false;
+        if (!ReminderTime.shouldRearm(armed, canNotify(context), minutes, title, body)) return false;
         return scheduleDaily(context, minutes, title, body);
     }
 

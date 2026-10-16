@@ -2525,3 +2525,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Next slices.** Project/landmark/region titles (resolve by id in read models, not in `PlayerCopy.Title`, which only sees text), chapters, discovery copy, glance phrases; then a language preference (preferences file, not the save) and a locale loader. No translation ships yet.
 
 **Save compatibility.** None: no save, schema or content change.
+
+## D-123 — Reminder time maths and restart path: property tests and one edge-case fix (2026-10-17)
+
+**Context.** D-119/D-121 computed the next reminder trigger inline in `ReminderBridge` (Android-only, untestable headless) and the restart re-arm decision was untested. An audit also found that a damaged or hand-edited preferences file with an out-of-range reminder time was applied as-is; "turn on the reminder" then re-submits that stored time, which fails validation every time (a dead end).
+
+**Decision.** (1) `ReminderTime.java` (pure, no Android imports) holds `nextTriggerMillis(now, minutesOfDay, zone)` and `shouldRearm(...)`; `ReminderBridge` uses both. The trigger is the first instant strictly after now with that wall-clock time, re-derived per calendar day, so a daylight-saving gap moves it forward the same day instead of skipping it. `shouldRearm` also refuses blank title/body. (2) `ReminderTimeTest` (headless, run by `tools/android/test-bridge-logic.sh`, which CI already runs): 200,000 seeded cases across every JDK time zone, 2000–2040 (strictly future, within a day plus DST shift, on the minute, wall time exact unless in a DST gap, idempotent, next one about a day later), fixed Europe/London spring/fall cases, bounds, and a 20,000-case restart decision table; 1,020,030 checks. (3) `LocalPreferencesStore` ignores an out-of-range stored reminder time (keeps the 08:00 default). `ReminderPropertyTests` (2): 400 seeded `SetDailyReminder` calls with restarts every 20 (accepted iff 00:00–23:59; a rejected call changes nothing; a restart reads back the last accepted value), and 200 damaged stored times (the second test fails without the fix).
+
+**Save compatibility.** No save or content change. The preferences file format is unchanged; only values that `SetDailyReminder` could never write are now ignored on load.
+
+**Labels.** Java logic headless-tested; the APK compile is part of the RC run. Device delivery UNVERIFIED (KI-002).

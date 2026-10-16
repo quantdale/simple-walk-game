@@ -13,3 +13,7 @@ done
 out="$(mktemp -d)"; trap 'rm -rf "$out"' EXIT
 "$bin/javac" -d "$out" "$src/GapReconciler.java" "$root/tools/android/tests/com/quantdale/walkgame/health/GapReconcilerTest.java"
 "$bin/java" -cp "$out" com.quantdale.walkgame.health.GapReconcilerTest
+# D-123: reminder time maths and restart decision (seeded property/fuzz test).
+rsrc="$root/src/WalkGame.Unity/Assets/Plugins/Android/WalkGameHealth.androidlib/src/main/java/com/quantdale/walkgame/reminder"
+"$bin/javac" -d "$out" "$rsrc/ReminderTime.java" "$root/tools/android/tests/com/quantdale/walkgame/reminder/ReminderTimeTest.java"
+"$bin/java" -cp "$out" com.quantdale.walkgame.reminder.ReminderTimeTest
