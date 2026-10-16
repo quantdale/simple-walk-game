@@ -1,0 +1,16 @@
+== building simulation CLI ==
+  PASS: scenario sizes reproduce exactly across two independent runs
+
+  save-size growth series (PERFORMANCE_BUDGETS 15):
+    day 7: 12018 bytes
+    day 30: 26976 bytes
+    day 90: 40068 bytes
+    day 180: 46972 bytes
+    day 365: 58572 bytes
+    day 730: 80480 bytes
+  PASS: growth series reaches a completed region with all projects unlocked
+  PASS: save growth converges: second-year growth 21908 B is 47% of first-year 46554 B (bound 60%)
+
+======================================
+SAVE GROWTH: verified (timings not gated)
+======================================

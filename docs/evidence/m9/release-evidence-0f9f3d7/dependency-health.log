@@ -1,0 +1,10 @@
+== restoring (dependency resolution is part of this gate) ==
+== known advisories ==
+  PASS: no package has a known vulnerability advisory
+== resolved package inventory ==
+    WalkGame.Infrastructure.csproj|System.Text.Json|8.0.5|8.0.5
+  PASS: the runtime surface is exactly one third-party package, as documented
+
+======================================
+DEPENDENCY HEALTH: verified
+======================================

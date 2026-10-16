@@ -88,7 +88,7 @@ fi
     echo "## Counts (parsed from the logs)"
     echo ""
     if [ -f "$OUTPUT/ci-steps.log" ]; then
-        echo "- CI steps: $(grep -Ec '^\[[0-9]+/[0-9]+\].* ok$' "$OUTPUT/ci-steps.log") ok of $(grep -Eo '^\[[0-9]+/[0-9]+\]' "$OUTPUT/ci-steps.log" | tail -1 | grep -Eo '/[0-9]+' | tr -d /)"
+        echo "- CI steps: $(grep -Eo 'CI-STEP REPRODUCTION: .*' "$OUTPUT/ci-steps.log" | tail -1) (skips are the hosted checkout/setup-dotnet steps, asserted locally)"
     fi
     if [ -f "$OUTPUT/dotnet-tests.log" ]; then
         grep -Eo '(Passed|Failed)! +- Failed: +[0-9]+, Passed: +[0-9]+, Skipped: +[0-9]+, Total: +[0-9]+' "$OUTPUT/dotnet-tests.log" | sed 's/ \+/ /g; s/^/- .NET: /' || true

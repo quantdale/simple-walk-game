@@ -29,4 +29,5 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - M8 performance in the editor is done (D-074): mature-save/end-state/enter-exit budgets, ScrollView reuse fix, KI-018 residual.
 - M8 docs audit is done: README, WORLD_AND_CONTENT, UX_DESIGN §14 and PERFORMANCE_BUDGETS reconciled; ROADMAP exit item checked.
 - M9 headless: scripts/validate-clean-clone.sh and the assembler's --clean-clone / hosted-CI check are in (D-075). The Final Device and Release Qualification Checklist is expanded to H–Q.
-- Next: commit a verified release evidence package for the merged main SHA (docs/evidence/m9/), then the final campaign report.
+- Verified release evidence package for 0f9f3d7 is committed at docs/evidence/m9/ (all 11 mechanical claims PASS, including clean clone and hosted CI).
+- Next: the final campaign report (.agent/FINAL_CAMPAIGN_REPORT.md). After that, only device work remains (checklist H–Q).

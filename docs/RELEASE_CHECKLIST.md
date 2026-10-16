@@ -26,6 +26,8 @@ the remaining documents into the evidence package. Run it; do not assemble a pac
 | 13 | A fresh clone of the exact commit builds and passes every CI step (D-075) | `scripts/validate-clean-clone.sh --ref <sha> --with-unity`, passed to the assembler via `--clean-clone` |
 | 14 | Unity lanes from a cold Library: EditMode, PlayMode, arm64 debug APK (Unity-editor-tested) | same run, `--with-unity` (`tools/unity/*.sh`) |
 
+**Latest verified package:** `docs/evidence/m9/release-evidence-0f9f3d7/`. Gates 1–14 PASS for `0f9f3d7` (2026-10-16), with hosted `ci` green for that SHA. No release tag exists: device items H–Q are open.
+
 ## Claims that cannot be established locally — must be stated, not omitted
 
 | # | Claim | Status (2026-10-16) |
