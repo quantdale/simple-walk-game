@@ -104,5 +104,78 @@ namespace WalkGame.Shell.Tests
                 foreach (var bad in new[] { "streak", "missed", "don't forget", "falling behind", "decay", "expire", "lose", "lost", "hurry", "penalty", "days in a row", "come back" })
                     StringAssert.DoesNotContain(bad, l.ToLowerInvariant());
         }
-    }
+    
+        // ---- D-121: reminder time picker (calm half-hour steps, 06:00-21:00) ----
+
+        [TestCase(480, -1, 450)] [TestCase(480, 1, 510)]
+        [TestCase(465, -1, 450)] [TestCase(465, 1, 480)]   // off-grid: snaps toward the move
+        [TestCase(360, -1, 360)] [TestCase(1260, 1, 1260)] // edges: no move
+        [TestCase(1380, -1, 1260)] [TestCase(1380, 1, 1380)] // stored late time: only earlier, never a "later" that is earlier
+        [TestCase(120, 1, 360)] [TestCase(120, -1, 120)]
+        public void Next_reminder_time_steps_on_the_half_hour_inside_the_daytime_window(int from, int dir, int expected)
+        {
+            Assert.AreEqual(expected, ShellController.NextReminderTime(from, dir));
+        }
+
+        [Test] public void Next_reminder_time_always_lands_on_the_grid_inside_the_window_and_moves_the_right_way()
+        {
+            for (int m = 0; m < 24 * 60; m++)
+                foreach (var d in new[] { -1, 1 })
+                {
+                    int n = ShellController.NextReminderTime(m, d);
+                    if (n == m) continue;
+                    Assert.AreEqual(0, n % ShellController.ReminderStepMinutes, m + "/" + d);
+                    Assert.That(n, Is.InRange(ShellController.ReminderEarliestMinutes, ShellController.ReminderLatestMinutes));
+                    Assert.AreEqual(Math.Sign(d), Math.Sign(n - m), m + "/" + d);
+                }
+        }
+
+        [Test] public void Time_buttons_appear_only_when_the_reminder_is_on_and_name_the_new_time()
+        {
+            var f = new FakeScheduler { GrantOnRequest = true };
+            var (c, s) = Fresh(f);
+            Assert.IsFalse(c.Render().Actions.Any(a => a.Id.StartsWith("reminder:")), "no time controls while off");
+            c.Invoke("toggle:reminder");
+            c.Invoke("nav:Settings");
+            var m = c.Render();
+            Assert.IsTrue(m.Actions.Any(a => a.Id == "reminder:earlier" && a.Label == "Remind me earlier, around 07:30"));
+            Assert.IsTrue(m.Actions.Any(a => a.Id == "reminder:later" && a.Label == "Remind me later, around 08:30"));
+        }
+
+        [Test] public void Moving_the_time_saves_it_reschedules_once_and_confirms_calmly()
+        {
+            var f = new FakeScheduler { GrantOnRequest = true };
+            var (c, s) = Fresh(f);
+            c.Invoke("toggle:reminder");
+            int before = f.Scheduled.Count;
+            c.Invoke("reminder:later");
+            Assert.AreEqual(510, s.GetSettings().DailyReminderMinutesOfDay);
+            Assert.AreEqual(before + 1, f.Scheduled.Count);
+            Assert.AreEqual(510, f.Scheduled.Last().minutes);
+            Assert.AreEqual(1, f.Requests, "moving the time never asks for permission again");
+            var m = c.Render();
+            Assert.Contains("Daily reminder is on, around 08:30. It is one quiet note, and you can turn it off at any time.", m.Lines.ToList());
+            StringAssert.Contains("08:30", m.Notice ?? string.Join("|", m.Lines));
+        }
+
+        [Test] public void Moving_the_time_does_nothing_while_the_reminder_is_off()
+        {
+            var f = new FakeScheduler { Permission = ReminderPermission.Granted };
+            var (c, s) = Fresh(f);
+            c.Invoke("reminder:later");
+            Assert.AreEqual(480, s.GetSettings().DailyReminderMinutesOfDay);
+            Assert.IsEmpty(f.Scheduled);
+            Assert.IsFalse(s.GetSettings().DailyReminderEnabled);
+        }
+
+        [Test] public void Time_controls_are_calm_and_in_the_table()
+        {
+            foreach (var k in new[] { "reminder.action.earlier", "reminder.action.later", "reminder.moved" })
+            {
+                var v = PlayerStrings.F(k, "08:00").ToLowerInvariant();
+                Assert.IsTrue(PlayerStrings.Has(k), k);
+                foreach (var bad in new[] { "streak", "missed", "don't forget", "hurry", "come back" }) StringAssert.DoesNotContain(bad, v);
+            }
+        }
+}
 }

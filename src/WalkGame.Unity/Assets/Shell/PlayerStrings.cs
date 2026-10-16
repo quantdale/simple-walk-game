@@ -40,6 +40,9 @@ namespace WalkGame.Shell
             ["reminder.action.on"] = "Turn on a gentle daily reminder",
             ["reminder.action.off"] = "Turn off the daily reminder",
             ["reminder.error.unavailable"] = "Reminders aren't available on this device.",
+            ["reminder.action.earlier"] = "Remind me earlier, around {0}",
+            ["reminder.action.later"] = "Remind me later, around {0}",
+            ["reminder.moved"] = "The daily reminder will now come around {0}.",
             // Landmark letters (D-118)
             ["letters.count"] = "Letters from {0}: {1} of {2} found.",
             ["letters.line"] = "Found at {0}: \"{1}\"",

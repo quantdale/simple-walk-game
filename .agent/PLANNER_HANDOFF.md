@@ -167,3 +167,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR: `GetLetters` read-only hardening test and records. .NET 807/807, EditMode 191/191 on main `f7b1753` + this branch.
 - Rule: no Codex PR reviews (no @codex, no review requests); use self-review and CI only.
 - Next: continue KI-023 (ShellController 127 → 0, then the Application copy); a reminder time picker; device lane (KI-002). Region 2 is still PROPOSED only.
+
+## Session note 2026-10-17 (grok0020)
+- KI-023: #105 (`0f810ca`) PlayerCopy and RegionScene, #106 (`da67877`) and #107 (`75a6ca1`) ShellController 127 → 0, all routed through `PlayerStrings` with identical text; the ratchet now lists them as migrated.
+- This PR (D-121): reminder time picker (earlier/later buttons) plus `ReminderBootReceiver`. EditMode 205/205; arm64 APK compiles the receiver (`docs/evidence/apk-d121/`). Device UNVERIFIED (KI-002).
+- Next: Application-layer copy into a table (KI-023); device lane (KI-002). Region 2 is still PROPOSED only.
