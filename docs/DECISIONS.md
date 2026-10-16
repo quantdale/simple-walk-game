@@ -2562,3 +2562,15 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `TitleTypingTests` (.NET, 2: a dotted translated title reaches the glance, which fails without the fix; read-model titles never equal a stable id) and `TitleTypingShellTests` (EditMode, 2). .NET 822/822, EditMode 209/209 (Unity-editor-tested).
 
 **Save compatibility.** None: no save, schema or content change.
+
+## D-126 — Shell strings take a locale; no language setting yet (2026-10-17)
+
+**Context.** KI-023: content copy resolves through the D-122 `ContentText` overlay, but `PlayerStrings` (D-120) was English only, so a locale could translate titles but not the shell around them.
+
+**Decision.** `PlayerStrings.Locale` (a `ContentText`, default `ContentText.English`) uses the same rules as D-122: entries keyed `ui.<key>#text`; a missing or blank entry falls back to the English table; a broken localized template in `F` falls back to the English template; a key absent from the English table stays empty (an overlay cannot add keys). English returns the table's own string instances (byte-identical). `ShellController.SetLocale(locale)` sets both the session content locale and the shell locale; `null` restores English. Nothing is persisted.
+
+**Language setting: not added.** No real translation exists. A player-facing setting would offer one choice, and a hidden setting would mean a preferences field and a loader with nothing to load. The setting arrives with the first real translation (a preferences-file field, not the save, plus a locale loader); until then `SetLocale` is the only entry point and it is used by tests and capture only.
+
+**Tests.** `PlayerStringsLocaleTests` (EditMode, 5): English identity, replacement and fallback, template reorder and broken-template fallback, no added keys, `SetLocale` drives shell + content and leaves save bytes unchanged. EditMode 214/214 (Unity-editor-tested).
+
+**Save compatibility.** None.

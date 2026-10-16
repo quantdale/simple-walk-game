@@ -178,6 +178,18 @@ namespace WalkGame.Shell
         public ShellScreen Current { get; private set; } = ShellScreen.Onboarding;
         public StartStatus? LastStartStatus { get; private set; }
 
+        /// <summary>
+        /// D-126: one locale for content copy (session overlay, D-122) and shell strings
+        /// (<see cref="PlayerStrings.Locale"/>). Presentation only; never saved. No player-facing
+        /// language setting exists until real translations ship.
+        /// </summary>
+        public void SetLocale(WalkGame.Application.Content.ContentText locale)
+        {
+            var l = locale ?? WalkGame.Application.Content.ContentText.English;
+            _session.ContentLocale = l;
+            PlayerStrings.Locale = l;
+        }
+
         public void Boot()
         {
             var result = _session.Continue();
