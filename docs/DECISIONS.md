@@ -2436,3 +2436,17 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests:** .NET `HealthKitSourceFieldTests` (token theory ×4, unknown tokens ×4 fail closed, five-field compatibility, full overlap omits the phone sample, partial overlap prorates, deletions pass through, non-positive counts untouched, 200-round randomised order-independence and never-above-input).
 
 **Labels.** C# parsing and wiring: automated-verified (headless). Swift classification: compiled on hosted macOS once CI runs on this PR (`ios-bridge-compile`); runtime and device UNVERIFIED.
+
+## D-115 — Unity iOS Xcode export verified by an unsigned hosted-macOS xcodebuild (2026-10-16)
+
+**Context.** KI-022 needed proof that the Unity iOS app (not just the Swift file) compiles and links.
+
+**Decision.**
+- The Linux box exports the Xcode project with the free iOS Build Support module (`tools/unity/export-ios-xcode.sh`, `ShellBuild.BuildIosXcode`: IL2CPP, device SDK, no signing, no team id). The script restores `ProjectSettings.asset` (KI-015).
+- Transport: `tools/unity/push-ios-export.sh <tag>` pushes the export as <45 MB xz chunks on a throwaway `ios-export/<tag>` branch (never main). `.github/workflows/ios-xcode-export-verify.yml` runs only on those branches (or manual dispatch) on `macos-latest`: reassemble, SHA-256 check, unsigned `xcodebuild` for a generic iOS device, then checks the four `wg_hk_*` exports and the HealthKit link. Free (public repo, standard runner); no Unity, licence or secrets on CI; no artifacts.
+- No wiring: the adapter stays NOT composed (D-112); no save, content or Android change.
+
+**Result.** BUILD SUCCEEDED first time (run 38920379246, Xcode 26.6); no fix needed.
+
+**Labels.** Xcode-built unsigned on hosted macOS, not device-tested. Signing, entitlement, usage string, runtime: UNVERIFIED.
+

@@ -145,3 +145,7 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - #94 (`7274a2b`): `docs/evidence/privacy-export-scrolled/` (editor-rendered). The capture takes `WG_CAPTURE_SCROLL=end` and `WG_CAPTURE_EXPECT_BUTTON`, which asserts that the button is fully visible.
 - #95 (`7d63fb1`): `ScreenTourCoverageTests` (EditMode 178/178): the screen tour must list every `ShellScreen`.
 - Next: Unity iOS export plus an Xcode build on hosted macOS (still free; no signing) to verify the P/Invoke branch and linking; device lane (KI-002). Region 2 is still PROPOSED only.
+
+## Session note 2026-10-16 (grok2251)
+- D-115: the free iOS Build Support module installs on the box (`unity install-modules -e 6000.3.26f1 -m ios`; needs apt `xz-utils cpio p7zip-full`). `tools/unity/export-ios-xcode.sh` exports the Xcode project in batchmode; `tools/unity/push-ios-export.sh <tag>` pushes it as chunks to a throwaway `ios-export/<tag>` branch; `ios-xcode-export-verify.yml` (macos-latest, free) built it unsigned: BUILD SUCCEEDED first time, the four `wg_hk_*` symbols are exported, and HealthKit is linked. Label: Xcode-built unsigned on hosted macOS, not device-tested. The adapter is still NOT composed. `ios-export/grok2251-a` is left for the owner to delete.
+

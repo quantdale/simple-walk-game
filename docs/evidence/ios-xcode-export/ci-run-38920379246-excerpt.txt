@@ -1,0 +1,16 @@
+Set up job	2026-10-16T15:12:18.8421020Z Image Release: https://github.com/actions/runner-images/releases/tag/macos-26-arm64%2F20261013.0424
+Reassemble export	2026-10-16T15:12:25.9308050Z source_sha=cd71160cf71689758b809ede86109e4ee0fdbc2a
+Reassemble export	2026-10-16T15:12:25.9309030Z unity=6000.3.26f1 (Linux editor, iOS Build Support)
+Reassemble export	2026-10-16T15:12:26.1671040Z xcode.tar.xz.part-aa: OK
+Reassemble export	2026-10-16T15:12:26.3528500Z xcode.tar.xz.part-ab: OK
+Reassemble export	2026-10-16T15:12:26.5437060Z xcode.tar.xz.part-ac: OK
+Reassemble export	2026-10-16T15:12:31.2013530Z 775M	/Users/runner/work/_temp/x/xcode
+Toolchain	2026-10-16T15:12:31.4623890Z Xcode 26.6
+Toolchain	2026-10-16T15:12:31.4627360Z Build version 17F113
+xcodebuild (generic iOS device, unsigned)	2026-10-16T15:19:54.5726120Z ** BUILD SUCCEEDED **
+Check linked HealthKit bridge symbols	2026-10-16T15:19:58.9066430Z linked: wg_hk_availability
+Check linked HealthKit bridge symbols	2026-10-16T15:19:58.9110480Z linked: wg_hk_request_status
+Check linked HealthKit bridge symbols	2026-10-16T15:19:58.9189370Z linked: wg_hk_request_authorization
+Check linked HealthKit bridge symbols	2026-10-16T15:19:58.9232860Z linked: wg_hk_read_steps
+Check linked HealthKit bridge symbols	2026-10-16T15:20:00.9132150Z 	/System/Library/Frameworks/HealthKit.framework/HealthKit (compatibility version 1.0.0, current version 1.0.0)
+Check linked HealthKit bridge symbols	2026-10-16T15:20:00.9139160Z XCODE-BUILT UNSIGNED ON HOSTED macOS, NOT DEVICE-TESTED
