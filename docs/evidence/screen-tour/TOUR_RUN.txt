@@ -13,3 +13,4 @@ DeleteConfirm rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 
 BootError rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/booterror-editor-rendered.png
 Celebration rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=62 path=/workspace/tour-grok2121/celebration-editor-rendered.png
 TOUR DONE
+Privacy (grok2212, single run) WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/simple-walk-game-wt-tour-grok2212/docs/evidence/screen-tour/privacy-editor-rendered.png

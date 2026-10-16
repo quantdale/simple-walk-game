@@ -22,11 +22,19 @@ the named screen before rendering.
 | Settings | `settings-editor-rendered.png` | mid-game |
 | ActivityStatus | `activitystatus-editor-rendered.png` | mid-game, development source |
 | DeleteConfirm | `deleteconfirm-editor-rendered.png` | `delete:request` |
+| Privacy | `privacy-editor-rendered.png` | mid-game, `nav:Privacy` (added by grok2212 from main `0574e21`, D-111 screen) |
 | BootError | `booterror-editor-rendered.png` | both save slots unreadable |
 | (ReturnSummary) Celebration | `celebration-editor-rendered.png` | completed region |
 
 Reproduce (about 1 min per screen; run detached):
 `nohup tools/unity/capture-screen-tour.sh /tmp/tour > /tmp/tour.log 2>&1 &`
+
+## Privacy addition (grok2212)
+
+The Privacy screen (D-111) postdates the original 14-screen run. `capture-screen-tour.sh` now lists it, and it was captured
+alone with `WG_CAPTURE_SCREEN=Privacy tools/unity/capture-valley.sh` (PlayMode passed=1 failed=0, llvmpipe; line appended to
+`TOUR_RUN.txt`). The tour is now 15 PNGs. The PNG shows the top of the scrolling screen; the export button is below the fold.
+No copy defects found.
 
 ## Findings from the tour
 
