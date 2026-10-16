@@ -30,17 +30,25 @@ namespace WalkGame.Shell
         public static void Render(VisualElement root, ScreenModel model, System.Action<string> onAction, float textScale)
         {
             float k = ClampTextScale(textScale);
-            root.Clear();
+            // D-074: reuse ONE ScrollView per root. Creating a ScrollView retains ~230 B inside UI
+            // Toolkit each time (measured), so rebuilding it per render grew memory linearly with
+            // navigation. Only its content is replaced; the scroll position resets per render.
+            var scroll = root.Q<ScrollView>("content");
+            if (scroll == null || scroll.parent != root || root.childCount != 1)
+            {
+                root.Clear();
+                scroll = new ScrollView(ScrollViewMode.Vertical) { name = "content" };
+                scroll.style.flexGrow = 1;
+                scroll.contentContainer.style.paddingLeft = 24;
+                scroll.contentContainer.style.paddingRight = 24;
+                scroll.contentContainer.style.paddingTop = 56;
+                scroll.contentContainer.style.paddingBottom = 32;
+                root.Add(scroll);
+            }
+            scroll.Clear();
+            scroll.scrollOffset = Vector2.zero;
             root.style.flexGrow = 1;
             root.style.backgroundColor = Background;
-
-            var scroll = new ScrollView(ScrollViewMode.Vertical) { name = "content" };
-            scroll.style.flexGrow = 1;
-            scroll.contentContainer.style.paddingLeft = 24;
-            scroll.contentContainer.style.paddingRight = 24;
-            scroll.contentContainer.style.paddingTop = 56;
-            scroll.contentContainer.style.paddingBottom = 32;
-            root.Add(scroll);
 
             var title = Text(model.Title, TitleSize * k, Ink);
             title.name = "title";
