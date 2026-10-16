@@ -73,3 +73,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-16 (grok1814)
 - D-092: onboarding/permission edge cases. A fresh-device start resets a stale onboarding stage left by a kill mid delete-all. `StaleOnboardingResetTests` (5), `OnboardingPermissionEdgeTests` (5); .NET 675, EditMode 116/116 (Unity-editor-tested). Device permission dialog UNVERIFIED (KI-002).
+## Session note 2026-10-16 (grok1814, Region 2)
+- `openspec/changes/add-region2-storyline/` is PROPOSED only. D-011 and the ROADMAP post-MVP gate forbid agent approval; logged in the KNOWN_ISSUES morning queue. No implementation.
+- Worktree cleanup: 37 merged, clean worktrees removed with `git worktree remove` (no --force). Kept: `wt-checkin-grok1537` and `wt-story-openspec-grok1520` (merged but with uncommitted changes; a human should inspect). Branches were not deleted.
