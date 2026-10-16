@@ -24,4 +24,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Merged #25 (return-summary restoration moments). #26: editor-rendered Region PNG (llvmpipe/Xvfb) plus capture tooling.
 - Balance cadence: KI-017 is resolved by D-071 (content v4 visible build stages). Longest gaps are now low 27, moderate 10 and weekend-heavy 10 days; the cadence gate is in VisibleChangeCadenceTests.
 - Valley readability (M6b) is done: per-kind landmark silhouettes; recapture at docs/evidence/m6-region/valley-editor-rendered-m6b.png (editor-rendered).
-- Next slice: M8 lifecycle headless.
+- M8 lifecycle headless is done (D-072, 4 tests). Next: M8 UX/accessibility headless items (large text, screen reader labels, empty states, 7/30-day return) or the device lane once KVM exists.
