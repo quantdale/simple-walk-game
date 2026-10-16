@@ -79,5 +79,21 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual("unsupported", new IosHealthKitBridge().GetAvailability());
             Assert.AreEqual("error:unavailable", new IosHealthKitBridge().ReadSteps(0, 1));
         }
-    }
+    
+        /// <summary>
+        /// D-113: the HealthKit seen-samples pruning is safe only while the shell never reads further
+        /// back than the ledger's read window, and the dedup design stays unwired until a protocol change.
+        /// </summary>
+        [Test] public void Healthkit_prune_window_matches_the_shell_sync_window_and_prep_stays_unwired()
+        {
+            Assert.AreEqual(ShellController.SyncWindowDays, WalkGame.Infrastructure.Platform.HealthKit.HealthKitSampleLedger.ReadWindowDays,
+                "changing SyncWindowDays requires updating the HealthKit prune retention (D-113)");
+            foreach (var f in new[] { "ShellBootstrap.cs", "ShellController.cs" })
+            {
+                var src = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, "Shell", f));
+                StringAssert.DoesNotContain("HealthKitSourceDedup", src);
+                StringAssert.DoesNotContain("HealthKitSampleLedger", src);
+            }
+        }
+}
 }
