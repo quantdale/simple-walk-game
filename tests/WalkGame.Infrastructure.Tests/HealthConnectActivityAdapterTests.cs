@@ -265,4 +265,117 @@ public sealed class HealthConnectActivityAdapterTests : IDisposable
         Assert.Equal(ActivityPlayerStatus.SourceUnavailable, session.GetActivityStatus().Status);
         Assert.NotNull(session.GetHome());
     }
+
+    // ---- D-069: change-tracking deletions through the existing deletion path ---------
+
+    private static string Del(string id, DateTimeOffset s, DateTimeOffset e, DateTimeOffset modified, DateTimeOffset deleted) =>
+        $"del\t{id}\t{s.ToUnixTimeMilliseconds()}\t{e.ToUnixTimeMilliseconds()}\t{modified.ToUnixTimeMilliseconds()}\t{deleted.ToUnixTimeMilliseconds()}";
+
+    [Fact]
+    public void Deletion_line_maps_to_a_marker_with_the_original_identity_and_interval()
+    {
+        var b = new FakeBridge { Response = "ok\n" + Del("hc-1", T0, T0.AddHours(1), T0.AddHours(2), T0.AddDays(1)) };
+        var r = Adapter(b).FetchRecords(T0, T0.AddDays(2)).Single();
+        Assert.True(r.IsDeletion);
+        Assert.Equal("hc-1", r.SourceRecordId);
+        Assert.Equal(HealthConnectActivityAdapter.Namespace, r.ProviderNamespace);
+        Assert.Equal(0L, r.Quantity);
+        Assert.Equal(T0, r.StartUtc);
+        Assert.Equal(T0.AddHours(1), r.EndUtc);
+        Assert.Equal(ActivityIdentity.Compute(r),
+            ActivityIdentity.Compute(new NormalizedActivityRecord(HealthConnectActivityAdapter.Namespace, "hc-1", ActivityCategory.Walking, ActivityUnits.Steps, 5, T0.AddHours(5), T0.AddHours(6))));
+    }
+
+    [Fact]
+    public void Deletion_revision_is_always_above_the_credited_revision()
+    {
+        Assert.True(HealthConnectActivityAdapter.DeletionRevisionFor(T0, T0.AddDays(1)) > HealthConnectActivityAdapter.RevisionFor(T0));
+        // device clock ran backwards: deletion stamped before the last edit
+        Assert.Equal(HealthConnectActivityAdapter.RevisionFor(T0) + 1, HealthConnectActivityAdapter.DeletionRevisionFor(T0, T0.AddDays(-3)));
+        Assert.Equal(int.MaxValue, HealthConnectActivityAdapter.DeletionRevisionFor(DateTimeOffset.MaxValue, T0));
+    }
+
+    [Theory]
+    [InlineData("ok\ndel\tid\t1\t2\t3")]
+    [InlineData("ok\ndel\t\t1\t2\t3\t4")]
+    [InlineData("ok\ndel\tid\tx\t2\t3\t4")]
+    public void Malformed_deletion_lines_fail_the_whole_fetch(string response)
+    {
+        Assert.Throws<InvalidOperationException>(() => Adapter(new FakeBridge { Response = response }).FetchRecords(T0, T0.AddDays(1)));
+    }
+
+    [Fact]
+    public void Deletions_outside_the_window_are_dropped_and_sort_after_credits()
+    {
+        var b = new FakeBridge
+        {
+            Response = "ok\n" +
+                Del("d-in", T0, T0.AddHours(1), T0, T0.AddDays(1)) + "\n" +
+                Del("d-out", T0.AddDays(-2), T0.AddDays(-2).AddHours(1), T0, T0.AddDays(1)) + "\n" +
+                Line("c", T0.AddHours(5), T0.AddHours(6), 10, T0),
+        };
+        var rs = Adapter(b).FetchRecords(T0, T0.AddDays(1));
+        Assert.Equal(new[] { "c", "d-in" }, rs.Select(r => r.SourceRecordId).ToArray());
+    }
+
+    [Fact]
+    public void Deleting_a_credited_record_reverses_its_credit_exactly_once_across_restarts()
+    {
+        var clock = new FixedClock { UtcNow = T0.AddDays(2) };
+        var b = new FakeBridge
+        {
+            Response = "ok\n" +
+                Line("keep", T0, T0.AddHours(8), 6000, T0.AddHours(9)) + "\n" +
+                Line("gone", T0.AddDays(1), T0.AddDays(1).AddHours(8), 4000, T0.AddDays(1).AddHours(9)),
+        };
+        var adapter = Adapter(b);
+        var session = Session(adapter, clock);
+        session.StartNewGame(7UL);
+        Assert.Equal(100L, session.IngestFromSource(adapter, T0, T0.AddDays(2)).VitalityCredited);
+        long before = session.GetHome().Vitality;
+
+        // Health Connect no longer returns "gone"; the bridge re-emits its deletion on every read.
+        b.Response = "ok\n" + Line("keep", T0, T0.AddHours(8), 6000, T0.AddHours(9)) + "\n" +
+            Del("gone", T0.AddDays(1), T0.AddDays(1).AddHours(8), T0.AddDays(1).AddHours(9), T0.AddDays(1).AddHours(20));
+        var del = session.IngestFromSource(adapter, T0, T0.AddDays(2));
+        Assert.Equal(-40L, del.VitalityCredited);
+        Assert.Equal(before - 40L, session.GetHome().Vitality);
+
+        // Same deletion re-delivered, in this session and after a restart: no further change.
+        Assert.Equal(0L, session.IngestFromSource(adapter, T0, T0.AddDays(2)).VitalityCredited);
+        var reloaded = Session(adapter, clock);
+        Assert.Equal(StartStatus.Loaded, reloaded.Continue().Status);
+        Assert.Equal(0L, reloaded.IngestFromSource(adapter, T0, T0.AddDays(2)).VitalityCredited);
+        Assert.Equal(before - 40L, reloaded.GetHome().Vitality);
+    }
+
+    [Fact]
+    public void Deleting_a_record_never_credited_changes_nothing()
+    {
+        var clock = new FixedClock { UtcNow = T0.AddDays(2) };
+        var b = new FakeBridge { Response = "ok\n" + Del("never", T0, T0.AddHours(1), T0, T0.AddDays(1)) };
+        var adapter = Adapter(b);
+        var session = Session(adapter, clock);
+        session.StartNewGame(7UL);
+        var r = session.IngestFromSource(adapter, T0, T0.AddDays(2));
+        Assert.Equal(0L, r.VitalityCredited);
+        Assert.Equal(0L, session.GetHome().Vitality);
+    }
+
+    [Fact]
+    public void A_deleted_record_reappearing_with_a_stale_edit_is_not_recredited()
+    {
+        var clock = new FixedClock { UtcNow = T0.AddDays(2) };
+        var b = new FakeBridge { Response = "ok\n" + Line("x", T0, T0.AddHours(8), 6000, T0.AddHours(9)) };
+        var adapter = Adapter(b);
+        var session = Session(adapter, clock);
+        session.StartNewGame(7UL);
+        session.IngestFromSource(adapter, T0, T0.AddDays(2));
+        b.Response = "ok\n" + Del("x", T0, T0.AddHours(8), T0.AddHours(9), T0.AddHours(10));
+        session.IngestFromSource(adapter, T0, T0.AddDays(2));
+        long afterDelete = session.GetHome().Vitality;
+        b.Response = "ok\n" + Line("x", T0, T0.AddHours(8), 6000, T0.AddHours(9)); // stale re-delivery
+        Assert.Equal(0L, session.IngestFromSource(adapter, T0, T0.AddDays(2)).VitalityCredited);
+        Assert.Equal(afterDelete, session.GetHome().Vitality);
+    }
 }

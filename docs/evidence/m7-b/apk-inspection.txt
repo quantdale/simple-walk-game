@@ -1,0 +1,12 @@
+# APK dex classes (M7-B), 2026-10-16
+Lcom/quantdale/walkgame/health/HealthConnectBridge$Api34$$ExternalSyntheticLambda0;
+Lcom/quantdale/walkgame/health/HealthConnectBridge$Api34$$ExternalSyntheticLambda1;
+Lcom/quantdale/walkgame/health/HealthConnectBridge$Api34$$ExternalSyntheticLambda2;
+Lcom/quantdale/walkgame/health/HealthConnectBridge$Api34$1;
+Lcom/quantdale/walkgame/health/HealthConnectBridge$Api34$Call;
+Lcom/quantdale/walkgame/health/HealthConnectBridge$Api34;
+Lcom/quantdale/walkgame/health/HealthConnectBridge$BridgeError;
+Lcom/quantdale/walkgame/health/HealthConnectBridge$Index;
+Lcom/quantdale/walkgame/health/HealthConnectBridge;
+Lcom/quantdale/walkgame/health/HealthPermissionRationaleActivity;
+Lcom/quantdale/walkgame/health/R;

@@ -98,6 +98,7 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
             }
             records.Sort((a, b) =>
             {
+                if (a.IsDeletion != b.IsDeletion) return a.IsDeletion ? 1 : -1; // credits first, then deletions
                 int c = a.StartUtc.CompareTo(b.StartUtc);
                 return c != 0 ? c : string.CompareOrdinal(a.SourceRecordId, b.SourceRecordId);
             });
@@ -107,6 +108,7 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
 
         private static NormalizedActivityRecord? ParseLine(string line)
         {
+            if (line.StartsWith("del\t", StringComparison.Ordinal)) return ParseDeletion(line);
             var f = line.Split('\t');
             if (f.Length != 5 || string.IsNullOrWhiteSpace(f[0])) return null;
             var inv = CultureInfo.InvariantCulture;
@@ -126,6 +128,44 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
             // Quantity/timestamp validity is judged by the trust pipeline, not here.
             return new NormalizedActivityRecord(Namespace, f[0].Trim(), ActivityCategory.Walking, ActivityUnits.Steps,
                 count, start, end, RevisionFor(mod));
+        }
+
+        /// <summary>
+        /// Deletion marker (D-069) for the existing correction/deletion path: same identity as the
+        /// credited record (namespace + Health Connect id), its ORIGINAL interval so validation and the
+        /// trusted-end watermark are unchanged, quantity 0, and a revision strictly above the credited
+        /// one. The revision is a pure function of the line, so re-delivery is a stale-revision no-op.
+        /// </summary>
+        private static NormalizedActivityRecord? ParseDeletion(string line)
+        {
+            var f = line.Split('\t');
+            if (f.Length != 6 || string.IsNullOrWhiteSpace(f[1])) return null;
+            var inv = CultureInfo.InvariantCulture;
+            if (!long.TryParse(f[2], NumberStyles.Integer, inv, out long s) ||
+                !long.TryParse(f[3], NumberStyles.Integer, inv, out long e) ||
+                !long.TryParse(f[4], NumberStyles.Integer, inv, out long modified) ||
+                !long.TryParse(f[5], NumberStyles.Integer, inv, out long deleted))
+                return null;
+            DateTimeOffset start, end, mod, del;
+            try
+            {
+                start = DateTimeOffset.FromUnixTimeMilliseconds(s);
+                end = DateTimeOffset.FromUnixTimeMilliseconds(e);
+                mod = DateTimeOffset.FromUnixTimeMilliseconds(modified);
+                del = DateTimeOffset.FromUnixTimeMilliseconds(deleted);
+            }
+            catch (ArgumentOutOfRangeException) { return null; }
+            return new NormalizedActivityRecord(Namespace, f[1].Trim(), ActivityCategory.Walking, ActivityUnits.Steps,
+                0L, start, end, DeletionRevisionFor(mod, del), IsDeletion: true);
+        }
+
+        /// <summary>Strictly above the credited revision, even if the device clock ran backwards.</summary>
+        public static int DeletionRevisionFor(DateTimeOffset lastModifiedUtc, DateTimeOffset deletedUtc)
+        {
+            int credited = RevisionFor(lastModifiedUtc);
+            int byTime = RevisionFor(deletedUtc);
+            if (credited == int.MaxValue) return int.MaxValue;
+            return Math.Max(byTime, credited + 1);
         }
 
         /// <summary>Monotonic revision from Health Connect lastModifiedTime, so an edited record supersedes its earlier version.</summary>
