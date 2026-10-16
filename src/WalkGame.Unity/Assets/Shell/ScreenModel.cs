@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace WalkGame.Shell
 {
-    public enum ShellScreen { Onboarding, Home, ReturnSummary, Projects, Settings, DeleteConfirm, ActivityStatus, BootError, Guide, Region, Story, Discoveries }
+    public enum ShellScreen { Onboarding, Home, ReturnSummary, Projects, Settings, DeleteConfirm, ActivityStatus, BootError, Guide, Region, Story, Discoveries, Progress }
 
     /// <summary>Every screen has exactly one of these states (M5 exit criterion: normal/empty/error).</summary>
     public enum ScreenState { Normal, Empty, Error }
