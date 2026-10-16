@@ -1,6 +1,7 @@
 // WalkGameHealthKitBridge.swift — native half of the HealthKit seam (KI-022, D-112).
 //
-// STATUS: UNVERIFIED. This file has never been compiled (no macOS/Xcode host) or run on a device.
+// STATUS: compiled on hosted macOS by CI (ios-bridge-compile: swiftc -typecheck and -c against the iOS
+// SDK, arm64). Never linked into an app, never run, not device-tested: runtime UNVERIFIED.
 // It speaks the string protocol documented in IHealthKitBridge.cs; every mapping rule on the C#
 // side is tested headless with a fake bridge. Read-only: no HealthKit write types are requested.
 //
