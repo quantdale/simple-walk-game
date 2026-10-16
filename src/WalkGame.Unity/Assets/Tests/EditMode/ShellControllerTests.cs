@@ -287,5 +287,66 @@ namespace WalkGame.Shell.Tests
                 Assert.That(n, Is.InRange(1, ShellController.GuideSteps), st.ToString());
             }
         }
+
+        // D-068 Health Connect wiring (fake bridge; device behaviour UNVERIFIED, KI-002).
+        private sealed class FakeHealthBridge : WalkGame.Infrastructure.Platform.HealthConnect.IHealthConnectBridge
+        {
+            public string Sdk = "available", Permission = "granted", Response = "ok";
+            public int Reads;
+            public string GetSdkStatus() => Sdk;
+            public string GetPermissionStatus() => Permission;
+            public string ReadSteps(long s, long e) { Reads++; return Response; }
+        }
+
+        private ShellController HealthController(FakeHealthBridge b, Action connect)
+        {
+            var adapter = new WalkGame.Infrastructure.Platform.HealthConnect.HealthConnectActivityAdapter(b, () => DateTimeOffset.UtcNow);
+            return new ShellController(ShellBootstrap.CreateSession(_dir, adapter), () => 42UL, devTools: false, adapter, connect);
+        }
+
+        [Test] public void Granted_health_connect_steps_are_credited_on_boot_and_only_once()
+        {
+            var b = new FakeHealthBridge();
+            var c = HealthController(b, () => { }); c.Boot(); c.Invoke("start");
+            var end = DateTimeOffset.UtcNow.AddDays(-1);
+            b.Response = "ok\nhc-1\t" + end.AddHours(-2).ToUnixTimeMilliseconds() + "\t" + end.ToUnixTimeMilliseconds() + "\t5000\t" + end.ToUnixTimeMilliseconds();
+
+            var c2 = HealthController(b, () => { }); c2.Boot();
+            Assert.That(b.Reads, Is.GreaterThan(0));
+            var home = c2.Render();
+            var c3 = HealthController(b, () => { }); c3.Boot();
+            c3.Invoke("nav:ActivityStatus");
+            Assert.That(c3.Render().Lines.Any(l => l.StartsWith("Connected")), string.Join("|", c3.Render().Lines));
+        }
+
+        [Test] public void Not_requested_offers_connect_which_calls_the_native_request()
+        {
+            int asked = 0;
+            var c = HealthController(new FakeHealthBridge { Permission = "not_requested" }, () => asked++);
+            c.Boot(); c.Invoke("start");
+            c.Invoke("nav:ActivityStatus");
+            var m = c.Render();
+            Assert.IsTrue(m.Actions.Any(a => a.Id == "activity:connect"), string.Join("|", m.Actions.Select(a => a.Id)));
+            c.Invoke("activity:connect");
+            Assert.AreEqual(1, asked);
+        }
+
+        [Test] public void Failing_provider_never_blocks_boot_or_navigation()
+        {
+            var b = new FakeHealthBridge { Response = "error:timeout" };
+            var c = HealthController(b, () => { }); c.Boot(); c.Invoke("start");
+            var c2 = HealthController(b, () => { });
+            Assert.DoesNotThrow(() => c2.Boot());
+            Assert.AreNotEqual(ShellScreen.BootError, c2.Current);
+            c2.Invoke("nav:ActivityStatus");
+            Assert.AreNotEqual(ScreenState.Error, c2.Render().State);
+        }
+
+        [Test] public void Unsupported_device_never_offers_connect()
+        {
+            var c = HealthController(new FakeHealthBridge { Sdk = "unsupported", Permission = "not_requested" }, () => { });
+            c.Boot(); c.Invoke("start"); c.Invoke("nav:ActivityStatus");
+            Assert.IsFalse(c.Render().Actions.Any(a => a.Id == "activity:connect"));
+        }
 }
 }

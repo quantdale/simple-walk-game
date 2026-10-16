@@ -1893,3 +1893,18 @@ not complete M5 as a roadmap milestone.
 - Rooted/jailbroken devices and unlocked-device access are out of scope (accepted, documented).
 - Revisit if a backend/sync, exports, or sharing of save files is ever introduced, or if a target platform without mandatory encryption is added.
 
+## D-068 — Android Health Connect adapter: framework API (Android 14+), string bridge, fail-closed
+
+**Status:** Accepted (2026-10-16, executor campaign M7-A; product owner may revisit). Partially resolves the open item "Exact Android Health Connect SDK/API integration strategy" (M7).
+
+**Decision.**
+- **API:** the Android 14+ framework `android.health.connect` API (`HealthConnectManager.readRecords`, `StepsRecord`), called from a small Java bridge in `Assets/Plugins/Android/WalkGameHealth.androidlib`. No Jetpack `connect-client`, no Kotlin, no Maven dependencies. Devices below API 34 report `unsupported`. Supporting Android 9–13 through the Jetpack client and the Health Connect app is deferred to a later decision.
+- **Seam:** `IHealthConnectBridge` (Infrastructure) is a plain-string protocol. `HealthConnectActivityAdapter` implements both `IActivityRecordSource` (D-034) and `IActivityConnectionPort` (D-043), so every mapping rule is headless-testable. The Unity `AndroidHealthConnectBridge` is a thin JNI forwarder, constructed only by `ShellBootstrap` on an Android player.
+- **Records:** provider namespace `android.health-connect`. `SourceRecordId` is the Health Connect record id. `Revision` is lastModified seconds since 2020-01-01, so an edited record supersedes its earlier version. Only records lying entirely inside the window are returned, sorted deterministically. Quantity and timestamp validity stay with the trust pipeline.
+- **Fail-closed:** a fetch is whole or nothing. Missing permission throws `UnauthorizedAccessException`; provider missing or malformed bridge output throws `InvalidOperationException`; timeouts and I/O throw `IOException`, all recorded durably by `IngestFromSource` (D-063). Unknown permission strings never become a grant. Paging stops at 50 pages and refuses a partial window.
+- **Permission states:** `granted`, `not_requested`, and `denied` (requested, never granted). `revoked` means once granted, now withdrawn, tracked in app-private SharedPreferences. Requested with `Activity.requestPermissions(READ_STEPS)`. The manifest declares `READ_STEPS` and the required `VIEW_PERMISSION_USAGE` / `HEALTH_PERMISSIONS` rationale activity.
+- **Sync:** on boot and on resume, the shell re-reads the last 30 days when permission is granted. Replays are exactly-once no-ops.
+- **Projector precedence change:** `Unsupported` availability with `NotRequested` permission now projects `SourceUnavailable` (no action), not `PermissionNeeded` (Connect). Asking for a connection that cannot exist was a dead end. An explicit denial or revocation is still reported as such.
+
+**Not covered (open):** deletions through the Health Connect changes API (`IsDeletion` records); background reads; Android 9–13; device behaviour. All device behaviour is **UNVERIFIED** (KI-002).
+

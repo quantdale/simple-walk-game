@@ -314,6 +314,8 @@ All seven reports are committed under `docs/evidence/m4/` and reproduce byte-for
 >
 > **M5-U3 (2026-10-16, Unity-editor-tested):** onboarding/first-run polish per UX_DESIGN §11/§12: the guide shows "Step n of 5", landmarks render as stage phrases, the activity step uses player copy, and first-project choices use titles, so no identifier, content key or enum name reaches the guide. EditMode 23/23 and the first **PlayMode** suite 1/1 both pass in batchmode `-nographics` (`tools/unity/run-playmode-tests.sh`; evidence `docs/evidence/m5-u3/`). Device runtime stays UNVERIFIED (KI-002, no KVM).
 >
+> **M7-A Health Connect adapter (2026-10-16, Unity-editor-tested build; device UNVERIFIED):** `HealthConnectActivityAdapter` plus a Java bridge on the Android 14+ framework API (D-068). It covers permission/revocation/failure states, a Connect action, and a 30-day sync on boot/resume. Headless: 35 adapter/projector tests. EditMode 27/27, PlayMode 1/1. The arm64 IL2CPP APK builds with the bridge classes, `READ_STEPS` and the rationale activity (`docs/evidence/m7-a/`). Gaps are tracked in KI-016.
+>
 > **NOT yet delivered by M5-H1 (runtime/platform, remains open until an editor exists, D-035): actual Unity screens/scenes, screen-reader navigation, reduced-motion runtime behavior, notification DELIVERY, OS permission dialogs, device lifecycle/performance evidence. These stay UNVERIFIED and M5 is NOT complete as a milestone.**
 
 ## Goal

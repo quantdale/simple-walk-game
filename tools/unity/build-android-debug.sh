@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Build an arm64 IL2CPP development APK headless. Log -> docs/evidence/m5-u1/android-build.log.
+# Build an arm64 IL2CPP development APK headless. Log -> ${EVIDENCE_DIR:-docs/evidence/m5-u1}/android-build.log.
 set -uo pipefail
 root="$(git rev-parse --show-toplevel)"
 unity="${UNITY:-$HOME/Unity/Hub/Editor/6000.3.26f1/Editor/Unity}"
-ev="$root/docs/evidence/m5-u1"; mkdir -p "$ev"
+ev="$root/${EVIDENCE_DIR:-docs/evidence/m5-u1}"; mkdir -p "$ev"
 "$root/tools/unity/sync-plugins.sh" >/dev/null
 # WG_ANDROID_ARCH=x86_64 -> emulator APK (simple-walk-game-debug-x86_64.apk); default arm64.
 arch="${WG_ANDROID_ARCH:-arm64}"; export WG_ANDROID_ARCH="$arch"

@@ -9,3 +9,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Merged PR #19 (M5-U2). Fixed RELEASE_CHECKLIST G (KI-005 closed via 589150b).
 - M5-U3 onboarding polish + first PlayMode suite (EditMode 23/23, PlayMode 1/1, Unity-editor-tested). KI-015 records the reversion findings.
 - Rule learned: run Unity only in a dedicated worktree and pass `EVIDENCE_DIR` per campaign. Next: runtime/device lane is still blocked on KI-002 (KVM or Michael's phone).
+
+## Session note 2026-10-16 (M7-A, grok1135)
+- Merged PR #21: `new-agent-worktree.sh` now honours `SWG_SESSION_ID` (guard scenario 12).
+- M7-A Health Connect adapter (D-068) on a dedicated worktree: headless contract tests, Java bridge compiled into the arm64 APK. Device UNVERIFIED (KI-002); gaps in KI-016.
+- Next slice: KI-016(a), deletions through the Health Connect changes API (headless, same bridge pattern). Alternatively, Region restoration visuals if runtime is still blocked.
