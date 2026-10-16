@@ -5,7 +5,7 @@ namespace WalkGame.Shell
 {
     /// <summary>
     /// Renders a <see cref="ScreenModel"/> into UI Toolkit elements. No game logic here.
-    /// Styling follows UX_DESIGN §12/§14: calm palette, high-contrast text (≥ 7:1 body),
+    /// Styling follows UX_DESIGN §12/§14: calm palette, high-contrast text (≥ 7:1 body), OS large-text scaling (D-073),
     /// ≥ 56 dp touch targets, and state never conveyed by colour alone (error/notice carry
     /// a text prefix and a border). There is no motion at all, so reduced motion is trivially met. The Region picture is drawn
     /// procedurally (<see cref="ValleyElement"/>) and always duplicated by text.
@@ -21,7 +21,15 @@ namespace WalkGame.Shell
         public const float TitleSize = 28f, BodySize = 18f, ButtonHeight = 56f;
 
         public static void Render(VisualElement root, ScreenModel model, System.Action<string> onAction)
+            => Render(root, model, onAction, 1f);
+
+        /// <summary>Large text (D-073): OS font scale, clamped so text never shrinks below the base sizes.</summary>
+        public const float MinTextScale = 1f, MaxTextScale = 2f;
+        public static float ClampTextScale(float s) => float.IsNaN(s) ? 1f : Mathf.Clamp(s, MinTextScale, MaxTextScale);
+
+        public static void Render(VisualElement root, ScreenModel model, System.Action<string> onAction, float textScale)
         {
+            float k = ClampTextScale(textScale);
             root.Clear();
             root.style.flexGrow = 1;
             root.style.backgroundColor = Background;
@@ -34,7 +42,7 @@ namespace WalkGame.Shell
             scroll.contentContainer.style.paddingBottom = 32;
             root.Add(scroll);
 
-            var title = Text(model.Title, TitleSize, Ink);
+            var title = Text(model.Title, TitleSize * k, Ink);
             title.name = "title";
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.marginBottom = 16;
@@ -43,7 +51,7 @@ namespace WalkGame.Shell
             if (model.Notice != null)
             {
                 bool error = model.State == ScreenState.Error;
-                var notice = Text((error ? "Problem: " : "Note: ") + model.Notice, BodySize, error ? ErrorInk : Ink);
+                var notice = Text((error ? "Problem: " : "Note: ") + model.Notice, BodySize * k, error ? ErrorInk : Ink);
                 notice.name = error ? "error" : "notice";
                 notice.style.borderLeftWidth = 4;
                 notice.style.borderLeftColor = error ? ErrorInk : Accent;
@@ -54,17 +62,14 @@ namespace WalkGame.Shell
 
             if (model.Scene != null) scroll.Add(new ValleyElement(model.Scene));
 
-            if (model.State == ScreenState.Empty)
-            {
-                var empty = Text("Nothing here yet", 14f, Muted);
-                empty.name = "empty-state";
-                scroll.Add(empty);
-            }
-
+            // Empty state (UX_DESIGN §17): the screen's own explanatory line IS the empty state,
+            // at body size; no generic small-print filler.
+            bool markedEmpty = false;
             foreach (var line in model.Lines)
             {
-                var l = Text(line, BodySize, Ink);
+                var l = Text(line, BodySize * k, Ink);
                 l.style.marginBottom = 10;
+                if (model.State == ScreenState.Empty && !markedEmpty) { l.name = "empty-state"; markedEmpty = true; }
                 scroll.Add(l);
             }
 
@@ -76,8 +81,8 @@ namespace WalkGame.Shell
             {
                 var id = a.Id;
                 var b = new Button(() => onAction(id)) { text = a.Label, name = id, tooltip = a.Label };
-                b.style.minHeight = ButtonHeight;
-                b.style.fontSize = BodySize;
+                b.style.minHeight = ButtonHeight * k;
+                b.style.fontSize = BodySize * k;
                 b.style.marginBottom = 12;
                 b.style.marginLeft = 0; b.style.marginRight = 0;
                 b.style.borderTopLeftRadius = b.style.borderTopRightRadius = b.style.borderBottomLeftRadius = b.style.borderBottomRightRadius = 12;

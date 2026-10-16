@@ -24,11 +24,15 @@ namespace WalkGame.Shell
             CreateSession(directory, new ShellConnectionPort(UnityEngine.Debug.isDebugBuild));
 
         public static GameSession CreateSession(string directory, WalkGame.Application.Activity.IActivityConnectionPort port)
+            => CreateSession(directory, port, new SystemClock());
+
+        /// <summary>Test seam (D-073 return-after-absence tests): same composition with an injected clock.</summary>
+        public static GameSession CreateSession(string directory, WalkGame.Application.Activity.IActivityConnectionPort port, WalkGame.Domain.Time.IClock clock)
         {
             return new GameSession(
                 new AtomicFileSaveStore(directory),
                 new SaveCodec(new MigrationRunner(DefaultMigrations.All)),
-                new SystemClock(),
+                clock,
                 Region1Catalog.Create(),
                 new LocalPreferencesStore(directory),
                 port);
@@ -59,6 +63,8 @@ namespace WalkGame.Shell
             panel.referenceDpi = 160;
             panel.fallbackDpi = 160;
             _document.panelSettings = panel;
+            UnityEngine.Accessibility.AccessibilitySettings.fontScaleChanged += _ => Redraw();
+            UnityEngine.Accessibility.AssistiveSupport.screenReaderStatusChanged += _ => Redraw();
             Redraw();
             // Development-only emulator autodrive: `adb shell run-as <pkg> touch files/wg-autodrive`.
             if (Debug.isDebugBuild && System.IO.File.Exists(System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, "wg-autodrive")))
@@ -97,7 +103,9 @@ namespace WalkGame.Shell
             if (_controller == null || _document == null) return;
             var model = _controller.Render();
             Debug.Log("WG_RENDER screen=" + model.Screen + " state=" + model.State + " lines=" + model.Lines.Count + " actions=" + model.Actions.Count + (model.Notice != null ? " notice=" + model.Notice : ""));
-            ShellView.Render(_document.rootVisualElement, model, id => { _controller.Invoke(id); Redraw(); });
+            System.Action<string> act = id => { _controller.Invoke(id); Redraw(); };
+            ShellView.Render(_document.rootVisualElement, model, act, UnityEngine.Accessibility.AccessibilitySettings.fontScale);
+            ScreenReaderBridge.Publish(model, _document.rootVisualElement, act);
         }
     }
 }

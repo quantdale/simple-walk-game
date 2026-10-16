@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Skipped:Ignored" total="3" passed="2" failed="0" inconclusive="0" skipped="1" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:06Z" duration="0.916185">
+  <test-suite type="TestSuite" id="1012" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="3" result="Skipped" label="Ignored" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:06Z" duration="0.916185" total="3" passed="2" failed="0" inconclusive="0" skipped="1" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <reason>
+      <message><![CDATA[One or more child tests were ignored]]></message>
+    </reason>
+    <test-suite type="Assembly" id="1008" name="WalkGame.Shell.PlayModeTests.dll" fullname="/workspace/simple-walk-game-wt-m8-ux-a11y-headless-grok1247/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.PlayModeTests.dll" runstate="Runnable" testcasecount="3" result="Skipped" label="Ignored" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:06Z" duration="0.908441" total="3" passed="2" failed="0" inconclusive="0" skipped="1" asserts="0">
+      <properties>
+        <property name="_PID" value="105815" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <reason>
+        <message><![CDATA[One or more child tests were ignored]]></message>
+      </reason>
+      <test-suite type="TestSuite" id="1009" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="3" result="Skipped" label="Ignored" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:06Z" duration="0.908048" total="3" passed="2" failed="0" inconclusive="0" skipped="1" asserts="0">
+        <properties />
+        <reason>
+          <message><![CDATA[One or more child tests were ignored]]></message>
+        </reason>
+        <test-suite type="TestSuite" id="1010" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="3" result="Skipped" label="Ignored" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:06Z" duration="0.907908" total="3" passed="2" failed="0" inconclusive="0" skipped="1" asserts="0">
+          <properties />
+          <reason>
+            <message><![CDATA[One or more child tests were ignored]]></message>
+          </reason>
+          <test-suite type="TestSuite" id="1011" name="PlayModeTests" fullname="WalkGame.Shell.PlayModeTests" runstate="Runnable" testcasecount="3" result="Skipped" label="Ignored" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:06Z" duration="0.907732" total="3" passed="2" failed="0" inconclusive="0" skipped="1" asserts="0">
+            <properties />
+            <reason>
+              <message><![CDATA[One or more child tests were ignored]]></message>
+            </reason>
+            <test-suite type="TestFixture" id="1002" name="ShellPlayModeTests" fullname="WalkGame.Shell.PlayModeTests.ShellPlayModeTests" classname="WalkGame.Shell.PlayModeTests.ShellPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:05Z" duration="0.177219" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1003" name="Shell_boots_new_game_and_survives_frames" fullname="WalkGame.Shell.PlayModeTests.ShellPlayModeTests.Shell_boots_new_game_and_survives_frames" methodname="Shell_boots_new_game_and_survives_frames" classname="WalkGame.Shell.PlayModeTests.ShellPlayModeTests" runstate="Runnable" seed="1251399434" result="Passed" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:05Z" duration="0.167851" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1004" name="ValleyCaptureTests" fullname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests" classname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests" runstate="Runnable" testcasecount="1" result="Skipped" label="Ignored" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:05Z" duration="0.008770" total="1" passed="0" failed="0" inconclusive="0" skipped="1" asserts="0">
+              <properties />
+              <reason>
+                <message><![CDATA[One or more child tests were ignored]]></message>
+              </reason>
+              <test-case id="1005" name="Capture_region_screen_png" fullname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests.Capture_region_screen_png" methodname="Capture_region_screen_png" classname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests" runstate="Runnable" seed="1014144567" result="Skipped" label="Ignored" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:05Z" duration="0.007960" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <reason>
+                  <message><![CDATA[WG_CAPTURE_PNG not set]]></message>
+                </reason>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1006" name="ValleyPlayModeTests" fullname="WalkGame.Shell.PlayModeTests.ValleyPlayModeTests" classname="WalkGame.Shell.PlayModeTests.ValleyPlayModeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:06Z" duration="0.720752" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1007" name="Region_picture_lays_out_in_a_live_panel_without_errors" fullname="WalkGame.Shell.PlayModeTests.ValleyPlayModeTests.Region_picture_lays_out_in_a_live_panel_without_errors" methodname="Region_picture_lays_out_in_a_live_panel_without_errors" classname="WalkGame.Shell.PlayModeTests.ValleyPlayModeTests" runstate="Runnable" seed="1711988367" result="Passed" start-time="2026-10-16 04:50:05Z" end-time="2026-10-16 04:50:06Z" duration="0.719989" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /workspace/simple-walk-game-wt-m8-ux-a11y-headless-grok1247/docs/evidence/m8-h1/a11y-playmode/playmode-results.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
