@@ -1,0 +1,149 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using NUnit.Framework;
+using WalkGame.Application.Activity;
+using WalkGame.Domain.Activity;
+using WalkGame.Shell;
+
+namespace WalkGame.Shell.Tests
+{
+    /// <summary>
+    /// D-128: concurrency and re-entrancy at the shell sync pipeline, and the Unity-to-domain
+    /// exception boundary. Unity-editor-tested; device UNVERIFIED (KI-002).
+    /// </summary>
+    public sealed class SyncReentrancyTests
+    {
+        private sealed class GrantedPort : IActivityConnectionPort
+        {
+            public ActivityConnectionSnapshot SnapshotConnection() =>
+                new ActivityConnectionSnapshot(ActivityPermissionState.Granted, ActivitySourceAvailability.Available);
+        }
+
+        /// <summary>A provider whose fetch calls back into the shell (an OS resume or a tap delivered mid-read).</summary>
+        private sealed class CallbackSource : IActivityRecordSource
+        {
+            public int Fetches;
+            public Action? DuringFetch;
+            public Exception? Throw;
+            public string ProviderNamespace => "test.reentry";
+            public IReadOnlyList<NormalizedActivityRecord> FetchRecords(DateTimeOffset s, DateTimeOffset e)
+            {
+                Fetches++;
+                var cb = DuringFetch; DuringFetch = null;
+                cb?.Invoke();
+                if (Throw != null) throw Throw;
+                return Array.Empty<NormalizedActivityRecord>();
+            }
+        }
+
+        private string _dir = "";
+        private CallbackSource _source = new CallbackSource();
+        [SetUp] public void SetUp() { _dir = Path.Combine(Path.GetTempPath(), "wg-reentry-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(_dir); _source = new CallbackSource(); }
+        [TearDown] public void TearDown()
+        {
+            try { File.SetAttributes(_dir, FileAttributes.Normal); } catch (Exception) { }
+            Chmod("755");
+            if (Directory.Exists(_dir)) Directory.Delete(_dir, true);
+        }
+
+        private void Chmod(string mode)
+        {
+            try { System.Diagnostics.Process.Start("chmod", mode + " \"" + _dir + "\"")?.WaitForExit(); } catch (Exception) { }
+        }
+
+        private ShellController Launch() => new ShellController(ShellBootstrap.CreateSession(_dir, new GrantedPort()), () => 42UL, devTools: true, _source);
+
+        /// <summary>A loaded world: Home, or the return summary a boot can lead to.</summary>
+        private static void AssertOpen(ShellController c) =>
+            Assert.That(c.Current, Is.EqualTo(ShellScreen.Home).Or.EqualTo(ShellScreen.ReturnSummary));
+
+        private ShellController Started()
+        {
+            var c = Launch(); c.Boot(); c.Invoke("start");
+            for (int i = 0; i < 10 && c.Current == ShellScreen.Guide; i++)
+            {
+                var m = c.Render();
+                var next = m.Actions.FirstOrDefault(a => a.Id == "guide:next") ?? m.Actions.First(a => a.Id.StartsWith("queue:"));
+                c.Invoke(next.Id);
+            }
+            return c;
+        }
+
+        [Test] public void Resume_during_a_boot_sync_is_coalesced_into_one_rerun()
+        {
+            var c = Started();
+            var relaunched = Launch();
+            int resumes = 0;
+            _source.Fetches = 0;
+            _source.DuringFetch = () => { resumes++; relaunched.Resume(); relaunched.Resume(); relaunched.Resume(); };
+            relaunched.Boot();
+            Assert.AreEqual(1, resumes, "callback ran once");
+            Assert.AreEqual(2, _source.Fetches, "boot fetch + exactly one coalesced resume fetch, never nested");
+            Assert.IsFalse(relaunched.IsBusy);
+            AssertOpen(relaunched);
+        }
+
+        [Test] public void Double_tap_during_a_running_action_is_dropped()
+        {
+            var c = Started();
+            int nested = 0;
+            _source.DuringFetch = () => { nested++; c.Invoke("delete:confirm"); };
+            c.Resume(); // the resume's fetch receives the stray tap
+            Assert.AreEqual(1, nested);
+            AssertOpen(c); // the stray delete tap never ran
+            Assert.IsTrue(File.Exists(Path.Combine(_dir, "save.json")));
+        }
+
+        [Test] public void Double_tapped_start_on_a_project_is_a_no_op_not_an_error()
+        {
+            var c = Started();
+            c.Invoke("nav:Projects");
+            var q = c.Render().Actions.FirstOrDefault(a => a.Id.StartsWith("queue:"));
+            Assume.That(q, Is.Not.Null);
+            c.Invoke(q!.Id);
+            Assert.AreNotEqual(ScreenState.Error, c.Render().State);
+            c.Invoke(q.Id);
+            Assert.AreNotEqual(ScreenState.Error, c.Render().State, "a second tap on the same Start is calm");
+        }
+
+        [Test] public void A_bridge_exception_of_any_type_never_aborts_the_boot()
+        {
+            Started();
+            _source.Throw = new FormatException("jni-ish failure");
+            var c = Launch();
+            Assert.DoesNotThrow(() => c.Boot());
+            AssertOpen(c);
+            Assert.IsFalse(c.IsBusy);
+        }
+
+        [Test] public void A_save_that_cannot_be_written_is_a_calm_error_not_an_exception()
+        {
+            if (Environment.OSVersion.Platform != PlatformID.Unix) Assert.Ignore("needs POSIX permissions");
+            var c = Started();
+            var before = File.ReadAllBytes(Path.Combine(_dir, "save.json"));
+            Chmod("555");
+            try
+            {
+                Assert.DoesNotThrow(() => c.Invoke("dev:walk"));
+                Assert.AreEqual(ScreenState.Error, c.Render().State);
+                Assert.AreEqual("That could not be done just now. Your progress is safe.", c.Render().Notice);
+                Assert.IsFalse(c.IsBusy, "a failure never leaves the shell locked");
+            }
+            finally { Chmod("755"); }
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(Path.Combine(_dir, "save.json")), "the committed save is untouched");
+            Assert.DoesNotThrow(() => c.Invoke("nav:Home"));
+        }
+
+        [Test] public void Pause_resume_storm_leaves_one_consistent_state()
+        {
+            var c = Started();
+            for (int i = 0; i < 50; i++) { c.Resume(); c.Invoke("nav:Story"); c.Resume(); c.Invoke("nav:Home"); }
+            Assert.IsFalse(c.IsBusy);
+            Assert.AreEqual(ShellScreen.Home, c.Current);
+            var again = Launch(); again.Boot();
+            AssertOpen(again); // the save reloads cleanly after the storm
+        }
+    }
+}
