@@ -2364,3 +2364,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Gaps:** Device rendering UNVERIFIED (KI-002). A booted shell can still reach BootError via `nav:BootError` with no notice (no player button leads there).
 
+
+## D-110 — BootError is refused while a game is loaded (2026-10-16)
+
+**Context.** D-109 left a gap: a booted shell could reach BootError via `nav:BootError` and show "We couldn't open your world" over a healthy, open game. No player button leads there, but the action id is accepted by `Invoke`.
+
+**Decision.** With a game loaded, `nav:BootError` is refused as a calm error on the current screen: "Your world is open and fine. There is no problem to show." The screen does not change. Before a game is loaded, BootError stays reachable (the boot router and `retry` still use it). Shell input only: no save, content or read-model change.
+
+**Tests:** EditMode `ShellInputHardeningTests` +2 (`BootError_is_refused_while_a_game_is_loaded`, `BootError_stays_reachable_before_a_game_is_loaded`). Evidence: `docs/evidence/d110-booterror/`, EditMode 167/167 (Unity-editor-tested).
+
+**Gaps:** Device rendering UNVERIFIED (KI-002).
