@@ -605,3 +605,6 @@ Every milestone must:
 - keep Critical/High defects blocking.
 
 The project should prefer **fewer, larger, integrated campaigns** over fragmented micro-commits that create the appearance of progress without completing vertical functionality.
+- [x] B-letters (D-118, #101): six optional Nell Hartley letters found at restored landmarks, shown in the Story journal and counted in Discoveries (Unity-editor-tested; device UNVERIFIED, KI-002)
+- [x] B-reminder (D-119, #102): optional, opt-in, local gentle daily reminder; Android code compiled into the APK; fake-tested (device delivery UNVERIFIED, KI-002)
+- [~] L10n readiness (D-120, #103): `PlayerStrings` table plus a ratchet test; the rest of the migration is KI-023
