@@ -235,12 +235,23 @@ namespace WalkGame.Shell
             {
                 _notice = null;
                 if (bootFailure && !_booted) { Current = ShellScreen.BootError; _notice = PlayerStrings.T("shell.thatCouldNotBe"); }
+                else if (_session.HasUnsavedChanges) _error = PlayerStrings.T("shell.notSavedYet"); // D-131
                 else _error = PlayerStrings.T("shell.thatCouldNotBe");
             }
         }
 
         private void BootCore()
         {
+            // D-131: a commit failed earlier and the in-memory state is ahead of disk. Retry
+            // first; reloading now would silently drop that progress. If storage is still
+            // failing, keep the in-memory world (nothing is credited twice: the next good
+            // commit writes the whole state once) and say so calmly.
+            if (_booted && _session.HasUnsavedChanges && !_session.RetryPendingSave())
+            {
+                _notice = null;
+                _error = PlayerStrings.T("shell.notSavedYet");
+                return;
+            }
             var result = _session.Continue();
             LastStartStatus = result.Status;
             var (screen, notice) = BootRouter.Route(result.Status);
@@ -250,6 +261,7 @@ namespace WalkGame.Shell
             Current = screen;
             if (_booted) SyncLiveSource();
             if (_booted) SyncReminder();
+            if (_booted && _session.HasUnsavedChanges) _error = PlayerStrings.T("shell.notSavedYet"); // D-131: a sync credit could not be committed.
             if (_booted && OnboardingIncomplete()) Current = ShellScreen.Guide;
             else if (_booted && _session.GetPendingReturnSummary() != null) Current = ShellScreen.ReturnSummary;
         }
