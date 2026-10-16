@@ -36,4 +36,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Merged #37 (`7dc59dd`): storyline OpenSpec plus D-076.
 - A2: ten derived chapters, content v5 with no save change, `StoryChapterUnlocked` emitted in `AllocateVitality`, `GetStory()`, and "New chapter" return-summary items. 608 .NET tests; compatibility and pacing gates green; cadence bounds in D-076.
 - Next: A4 Unity Story screen. C: KI-016(a) re-read on expired token, KI-007 fixture identity, save/bridge tamper tests.
-
+- A4: Story journal screen and chapter-moment link; EditMode 61/61; journal PNG at docs/evidence/story/ (editor-rendered).

@@ -13,5 +13,5 @@
 - [x] 3.3 `StoryCadenceTests` measures and gates cadence for six profiles (replaces a separate `profile --story` CLI)
 
 ## 4. Unity shell
-- [ ] 4.1 Story screen (journal), reachable from Home; accessible outline
-- [ ] 4.2 Chapter moments in the return summary; EditMode tests
+- [x] 4.1 Story screen (journal), reachable from Home; accessible outline
+- [x] 4.2 Chapter moments in the return summary; EditMode tests
