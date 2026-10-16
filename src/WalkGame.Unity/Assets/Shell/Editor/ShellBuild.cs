@@ -44,5 +44,30 @@ namespace WalkGame.Shell.Editor
             Debug.Log("WG_BUILD_RESULT " + report.summary.result + " size=" + report.summary.totalSize + " path=" + output);
             EditorApplication.Exit(report.summary.result == BuildResult.Succeeded ? 0 : 1);
         }
+            /// <summary>
+        /// Exports an unsigned Xcode project (KI-022). Output: WG_XCODE_PATH (default Build/iOS/xcode).
+        /// No signing and no team id; the project is verified by CI with xcodebuild CODE_SIGNING_ALLOWED=NO.
+        /// Like the Android build, this touches ProjectSettings.asset on disk; never commit that (KI-015).
+        /// </summary>
+        public static void BuildIosXcode()
+        {
+            EnsureBootScene();
+            string output = Environment.GetEnvironmentVariable("WG_XCODE_PATH") ?? "Build/iOS/xcode";
+            PlayerSettings.companyName = "quantdale";
+            PlayerSettings.productName = "Simple Walk Game";
+            PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.iOS, "com.quantdale.simplewalkgame");
+            PlayerSettings.iOS.appleEnableAutomaticSigning = false;
+            PlayerSettings.iOS.appleDeveloperTeamID = "";
+            PlayerSettings.iOS.sdkVersion = iOSSdkVersion.DeviceSDK;
+            var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+            {
+                scenes = new[] { ScenePath },
+                locationPathName = output,
+                target = BuildTarget.iOS,
+                options = BuildOptions.None,
+            });
+            Debug.Log("WG_BUILD_RESULT " + report.summary.result + " size=" + report.summary.totalSize + " path=" + output);
+            EditorApplication.Exit(report.summary.result == BuildResult.Succeeded ? 0 : 1);
+        }
     }
 }
