@@ -94,7 +94,8 @@ namespace WalkGame.Shell.Tests
             Directory.CreateDirectory(dir);
             try
             {
-                var clock = new ManualClock(new DateTimeOffset(2026, 3, 2, 9, 0, 0, TimeSpan.Zero));
+                // dev:walk ingests the day before the real UtcNow, so the session clock starts there too.
+                var clock = new ManualClock(DateTimeOffset.UtcNow);
                 var c = new ShellController(ShellBootstrap.CreateSession(dir, new ShellConnectionPort(true), clock), () => 42UL, devTools: true);
                 c.Boot(); c.Invoke("start");
                 for (int i = 0; i < 12 && c.Current == ShellScreen.Guide; i++)
@@ -112,8 +113,10 @@ namespace WalkGame.Shell.Tests
                     foreach (var line in r.Lines) { Check(line, ctx); checkedLines++; }
                 }
                 Scan("fresh");
+                var freshLines = string.Join("\n", c.Render().Lines);
                 for (int d = 0; d < 5; d++) c.Invoke("dev:walk");
                 Scan("after walking");
+                Assert.AreNotEqual(freshLines, string.Join("\n", c.Render().Lines), "walking changed nothing on Home; the 'after walking' state is not real");
                 clock.Advance(TimeSpan.FromDays(30));
                 c.Boot();
                 Scan("after 30 days away");
