@@ -129,5 +129,19 @@ namespace WalkGame.Shell.Tests
             Assert.IsNull(RegionScene.Build(Model("proj.clear-trailhead", 0, 1)).BuildSite);
             Assert.IsNull(RegionScene.Build(Model(null, 0, 1)).BuildSite);
         }
+
+        [Test] public void Region1_landmarks_each_get_a_distinct_readable_silhouette()
+        {
+            var c = NewGame(); c.Invoke("nav:Region");
+            var kinds = c.Render().Scene!.Landmarks.Select(l => l.Kind).ToList();
+            Assert.That(kinds, Has.None.EqualTo(LandmarkKind.Generic), "every authored landmark maps to a silhouette");
+            Assert.AreEqual(kinds.Count, kinds.Distinct().Count(), "no two landmarks look alike");
+        }
+
+        [Test] public void Unknown_landmark_falls_back_to_a_generic_hut()
+        {
+            Assert.AreEqual(LandmarkKind.Generic, RegionScene.KindOf("lm.something-new"));
+            Assert.AreEqual(LandmarkKind.Generic, RegionScene.KindOf(null!));
+        }
     }
 }

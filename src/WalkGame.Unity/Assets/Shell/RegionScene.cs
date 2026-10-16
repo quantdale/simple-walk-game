@@ -5,11 +5,15 @@ using WalkGame.Domain.Regions;
 
 namespace WalkGame.Shell
 {
+    /// <summary>Silhouette family for a landmark (M6b readability): each reads as a distinct thing, not a bar.</summary>
+    public enum LandmarkKind { Generic, Gate, Waterworks, Settlement, Grove, Wetland, Observatory }
+
     /// <summary>One landmark as drawn in the valley picture.</summary>
     public sealed class LandmarkVisual
     {
-        public LandmarkVisual(string label, RestorationStage stage, float x, float y, bool changed = false)
-        { Label = label; Stage = stage; X = x; Y = y; Changed = changed; }
+        public LandmarkVisual(string label, RestorationStage stage, float x, float y, bool changed = false, LandmarkKind kind = LandmarkKind.Generic)
+        { Label = label; Stage = stage; X = x; Y = y; Changed = changed; Kind = kind; }
+        public LandmarkKind Kind { get; }
         /// <summary>Restoration moment: this landmark changed while the player was away (UX_DESIGN §4/§19).</summary>
         public bool Changed { get; }
         public string Label { get; }
@@ -40,9 +44,9 @@ namespace WalkGame.Shell
     /// </summary>
     public sealed class RegionScene
     {
-        public const int MaxLandmarks = 12;
-        public const int ShapesPerLandmark = 7;   // base + up to 4 growth shapes + marker + moment ring
-        public const int BackdropShapes = 4;      // sky, far hills, near hills, river
+        public const int MaxLandmarks = 8;        // Region 1 authors 6
+        public const int ShapesPerLandmark = 9;   // body + top + detail (rubble or window) + up to 4 growth + marker + moment ring
+        public const int BackdropShapes = 5;      // sky, sun, far hills, near hills, river
         /// <summary>Build site (D-071): ground slab + one post per authored stage reached.</summary>
         public const int BuildSiteShapes = 1 + WalkGame.Domain.Projects.ProjectDefinition.MaxVisibleBuildStages;
         public const int MaxShapes = BackdropShapes + MaxLandmarks * ShapesPerLandmark + BuildSiteShapes;
@@ -83,7 +87,7 @@ namespace WalkGame.Shell
                 if (changedTexts != null && title != GlancePhrases.UntitledProject)
                     foreach (var t in changedTexts)
                         if (t != null && t.IndexOf(title, StringComparison.Ordinal) >= 0) { changed = true; break; }
-                list.Add(new LandmarkVisual(title, l.Stage, x, y, changed));
+                list.Add(new LandmarkVisual(title, l.Stage, x, y, changed, KindOf(l.LandmarkId)));
             }
             float green = region.TotalProjects <= 0 ? 0f : Clamp01((float)region.CompletedProjects / region.TotalProjects);
             if (region.RegionCompleted) green = 1f;
@@ -116,7 +120,7 @@ namespace WalkGame.Shell
         public int ShapeCount()
         {
             int shapes = BackdropShapes;
-            foreach (var l in Landmarks) shapes += 2 + l.Level + (l.Changed ? 1 : 0); // base + marker + growth + ring
+            foreach (var l in Landmarks) shapes += 4 + l.Level + (l.Changed ? 1 : 0); // body + top + detail + marker + growth + ring
             if (BuildSite != null) shapes += 1 + BuildSite.Stage + 1;                  // slab + posts (stage 0 shows one post)
             return shapes;
         }
@@ -142,6 +146,19 @@ namespace WalkGame.Shell
             uint g = (uint)Math.Round(0xB4 + (0xA7 - 0xB4) * t);
             uint b = (uint)Math.Round(0x8A + (0x72 - 0x8A) * t);
             return (r << 16) | (g << 8) | b;
+        }
+
+        /// <summary>Silhouette by content id keyword; unknown ids fall back to a generic hut.</summary>
+        public static LandmarkKind KindOf(string landmarkId)
+        {
+            string id = landmarkId ?? string.Empty;
+            if (id.Contains("trail")) return LandmarkKind.Gate;
+            if (id.Contains("river") || id.Contains("intake") || id.Contains("water")) return LandmarkKind.Waterworks;
+            if (id.Contains("settlement") || id.Contains("workshop") || id.Contains("mill")) return LandmarkKind.Settlement;
+            if (id.Contains("canopy") || id.Contains("grove") || id.Contains("wood")) return LandmarkKind.Grove;
+            if (id.Contains("wetland") || id.Contains("marsh")) return LandmarkKind.Wetland;
+            if (id.Contains("observatory") || id.Contains("lookout")) return LandmarkKind.Observatory;
+            return LandmarkKind.Generic;
         }
 
         private static float Clamp01(float v) => v < 0f ? 0f : v > 1f ? 1f : v;

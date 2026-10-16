@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
+using WalkGame.Domain.Regions;
 
 namespace WalkGame.Shell
 {
@@ -35,20 +36,27 @@ namespace WalkGame.Shell
             int shapes = 0;
 
             Rect(p, 0, 0, w, h, C(Scene.Completed ? 0xCFE6EEu : 0xE6E0D2u)); shapes++;                // sky
+            Circle(p, w * 0.86f, h * 0.16f, h * 0.07f, C(Scene.Greenness > 0.5f ? 0xF4D35Eu : 0xE9CF9Bu)); shapes++; // sun
             Hill(p, w, h, 0.45f, C(Mix(SceneHill(), 0xFFFFFF, 0.35f))); shapes++;                       // far hills
             Hill(p, w, h, 0.60f, C(SceneHill())); shapes++;                                             // near hills
             Rect(p, 0, h * 0.86f, w, h * 0.06f, C(Scene.Greenness > 0.5f ? 0x6FA3BFu : 0x9FB3B8u)); shapes++; // river
 
             foreach (var l in Scene.Landmarks)
             {
-                float cx = l.X * w, cy = l.Y * h, s = 10f + 3f * l.Level;
+                float cx = l.X * w, cy = l.Y * h, s = Mathf.Min(24f + 3f * l.Level, w * 0.06f + 3f * l.Level);
+                bool ruined = l.Stage == RestorationStage.Ruined;
                 var col = C(RegionScene.StageColor(l.Stage));
-                // base: ruined = broken low block; higher stages stand taller
-                Rect(p, cx - s, cy - s * (0.4f + 0.15f * l.Level), s * 2, s * (0.4f + 0.15f * l.Level), col); shapes++;
-                for (int g = 0; g < l.Level; g++)                                                       // growth: trees
+                var dark = C(Mix(RegionScene.StageColor(l.Stage), 0x1F2A24u, 0.45f));
+                shapes += Silhouette(p, l.Kind, cx, cy, s, ruined, col, dark);                           // body + top
+                if (ruined)                                                                             // detail: rubble beside it
+                    Rect(p, cx + s * 0.75f, cy - s * 0.22f, s * 0.45f, s * 0.22f, dark);
+                else                                                                                    // detail: lit window / opening
+                    Rect(p, cx - s * 0.12f, cy - s * 0.55f, s * 0.24f, s * 0.24f, C(0xF3E9C6u));
+                shapes++;
+                for (int g = 0; g < l.Level; g++)                                                       // growth: trees around it
                 {
-                    float tx = cx - s + (g + 0.5f) * (2 * s / 4f);
-                    Tri(p, tx, cy - s * 1.1f - (g % 2) * 4f, 6f + l.Level, C(0x3E7A4Bu)); shapes++;
+                    float tx = Mathf.Clamp(cx - s * 1.3f + g * (s * 2.6f / 3f), 8f, w - 8f);
+                    Tri(p, tx, cy - s * 0.25f - (g % 2) * 4f, 5f + l.Level, C(0x3E7A4Bu)); shapes++;
                 }
                 Circle(p, cx, cy + 6f, 3f, col); shapes++;                                               // marker
                 if (l.Changed)                                                                          // moment ring (static, no motion)
@@ -70,6 +78,49 @@ namespace WalkGame.Shell
                 }
             }
             LastShapeCount = shapes;
+        }
+
+        /// <summary>
+        /// Two filled shapes (body + top) per landmark. Ruined: squat, broken (top knocked aside
+        /// and darkened). Restored stages stand to full height in the stage colour.
+        /// </summary>
+        private static int Silhouette(Painter2D p, LandmarkKind kind, float cx, float cy, float s, bool ruined, Color col, Color dark)
+        {
+            float hgt = ruined ? s * 0.7f : s * 1.1f;
+            float tilt = ruined ? s * 0.35f : 0f;           // a ruined top sits knocked off-centre
+            var top = ruined ? dark : col;
+            switch (kind)
+            {
+                case LandmarkKind.Gate:                       // signpost + board
+                    Rect(p, cx - s * 0.12f, cy - hgt * 1.3f, s * 0.24f, hgt * 1.3f, col);
+                    Rect(p, cx - s * 0.6f + tilt, cy - hgt * 1.3f, s * 1.2f, s * 0.35f, top);
+                    break;
+                case LandmarkKind.Waterworks:                 // weir + water wheel
+                    Rect(p, cx - s, cy - hgt * 0.6f, s * 2f, hgt * 0.6f, col);
+                    Circle(p, cx + s * 0.55f + tilt * 0.3f, cy - hgt * 0.75f, s * (ruined ? 0.3f : 0.5f), top);
+                    break;
+                case LandmarkKind.Settlement:                 // house + pitched roof
+                    Rect(p, cx - s * 0.8f, cy - hgt, s * 1.6f, hgt, col);
+                    Tri(p, cx + tilt, cy - hgt - s * 0.35f, s * 0.6f, top);
+                    break;
+                case LandmarkKind.Grove:                      // trunk + crown
+                    Rect(p, cx - s * 0.15f, cy - hgt, s * 0.3f, hgt, col);
+                    Circle(p, cx + tilt, cy - hgt - s * 0.3f, s * (ruined ? 0.35f : 0.75f), top);
+                    break;
+                case LandmarkKind.Wetland:                    // pool + reeds
+                    Rect(p, cx - s, cy - s * 0.25f, s * 2f, s * 0.25f, C(ruined ? 0x8C7B6Bu : 0x7FB3C8u));
+                    Tri(p, cx + tilt, cy - s * 0.25f - hgt * 0.5f, hgt * 0.5f, top);
+                    break;
+                case LandmarkKind.Observatory:                // tower + dome
+                    Rect(p, cx - s * 0.4f, cy - hgt * 1.2f, s * 0.8f, hgt * 1.2f, col);
+                    Circle(p, cx + tilt, cy - hgt * 1.2f, s * 0.45f, top);
+                    break;
+                default:                                      // hut
+                    Rect(p, cx - s * 0.7f, cy - hgt, s * 1.4f, hgt, col);
+                    Tri(p, cx + tilt, cy - hgt - s * 0.3f, s * 0.5f, top);
+                    break;
+            }
+            return 2;
         }
 
         private uint SceneHill() => RegionScene.HillColor(Scene.Greenness);
