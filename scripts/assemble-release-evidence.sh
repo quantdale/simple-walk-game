@@ -17,7 +17,11 @@
 # scripts/verify-ci-steps.sh executes it locally (D-049).
 #
 # Usage:
-#   scripts/assemble-release-evidence.sh --output <dir> [--tag <tag>] [--commit <sha>]
+#   scripts/assemble-release-evidence.sh --output <dir> [--tag <tag>] [--commit <sha>] [--clean-clone <dir>]
+#
+#   --clean-clone <dir>  a scripts/validate-clean-clone.sh output for THIS commit; its
+#                        CLEAN_CLONE.md (and Unity results) are copied in and its verdict
+#                        is checked. Without it the clean-clone claim is listed UNVERIFIED.
 #
 # Exit codes:
 #   0  the package was assembled (UNVERIFIED items are reported, not fatal)
@@ -30,11 +34,13 @@ cd "$REPO_ROOT"
 OUTPUT=""
 TAG=""
 COMMIT=""
+CLEAN_CLONE=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --output) OUTPUT="$2"; shift 2 ;;
         --tag) TAG="$2"; shift 2 ;;
         --commit) COMMIT="$2"; shift 2 ;;
+        --clean-clone) CLEAN_CLONE="$2"; shift 2 ;;
         *) echo "ERROR: unknown argument '$1'" >&2; exit 1 ;;
     esac
 done
@@ -87,6 +93,35 @@ check guard-suite tests/guards/run-guard-tests.sh
 check dependency-health scripts/verify-dependency-health.sh
 check coverage-floor scripts/verify-coverage-floor.sh
 
+# Clean-clone validation (D-075): verified from the validator's own report, for this commit.
+if [ -n "$CLEAN_CLONE" ]; then
+    if [ -f "$CLEAN_CLONE/CLEAN_CLONE.md" ] \
+        && grep -q "CLEAN CLONE: PASS" "$CLEAN_CLONE/CLEAN_CLONE.md" \
+        && grep -q "\`${COMMIT}\`" "$CLEAN_CLONE/CLEAN_CLONE.md"; then
+        mkdir -p "$OUTPUT/clean-clone"
+        cp "$CLEAN_CLONE"/CLEAN_CLONE.md "$OUTPUT/clean-clone/"
+        if [ -d "$CLEAN_CLONE/unity" ]; then
+            mkdir -p "$OUTPUT/clean-clone/unity"
+            find "$CLEAN_CLONE/unity" -name '*results.xml' -exec cp {} "$OUTPUT/clean-clone/unity/" \;
+        fi
+        echo "- **PASS** \`clean-clone\` — fresh clone of this commit; see \`clean-clone/CLEAN_CLONE.md\`" >>"$OUTPUT/README.md"
+        echo "  PASS: clean-clone"
+    else
+        echo "- **FAIL** \`clean-clone\` — report missing, failed, or for another commit" >>"$OUTPUT/README.md"
+        echo "  FAIL: clean-clone"
+        exit 1
+    fi
+else
+    echo "- **UNVERIFIED** \`clean-clone\` — run scripts/validate-clean-clone.sh and pass --clean-clone" >>"$OUTPUT/README.md"
+fi
+
+# Hosted CI for this commit, read from GitHub when the CLI is available (never assumed).
+if command -v gh >/dev/null 2>&1 && HOSTED="$(gh run list --commit "$COMMIT" --workflow ci --json conclusion,databaseId --jq '[.[] | select(.conclusion=="success")] | length' 2>/dev/null)" && [ "${HOSTED:-0}" -gt 0 ]; then
+    echo "- **PASS** \`hosted-ci\` — ${HOSTED} successful hosted \`ci\` run(s) for this commit (\`gh run list --commit\`)" >>"$OUTPUT/README.md"
+else
+    echo "- **UNVERIFIED** \`hosted-ci\` — no successful hosted \`ci\` run found for this commit from here" >>"$OUTPUT/README.md"
+fi
+
 {
     echo ""
     echo "## Documented evidence (copied verbatim from the maintained documents)"
@@ -98,11 +133,15 @@ check coverage-floor scripts/verify-coverage-floor.sh
     echo ""
     echo "## Claims that CANNOT be established here"
     echo ""
-    echo "- hosted CI is green (KI-001: the account's runners execute zero steps);"
-    echo "  the local gate reproduction is the only executable evidence that exists;"
-    echo "- runtime/device behaviour including screens, accessibility notifications,"
-    echo "  platform permission dialogs and performance budgets (KI-002: no Unity"
-    echo "  editor exists in the environment)."
+    echo "- runtime/DEVICE behaviour: launch, lifecycle (OS kill/reboot), TalkBack,"
+    echo "  OS font scaling, Health Connect permission/read/deletions, on-device"
+    echo "  performance/memory/battery, GPU rendering (KI-002: no device and no KVM)."
+    echo "  Unity-editor-tested evidence exists for the shell (EditMode/PlayMode) and the"
+    echo "  arm64 debug APK builds; that is not device evidence."
+    echo "- iOS / HealthKit: not started."
+    echo ""
+    echo "The full device list is the Final Device and Release Qualification Checklist in"
+    echo "\`RELEASE_CHECKLIST.md\` (copied into this package)."
     echo ""
     echo "These are stated as unverified rather than omitted: a release package that"
     echo "quietly drops its open blockers is worse than one that lists them."
@@ -111,6 +150,7 @@ check coverage-floor scripts/verify-coverage-floor.sh
 cp docs/KNOWN_ISSUES.md "$OUTPUT/KNOWN_ISSUES.md"
 cp docs/PRIVACY_REVIEW.md "$OUTPUT/PRIVACY_REVIEW.md"
 cp docs/TESTING_AND_RELEASE.md "$OUTPUT/TESTING_AND_RELEASE.md"
+cp docs/RELEASE_CHECKLIST.md "$OUTPUT/RELEASE_CHECKLIST.md"
 
 echo ""
 echo "======================================"

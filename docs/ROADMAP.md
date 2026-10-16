@@ -523,6 +523,8 @@ Produce a release candidate supported by reproducible evidence.
 
 All checklist items in `TESTING_AND_RELEASE.md` pass.
 
+**M9 headless status (2026-10-16, D-075):** clean-clone validation (`scripts/validate-clean-clone.sh`) and a verified release evidence package (`docs/evidence/m9/`) exist for the current main. The remaining deliverables are the device matrix, activity-provider evidence, device accessibility and performance/battery evidence (Final Device and Release Qualification Checklist H–Q). All are blocked on hardware (KI-002); M9 cannot exit without them.
+
 ---
 
 # Post-MVP decision gate
