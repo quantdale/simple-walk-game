@@ -1,4 +1,5 @@
 using System;
+using WalkGame.Domain.Story;
 using System.Collections.Generic;
 using WalkGame.Domain.Discoveries;
 using WalkGame.Domain.Economy;
@@ -141,8 +142,31 @@ namespace WalkGame.Domain.Simulation
             if (game == null) throw new ArgumentNullException(nameof(game));
             if (content == null) throw new ArgumentNullException(nameof(content));
 
+            int chaptersBefore = content.Chapters.Count == 0 ? 0
+                : StoryProgress.UnlockedCount(StoryProgress.Evaluate(content, game.Region, game.CreatedAtUtc));
+
             AllocateVitalityToProjects(game, content, nowUtc, events);
             ApplyPostCompletionPrograms(game, content);
+
+            EmitNewChapters(game, content, nowUtc, events, chaptersBefore);
+        }
+
+        /// <summary>
+        /// Story chapters are derived from completion state (D-076), so a chapter "unlocks"
+        /// exactly when the cumulative unlocked count grows across one allocation. Every
+        /// mutation path funnels through <see cref="AllocateVitality"/>, which is why the
+        /// comparison lives here and needs no persisted story state.
+        /// </summary>
+        private static void EmitNewChapters(GameState game, RegionDefinition content, DateTimeOffset nowUtc,
+            List<SimulationEvent> events, int chaptersBefore)
+        {
+            if (content.Chapters.Count == 0 || events == null)
+                return;
+
+            var after = StoryProgress.Evaluate(content, game.Region, game.CreatedAtUtc);
+            int chaptersAfter = StoryProgress.UnlockedCount(after);
+            for (int i = chaptersBefore; i < chaptersAfter; i++)
+                events.Add(new StoryChapterUnlocked(nowUtc, after[i].Chapter.Id, after[i].Chapter.Number));
         }
 
         private static void AllocateVitalityToProjects(GameState game, RegionDefinition content, DateTimeOffset nowUtc, List<SimulationEvent> events)

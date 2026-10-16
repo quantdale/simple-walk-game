@@ -1,4 +1,5 @@
 using System;
+using WalkGame.Domain.Story;
 using System.Collections.Generic;
 using System.IO;
 using WalkGame.Application.Activity;
@@ -1453,6 +1454,26 @@ namespace WalkGame.Application
         }
 
         /// <summary>Discovery journal snapshot: every authored discovery with its flags.</summary>
+        /// <summary>Story journal snapshot derived from restoration state (D-076).</summary>
+        public StoryReadModel GetStory()
+        {
+            var game = RequireState();
+            var progress = StoryProgress.Evaluate(_content, game.Region, game.CreatedAtUtc);
+
+            var rows = new List<StoryReadModel.ChapterRow>(progress.Count);
+            string? nextHint = null;
+            foreach (var p in progress)
+            {
+                if (!p.Unlocked && nextHint == null) nextHint = p.Chapter.HintKey;
+                rows.Add(new StoryReadModel.ChapterRow(
+                    p.Chapter.Id, p.Chapter.Number, p.Chapter.TitleKey,
+                    p.Unlocked ? p.Chapter.BodyKey : null,
+                    p.Chapter.HintKey, p.Unlocked, p.UnlockedAtUtc));
+            }
+
+            return new StoryReadModel(rows, StoryProgress.UnlockedCount(progress), nextHint);
+        }
+
         public DiscoveriesReadModel GetDiscoveries()
         {
             var game = RequireState();

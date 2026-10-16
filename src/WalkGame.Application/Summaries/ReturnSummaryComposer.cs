@@ -190,6 +190,11 @@ namespace WalkGame.Application.Summaries
                             completedExpeditions.Add((expeditionCompleted.ExpeditionId, expeditionCompleted.RewardType, expeditionCompleted.UnitsGranted));
                         break;
 
+                    case StoryChapterUnlocked chapter:
+                        AddDeduped(merged, SummaryItemKind.Transformation,
+                            "New chapter: " + Title(FindChapterTitle(content, chapter.ChapterId), chapter.ChapterId) + ".");
+                        break;
+
                     case RegionProgressionAdvanced progression:
                         AddDeduped(merged, SummaryItemKind.Transformation,
                             (progression.Axis == RegionProgressionAxis.Ecology ? "The valley's ecology" : "The settlement")
@@ -361,6 +366,13 @@ namespace WalkGame.Application.Summaries
                     return;
             target.Add(new PendingSummaryItemState { Kind = kind, Text = text });
         }
+        private static string? FindChapterTitle(RegionDefinition content, string chapterId)
+        {
+            foreach (var c in content.Chapters)
+                if (c.Id == chapterId) return c.TitleKey;
+            return null;
+        }
+
         private static string Title(string? titleKey, string fallbackId) =>
             string.IsNullOrWhiteSpace(titleKey) ? fallbackId : titleKey;
     }

@@ -31,3 +31,9 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - M9 headless: scripts/validate-clean-clone.sh and the assembler's --clean-clone / hosted-CI check are in (D-075). The Final Device and Release Qualification Checklist is expanded to H–Q.
 - Verified release evidence package for 0f9f3d7 is committed at docs/evidence/m9/ (all 11 mechanical claims PASS, including clean clone and hosted CI).
 - The final campaign report is at .agent/FINAL_CAMPAIGN_REPORT.md. Everything feasible without a device is done; next steps are in its §6 (device lane H–Q, Needs Michael).
+
+## Session note 2026-10-16 (storyline A1/A2, grok-story-1520)
+- Merged #37 (`7dc59dd`): storyline OpenSpec plus D-076.
+- A2: ten derived chapters, content v5 with no save change, `StoryChapterUnlocked` emitted in `AllocateVitality`, `GetStory()`, and "New chapter" return-summary items. 608 .NET tests; compatibility and pacing gates green; cadence bounds in D-076.
+- Next: A4 Unity Story screen. C: KI-016(a) re-read on expired token, KI-007 fixture identity, save/bridge tamper tests.
+

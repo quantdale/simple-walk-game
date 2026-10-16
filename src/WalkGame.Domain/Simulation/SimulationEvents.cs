@@ -211,4 +211,17 @@ namespace WalkGame.Domain.Simulation
             AlternativeCriterion = alternativeCriterion;
         }
     }
+
+    /// <summary>A story chapter became readable because its restoration milestone landed (D-076).</summary>
+    public sealed record StoryChapterUnlocked : SimulationEvent
+    {
+        public string ChapterId { get; }
+        public int Number { get; }
+
+        public StoryChapterUnlocked(DateTimeOffset atUtc, string chapterId, int number) : base(atUtc)
+        {
+            ChapterId = chapterId;
+            Number = number;
+        }
+    }
 }

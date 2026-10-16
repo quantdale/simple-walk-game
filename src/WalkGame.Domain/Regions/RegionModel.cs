@@ -255,6 +255,9 @@ namespace WalkGame.Domain.Regions
         public IReadOnlyList<LandmarkDefinition> Landmarks { get; }
         public IReadOnlyList<ProducerDefinition> Producers { get; }
         public IReadOnlyList<DiscoveryDefinition> Discoveries { get; }
+
+        /// <summary>Authored storyline chapters in reading order (D-076); empty when the region has no story.</summary>
+        public IReadOnlyList<Story.StoryChapterDefinition> Chapters { get; }
         public IReadOnlyList<ExpeditionDefinition> Expeditions { get; }
 
         /// <summary>
@@ -429,8 +432,12 @@ namespace WalkGame.Domain.Regions
             IEnumerable<ContentTombstone>? tombstones = null,
             IEnumerable<PostCompletionProgramDefinition>? postCompletionPrograms = null,
             IEnumerable<RestorationChainDefinition>? chains = null,
-            ClosureCriterionDefinition? closureCriterion = null)
+            ClosureCriterionDefinition? closureCriterion = null,
+            IEnumerable<Story.StoryChapterDefinition>? chapters = null)
         {
+            Chapters = chapters != null
+                ? new List<Story.StoryChapterDefinition>(chapters).AsReadOnly()
+                : (IReadOnlyList<Story.StoryChapterDefinition>)new List<Story.StoryChapterDefinition>().AsReadOnly();
             if (!id.IsValid)
                 throw new ArgumentException("Region definition requires a valid ID.", nameof(id));
             if (string.IsNullOrWhiteSpace(titleKey))
