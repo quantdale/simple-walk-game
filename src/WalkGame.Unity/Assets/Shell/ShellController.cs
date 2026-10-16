@@ -300,6 +300,12 @@ namespace WalkGame.Shell
                 }
             }
             bool celebrating = s != null && Celebrate(m, s.Items.Where(i => i.IsCurrent).Select(i => i.Text));
+            if (s != null)
+            {
+                bool chapter = s.Items.Any(i => i.IsCurrent && i.Text.StartsWith(ChapterMomentPrefix, StringComparison.Ordinal));
+                bool restored = s.Items.Any(i => i.IsCurrent && i.Kind == WalkGame.Domain.Summaries.SummaryItemKind.Transformation);
+                m.Cue = SoundCues.ForSummary(_session.GetSettings().SoundEnabled, celebrating, chapter, restored);
+            }
             if (s != null) m.Actions.Add(new ShellAction("ack", "Continue"));
             if (celebrating) m.Actions.Add(new ShellAction("nav:Region", "See the restored valley"));
             // D-076: a chapter moment is a Transformation item; offer the journal after the primary Continue.

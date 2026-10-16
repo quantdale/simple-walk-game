@@ -35,5 +35,8 @@ namespace WalkGame.Shell
         public RegionScene? Scene { get; set; }
         /// <summary>Settings text-size sample (B3, D-083), drawn at the effective text scale after the lines.</summary>
         public string? TextPreview { get; set; }
+
+        /// <summary>D-104: the calm sound this screen may play on arrival (None unless sound is on).</summary>
+        public SoundCue Cue { get; set; }
     }
 }

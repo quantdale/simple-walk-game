@@ -2280,3 +2280,18 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **What a correct version needs (future OpenSpec change).** (a) Persist each credited record's local date (the provider's zone offset; Health Connect supplies one) on ingest. (b) Keep a maintained distinct-day aggregate that is updated on credit and on deletion or correction, and folded into a retired-days total at retirement (bounded growth under the D-098 60 B/day gate). (c) Add a v2 → v3 migration that seeds the count from retained rows and marks legacy saves as a lower bound, shown as "at least N days", with migration tests on representative and mature fixtures. Each part changes the persisted shape, so it goes through OpenSpec first.
 
 **Also in this change (hardening).** `TitleMatchingInvariantTests` (3 .NET cases). Summary items are text-only and the shell links them to content by title (moment rings by substring, D-100 lines by exact project title). These cases assert that project titles are unique, that landmark titles are unique and none contains another, and that a project title naming a landmark only does so when it raises that landmark.
+
+## D-104 — Calm, optional sound cues on return moments (2026-10-16)
+
+**Context.** Settings had a sound toggle but the game played no sound. UX_DESIGN asks for calm feedback that never nags.
+
+**Decision.** There are three short cues, and they play only on a return summary that shows real change: Restoration (two rising notes), Chapter (three) and Celebration (four, Region 1 complete).
+- A cue plays only when the player's sound setting is on.
+- It plays once, on arrival at the screen. A redraw, a text-size change or a screen-reader refresh never repeats it.
+- Nothing else makes a sound: no taps, no reminders, no idle loops.
+- The samples are synthesised in code (`SoundCues.Samples`: soft sine tones with a raised-cosine envelope, peak 0.2 or about −14 dBFS, under 1 s each). There are no audio assets, so nothing needs licensing.
+- `com.unity.modules.audio` is added to the Unity manifest. It is a built-in module and costs nothing.
+
+**Tests:** EditMode `SoundCueTests` (5): sound off means no cue, cue priority, arrival-only playback, sample bounds (quiet, short, silent at both ends, no clicks, deterministic), and a real return summary following the setting.
+
+**Gaps:** Audible output and volume on a device are UNVERIFIED (KI-002). The default of the sound setting is unchanged.
