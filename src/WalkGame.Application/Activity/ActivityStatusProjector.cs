@@ -28,6 +28,9 @@ namespace WalkGame.Application.Activity
 
         /// <summary>Last refresh attempt failed transiently; prior progress fully preserved.</summary>
         RefreshTemporarilyFailed = 5,
+
+        /// <summary>The provider is installed but outdated; the player must update it (D-093).</summary>
+        ProviderUpdateRequired = 6,
     }
 
     /// <summary>Bounded next-action classification for the current status.</summary>
@@ -43,6 +46,9 @@ namespace WalkGame.Application.Activity
 
         /// <summary>Suggest retrying the refresh later; nothing is lost by waiting.</summary>
         RetryLater = 3,
+
+        /// <summary>Route to the store/system to update the activity provider (D-093).</summary>
+        UpdateProvider = 4,
     }
 
     /// <summary>
@@ -53,6 +59,8 @@ namespace WalkGame.Application.Activity
     /// boundary (D-043, D-016).
     ///
     /// Classification precedence (documented contract for adapters and tests):
+    ///   0. Availability ProviderUpdateRequired → ProviderUpdateRequired (D-093: waiting or
+    ///      connecting cannot fix an outdated provider, so it outranks permission)
     ///   1. Denied/Revoked            → PermissionDenied
     ///   2. NotRequested              → PermissionNeeded
     ///   3. Availability Unsupported  → SourceUnavailable
@@ -99,6 +107,9 @@ namespace WalkGame.Application.Activity
         private static ActivityPlayerStatus Classify(
             ActivityConnectionSnapshot snapshot, bool hasProcessedAnyRecord, IngestionOutcomeKind lastOutcome)
         {
+            if (snapshot.Availability == ActivitySourceAvailability.ProviderUpdateRequired)
+                return ActivityPlayerStatus.ProviderUpdateRequired;
+
             // D-068: with no provider on the device, permission is meaningless; asking the
             // player to "connect" something that cannot exist is a dead end.
             if (snapshot.Availability == ActivitySourceAvailability.Unsupported
@@ -134,6 +145,7 @@ namespace WalkGame.Application.Activity
                 case ActivityPlayerStatus.PermissionNeeded: return ActivityRecommendedAction.Connect;
                 case ActivityPlayerStatus.PermissionDenied: return ActivityRecommendedAction.OpenSettings;
                 case ActivityPlayerStatus.RefreshTemporarilyFailed: return ActivityRecommendedAction.RetryLater;
+                case ActivityPlayerStatus.ProviderUpdateRequired: return ActivityRecommendedAction.UpdateProvider;
                 default: return ActivityRecommendedAction.None;
             }
         }

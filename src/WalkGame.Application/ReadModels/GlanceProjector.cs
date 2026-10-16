@@ -260,6 +260,8 @@ namespace WalkGame.Application.ReadModels
                     => "Movement cannot be refreshed on this device. Your progress is still here.",
                 ActivityPlayerStatus.WaitingForFirstData
                     => "Connected. The world is waiting for your first walk.",
+                ActivityPlayerStatus.ProviderUpdateRequired
+                    => "Your movement app needs an update before new walks can count. Your progress is still here.",
                 _ => "Movement could not be refreshed just now. Nothing was lost.",
             };
 

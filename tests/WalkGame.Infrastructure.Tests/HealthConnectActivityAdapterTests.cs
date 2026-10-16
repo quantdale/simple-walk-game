@@ -139,7 +139,7 @@ public sealed class HealthConnectActivityAdapterTests : IDisposable
 
     [Theory]
     [InlineData("unsupported", ActivitySourceAvailability.Unsupported)]
-    [InlineData("update_required", ActivitySourceAvailability.TemporarilyUnavailable)]
+    [InlineData("update_required", ActivitySourceAvailability.ProviderUpdateRequired)] // D-093
     [InlineData("garbage", ActivitySourceAvailability.TemporarilyUnavailable)]
     public void Sdk_status_maps_to_availability_and_never_claims_a_grant(string sdk, ActivitySourceAvailability expected)
     {

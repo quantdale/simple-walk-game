@@ -62,7 +62,7 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
             if (sdk == "unsupported")
                 return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.Unsupported, "health connect unavailable on this device");
             if (sdk == "update_required")
-                return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.TemporarilyUnavailable, "health connect provider update required");
+                return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.ProviderUpdateRequired, "health connect provider update required");
             if (sdk != "available")
                 return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.TemporarilyUnavailable, "health connect status unreadable: " + Clip(sdk));
 

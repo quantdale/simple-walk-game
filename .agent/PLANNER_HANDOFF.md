@@ -77,3 +77,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 ## Session note 2026-10-16 (grok1814, Region 2)
 - `openspec/changes/add-region2-storyline/` is PROPOSED only. D-011 and the ROADMAP post-MVP gate forbid agent approval; logged in the KNOWN_ISSUES morning queue. No implementation.
 - Worktree cleanup: 37 merged, clean worktrees removed with `git worktree remove` (no --force). Kept: `wt-checkin-grok1537` and `wt-story-openspec-grok1520` (merged but with uncommitted changes; a human should inspect). Branches were not deleted.
+
+## Session note 2026-10-16 (grok1833)
+- #61 (`bbb0d51`): `new-agent-worktree.sh` branches from a freshly fetched `origin/main` and refuses if the fetch fails; guard scenario 14, suite 49/49. #62 (`217d445`): blank lines in this file.
+- D-093: outdated Health Connect provider gets an Update action (it used to show Connect or Retry, both dead ends) and 9 failure-state tests (uninstalled, revoked mid-read, backward clock, timezone, 40-day gap). .NET 684, EditMode 116/116 (Unity-editor-tested); device UNVERIFIED (KI-002).
+- Not done: a deep link to the Play Store for the update; an accessibility audit beyond D-073. Region 2 is still PROPOSED only.
