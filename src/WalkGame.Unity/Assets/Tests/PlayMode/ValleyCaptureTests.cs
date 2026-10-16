@@ -37,6 +37,8 @@ namespace WalkGame.Shell.PlayModeTests
                     // Seeded completed-region state through the real pipeline (CompletedRegionFixture).
                     c = CompletedRegionFixture.Build(dir, out var done, out _);
                     Assert.IsTrue(done.GetRegion().RegionCompleted);
+                    // WG_CAPTURE_LOCALE=pseudo: the D-122 overlay with "[xx] " on every routed content string (KI-023).
+                    if (Environment.GetEnvironmentVariable("WG_CAPTURE_LOCALE") == "pseudo") done.ContentLocale = PseudoLocale();
                     c.Invoke(screen == "Celebration" ? "nav:ReturnSummary" : "nav:Discoveries");
                 }
                 else if (screen == "Onboarding")
@@ -132,6 +134,24 @@ namespace WalkGame.Shell.PlayModeTests
                 Assert.IsTrue(File.Exists(output + ".rgba"));
             }
             finally { UnityEngine.Object.Destroy(go); rt.Release(); Directory.Delete(dir, true); }
+        }
+
+        private static WalkGame.Application.Content.ContentText PseudoLocale()
+        {
+            var c = WalkGame.Application.Content.Region1Catalog.Create();
+            var d = new System.Collections.Generic.Dictionary<string, string>(StringComparer.Ordinal);
+            void Add(string id, string field, string en) { if (!string.IsNullOrEmpty(en)) d[WalkGame.Application.Content.ContentText.Key(id, field)] = "[xx] " + en; }
+            const string T = WalkGame.Application.Content.ContentText.Fields.Title;
+            foreach (var p in c.Projects) Add(p.Id.Value, T, p.TitleKey);
+            foreach (var l in c.Landmarks) Add(l.Id.Value, T, l.TitleKey);
+            foreach (var e in c.Expeditions) Add(e.Id.Value, T, e.TitleKey);
+            foreach (var x in c.Discoveries)
+            {
+                Add(x.Id.Value, T, x.TitleKey);
+                Add(x.Id.Value, WalkGame.Application.Content.ContentText.Fields.Body, WalkGame.Application.Content.Region1DiscoveryCopy.Text(x.BodyKey));
+                Add(x.Id.Value, WalkGame.Application.Content.ContentText.Fields.Provenance, WalkGame.Application.Content.Region1DiscoveryCopy.Text(x.ProvenanceKey));
+            }
+            return WalkGame.Application.Content.ContentText.ForLocale("xx", d);
         }
     }
 }
