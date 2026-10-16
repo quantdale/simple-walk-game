@@ -2342,3 +2342,13 @@ Evidence: `docs/evidence/d107-sync-budget/editmode-results.xml`, EditMode 159/15
 
 **Gaps:** Device battery drain, binder cost of status calls, and thermal behaviour are UNVERIFIED (KI-002). Background sync remains deliberately absent (KI-016c).
 
+## D-109 — Screen-tour copy fixes (2026-10-16)
+
+**Context.** The editor-rendered screen tour (`docs/evidence/screen-tour/`) showed two copy defects: BootError printed a raw identifier ("Status: SaveUnreadable", against UX_DESIGN §5), and queue buttons doubled the verb because project titles are already verb phrases ("Restore Restore the river intake").
+
+**Decision.** BootError drops the raw status line; the plain-language problem notice and "Try again" stay. Queue buttons read "Start: <title>" (`ShellController.QueueLabel`) on Projects and in the guide. Shell copy only: no save, content or read-model change.
+
+**Tests:** EditMode `ScreenTourCopyTests` (2). Evidence in `docs/evidence/d109-tour-copy/`: re-captured BootError and Projects PNGs (editor-rendered, llvmpipe) and EditMode 161/161 on this branch merged with main (Unity-editor-tested).
+
+**Gaps:** Device rendering UNVERIFIED (KI-002). A booted shell can still reach BootError via `nav:BootError` with no notice (no player button leads there).
+

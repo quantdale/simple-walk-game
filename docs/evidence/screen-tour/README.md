@@ -33,4 +33,4 @@ Reproduce (about 1 min per screen; run detached):
 1. BootError shows a raw identifier line, "Status: SaveUnreadable" (UX_DESIGN §5: no raw identifiers).
 2. Projects buttons double the verb: "Restore Rebuild the trail bridges", "Restore Restore the river intake".
 
-Both are fixed in a follow-up copy PR (D-109) and re-captured there.
+Both are fixed by D-109; re-captures are in `docs/evidence/d109-tour-copy/`.
