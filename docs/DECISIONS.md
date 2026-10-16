@@ -2186,3 +2186,15 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Decision.** `GameSession.StartNewGame(seed, overwriteExisting: false)` (the fresh-device path the shell uses, D-085) resets only the onboarding stage to `NotStarted` after the new save is durable. Other preferences (reduced motion, sound, text) are player choices and stay. Best-effort: a preferences write failure never fails the start. The legacy overwrite overload is unchanged. No save, content-version or fingerprint change.
 
 **Evidence.** `StaleOnboardingResetTests` (5 .NET cases; the two reset cases fail without the fix). `OnboardingPermissionEdgeTests` (5 EditMode cases): denied keeps the step with no re-prompt and no read, a later grant is picked up on resume and syncs; revocation never reopens the guide or reads steps; a kill right after start or at the first-project step resumes there with the canonical gate intact; a kill mid delete-all starts the new world's onboarding. Unity-editor-tested, `docs/evidence/e-onboarding-edges/`. The real Health Connect permission dialog and process death on a device remain UNVERIFIED (KI-002).
+
+## D-093 — An outdated Health Connect provider asks for an update, not a retry (2026-10-16)
+
+**Context.** The bridge reports `update_required` when Health Connect is installed but too old. The adapter mapped it to `TemporarilyUnavailable` with permission `NotRequested`, so the projector showed "Walking data is not connected yet" with a Connect action (a dead end: the permission flow cannot run on an outdated provider) and, after a failed read, "we will try again" (waiting never fixes it).
+
+**Decision.**
+- New `ActivitySourceAvailability.ProviderUpdateRequired`, `ActivityPlayerStatus.ProviderUpdateRequired` and `ActivityRecommendedAction.UpdateProvider`, appended (existing numeric values unchanged). The adapter maps `update_required` to it.
+- Projector precedence step 0: `ProviderUpdateRequired` outranks every permission state.
+- Copy: "Health Connect needs an update before new walks can count. Your progress is safe." / "Next: update Health Connect from your app store, then come back." The Glance sentence says the same in its own voice.
+- These are ephemeral read-model values (D-043), never persisted: no save or content change (no save-compat impact).
+
+**Evidence.** `HealthConnectFailureStateTests` (9 .NET cases through the real adapter, session and projector with a fake bridge): outdated provider (no read, no credit loss, UpdateProvider), recovery after update (dedupe holds), provider uninstalled mid-session (no Connect dead end), permission revoked between status check and read (whole fetch fails, nothing credited, then OpenSettings), clock moved backwards, timezone change ×3, 40-day gap with a failure before success (backlog once). Projector precedence table +3 rows; the adapter SDK mapping row updated. .NET 684 total; EditMode 116/116 incl. every-status-has-copy (`docs/evidence/d093-hc-failure-ux/`, Unity-editor-tested). Device UNVERIFIED (KI-002): the real `update_required` signal and Play Store routing are untested; the shell shows the action text only, it does not deep-link.

@@ -30,6 +30,10 @@ namespace WalkGame.Application.Activity
 
         /// <summary>No provider on this device/platform; not a transient condition.</summary>
         Unsupported = 2,
+
+        /// <summary>A provider exists but must be updated before it can serve data (D-093).
+        /// Waiting will not fix it; the player has to update the provider app.</summary>
+        ProviderUpdateRequired = 3,
     }
 
     /// <summary>

@@ -35,6 +35,7 @@ namespace WalkGame.Shell
                 case ActivityPlayerStatus.SourceUnavailable: return "This device has no walking data source we can read. Your progress is safe.";
                 case ActivityPlayerStatus.WaitingForFirstData: return "Connected. Waiting for your first walk to arrive.";
                 case ActivityPlayerStatus.RefreshTemporarilyFailed: return "We could not refresh your walks just now. Nothing is lost; we will try again.";
+                case ActivityPlayerStatus.ProviderUpdateRequired: return "Health Connect needs an update before new walks can count. Your progress is safe.";
                 default: return "Walking data status is unknown right now. Your progress is safe.";
             }
         }
@@ -47,6 +48,7 @@ namespace WalkGame.Shell
                 case ActivityRecommendedAction.Connect: return "Next: connect your walking data.";
                 case ActivityRecommendedAction.OpenSettings: return "Next: turn access back on in your phone's settings.";
                 case ActivityRecommendedAction.RetryLater: return "Next: nothing to do; it will retry on its own.";
+                case ActivityRecommendedAction.UpdateProvider: return "Next: update Health Connect from your app store, then come back.";
                 default: return null;
             }
         }

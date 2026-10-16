@@ -38,6 +38,10 @@ public sealed class ActivityStatusProjectionTests : IDisposable
             (ActivityPermissionState.Granted, ActivitySourceAvailability.Available, IngestionOutcomeKind.SourceFetchFailed, true, ActivityPlayerStatus.RefreshTemporarilyFailed),
             (ActivityPermissionState.Granted, ActivitySourceAvailability.Available, IngestionOutcomeKind.NeverRun, false, ActivityPlayerStatus.WaitingForFirstData),
             (ActivityPermissionState.Granted, ActivitySourceAvailability.Available, IngestionOutcomeKind.Succeeded, true, ActivityPlayerStatus.ConnectedCurrent),
+            // D-093: an outdated provider outranks every permission state; waiting cannot fix it.
+            (ActivityPermissionState.NotRequested, ActivitySourceAvailability.ProviderUpdateRequired, IngestionOutcomeKind.NeverRun, false, ActivityPlayerStatus.ProviderUpdateRequired),
+            (ActivityPermissionState.Granted, ActivitySourceAvailability.ProviderUpdateRequired, IngestionOutcomeKind.SourceFetchFailed, true, ActivityPlayerStatus.ProviderUpdateRequired),
+            (ActivityPermissionState.Revoked, ActivitySourceAvailability.ProviderUpdateRequired, IngestionOutcomeKind.Succeeded, true, ActivityPlayerStatus.ProviderUpdateRequired),
             (ActivityPermissionState.PartiallyGranted, ActivitySourceAvailability.Available, IngestionOutcomeKind.Succeeded, true, ActivityPlayerStatus.ConnectedCurrent),
         };
 
