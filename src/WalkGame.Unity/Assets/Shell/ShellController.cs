@@ -168,7 +168,7 @@ namespace WalkGame.Shell
         public void Invoke(string actionId)
         {
             _error = null;
-            if (string.IsNullOrEmpty(actionId)) { _error = "Unknown action."; return; }
+            if (string.IsNullOrEmpty(actionId)) { _error = PlayerStrings.T("shell.unknownAction"); return; }
             if (actionId.StartsWith("nav:", StringComparison.Ordinal))
             {
                 _notice = null;
@@ -178,18 +178,18 @@ namespace WalkGame.Shell
                 // Exact names only: Enum.TryParse also accepts numbers and comma lists ("Home,Story"
                 // parses to the flags OR of the two values, which is another real screen).
                 if (Array.IndexOf(Enum.GetNames(typeof(ShellScreen)), target) < 0 || !Enum.TryParse(target, false, out ShellScreen screen))
-                { _error = "That screen does not exist."; return; }
+                { _error = PlayerStrings.T("shell.thatScreenDoesNot"); return; }
                 if (!_booted && screen != ShellScreen.Onboarding && screen != ShellScreen.BootError)
-                { _error = "Start or continue a game first."; return; }
+                { _error = PlayerStrings.T("shell.startOrContinueA"); return; }
                 // D-110: BootError describes a save that could not be opened. With a game loaded
                 // that is false, so the shell refuses it calmly and stays where it is.
                 if (_booted && screen == ShellScreen.BootError)
-                { _error = "Your world is open and fine. There is no problem to show."; return; }
+                { _error = PlayerStrings.T("shell.yourWorldIsOpen"); return; }
                 Current = screen;
                 return;
             }
             if (!_booted && actionId != "start" && actionId != "retry" && actionId != "activity:connect")
-            { _error = "Start or continue a game first."; return; }
+            { _error = PlayerStrings.T("shell.startOrContinueA"); return; }
             if (actionId.StartsWith("queue:", StringComparison.Ordinal)) { Check(_session.EnqueueProject(actionId.Substring(6))); return; }
             if (actionId.StartsWith("up:", StringComparison.Ordinal)) { MoveUp(actionId.Substring(3)); return; }
             switch (actionId)
@@ -198,7 +198,7 @@ namespace WalkGame.Shell
                     // C (D-084): StartNewGame overwrites unconditionally, so only the onboarding
                     // screen of an unbooted shell may start. A loaded game or an unreadable save
                     // (BootError) is never replaced from here.
-                    if (_booted || Current != ShellScreen.Onboarding) { _error = "A game is already here; it was not replaced."; return; }
+                    if (_booted || Current != ShellScreen.Onboarding) { _error = PlayerStrings.T("shell.aGameIsAlready"); return; }
                     // D-085: the Application layer refuses too, so a save the boot did not
                     // see (or could not read) is never replaced from the shell.
                     var started = _session.StartNewGame(_seedSource(), overwriteExisting: false);
@@ -209,12 +209,12 @@ namespace WalkGame.Shell
                         Check(_session.AdvanceOnboarding(OnboardingStage.WorldBaseline));
                         Current = OnboardingIncomplete() ? ShellScreen.Guide : ShellScreen.Home;
                     }
-                    else if (started.Status == StartStatus.ExistingSaveRefused) _error = "A game is already here; it was not replaced.";
-                    else _error = "We couldn't start a new world. Nothing on this device was changed.";
+                    else if (started.Status == StartStatus.ExistingSaveRefused) _error = PlayerStrings.T("shell.aGameIsAlready");
+                    else _error = PlayerStrings.T("shell.weCouldnTStart");
                     return;
                 case "retry": Boot(); return;
                 case "activity:connect":
-                    if (_requestPermission == null) { _error = "Walking data can't be connected on this device."; return; }
+                    if (_requestPermission == null) { _error = PlayerStrings.T("shell.walkingDataCanT"); return; }
                     _requestPermission();
                     return;
                 case "guide:next": GuideNext(); return;
@@ -230,16 +230,16 @@ namespace WalkGame.Shell
                     var erased = _session.DeleteAllLocalData();
                     if (erased.Status == LocalDataEraseStatus.Erased)
                     {
-                        _booted = false; _notice = "All local data was deleted."; Current = ShellScreen.Onboarding;
+                        _booted = false; _notice = PlayerStrings.T("shell.allLocalDataWas"); Current = ShellScreen.Onboarding;
                     }
-                    else { Current = ShellScreen.Settings; _error = "Your data could not be deleted, so nothing was changed. You can try again."; }
+                    else { Current = ShellScreen.Settings; _error = PlayerStrings.T("shell.yourDataCouldNot"); }
                     return;
                 case "dev:walk":
-                    if (!_devTools) { _error = "Development tools are disabled."; return; }
+                    if (!_devTools) { _error = PlayerStrings.T("shell.developmentToolsAreDisabled"); return; }
                     var now = DateTimeOffset.UtcNow;
                     _session.IngestFromSource(new SyntheticWalkingSource(6000), now.AddDays(-1), now);
                     return;
-                default: _error = "Unknown action."; return;
+                default: _error = PlayerStrings.T("shell.unknownAction"); return;
             }
         }
 
@@ -280,7 +280,7 @@ namespace WalkGame.Shell
             if (r.IsSuccess) return true;
             // D-096: domain error text is for developers (it can echo ids such as 'proj.x');
             // the player sees one calm sentence.
-            _error = "That could not be done just now. Your progress is safe.";
+            _error = PlayerStrings.T("shell.thatCouldNotBe");
             return false;
         }
 
@@ -309,7 +309,7 @@ namespace WalkGame.Shell
                 case ShellScreen.Discoveries: return Discoveries();
                 case ShellScreen.Progress: return Progress();
                 case ShellScreen.Privacy: return Privacy();
-                default: throw new InvalidOperationException("Unmapped screen " + Current);
+                default: throw new InvalidOperationException("Unmapped screen " + Current); // l10n-ignore: developer exception, never shown
             }
         }
 
@@ -318,10 +318,10 @@ namespace WalkGame.Shell
 
         private ScreenModel Onboarding()
         {
-            var m = With(ShellScreen.Onboarding, "Your movement restores this world");
-            m.Lines.Add("A forgotten valley is waiting. Each walk you take brings it back, a little at a time.");
-            m.Lines.Add("Nothing is lost while you are away.");
-            m.Actions.Add(new ShellAction("start", "Begin restoring"));
+            var m = With(ShellScreen.Onboarding, PlayerStrings.T("shell.yourMovementRestoresThis"));
+            m.Lines.Add(PlayerStrings.T("shell.aForgottenValleyIs"));
+            m.Lines.Add(PlayerStrings.T("shell.nothingIsLostWhile"));
+            m.Actions.Add(new ShellAction("start", PlayerStrings.T("shell.beginRestoring")));
             return m;
         }
 
@@ -338,15 +338,15 @@ namespace WalkGame.Shell
             m.Lines.Add(glance.ActivitySentence);
             m.Lines.Add(HomeStoryLine(_session.GetStory()));
             m.Lines.Add("Vitality " + home.Vitality + " · Materials " + home.Materials + " · Knowledge " + home.Knowledge);
-            if (empty) m.Lines.Add("Nothing is being restored yet. Choose a project to begin.");
-            if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", "While you were away"));
+            if (empty) m.Lines.Add(PlayerStrings.T("shell.nothingIsBeingRestored"));
+            if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", PlayerStrings.T("shell.whileYouWereAway")));
             m.Actions.Add(new ShellAction("nav:Projects", "Projects"));
-            m.Actions.Add(new ShellAction("nav:Region", "The valley"));
+            m.Actions.Add(new ShellAction("nav:Region", PlayerStrings.T("shell.theValley")));
             m.Actions.Add(new ShellAction("nav:Story", "Story"));
-            m.Actions.Add(new ShellAction("nav:Progress", "Your progress"));
+            m.Actions.Add(new ShellAction("nav:Progress", PlayerStrings.T("shell.yourProgress")));
             m.Actions.Add(new ShellAction("nav:ActivityStatus", "Activity"));
             m.Actions.Add(new ShellAction("nav:Settings", "Settings"));
-            if (_devTools) m.Actions.Add(new ShellAction("dev:walk", "[dev] Simulate a day of walking"));
+            if (_devTools) m.Actions.Add(new ShellAction("dev:walk", PlayerStrings.T("shell.devSimulateADay")));
             m.Lines.RemoveAll(string.IsNullOrEmpty);
             // D-106: the glance can repeat a sentence (what changed == attention); show each line once.
             var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -357,8 +357,8 @@ namespace WalkGame.Shell
         private ScreenModel Summary()
         {
             var s = _session.GetPendingReturnSummary();
-            var m = With(ShellScreen.ReturnSummary, "While you were away", s == null ? ScreenState.Empty : ScreenState.Normal);
-            if (s == null) m.Lines.Add("Nothing new since your last visit.");
+            var m = With(ShellScreen.ReturnSummary, PlayerStrings.T("shell.whileYouWereAway"), s == null ? ScreenState.Empty : ScreenState.Normal);
+            if (s == null) m.Lines.Add(PlayerStrings.T("shell.nothingNewSinceYour"));
             else
             {
                 // UX_DESIGN §4/§19: lead with transformation; restoration moments are shown inline on
@@ -368,7 +368,7 @@ namespace WalkGame.Shell
                 if (moments.Count > 0)
                 {
                     m.Scene = RegionScene.Build(_session.GetRegion(), moments);
-                    m.Lines.Add(m.Scene.ChangedCount > 0 ? "The valley changed while you were away." : "Your walks changed the valley.");
+                    m.Lines.Add(m.Scene.ChangedCount > 0 ? PlayerStrings.T("shell.theValleyChangedWhile") : PlayerStrings.T("shell.yourWalksChangedThe"));
                 }
                 // D-100: a finished project gets one calm follow-up line naming the landmark stage it
                 // brought and its storyline chapter (derived from authored content; stored text unchanged).
@@ -390,10 +390,10 @@ namespace WalkGame.Shell
                 m.Cue = SoundCues.ForSummary(_session.GetSettings().SoundEnabled, celebrating, chapter, restored);
             }
             if (s != null) m.Actions.Add(new ShellAction("ack", "Continue"));
-            if (celebrating) m.Actions.Add(new ShellAction("nav:Region", "See the restored valley"));
+            if (celebrating) m.Actions.Add(new ShellAction("nav:Region", PlayerStrings.T("shell.seeTheRestoredValley")));
             // D-076: a chapter moment is a Transformation item; offer the journal after the primary Continue.
             if (s != null && s.Items.Any(i => i.IsCurrent && i.Text.StartsWith(ChapterMomentPrefix, StringComparison.Ordinal)))
-                m.Actions.Add(new ShellAction("nav:Story", "Read the new chapter"));
+                m.Actions.Add(new ShellAction("nav:Story", PlayerStrings.T("shell.readTheNewChapter")));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
@@ -407,10 +407,10 @@ namespace WalkGame.Shell
             // UX_DESIGN §17: empty states explain the next useful action.
             if (open.Count == 0)
                 m.Lines.Add(p.Projects.All(r => r.Status == ProjectStatus.Completed)
-                    ? "Every restoration in this valley is finished. It stays restored; check the valley to see it flourish."
-                    : "No projects are open right now. Finishing a restoration opens new ones.");
+                    ? PlayerStrings.T("shell.everyRestorationInThis")
+                    : PlayerStrings.T("shell.noProjectsAreOpen"));
             else if (!anyQueued)
-                m.Lines.Add("Nothing is queued. Choose a project below and your walks will start restoring it.");
+                m.Lines.Add(PlayerStrings.T("shell.nothingIsQueuedChoose"));
             foreach (var r in p.Projects.Where(r => r.Status != ProjectStatus.Locked).OrderBy(r => r.QueuedPosition ?? int.MaxValue))
             {
                 string title = PlayerCopy.Title(r.TitleKey);
@@ -419,7 +419,7 @@ namespace WalkGame.Shell
                 if (r.Status == ProjectStatus.Queued && r.QueuedPosition > 0) m.Actions.Add(new ShellAction("up:" + r.ProjectId, "Move " + title + " up"));
             }
             int locked = p.Projects.Count(r => r.Status == ProjectStatus.Locked);
-            if (locked > 0) m.Lines.Add(locked + (locked == 1 ? " more project unlocks" : " more projects unlock") + " as the valley recovers.");
+            if (locked > 0) m.Lines.Add(PlayerStrings.F(locked == 1 ? "shell.projects.locked.one" : "shell.projects.locked.many", locked));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
@@ -428,24 +428,24 @@ namespace WalkGame.Shell
         private ScreenModel Region()
         {
             var r = _session.GetRegion();
-            var m = With(ShellScreen.Region, "The valley");
+            var m = With(ShellScreen.Region, PlayerStrings.T("shell.theValley"));
             m.Scene = RegionScene.Build(r);
             if (r.RegionCompleted)
-                m.Lines.Add("The valley is fully restored. It stays this way; nothing will reset.");
+                m.Lines.Add(PlayerStrings.T("shell.theValleyIsFully"));
             else
-                m.Lines.Add(r.CompletedProjects + " of " + r.TotalProjects + " restorations finished.");
+                m.Lines.Add(PlayerStrings.F("shell.region.finished", r.CompletedProjects, r.TotalProjects));
             foreach (var l in r.Landmarks) m.Lines.Add(GlancePhrases.FormatLandmark(PlayerCopy.Title(l.TitleKey), l.Stage));
             foreach (var pr in r.Producers)
                 m.Lines.Add(PlayerCopy.Title(pr.TitleKey) + ": " + (!pr.Unlocked
-                    ? "not running yet. Restore nearby landmarks to bring it back."
-                    : pr.CapacityLimited ? "storage full, holding what it made." : "producing while you are away."));
+                    ? PlayerStrings.T("shell.notRunningYetRestore")
+                    : pr.CapacityLimited ? PlayerStrings.T("shell.storageFullHoldingWhat") : PlayerStrings.T("shell.producingWhileYouAre")));
             m.Lines.Add(r.DiscoveriesUnlocked == 0
-                ? "No discoveries yet. Walks that restore landmarks reveal them."
-                : r.DiscoveriesUnlocked + (r.DiscoveriesUnlocked == 1 ? " discovery found." : " discoveries found."));
+                ? PlayerStrings.T("shell.noDiscoveriesYetWalks")
+                : PlayerStrings.F(r.DiscoveriesUnlocked == 1 ? "shell.region.discoveries.one" : "shell.region.discoveries.many", r.DiscoveriesUnlocked));
             m.Lines.Add(r.ExpeditionsAvailable == 0 && r.ExpeditionsCompleted == 0
-                ? "No expedition routes are open yet. Restoring the valley opens them."
-                : r.ExpeditionsAvailable + " expedition routes open, " + r.ExpeditionsCompleted + " completed.");
-            m.Actions.Add(new ShellAction("nav:Discoveries", "Discoveries and expeditions"));
+                ? PlayerStrings.T("shell.noExpeditionRoutesAre")
+                : PlayerStrings.F("shell.region.expeditions", r.ExpeditionsAvailable, r.ExpeditionsCompleted));
+            m.Actions.Add(new ShellAction("nav:Discoveries", PlayerStrings.T("shell.discoveriesAndExpeditions")));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }

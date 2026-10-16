@@ -26,7 +26,7 @@ namespace WalkGame.Shell.Tests
         private static readonly Dictionary<string, int> Ceiling = new Dictionary<string, int>
         {
             ["AccessibleOutline.cs"] = 1, ["AndroidShareSheet.cs"] = 2, ["ShellBootstrap.cs"] = 3, ["ShellConnectionPort.cs"] = 2,
-            ["ShellController.cs"] = 127,
+            ["ShellController.cs"] = 79,
         };
 
         private static string ShellDir => Path.Combine(UnityEngine.Application.dataPath, "Shell");
@@ -90,6 +90,10 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual(" Footpaths link 3 recovered places.", PlayerStrings.F("scene.alt.trail.many", 3));
             Assert.AreEqual("A picture of the valley: 2 of 6 landmarks restored, the hills turning green.",
                 PlayerStrings.F("scene.alt.progress", 2, 6, PlayerStrings.T("scene.alt.hills.greening")));
+            Assert.AreEqual("1 more project unlocks as the valley recovers.", PlayerStrings.F("shell.projects.locked.one", 1));
+            Assert.AreEqual("3 of 9 restorations finished.", PlayerStrings.F("shell.region.finished", 3, 9));
+            Assert.AreEqual("2 expedition routes open, 0 completed.", PlayerStrings.F("shell.region.expeditions", 2, 0));
+            Assert.AreEqual("1 discovery found.", PlayerStrings.F("shell.region.discoveries.one", 1));
         }
 
         [Test] public void Every_key_used_in_shell_code_exists_in_the_table()
