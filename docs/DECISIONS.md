@@ -2386,6 +2386,6 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Rejected:** writing an export file to shared storage (PRIVACY_REVIEW §3 forbids less-protected copies); exporting the raw base64 envelope (unreadable to players); import/restore (needs save-trust rules; a later change).
 
-**Tests:** .NET `SaveExportTests` (11: read-only export, decode round trip, document shape, tamper → `ChecksumMismatch`, hostile bytes → `Malformed`), .NET 739/739. EditMode `PrivacyScreenTests` (7) and the D-095 accessibility audit now covers Privacy; EditMode 172/172 on this branch before merging main (Unity-editor-tested). Evidence: `docs/evidence/d111-privacy/`.
+**Tests:** .NET `SaveExportTests` (11: read-only export, decode round trip, document shape, tamper → `ChecksumMismatch`, hostile bytes → `Malformed`), .NET 739/739. EditMode `PrivacyScreenTests` (7) and the D-095 accessibility audit now covers Privacy; EditMode 172/172 on this branch and 174/174 merged with main after D-110 (Unity-editor-tested). Evidence: `docs/evidence/d111-privacy/`.
 
 **Gaps:** The Android share sheet on a device is UNVERIFIED (KI-002); the JNI path is compiled only when the APK is built. The screen tour does not yet include a Privacy PNG.
