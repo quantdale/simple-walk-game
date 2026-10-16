@@ -63,3 +63,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR (D-088): perf pass. Allocation per screen switch measured, pooled line labels, `WG_RENDER` debug-only; `docs/evidence/c-perf-pass/PERFORMANCE_PASS.md`.
 - Unity Mono returns 0 from `GC.GetAllocatedBytesForCurrentThread`; use `GC.GetTotalMemory` deltas, which have 4 KB resolution.
 - Next: pool or diff buttons too (largest remaining view allocation, KI-018); a Discoveries PNG with the new copy; Region 2 storyline design (OpenSpec first); device lane (KI-002).
+- D-090: Home story line (current chapter + next hint; epilogue once complete). Region 2 storyline still needs OpenSpec first.

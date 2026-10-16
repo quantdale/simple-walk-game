@@ -2155,3 +2155,11 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - The model side measured ≤ ~20 KB and mostly ~0, so it was left unchanged.
 
 **Evidence.** `docs/evidence/c-perf-pass/PERFORMANCE_PASS.md` has the before/after tables. Story view ~86 KB → ~12 KB, Projects ~78 KB → ~8 KB, 3,000 enter/exits 678 → 392 ms, live-panel growth ~116 → ~78 B/render (about 0 on a rerun, within noise). EditMode 108/108 on the merged branch, PlayMode 4 passed + 1 capture-only ignored (Unity-editor-tested). Device UNVERIFIED (KI-002); KI-018 stays open.
+
+## D-090 — Home story line: current chapter, next hint, epilogue (2026-10-16)
+
+**Context.** The story (D-076) was only reachable from the journal and return-summary chapter moments; Home gave no sense of where the player is in Millbrook's story.
+
+**Decision.** Home shows one line, `ShellController.HomeStoryLine`: "Story: <latest unlocked chapter heading>. Next: <next chapter's hint>", using the same title and hint the journal already shows, so a locked chapter's title or body never appears. Once every chapter is unlocked it shows the epilogue line ("Millbrook's story is complete. The valley stays restored, and every chapter is here to reread."). Shell-only: no content version, fingerprint or save change. Copy obeys the no-guilt check.
+
+**Evidence.** `StoryJournalTests.Home_shows_the_current_chapter_and_the_next_hint_without_spoilers` (new game prologue + after a 10-day walk) and `Home_story_line_becomes_the_epilogue_when_every_chapter_is_unlocked`. EditMode 110/110 (`docs/evidence/d-home-chapter/`, Unity-editor-tested). Device UNVERIFIED (KI-002).
