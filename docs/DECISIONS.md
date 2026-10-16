@@ -2321,3 +2321,11 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Decision.** `GameStateValidator` now checks a plausible range. Every walked day, and the legacy boundary, must lie between the UTC day of `CreatedAtUtc` − 47 (records can be up to 45 days older than a new profile, and a local date is at most a day off its UTC date) and the UTC day of the later of `LastAdvancedUtc` and `IngestionCheckpointUtc`, + 2. Neither the count nor the legacy lower bound may exceed that span. A violation fails closed and leaves the save untouched, as with every other validator rule.
 
 **Tests:** `DaysWalkedHardeningTests` (5 cases): inflated legacy count rejected and file untouched; far-future and ancient days rejected; an honest +14 h edge stays valid; a 300-case fuzz of the `processedRecords` subtree on both v2 (migration path) and v3 saves, where each case loads valid or fails closed untouched.
+
+## D-106 — Home layout polish: no repeated lines (2026-10-16)
+
+**Context.** The editor-rendered Home showed the same sentence twice (the glance "what changed" and "attention" lines were both "Clear the old trailhead is complete."). An empty queue also printed both "Nothing is being restored right now." and "Nothing is being restored yet. Choose a project to begin."
+
+**Decision.** Home drops the glance "restoring now" sentence when the queue is empty (the empty-state line keeps the call to action), and shows each line once, with ordinal de-duplication and the first occurrence kept. Read models and copy are unchanged; this is shell-only, with no save or content change.
+
+**Tests:** EditMode `HomeLayoutPolishTests` (3 cases). Evidence: `docs/evidence/d106-home/` holds before/after PNGs (editor-rendered, llvmpipe) and EditMode 154/154 (Unity-editor-tested). Device rendering is UNVERIFIED (KI-002).
