@@ -178,6 +178,7 @@ namespace WalkGame.Shell
                 case ShellScreen.BootError: return BootErrorScreen();
                 case ShellScreen.Guide: return Guide();
                 case ShellScreen.Region: return Region();
+                case ShellScreen.Story: return Story();
                 default: throw new InvalidOperationException("Unmapped screen " + Current);
             }
         }
@@ -209,6 +210,7 @@ namespace WalkGame.Shell
             if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", "While you were away"));
             m.Actions.Add(new ShellAction("nav:Projects", "Projects"));
             m.Actions.Add(new ShellAction("nav:Region", "The valley"));
+            m.Actions.Add(new ShellAction("nav:Story", "Story"));
             m.Actions.Add(new ShellAction("nav:ActivityStatus", "Activity"));
             m.Actions.Add(new ShellAction("nav:Settings", "Settings"));
             if (_devTools) m.Actions.Add(new ShellAction("dev:walk", "[dev] Simulate a day of walking"));
@@ -235,6 +237,9 @@ namespace WalkGame.Shell
                 foreach (var item in s.Items) m.Lines.Add((item.IsCurrent ? "" : "Earlier: ") + item.Text);
             }
             if (s != null) m.Actions.Add(new ShellAction("ack", "Continue"));
+            // D-076: a chapter moment is a Transformation item; offer the journal after the primary Continue.
+            if (s != null && s.Items.Any(i => i.IsCurrent && i.Text.StartsWith(ChapterMomentPrefix, StringComparison.Ordinal)))
+                m.Actions.Add(new ShellAction("nav:Story", "Read the new chapter"));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
@@ -286,6 +291,44 @@ namespace WalkGame.Shell
             m.Lines.Add(r.ExpeditionsAvailable == 0 && r.ExpeditionsCompleted == 0
                 ? "No expedition routes are open yet. Restoring the valley opens them."
                 : r.ExpeditionsAvailable + " expedition routes open, " + r.ExpeditionsCompleted + " completed.");
+            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            return m;
+        }
+
+        /// <summary>Prefix the composer uses for chapter moments (ReturnSummaryComposer, D-076).</summary>
+        public const string ChapterMomentPrefix = "New chapter: ";
+
+        /// <summary>
+        /// Story journal (D-076). Unlocked chapters show title and text in reading order; the
+        /// next locked chapter shows its gentle hint; later chapters show only their titles so
+        /// the journal never spoils the story and never uses guilt language.
+        /// </summary>
+        private ScreenModel Story()
+        {
+            var story = _session.GetStory();
+            var m = With(ShellScreen.Story, "Story");
+            m.Lines.Add(story.UnlockedCount == story.TotalChapters
+                ? "You have read the whole story of the valley. It stays here to reread."
+                : story.UnlockedCount + " of " + story.TotalChapters + " chapters unlocked. Restoring the valley reveals the next one.");
+            bool hinted = false;
+            foreach (var c in story.Chapters)
+            {
+                string heading = c.Number == 0 ? "Prologue · " + c.TitleKey : "Chapter " + c.Number + " · " + c.TitleKey;
+                if (c.Unlocked)
+                {
+                    m.Lines.Add(heading);
+                    if (!string.IsNullOrWhiteSpace(c.BodyKey)) m.Lines.Add(c.BodyKey!);
+                }
+                else if (!hinted)
+                {
+                    hinted = true;
+                    m.Lines.Add(heading + " (next). " + c.HintKey);
+                }
+                else
+                {
+                    m.Lines.Add(heading + " (ahead)");
+                }
+            }
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
