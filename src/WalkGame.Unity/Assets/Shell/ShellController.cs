@@ -6,6 +6,7 @@ using WalkGame.Application.Activity;
 using WalkGame.Application.Development;
 using WalkGame.Application.Persistence;
 using WalkGame.Application.ReadModels;
+using WalkGame.Application.Ux;
 using WalkGame.Domain.Common;
 using WalkGame.Domain.Projects;
 
@@ -44,7 +45,8 @@ namespace WalkGame.Shell
             _notice = notice;
             _error = null;
             Current = screen;
-            if (_booted && _session.GetPendingReturnSummary() != null) Current = ShellScreen.ReturnSummary;
+            if (_booted && OnboardingIncomplete()) Current = ShellScreen.Guide;
+            else if (_booted && _session.GetPendingReturnSummary() != null) Current = ShellScreen.ReturnSummary;
         }
 
         /// <summary>App returned to the foreground: re-run Continue() so offline progress and a return summary appear.</summary>
@@ -70,10 +72,16 @@ namespace WalkGame.Shell
                 case "start":
                     var started = _session.StartNewGame(_seedSource());
                     LastStartStatus = started.Status;
-                    if (started.Status == StartStatus.NewGameCreated) { _booted = true; Current = ShellScreen.Home; }
+                    if (started.Status == StartStatus.NewGameCreated)
+                    {
+                        _booted = true;
+                        Check(_session.AdvanceOnboarding(OnboardingStage.WorldBaseline));
+                        Current = OnboardingIncomplete() ? ShellScreen.Guide : ShellScreen.Home;
+                    }
                     else _error = "Could not start a new game (" + started.Status + "): " + started.Detail;
                     return;
                 case "retry": Boot(); return;
+                case "guide:next": GuideNext(); return;
                 case "ack": if (Check(_session.AcknowledgeReturnSummary())) Current = ShellScreen.Home; return;
                 case "toggle:reducedMotion": Check(_session.SetReducedMotion(!_session.GetSettings().ReducedMotion)); return;
                 case "toggle:sound": Check(_session.SetSoundEnabled(!_session.GetSettings().SoundEnabled)); return;
@@ -95,6 +103,16 @@ namespace WalkGame.Shell
                     return;
                 default: _error = "Unknown action: " + actionId; return;
             }
+        }
+
+        private bool OnboardingIncomplete() => _session.GetOnboarding().CurrentStage < OnboardingStage.Complete;
+
+        private void GuideNext()
+        {
+            var stage = _session.GetOnboarding().CurrentStage;
+            if (stage < OnboardingStage.WorldBaseline) stage = OnboardingStage.Premise;
+            var next = stage + 1;
+            if (Check(_session.AdvanceOnboarding(next)) && next == OnboardingStage.Complete) Current = ShellScreen.Home;
         }
 
         private void MoveUp(string projectId)
@@ -132,6 +150,7 @@ namespace WalkGame.Shell
                 case ShellScreen.DeleteConfirm: return DeleteConfirm();
                 case ShellScreen.ActivityStatus: return Activity();
                 case ShellScreen.BootError: return BootErrorScreen();
+                case ShellScreen.Guide: return Guide();
                 default: throw new InvalidOperationException("Unmapped screen " + Current);
             }
         }
@@ -141,8 +160,9 @@ namespace WalkGame.Shell
 
         private ScreenModel Onboarding()
         {
-            var m = With(ShellScreen.Onboarding, "A quiet world, waiting");
-            m.Lines.Add("Your walks restore a forgotten valley. Nothing is lost while you are away.");
+            var m = With(ShellScreen.Onboarding, "Your movement restores this world");
+            m.Lines.Add("A forgotten valley is waiting. Each walk you take brings it back, a little at a time.");
+            m.Lines.Add("Nothing is lost while you are away.");
             m.Actions.Add(new ShellAction("start", "Begin restoring"));
             return m;
         }
@@ -229,6 +249,59 @@ namespace WalkGame.Shell
             if (!a.HasProcessedAnyRecord) m.Lines.Add("No walking data has been received yet.");
             else m.Lines.Add("Last batch credited " + a.LastBatchVitalityCredited + " vitality.");
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            return m;
+        }
+
+        /// <summary>UX_DESIGN §11: one calm step per screen, no carousel. Forward-only and resumable (D-042).</summary>
+        private ScreenModel Guide()
+        {
+            var ob = _session.GetOnboarding();
+            ScreenModel m;
+            switch (ob.CurrentStage)
+            {
+                case OnboardingStage.NotStarted:
+                case OnboardingStage.Premise:
+                case OnboardingStage.WorldBaseline:
+                    m = With(ShellScreen.Guide, "The valley today");
+                    var home = _session.GetHome();
+                    var damaged = home.Landmarks.FirstOrDefault();
+                    m.Lines.Add(damaged != null
+                        ? damaged.TitleKey + " is still damaged (stage " + damaged.Stage + "). Your walks will bring it back."
+                        : "The valley is quiet and worn. Your walks will bring it back.");
+                    m.Actions.Add(new ShellAction("guide:next", "Continue"));
+                    break;
+                case OnboardingStage.ActivityConnection:
+                    m = With(ShellScreen.Guide, "Connect your walking");
+                    m.Lines.Add("The game reads only your step counts, on this device. Nothing is uploaded.");
+                    m.Lines.Add("Activity source: " + _session.GetActivityStatus().Status + ".");
+                    m.Lines.Add("You can keep going without connecting; nothing is locked.");
+                    m.Actions.Add(new ShellAction("guide:next", "Continue"));
+                    break;
+                case OnboardingStage.FirstProject:
+                    m = With(ShellScreen.Guide, "Choose a first restoration");
+                    if (ob.FirstProjectChosen)
+                    {
+                        m.Lines.Add("Good choice. It will grow as you move.");
+                        m.Actions.Add(new ShellAction("guide:next", "Continue"));
+                    }
+                    else
+                    {
+                        m.Lines.Add("Pick one place to restore first. You can change the order later.");
+                        foreach (var r in _session.GetProjects().Projects.Where(r => r.Status == ProjectStatus.Available))
+                            m.Actions.Add(new ShellAction("queue:" + r.ProjectId, "Restore " + r.TitleKey));
+                    }
+                    break;
+                case OnboardingStage.Simulation:
+                    m = With(ShellScreen.Guide, "Progress while you're away");
+                    m.Lines.Add("Steps you take with the app closed still count. When you return, you'll see what changed.");
+                    m.Actions.Add(new ShellAction("guide:next", "Continue"));
+                    break;
+                default:
+                    m = With(ShellScreen.Guide, "That's all");
+                    m.Lines.Add("You don't need to keep the app open. Walk as you normally do and check in whenever you like.");
+                    m.Actions.Add(new ShellAction("guide:next", "Go to the valley"));
+                    break;
+            }
             return m;
         }
 

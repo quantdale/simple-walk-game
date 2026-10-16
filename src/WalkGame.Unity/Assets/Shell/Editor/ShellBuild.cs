@@ -30,7 +30,9 @@ namespace WalkGame.Shell.Editor
             PlayerSettings.productName = "Simple Walk Game";
             PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android, "com.quantdale.simplewalkgame");
             PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
-            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+            // WG_ANDROID_ARCH=x86_64 builds an emulator-only APK (the box's emulator runs x86_64 images).
+            PlayerSettings.Android.targetArchitectures =
+                Environment.GetEnvironmentVariable("WG_ANDROID_ARCH") == "x86_64" ? AndroidArchitecture.X86_64 : AndroidArchitecture.ARM64;
             EditorUserBuildSettings.buildAppBundle = false;
             var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
             {

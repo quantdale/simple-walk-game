@@ -36,10 +36,41 @@ namespace WalkGame.Shell
             _controller = new ShellController(CreateSession(SaveDirectory),
                 () => (ulong)DateTime.UtcNow.Ticks, Debug.isDebugBuild);
             _controller.Boot();
+            Debug.Log("WG_BOOT status=" + _controller.LastStartStatus + " screen=" + _controller.Current + " dir=" + SaveDirectory);
 
             _document = gameObject.AddComponent<UIDocument>();
-            _document.panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
+            var panel = ScriptableObject.CreateInstance<PanelSettings>();
+            panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("ShellTheme");
+            if (panel.themeStyleSheet == null) Debug.LogWarning("WG_THEME missing: Resources/ShellTheme.tss");
+            // 1 UI unit = 1 dp, so the 56-unit buttons are 56 dp touch targets on every density.
+            panel.scaleMode = PanelScaleMode.ConstantPhysicalSize;
+            panel.referenceDpi = 160;
+            panel.fallbackDpi = 160;
+            _document.panelSettings = panel;
             Redraw();
+            // Development-only emulator autodrive: `adb shell run-as <pkg> touch files/wg-autodrive`.
+            if (Debug.isDebugBuild && System.IO.File.Exists(System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, "wg-autodrive")))
+                StartCoroutine(AutoDrive());
+        }
+
+        private static readonly string[] AutoDriveSteps =
+            { "start", "guide:next", "guide:next", "queue:FIRST", "guide:next", "guide:next", "guide:next", "nav:Projects", "nav:Settings", "toggle:reducedMotion", "delete:request", "delete:cancel", "delete:request", "delete:confirm", "start", "dev:walk", "nav:ActivityStatus", "nav:Home" };
+
+        private System.Collections.IEnumerator AutoDrive()
+        {
+            for (int i = 0; i < AutoDriveSteps.Length; i++)
+            {
+                yield return new WaitForSecondsRealtime(25f);
+                if (_controller == null) yield break;
+                string id = AutoDriveSteps[i];
+                if (id == "queue:FIRST")
+                    id = System.Linq.Enumerable.FirstOrDefault(_controller.Render().Actions, a => a.Id.StartsWith("queue:"))?.Id ?? "nav:Home";
+                Debug.Log("WG_STEP " + i + " action=" + id);
+                try { _controller.Invoke(id); }
+                catch (Exception ex) { Debug.LogError("WG_STEP " + i + " action=" + id + " EXCEPTION " + ex); }
+                Redraw();
+            }
+            Debug.Log("WG_AUTODRIVE_DONE");
         }
 
         private void OnApplicationPause(bool paused)
@@ -52,7 +83,9 @@ namespace WalkGame.Shell
         private void Redraw()
         {
             if (_controller == null || _document == null) return;
-            ShellView.Render(_document.rootVisualElement, _controller.Render(), id => { _controller.Invoke(id); Redraw(); });
+            var model = _controller.Render();
+            Debug.Log("WG_RENDER screen=" + model.Screen + " state=" + model.State + " lines=" + model.Lines.Count + " actions=" + model.Actions.Count + (model.Notice != null ? " notice=" + model.Notice : ""));
+            ShellView.Render(_document.rootVisualElement, model, id => { _controller.Invoke(id); Redraw(); });
         }
     }
 }

@@ -30,14 +30,14 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual(ShellScreen.BootError, BootRouter.Route(s).Screen);
         }
 
-        [Test] public void Fresh_install_goes_to_onboarding_then_home()
+        [Test] public void Fresh_install_goes_to_premise_then_guide()
         {
             var c = NewController();
             c.Boot();
             Assert.AreEqual(StartStatus.NoSaveFound, c.LastStartStatus);
             Assert.AreEqual(ShellScreen.Onboarding, c.Current);
             c.Invoke("start");
-            Assert.AreEqual(ShellScreen.Home, c.Current, c.Render().Notice);
+            Assert.AreEqual(ShellScreen.Guide, c.Current, c.Render().Notice);
             Assert.AreNotEqual(ScreenState.Error, c.Render().State);
         }
 
@@ -63,7 +63,7 @@ namespace WalkGame.Shell.Tests
             var c = NewController(); c.Boot(); c.Invoke("start"); c.Invoke("dev:walk");
             var c2 = NewController(); c2.Boot();
             Assert.That(c2.LastStartStatus, Is.EqualTo(StartStatus.Loaded).Or.EqualTo(StartStatus.RecoveredFromBackup));
-            Assert.That(c2.Current, Is.EqualTo(ShellScreen.Home).Or.EqualTo(ShellScreen.ReturnSummary));
+            Assert.That(c2.Current, Is.EqualTo(ShellScreen.Guide), "unfinished onboarding resumes after restart");
         }
 
         [Test] public void Every_screen_renders_without_error_after_new_game()
@@ -116,6 +116,48 @@ namespace WalkGame.Shell.Tests
             Assert.IsEmpty(Directory.GetFiles(_dir));
             var c2 = NewController(); c2.Boot();
             Assert.AreEqual(StartStatus.NoSaveFound, c2.LastStartStatus);
+        }
+
+        private static void FinishOnboarding(ShellController c)
+        {
+            for (int i = 0; i < 12 && c.Current == ShellScreen.Guide; i++)
+            {
+                var actions = c.Render().Actions;
+                var next = actions.FirstOrDefault(a => a.Id == "guide:next") ?? actions.First(a => a.Id.StartsWith("queue:"));
+                c.Invoke(next.Id);
+            }
+        }
+
+        [Test] public void Onboarding_walks_every_stage_and_lands_on_home()
+        {
+            var c = NewController(); c.Boot(); c.Invoke("start");
+            var titles = new System.Collections.Generic.List<string>();
+            for (int i = 0; i < 12 && c.Current == ShellScreen.Guide; i++)
+            {
+                var m = c.Render();
+                Assert.AreNotEqual(ScreenState.Error, m.State, m.Notice);
+                titles.Add(m.Title);
+                var next = m.Actions.FirstOrDefault(a => a.Id == "guide:next") ?? m.Actions.First(a => a.Id.StartsWith("queue:"));
+                c.Invoke(next.Id);
+            }
+            Assert.AreEqual(ShellScreen.Home, c.Current);
+            CollectionAssert.IsSubsetOf(new[] { "The valley today", "Connect your walking", "Choose a first restoration", "Progress while you're away", "That's all" }, titles);
+            var c2 = NewController(); c2.Boot();
+            Assert.That(c2.Current, Is.EqualTo(ShellScreen.Home).Or.EqualTo(ShellScreen.ReturnSummary));
+        }
+
+        [Test] public void First_project_step_offers_no_skip()
+        {
+            var c = NewController(); c.Boot(); c.Invoke("start");
+            for (int i = 0; i < 6; i++)
+            {
+                if (c.Render().Title == "Choose a first restoration") break;
+                c.Invoke("guide:next");
+            }
+            var m = c.Render();
+            Assert.AreEqual("Choose a first restoration", m.Title);
+            Assert.IsFalse(m.Actions.Any(a => a.Id == "guide:next"), "first project completes only through a real project operation");
+            Assert.IsTrue(m.Actions.Any(a => a.Id.StartsWith("queue:")));
         }
 
         [Test] public void Save_directory_is_under_persistent_data_path()
