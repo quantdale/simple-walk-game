@@ -32,14 +32,14 @@ namespace WalkGame.Shell.PlayModeTests
             {
                 string screen = Environment.GetEnvironmentVariable("WG_CAPTURE_SCREEN") ?? "Region";
                 ShellController c;
-                if (screen == "Celebration" || screen == "Discoveries")
+                if (screen == "Celebration" || screen == "Discoveries" || screen == "EpilogueJournal")
                 {
                     // Seeded completed-region state through the real pipeline (CompletedRegionFixture).
                     c = CompletedRegionFixture.Build(dir, out var done, out _);
                     Assert.IsTrue(done.GetRegion().RegionCompleted);
                     // WG_CAPTURE_LOCALE=pseudo: the D-122 overlay with "[xx] " on every routed content string (KI-023).
                     if (Environment.GetEnvironmentVariable("WG_CAPTURE_LOCALE") == "pseudo") done.ContentLocale = PseudoLocale();
-                    c.Invoke(screen == "Celebration" ? "nav:ReturnSummary" : "nav:Discoveries");
+                    c.Invoke(screen == "Celebration" ? "nav:ReturnSummary" : screen == "EpilogueJournal" ? "nav:Story" : "nav:Discoveries"); // EpilogueJournal: D-129 journal on a completed region
                 }
                 else if (screen == "Onboarding")
                 {

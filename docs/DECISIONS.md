@@ -2613,3 +2613,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `NullBoundaryTests` (6). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-133 — Epilogue journal PNG and the post-restoration progress line (2026-10-17)
+
+**Context.** The first editor-rendered capture of the D-129 epilogue journal (a completed region through `CompletedRegionFixture`) showed "9 of 10 chapters unlocked. Restoring the valley reveals the next one." That line is wrong once the valley is restored, because the last chapter needs a season of tending.
+
+**Decision.** `ShellController.StoryProgressLine(unlocked, total, regionCompleted)` uses `shell.story.progressTending` ("… Tending the restored valley reveals the last one.") after restoration. The capture gains `WG_CAPTURE_SCREEN=EpilogueJournal`. Evidence: `docs/evidence/d133-epilogue-journal/` (editor-rendered, before and after).
+
+**Tests.** EditMode `D133_progress_line_after_restoration_points_to_tending_not_restoring`. Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None (presentation only).

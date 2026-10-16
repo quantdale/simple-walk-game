@@ -133,5 +133,11 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual("nav:Home", outline.Last().ActionId);
             Assert.AreEqual(m.Lines.Count + 2, outline.Count);
         }
+        [Test] public void D133_progress_line_after_restoration_points_to_tending_not_restoring()
+        {
+            Assert.AreEqual("9 of 10 chapters unlocked. Tending the restored valley reveals the last one.", ShellController.StoryProgressLine(9, 10, true));
+            Assert.AreEqual("1 of 10 chapters unlocked. Restoring the valley reveals the next one.", ShellController.StoryProgressLine(1, 10, false));
+            Assert.AreEqual(PlayerStrings.T("shell.youHaveReadThe"), ShellController.StoryProgressLine(10, 10, true));
+        }
     }
 }
