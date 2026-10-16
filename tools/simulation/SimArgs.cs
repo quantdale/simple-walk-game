@@ -51,13 +51,14 @@ internal sealed class SimArgs
     private const string ProfileName = "--profile";
     private const string Shape = "--shape";
     private const string Iterations = "--iterations";
+    private const string Cadence = "--cadence";
 
     private static readonly HashSet<string> KnownFlags = new(StringComparer.Ordinal)
     {
-        Save, Seed, At, Vitality, Id, Reason, To, Days, Start, StepsPerDay, Selftest, Replay, ProfileName, Shape, Iterations,
+        Save, Seed, At, Vitality, Id, Reason, To, Days, Start, StepsPerDay, Selftest, Replay, ProfileName, Shape, Iterations, Cadence,
     };
 
-    private static readonly HashSet<string> BooleanFlags = new(StringComparer.Ordinal) { Selftest, Replay };
+    private static readonly HashSet<string> BooleanFlags = new(StringComparer.Ordinal) { Selftest, Replay, Cadence };
 
     private readonly Dictionary<string, string> _values = new(StringComparer.Ordinal);
 

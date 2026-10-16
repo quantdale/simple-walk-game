@@ -1,0 +1,19 @@
+# Visible-change cadence, 2026-10-16 (tools/simulation profile --cadence, seed 42, Region 1)
+== high
+region completed: yes on day 77
+cadence: first visible change: day 2; longest gap without change: 20 days; visible changes: 19 in 77 days (7.4 per 30 days)
+== irregular
+region completed: yes on day 109
+cadence: first visible change: day 2; longest gap without change: 29 days; visible changes: 19 in 109 days (5.2 per 30 days)
+== moderate
+region completed: yes on day 192
+cadence: first visible change: day 4; longest gap without change: 50 days; visible changes: 19 in 192 days (3.0 per 30 days)
+== weekend-heavy
+region completed: yes on day 158
+cadence: first visible change: day 3; longest gap without change: 42 days; visible changes: 19 in 158 days (3.6 per 30 days)
+== low
+region completed: NO (horizon reached)
+cadence: first visible change: day 10; longest gap without change: 78 days; visible changes: 15 in 400 days (1.1 per 30 days)
+== inactivity
+region completed: yes on day 376
+cadence: first visible change: day 5; longest gap without change: 86 days; visible changes: 19 in 376 days (1.5 per 30 days)

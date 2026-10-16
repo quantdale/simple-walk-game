@@ -1921,3 +1921,23 @@ not complete M5 as a roadmap milestone.
 
 **Consequences / open:** if a change token expires (Health Connect keeps change logs for a limited time), tracking restarts and deletions inside the gap are missed (`changesGap` flag stored; KI-016). Device behaviour is UNVERIFIED (KI-002).
 
+## D-070 — Balance cadence: "visible change" gaps are measured per profile (targets provisional)
+
+**Status:** Accepted as a measurement (2026-10-16, executor campaign); the targets are **provisional, not ratified**. They await the product owner.
+
+**Context.** The D-062 pacing contract proves each profile can *finish* Region 1. It says nothing about the felt experience: how long a player walks before they *see* anything change. For a low-attention game that is the main quitting risk.
+
+**Decision.**
+- A **visible change** is a landmark stage advance, a restoration finishing, or a discovery unlocking: things the Region screen and the return summary show. Vitality totals alone do not count. `VisibleChangeTracker` / `CadenceReport` (Application/Pacing) compute it from read models only. The CLI prints it with `profile --cadence`; the flag is opt-in, so the committed pacing evidence still reproduces byte-for-byte.
+- **Measured baseline** (`docs/evidence/balance/cadence-2026-10-16.txt`), longest gap without change:
+  - high 20 days
+  - irregular 29
+  - moderate 50
+  - weekend-heavy 42
+  - low 78
+  - inactivity 86 (includes its 45-day absence)
+- **Regression guards** (`VisibleChangeCadenceTests`): high ≤ 21, irregular ≤ 30, low ≤ 78. They stop the cadence getting worse; they are not targets.
+- **Proposed targets for ratification:** longest gap ≤ 30 days for every active profile; first change within 10 days, even for low. Moderate, weekend-heavy and low currently miss the 30-day target (KI-017).
+
+**Not done here:** changing costs or the conversion rate. Those are ratified numbers (D-062) and need an owner decision. Candidate levers, which keep the D-062 closure numbers intact: split the large late-chain projects into smaller visible stages, or add intermediate landmark stages or discoveries to the woodland/wetland chains.
+
