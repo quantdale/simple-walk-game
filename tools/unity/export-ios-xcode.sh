@@ -5,7 +5,9 @@
 set -uo pipefail
 root="$(git rev-parse --show-toplevel)"
 unity="${UNITY:-$HOME/Unity/Hub/Editor/6000.3.26f1/Editor/Unity}"
-ev="$root/${EVIDENCE_DIR:-docs/evidence/ios-xcode-export}"; mkdir -p "$ev"
+ev="${EVIDENCE_DIR:-docs/evidence/ios-xcode-export}"; case "$ev" in /*) ;; *) ev="$root/$ev" ;; esac; mkdir -p "$ev"  # absolute EVIDENCE_DIR is used as-is
+[ -d "$(dirname "$unity")/Data/PlaybackEngines/iOSSupport" ] || {
+  echo "iOS Build Support module missing: unity install-modules -e 6000.3.26f1 -m ios --accept-eula (needs apt xz-utils cpio p7zip-full)" >&2; exit 2; }
 "$root/tools/unity/sync-plugins.sh" >/dev/null
 export WG_XCODE_PATH="$root/src/WalkGame.Unity/Build/iOS/xcode"
 rm -rf "$WG_XCODE_PATH"

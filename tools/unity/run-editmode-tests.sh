@@ -6,7 +6,7 @@ set -uo pipefail
 root="$(git rev-parse --show-toplevel)"
 unity="${UNITY:-$HOME/Unity/Hub/Editor/6000.3.26f1/Editor/Unity}"
 platform="${TEST_PLATFORM:-EditMode}"; lc="$(echo "$platform" | tr A-Z a-z)"
-ev="$root/${EVIDENCE_DIR:-docs/evidence/m5-u1}"; mkdir -p "$ev"
+ev="${EVIDENCE_DIR:-docs/evidence/m5-u1}"; case "$ev" in /*) ;; *) ev="$root/$ev" ;; esac; mkdir -p "$ev"  # absolute EVIDENCE_DIR is used as-is
 "$root/tools/unity/sync-plugins.sh" >/dev/null
 "$unity" -batchmode -nographics -projectPath "$root/src/WalkGame.Unity" \
   -runTests -testPlatform "$platform" -testResults "$ev/$lc-results.xml" \
