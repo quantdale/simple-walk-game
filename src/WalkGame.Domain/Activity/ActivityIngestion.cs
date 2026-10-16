@@ -31,7 +31,37 @@ namespace WalkGame.Domain.Activity
         DateTimeOffset StartUtc,
         DateTimeOffset EndUtc,
         int Revision = 1,
-        bool IsDeletion = false);
+        bool IsDeletion = false,
+        int? EndZoneOffsetSeconds = null);
+
+    /// <summary>
+    /// Local calendar day numbers for "days walked" (D-103). A day number is the count of
+    /// days since 0001-01-01 of the record end's LOCAL date under the provider's zone offset.
+    /// Integer-only and deterministic; no zone database and no device clock are consulted.
+    /// </summary>
+    public static class LocalDayCalendar
+    {
+        /// <summary>Largest offset accepted (ISO 8601 / java.time bound).</summary>
+        public const int MaxOffsetSeconds = 18 * 3600;
+
+        /// <summary>
+        /// Widest UTC span one local date can cover for real-world offsets (-12 h .. +14 h):
+        /// 24 h + 26 h. Used only to derive the legacy lower bound (MigrationV2ToV3).
+        /// </summary>
+        public static readonly TimeSpan MaxLocalDateUtcSpan = TimeSpan.FromHours(50);
+
+        public static int? DayOf(DateTimeOffset endUtc, int? offsetSeconds)
+        {
+            if (offsetSeconds == null) return null;
+            int off = offsetSeconds.Value;
+            if (off > MaxOffsetSeconds || off < -MaxOffsetSeconds) return null;
+            long ticks = endUtc.UtcTicks + off * TimeSpan.TicksPerSecond;
+            if (ticks < 0L || ticks > DateTime.MaxValue.Ticks) return null;
+            return (int)(ticks / TimeSpan.TicksPerDay);
+        }
+
+        public static int UtcDayOf(DateTimeOffset instant) => (int)(instant.UtcTicks / TimeSpan.TicksPerDay);
+    }
 
     public enum ActivityValidationStatus
     {
@@ -353,7 +383,8 @@ namespace WalkGame.Domain.Activity
         long VitalityCredited,
         DateTimeOffset ProcessedAtUtc,
         int LastRevision = 1,
-        DateTimeOffset? RecordEndUtc = null);
+        DateTimeOffset? RecordEndUtc = null,
+        int? LocalDay = null);
 
     /// <summary>
     /// Append-only processed-record ledger: the durable dedup structure answering
@@ -421,6 +452,7 @@ namespace WalkGame.Domain.Activity
             if (!Entries.TryAdd(entry.IdentityKey, entry))
                 throw new InvalidOperationException("Processed-record ledger already contains '" + entry.IdentityKey + "'.");
             MaintainedVitalityCredited = checked(baseline + entry.VitalityCredited);
+            NoteCredit(entry);
         }
 
         /// <summary>Replaces an existing row during correction processing; must already exist.</summary>
@@ -432,6 +464,70 @@ namespace WalkGame.Domain.Activity
             long baseline = HydratedTotal();
             Entries[entry.IdentityKey] = entry;
             MaintainedVitalityCredited = checked(baseline - previous.VitalityCredited + entry.VitalityCredited);
+            NoteCredit(entry);
+            if (previous.LocalDay is int oldDay && previous.EligibleSteps > 0L
+                && !(entry.LocalDay == oldDay && entry.EligibleSteps > 0L))
+                MaybeForgetDay(oldDay);
+        }
+
+        // ---- Days walked (D-103) -------------------------------------------------------
+
+        /// <summary>Sorted distinct local day numbers with at least one credited step record. Never pruned by retirement.</summary>
+        public List<int> WalkedLocalDays { get; } = new List<int>();
+
+        /// <summary>Proven lower bound of days walked before the v3 migration (MigrationV2ToV3); 0 on fresh saves.</summary>
+        public int LegacyDaysLowerBound { get; set; }
+
+        /// <summary>UTC day number of the latest legacy record end counted by the migration; null when none.</summary>
+        public int? LegacyLastUtcDay { get; set; }
+
+        /// <summary>True when the save was migrated with any credited or retired history: the count is a lower bound.</summary>
+        public bool IsLegacyLowerBound { get; set; }
+
+        /// <summary>True once a step record was credited without a known local day (no provider offset).</summary>
+        public bool HasUndatedCredits { get; set; }
+
+        /// <summary>Latest local day among retired rows; a deletion can never un-count a day at or before it.</summary>
+        public int? RetiredThroughLocalDay { get; set; }
+
+        /// <summary>
+        /// Days walked: legacy lower bound plus post-migration local days that cannot coincide
+        /// with a legacy day (a legacy record's local date is at most its UTC date + 1).
+        /// </summary>
+        public int DaysWalkedCount
+        {
+            get
+            {
+                int n = LegacyDaysLowerBound;
+                foreach (var d in WalkedLocalDays)
+                    if (LegacyLastUtcDay == null || d > LegacyLastUtcDay.Value + 1) n++;
+                return n;
+            }
+        }
+
+        public bool DaysWalkedIsLowerBound => IsLegacyLowerBound || HasUndatedCredits;
+
+        private void NoteCredit(ProcessedRecordEntry entry)
+        {
+            if (entry.EligibleSteps <= 0L) return;
+            if (entry.LocalDay is int day)
+            {
+                int i = WalkedLocalDays.BinarySearch(day);
+                if (i < 0) WalkedLocalDays.Insert(~i, day);
+            }
+            else
+            {
+                HasUndatedCredits = true;
+            }
+        }
+
+        private void MaybeForgetDay(int day)
+        {
+            if (RetiredThroughLocalDay is int r && day <= r) return;
+            foreach (var other in Entries.Values)
+                if (other.LocalDay == day && other.EligibleSteps > 0L) return;
+            int i = WalkedLocalDays.BinarySearch(day);
+            if (i >= 0) WalkedLocalDays.RemoveAt(i);
         }
 
         /// <summary>
@@ -467,6 +563,8 @@ namespace WalkGame.Domain.Activity
                 RetiredIdentities.Add(entry.IdentityKey);
                 _retiredIndex!.Add(entry.IdentityKey);
                 RetiredVitalityCredited = checked(RetiredVitalityCredited + entry.VitalityCredited);
+                if (entry.LocalDay is int rd && (RetiredThroughLocalDay == null || rd > RetiredThroughLocalDay.Value))
+                    RetiredThroughLocalDay = rd;
             }
             RetiredCount += n;
             LastRetiredAtUtc = nowUtc;

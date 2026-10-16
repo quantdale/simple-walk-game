@@ -522,8 +522,21 @@ namespace WalkGame.Shell
             foreach (var line in ProgressLines(vitality, home.CompletedProjects, home.TotalProjects, disc.UnlockedCount, disc.TotalDiscoveries,
                          story.UnlockedCount, story.TotalChapters, home.RegionComplete))
                 m.Lines.Add(line);
+            // D-103: days walked, before the closing reassurance line; "at least" when the
+            // count is a proven lower bound (migrated save, or walks without a local date).
+            var days = _session.GetDaysWalked();
+            string daysLine = DaysWalkedLine(days.Days, days.IsLowerBound);
+            if (daysLine != null) m.Lines.Insert(Math.Max(0, m.Lines.Count - 1), daysLine);
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
+        }
+
+        /// <summary>D-103 days-walked copy; null when no day is known yet (the empty-state line covers it).</summary>
+        public static string DaysWalkedLine(int days, bool isLowerBound)
+        {
+            if (days <= 0) return null;
+            string unit = days == 1 ? " day." : " days.";
+            return (isLowerBound ? "You have walked on at least " : "You have walked on ") + days + unit;
         }
 
         /// <summary>D-099 Progress copy, pure so every state can be checked without a session.</summary>

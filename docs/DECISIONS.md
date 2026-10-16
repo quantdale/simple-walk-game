@@ -2281,6 +2281,24 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 
 **Also in this change (hardening).** `TitleMatchingInvariantTests` (3 .NET cases). Summary items are text-only and the shell links them to content by title (moment rings by substring, D-100 lines by exact project title). These cases assert that project titles are unique, that landmark titles are unique and none contains another, and that a project title naming a landmark only does so when it raises that landmark.
 
+## D-103 — "Days walked" ships: local date per record, maintained count, "at least N" for legacy saves (2026-10-16)
+
+**Approval.** The OpenSpec change `openspec/changes/add-days-walked-count/` was approved by the executing agent. Repository policy allows it: the change is Region 1 scope, and the only gates on agent approval are D-011 and the ROADMAP post-MVP gate, which cover Region 2. It follows the save-migration policy in `openspec/config.yaml` (a registered `ISaveMigration` plus a mature-save fixture test).
+
+**Decision.** It implements the design that D-102 named:
+- `NormalizedActivityRecord.EndZoneOffsetSeconds` is optional and outside identity. The Health Connect bridge sends it as an optional sixth field.
+- `ProcessedRecordEntry.LocalDay` stores the record's local date.
+- `ProcessedRecordLedgerState` maintains `WalkedLocalDays` (sorted, distinct). It is updated on credit, on correction and on deletion (a day is removed only when no other retained row credits it and the day is after every retired row's day). Retirement never prunes it.
+- Schema v2 → v3 (`MigrationV2ToV3`) seeds a proven lower bound: the minimum number of local dates that can explain the retained credited end instants (greedy 50 h cover; offsets −12…+14 h). Retired rows add nothing, so the result is a lower bound and is flagged.
+- Post-migration days on or before the last legacy UTC day + 1 are not added, so the count never overlaps the legacy seed.
+- The Progress screen says "You have walked on N days." or, for a lower bound, "at least N days". A credit without an offset (fixture and dev sources) also makes the count a lower bound.
+
+**Rejected:** a UTC-date count, and seeding from the device's current zone. D-102 explains both.
+
+**Tests:** `DaysWalkedTests` (Domain, 9), `DaysWalkedSessionTests` (5), `MigrationV2ToV3Tests` (3), adapter sixth-field tests (3), EditMode `ProgressScreenTests` +2. Existing schema-literal assertions now use `SchemaVersions.Current` and the extended chain; no test was deleted.
+
+**Gaps:** The Health Connect `endZoneOffset` read on a device is UNVERIFIED (KI-002). The Java change is compiled only when the APK is built.
+
 ## D-104 — Calm, optional sound cues on return moments (2026-10-16)
 
 **Context.** Settings had a sound toggle but the game played no sound. UX_DESIGN asks for calm feedback that never nags.

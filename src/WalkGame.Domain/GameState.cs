@@ -13,7 +13,7 @@ namespace WalkGame.Domain
     public static class SchemaVersions
     {
         /// <summary>Current canonical save schema version. Bump requires a registered migration.</summary>
-        public const int Current = 2;
+        public const int Current = 3;
 
         public const int MinimumSupported = 1;
     }
