@@ -17,11 +17,11 @@ namespace WalkGame.Shell
         {
             switch (status)
             {
-                case Domain.Projects.ProjectStatus.Available: return "ready to start";
-                case Domain.Projects.ProjectStatus.Queued: return "waiting, " + Ordinal((queuedPosition ?? 0) + 1) + " in line";
-                case Domain.Projects.ProjectStatus.Active: return "being restored now";
-                case Domain.Projects.ProjectStatus.Completed: return "restored";
-                default: return "not open yet";
+                case Domain.Projects.ProjectStatus.Available: return PlayerStrings.T("project.status.available");
+                case Domain.Projects.ProjectStatus.Queued: return PlayerStrings.F("project.status.queued", Ordinal((queuedPosition ?? 0) + 1));
+                case Domain.Projects.ProjectStatus.Active: return PlayerStrings.T("project.status.active");
+                case Domain.Projects.ProjectStatus.Completed: return PlayerStrings.T("project.status.completed");
+                default: return PlayerStrings.T("project.status.locked");
             }
         }
 
@@ -29,14 +29,14 @@ namespace WalkGame.Shell
         {
             switch (status)
             {
-                case ActivityPlayerStatus.ConnectedCurrent: return "Connected. Your walks are being counted.";
-                case ActivityPlayerStatus.PermissionNeeded: return "Walking data is not connected yet. You can still explore everything.";
-                case ActivityPlayerStatus.PermissionDenied: return "Access to walking data is turned off. Your progress is safe, but new walks will not count until it is turned back on.";
-                case ActivityPlayerStatus.SourceUnavailable: return "This device has no walking data source we can read. Your progress is safe.";
-                case ActivityPlayerStatus.WaitingForFirstData: return "Connected. Waiting for your first walk to arrive.";
-                case ActivityPlayerStatus.RefreshTemporarilyFailed: return "We could not refresh your walks just now. Nothing is lost; we will try again.";
-                case ActivityPlayerStatus.ProviderUpdateRequired: return "Health Connect needs an update before new walks can count. Your progress is safe.";
-                default: return "Walking data status is unknown right now. Your progress is safe.";
+                case ActivityPlayerStatus.ConnectedCurrent: return PlayerStrings.T("activity.connected");
+                case ActivityPlayerStatus.PermissionNeeded: return PlayerStrings.T("activity.permissionNeeded");
+                case ActivityPlayerStatus.PermissionDenied: return PlayerStrings.T("activity.permissionDenied");
+                case ActivityPlayerStatus.SourceUnavailable: return PlayerStrings.T("activity.sourceUnavailable");
+                case ActivityPlayerStatus.WaitingForFirstData: return PlayerStrings.T("activity.waiting");
+                case ActivityPlayerStatus.RefreshTemporarilyFailed: return PlayerStrings.T("activity.refreshFailed");
+                case ActivityPlayerStatus.ProviderUpdateRequired: return PlayerStrings.T("activity.providerUpdate");
+                default: return PlayerStrings.T("activity.unknown");
             }
         }
 
@@ -45,10 +45,10 @@ namespace WalkGame.Shell
         {
             switch (action)
             {
-                case ActivityRecommendedAction.Connect: return "Next: connect your walking data.";
-                case ActivityRecommendedAction.OpenSettings: return "Next: turn access back on in your phone's settings.";
-                case ActivityRecommendedAction.RetryLater: return "Next: nothing to do. It will try again on its own.";
-                case ActivityRecommendedAction.UpdateProvider: return "Next: update Health Connect from your app store, then come back.";
+                case ActivityRecommendedAction.Connect: return PlayerStrings.T("activity.action.connect");
+                case ActivityRecommendedAction.OpenSettings: return PlayerStrings.T("activity.action.openSettings");
+                case ActivityRecommendedAction.RetryLater: return PlayerStrings.T("activity.action.retryLater");
+                case ActivityRecommendedAction.UpdateProvider: return PlayerStrings.T("activity.action.updateProvider");
                 default: return null;
             }
         }
@@ -59,12 +59,12 @@ namespace WalkGame.Shell
             switch (category)
             {
                 case "artifact": return "artifact";
-                case "infrastructure-history": return "piece of valley history";
-                case "settlement-story": return "settlement story";
-                case "archive-fragment": return "archive fragment";
-                case "flora": return "plant life";
+                case "infrastructure-history": return PlayerStrings.T("discovery.kind.infrastructure");
+                case "settlement-story": return PlayerStrings.T("discovery.kind.settlement");
+                case "archive-fragment": return PlayerStrings.T("discovery.kind.archive");
+                case "flora": return PlayerStrings.T("discovery.kind.flora");
                 case "wildlife": return "wildlife";
-                case "science-record": return "science record";
+                case "science-record": return PlayerStrings.T("discovery.kind.science");
                 default: return "find";
             }
         }

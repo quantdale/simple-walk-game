@@ -125,17 +125,17 @@ namespace WalkGame.Shell
             int restored = 0;
             foreach (var v in list) if (v.Stage >= RestorationStage.Restored) restored++;
             string alt = region.RegionCompleted
-                ? "A picture of the valley, green and fully restored."
-                : "A picture of the valley: " + restored + " of " + list.Count + " landmarks restored, the hills "
-                  + (green < 0.34f ? "still dry." : green < 0.67f ? "turning green." : "mostly green.");
+                ? PlayerStrings.T("scene.alt.complete")
+                : PlayerStrings.F("scene.alt.progress", restored, list.Count,
+                    PlayerStrings.T(green < 0.34f ? "scene.alt.hills.dry" : green < 0.67f ? "scene.alt.hills.greening" : "scene.alt.hills.green"));
             var amb = Ambient(list, green);
-            if (amb.Trail > 0) alt += amb.Trail == 1 ? " A footpath links two recovered places." : " Footpaths link " + (amb.Trail + 1) + " recovered places.";
-            if (amb.Birds > 0) alt += " Birds are back over the valley.";
+            if (amb.Trail > 0) alt += amb.Trail == 1 ? PlayerStrings.T("scene.alt.trail.one") : PlayerStrings.F("scene.alt.trail.many", amb.Trail + 1);
+            if (amb.Birds > 0) alt += PlayerStrings.T("scene.alt.birds");
             int moments = 0;
             foreach (var v in list) if (v.Changed) moments++;
             if (moments > 0)
-                alt += moments == 1 ? " One landmark that changed while you were away is circled."
-                                    : " " + moments + " landmarks that changed while you were away are circled.";
+                alt += moments == 1 ? PlayerStrings.T("scene.alt.moments.one")
+                                    : PlayerStrings.F("scene.alt.moments.many", moments);
             BuildSiteVisual? site = null;
             if (!region.RegionCompleted && region.ActiveProjectId != null && region.ActiveBuildStages > 1)
             {
@@ -143,7 +143,7 @@ namespace WalkGame.Shell
                 int stage = Math.Max(0, Math.Min(region.ActiveBuildStage, stages - 1));
                 string t = PlayerCopy.Title(region.ActiveProjectTitleKey ?? string.Empty);
                 site = new BuildSiteVisual(t, stage, stages);
-                alt += " Work on " + t + " stands at stage " + (stage + 1) + " of " + stages + ".";
+                alt += PlayerStrings.F("scene.alt.build", t, stage + 1, stages);
             }
             return new RegionScene(list, green, region.RegionCompleted, alt, site);
         }
