@@ -99,6 +99,19 @@ namespace WalkGame.Shell
             Redraw();
         }
 
+        private ShellScreen? _lastScreen;
+        private AudioSource _audio;
+
+        private void PlayCue(SoundCue cue)
+        {
+            var samples = SoundCues.Samples(cue);
+            if (samples.Length == 0) return;
+            if (_audio == null) { _audio = gameObject.AddComponent<AudioSource>(); _audio.playOnAwake = false; }
+            var clip = AudioClip.Create("wg-cue-" + cue, samples.Length, 1, SoundCues.SampleRate, false);
+            clip.SetData(samples, 0);
+            _audio.PlayOneShot(clip);
+        }
+
         private void Redraw()
         {
             if (_controller == null || _document == null) return;
@@ -108,6 +121,9 @@ namespace WalkGame.Shell
             if (Debug.isDebugBuild) Debug.Log("WG_RENDER screen=" + model.Screen + " state=" + model.State + " lines=" + model.Lines.Count + " actions=" + model.Actions.Count + (model.Notice != null ? " notice=" + model.Notice : ""));
             System.Action<string> act = id => { _controller.Invoke(id); Redraw(); };
             ShellView.Render(_document.rootVisualElement, model, act, UnityEngine.Accessibility.AccessibilitySettings.fontScale);
+            // D-104: a calm cue only on arrival at a summary that earned one, and only with sound on.
+            if (SoundCues.ShouldPlay(_lastScreen, model)) PlayCue(model.Cue);
+            _lastScreen = model.Screen;
             ScreenReaderBridge.Publish(model, _document.rootVisualElement, act);
         }
     }

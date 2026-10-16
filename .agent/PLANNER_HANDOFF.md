@@ -103,3 +103,12 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Removed the 4 merged, clean -grok1929 worktrees (plain `git worktree remove`). Region 2 is still PROPOSED only.
 - Merged-tree check on this branch: .NET 703/703, EditMode 144/144 (Unity-editor-tested).
 - Next: the D-102 OpenSpec (local date per record); device lane (KI-002).
+
+## Session note 2026-10-16 (grok2019)
+- #74 (D-103): days walked is shipped. The OpenSpec `add-days-walked-count` was agent-approved (Region 1; D-011 gates only Region 2). It stores a local date per record (Health Connect endZoneOffset, an optional sixth bridge field), keeps a maintained distinct-day count, and migrates schema v2→v3 to a proven lower bound shown as "at least N". Health Connect offset on a device: UNVERIFIED (KI-002).
+- #75: balance check. Low, irregular and high were rerun and all are on target (high d77, irregular d109, low exempt; gaps 27/7/4). No tuning was needed. Evidence: `docs/evidence/balance/balance-check-2026-10-16-grok2019.txt`.
+- #77 (D-105): validator plausible-range rule for days walked, plus tamper tests and a 600-case fuzz.
+- This PR (D-104): calm optional sound cues on the return summary. They are synthesised, play only with sound on and only on arrival; adds the built-in audio module.
+- Counts: .NET 728/728 on main after #77; EditMode 151/151 on this branch merged with main before D-105 (Unity-editor-tested).
+- Removed the 3 merged, clean -grok1954 worktrees with plain `git worktree remove`. Region 2 is still PROPOSED only.
+- Next: Home layout polish with a PNG; device lane (KI-002); an APK build to compile the Java offset change.

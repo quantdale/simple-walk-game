@@ -2299,6 +2299,21 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 
 **Gaps:** The Health Connect `endZoneOffset` read on a device is UNVERIFIED (KI-002). The Java change is compiled only when the APK is built.
 
+## D-104 — Calm, optional sound cues on return moments (2026-10-16)
+
+**Context.** Settings had a sound toggle but the game played no sound. UX_DESIGN asks for calm feedback that never nags.
+
+**Decision.** There are three short cues, and they play only on a return summary that shows real change: Restoration (two rising notes), Chapter (three) and Celebration (four, Region 1 complete).
+- A cue plays only when the player's sound setting is on.
+- It plays once, on arrival at the screen. A redraw, a text-size change or a screen-reader refresh never repeats it.
+- Nothing else makes a sound: no taps, no reminders, no idle loops.
+- The samples are synthesised in code (`SoundCues.Samples`: soft sine tones with a raised-cosine envelope, peak 0.2 or about −14 dBFS, under 1 s each). There are no audio assets, so nothing needs licensing.
+- `com.unity.modules.audio` is added to the Unity manifest. It is a built-in module and costs nothing.
+
+**Tests:** EditMode `SoundCueTests` (5): sound off means no cue, cue priority, arrival-only playback, sample bounds (quiet, short, silent at both ends, no clicks, deterministic), and a real return summary following the setting.
+
+**Gaps:** Audible output and volume on a device are UNVERIFIED (KI-002). The default of the sound setting is unchanged.
+
 ## D-105 — Hardening: days-walked plausible range, tamper and fuzz (2026-10-16)
 
 **Context.** D-103 added persisted days-walked fields. A tampered or corrupted save could show the player an impossible count, for example 5,000 days on a three-week-old profile.
