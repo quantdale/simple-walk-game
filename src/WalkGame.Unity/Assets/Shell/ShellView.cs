@@ -7,7 +7,8 @@ namespace WalkGame.Shell
     /// Renders a <see cref="ScreenModel"/> into UI Toolkit elements. No game logic here.
     /// Styling follows UX_DESIGN §12/§14: calm palette, high-contrast text (≥ 7:1 body),
     /// ≥ 56 dp touch targets, and state never conveyed by colour alone (error/notice carry
-    /// a text prefix and a border). There is no motion at all, so reduced motion is trivially met.
+    /// a text prefix and a border). There is no motion at all, so reduced motion is trivially met. The Region picture is drawn
+    /// procedurally (<see cref="ValleyElement"/>) and always duplicated by text.
     /// </summary>
     public static class ShellView
     {
@@ -50,6 +51,8 @@ namespace WalkGame.Shell
                 notice.style.marginBottom = 16;
                 scroll.Add(notice);
             }
+
+            if (model.Scene != null) scroll.Add(new ValleyElement(model.Scene));
 
             if (model.State == ScreenState.Empty)
             {
