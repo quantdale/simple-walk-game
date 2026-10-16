@@ -1,0 +1,3 @@
+Passed!  - Failed:     0, Passed:   157, Skipped:     0, Total:   157, Duration: 177 ms - WalkGame.Domain.Tests.dll (net9.0)
+Passed!  - Failed:     0, Passed:   185, Skipped:     0, Total:   185, Duration: 1 s - WalkGame.Infrastructure.Tests.dll (net9.0)
+Passed!  - Failed:     0, Passed:   461, Skipped:     0, Total:   461, Duration: 5 s - WalkGame.Application.Tests.dll (net9.0)
