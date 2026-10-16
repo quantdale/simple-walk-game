@@ -75,6 +75,16 @@ contract). Headless code cannot write outside its injected directory. The real
 runtime location (e.g. Unity `persistentDataPath`, its OS backup/sync behavior)
 is UNVERIFIED until the runtime lane exists.
 
+## 4a. Player export (D-111)
+
+The Privacy screen ("Privacy and your data", from Settings) tells the player in plain words
+what is stored and that nothing is sent anywhere. "Share a copy of your save" builds a readable
+JSON document from the current save (`SaveExport`, payload checksum verified first) and hands it
+to the OS share sheet as text (Android `ACTION_SEND`, `text/plain`). The game writes no export file,
+uses no shared storage and makes no network call; the data leaves the app only through the share
+target the player picks, and the screen says the copy includes their walks. Exports over 512 KB are
+refused. Preferences are not exported. Device share sheet: UNVERIFIED (KI-002). No import exists.
+
 ## 5. Diagnostics surface
 
 `DiagnosticsReadModel` (D-044) is privacy-safe by construction: classified
