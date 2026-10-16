@@ -415,7 +415,7 @@ Replace development fixtures with real supported activity providers while preser
 
 ## iOS work
 
-- HealthKit integration or current approved equivalent;
+- HealthKit integration or current approved equivalent; *(not started: no adapter or iOS build; parity matrix and adapter contract in [`PLATFORM_PARITY.md`](PLATFORM_PARITY.md), gap KI-022, D-108)*
 - permission flow;
 - queries/reconciliation;
 - lifecycle behavior;

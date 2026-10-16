@@ -2342,6 +2342,18 @@ Evidence: `docs/evidence/d107-sync-budget/editmode-results.xml`, EditMode 159/15
 
 **Gaps:** Device battery drain, binder cost of status calls, and thermal behaviour are UNVERIFIED (KI-002). Background sync remains deliberately absent (KI-016c).
 
+## D-108 — iOS HealthKit parity check: honest unsupported state, gap recorded (2026-10-16)
+
+**Context.** ROADMAP M7 lists HealthKit integration, and several docs say "Health Connect/HealthKit". A code check found no HealthKit adapter, bridge, entitlement or iOS build. The non-Android release port still carried the stale detail "health connect adapter not yet implemented (M5-A)".
+
+**Decision.** Record the gap instead of implying parity. `docs/PLATFORM_PARITY.md` holds the capability matrix and the contract a future HealthKit adapter must meet. KI-022 tracks the missing adapter. `ShellConnectionPort` now carries a traceable diagnostic (`UnsupportedDetail`, citing KI-022); it is never shown to players. No behaviour, save or content change.
+
+**Tests:** EditMode `PlatformParityTests` (4): unsupported snapshot, onboarding completes with no Connect dead end, Activity screen is honest and leaks no diagnostics, no development walking in release.
+
+Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 158/158 (Unity-editor-tested).
+
+**Gaps:** No iOS adapter or build (KI-022). Needs macOS/Xcode and a device; iOS behaviour is UNVERIFIED.
+
 ## D-109 — Screen-tour copy fixes (2026-10-16)
 
 **Context.** The editor-rendered screen tour (`docs/evidence/screen-tour/`) showed two copy defects: BootError printed a raw identifier ("Status: SaveUnreadable", against UX_DESIGN §5), and queue buttons doubled the verb because project titles are already verb phrases ("Restore Restore the river intake").
