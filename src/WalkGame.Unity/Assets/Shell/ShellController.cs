@@ -190,7 +190,56 @@ namespace WalkGame.Shell
             PlayerStrings.Locale = l;
         }
 
+        // D-128: re-entrancy. Unity is single-threaded, but a platform callback (permission
+        // dialog, OS pause/resume, a bridge that pumps messages) can call back into the shell
+        // while a boot, resume or action is still running. One pipeline runs at a time: a
+        // resume that arrives mid-pipeline is coalesced into ONE re-run afterwards, and an
+        // action that arrives mid-pipeline (a double tap) is dropped.
+        private bool _busy;
+        private bool _resumePending;
+
+        /// <summary>D-128: true while a boot, resume or action is running (tests and the bootstrap read it).</summary>
+        public bool IsBusy => _busy;
+
         public void Boot()
+        {
+            if (_busy) { _resumePending = true; return; }
+            _busy = true;
+            try { Guarded(BootCore, bootFailure: true); }
+            finally { _busy = false; }
+            DrainPendingResume();
+        }
+
+        private void DrainPendingResume()
+        {
+            // At most one coalesced re-run; a resume during that re-run is dropped, never looped.
+            if (!_resumePending) return;
+            _resumePending = false;
+            if (!_booted) return;
+            _busy = true;
+            try { Guarded(BootCore, bootFailure: true); }
+            finally { _busy = false; _resumePending = false; }
+        }
+
+        /// <summary>
+        /// D-128: the Unity-to-domain boundary. A persistence failure (the session throws
+        /// IOException when a save cannot be committed), a missing state or a provider bridge
+        /// exception must never escape into a UI Toolkit callback or MonoBehaviour message,
+        /// where it would leave a half-drawn screen. The player gets one calm sentence; the
+        /// committed save is untouched because the session never reports a failed commit as success.
+        /// </summary>
+        private void Guarded(Action body, bool bootFailure)
+        {
+            try { body(); }
+            catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException || ex is InvalidOperationException || ex is ArgumentException)
+            {
+                _notice = null;
+                if (bootFailure && !_booted) { Current = ShellScreen.BootError; _notice = PlayerStrings.T("shell.thatCouldNotBe"); }
+                else _error = PlayerStrings.T("shell.thatCouldNotBe");
+            }
+        }
+
+        private void BootCore()
         {
             var result = _session.Continue();
             LastStartStatus = result.Status;
@@ -213,6 +262,15 @@ namespace WalkGame.Shell
         }
 
         public void Invoke(string actionId)
+        {
+            if (_busy) return; // D-128: a second tap while the first is still running is dropped.
+            _busy = true;
+            try { Guarded(() => InvokeCore(actionId), bootFailure: false); }
+            finally { _busy = false; }
+            DrainPendingResume();
+        }
+
+        private void InvokeCore(string actionId)
         {
             _error = null;
             if (string.IsNullOrEmpty(actionId)) { _error = PlayerStrings.T("shell.unknownAction"); return; }
@@ -237,7 +295,7 @@ namespace WalkGame.Shell
             }
             if (!_booted && actionId != "start" && actionId != "retry" && actionId != "activity:connect")
             { _error = PlayerStrings.T("shell.startOrContinueA"); return; }
-            if (actionId.StartsWith("queue:", StringComparison.Ordinal)) { Check(_session.EnqueueProject(actionId.Substring(6))); return; }
+            if (actionId.StartsWith("queue:", StringComparison.Ordinal)) { Enqueue(actionId.Substring(6)); return; }
             if (actionId.StartsWith("up:", StringComparison.Ordinal)) { MoveUp(actionId.Substring(3)); return; }
             switch (actionId)
             {
@@ -259,7 +317,7 @@ namespace WalkGame.Shell
                     else if (started.Status == StartStatus.ExistingSaveRefused) _error = PlayerStrings.T("shell.aGameIsAlready");
                     else _error = PlayerStrings.T("shell.weCouldnTStart");
                     return;
-                case "retry": Boot(); return;
+                case "retry": BootCore(); return;
                 case "activity:connect":
                     if (_requestPermission == null) { _error = PlayerStrings.T("shell.walkingDataCanT"); return; }
                     _requestPermission();
@@ -303,6 +361,18 @@ namespace WalkGame.Shell
             var now = DateTimeOffset.UtcNow;
             try { _session.IngestFromSource(_liveSource, now.AddDays(-SyncWindowDays), now); }
             catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException || ex is InvalidOperationException) { }
+            // D-128: any other bridge exception (a JNI AndroidJavaException, a malformed record
+            // surfacing as ArgumentException) must not abort the boot either; the game opens on
+            // its last committed state and the next resume retries.
+            catch (Exception) { }
+        }
+
+        /// <summary>D-128: a double-tapped "Start" on a project that is already queued or active is a no-op, not an error.</summary>
+        private void Enqueue(string projectId)
+        {
+            var home = _session.GetHome();
+            if (home.ActiveProjectId == projectId || home.Queued.Any(q => q.ProjectId == projectId)) return;
+            Check(_session.EnqueueProject(projectId));
         }
 
         private bool OnboardingIncomplete() => _session.GetOnboarding().CurrentStage < OnboardingStage.Complete;
