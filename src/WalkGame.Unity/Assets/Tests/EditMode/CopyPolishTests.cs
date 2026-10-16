@@ -34,7 +34,7 @@ namespace WalkGame.Shell.Tests
                         .Where(s => s.Contains(" ")).ToArray();
         }
 
-        [TestCase("ShellController.cs")]
+        // ShellController.cs was migrated into PlayerStrings (KI-023); its copy is scanned through PlayerStrings.cs below
         // PlayerCopy.cs was migrated into PlayerStrings (KI-023); its copy is scanned through PlayerStrings.cs below
         [TestCase("PlayerStrings.cs")] // D-120: boot copy moved into the table; the scan now covers every table string
         public void Shell_copy_passes_the_no_guilt_check(string file)

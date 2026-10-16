@@ -56,7 +56,7 @@ namespace WalkGame.Shell
         /// <summary>D-111: larger exports are refused (Android intent extras are limited to about 1 MB).</summary>
         public const int MaxExportChars = 512 * 1024;
 
-        public const string TextPreviewSample = "Preview: The valley remembers every walk you take.";
+        public static string TextPreviewSample => PlayerStrings.T("shell.textPreview");
 
         /// <summary>Settings text-size line (B3, D-083). Never throws on a hostile scale source.</summary>
         public static string TextSizeLine(float raw)
@@ -461,26 +461,26 @@ namespace WalkGame.Shell
             var d = _session.GetDiscoveries();
             var e = _session.GetExpeditions();
             bool empty = d.UnlockedCount == 0 && e.AvailableCount == 0 && e.CompletedCount == 0;
-            var m = With(ShellScreen.Discoveries, "Discoveries and expeditions", empty ? ScreenState.Empty : ScreenState.Normal);
+            var m = With(ShellScreen.Discoveries, PlayerStrings.T("shell.discoveriesAndExpeditions"), empty ? ScreenState.Empty : ScreenState.Normal);
             m.Lines.Add("Discoveries: " + d.UnlockedCount + " of " + d.TotalDiscoveries + " found.");
-            if (d.UnlockedCount == 0) m.Lines.Add("Nothing found yet. Restoring landmarks reveals what the valley kept.");
+            if (d.UnlockedCount == 0) m.Lines.Add(PlayerStrings.T("shell.nothingFoundYetRestoring"));
             foreach (var row in d.Discoveries.Where(x => x.Unlocked).OrderBy(x => x.DiscoveredAtUtc))
             {
                 m.Lines.Add(PlayerCopy.Title(row.TitleKey) + " · " + PlayerCopy.DiscoveryCategory(row.Category)
-                    + (row.DiscoveredAtUtc.HasValue ? " · found " + row.DiscoveredAtUtc.Value.UtcDateTime.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture) : ""));
+                    + (row.DiscoveredAtUtc.HasValue ? " · found " + row.DiscoveredAtUtc.Value.UtcDateTime.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture) : "")); // l10n-ignore: date format pattern, not copy
                 // D-086: authored body and origin copy; a key without copy is skipped, never shown raw.
                 var body = WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.BodyKey);
                 if (body != null) m.Lines.Add(body);
                 var origin = WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.ProvenanceKey);
-                if (origin != null) m.Lines.Add("Where it came from: " + origin);
+                if (origin != null) m.Lines.Add(PlayerStrings.F("shell.discoveries.origin", origin));
             }
             int hidden = d.TotalDiscoveries - d.UnlockedCount;
-            if (hidden > 0) m.Lines.Add(hidden + (hidden == 1 ? " more find is" : " more finds are") + " still waiting in the valley.");
+            if (hidden > 0) m.Lines.Add(PlayerStrings.F(hidden == 1 ? "shell.discoveries.hidden.one" : "shell.discoveries.hidden.many", hidden));
             // D-118: Nell's letters are listed with the discoveries but read in the Story journal.
             var letters = _session.GetLetters();
             if (letters.FoundCount > 0) m.Lines.Add(LettersCountLine(letters) + " " + PlayerStrings.T("letters.inJournal"));
 
-            m.Lines.Add("Expedition routes: " + e.AvailableCount + " open, " + e.CompletedCount + " of " + e.TotalExpeditions + " completed.");
+            m.Lines.Add(PlayerStrings.F("shell.discoveries.expeditions", e.AvailableCount, e.CompletedCount, e.TotalExpeditions));
             var projects = _session.GetProjects().Projects.ToDictionary(p => p.ProjectId, p => PlayerCopy.Title(p.TitleKey));
             var landmarks = _session.GetRegion().Landmarks.ToDictionary(l => l.LandmarkId, l => PlayerCopy.Title(l.TitleKey));
             foreach (var x in e.Expeditions)
@@ -491,15 +491,15 @@ namespace WalkGame.Shell
                     case ExpeditionsReadModel.ExpeditionStatus.Completed:
                         m.Lines.Add(PlayerCopy.Title(x.TitleKey) + " · completed." + reward); break;
                     case ExpeditionsReadModel.ExpeditionStatus.Available:
-                        m.Lines.Add(PlayerCopy.Title(x.TitleKey) + " · open; it completes on its own while you walk." + reward); break;
+                        m.Lines.Add(PlayerStrings.F("shell.expedition.open", PlayerCopy.Title(x.TitleKey)) + reward); break;
                     default:
                         var needs = x.RequiredProjectIds.Select(id => projects.TryGetValue(id, out var t) ? t : GlancePhrases.UntitledProject)
                             .Concat(x.RequiredStageKeys.Select(k => StageNeed(k, landmarks))).ToList();
-                        m.Lines.Add(PlayerCopy.Title(x.TitleKey) + " · opens after: " + (needs.Count == 0 ? "more restoration" : string.Join(", ", needs)) + "." + reward);
+                        m.Lines.Add(PlayerStrings.F("shell.expedition.locked", PlayerCopy.Title(x.TitleKey), needs.Count == 0 ? PlayerStrings.T("shell.moreRestoration") : string.Join(", ", needs)) + reward);
                         break;
                 }
             }
-            m.Actions.Add(new ShellAction("nav:Region", "The valley"));
+            m.Actions.Add(new ShellAction("nav:Region", PlayerStrings.T("shell.theValley")));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
@@ -508,16 +508,16 @@ namespace WalkGame.Shell
         public static string StageNeed(string key, IReadOnlyDictionary<string, string> landmarks)
         {
             int at = key == null ? -1 : key.LastIndexOf('@');
-            if (at <= 0) return "more restoration";
+            if (at <= 0) return PlayerStrings.T("shell.moreRestoration");
             string name = landmarks.TryGetValue(key.Substring(0, at), out var t) ? t : "a landmark";
             return name + " " + key.Substring(at + 1).ToLowerInvariant();
         }
 
         /// <summary>Suffix the composer uses for the region-complete moment (ReturnSummaryComposer, RegionCompleted).</summary>
-        public const string RegionCompleteSuffix = "'s restoration is complete.";
+        public const string RegionCompleteSuffix = "'s restoration is complete."; // l10n-ignore: matches Application summary copy; moves with the Application-layer table
 
         /// <summary>Celebration headline for Region 1 completion (D-080).</summary>
-        public const string CelebrationHeadline = "You restored the whole valley.";
+        public static string CelebrationHeadline => PlayerStrings.T("shell.celebration.headline");
 
         /// <summary>
         /// Region 1 completion celebration (D-080): when the summary carries the region-complete
@@ -529,14 +529,14 @@ namespace WalkGame.Shell
         {
             if (m == null || currentItemTexts == null) return false;
             if (!currentItemTexts.Any(t => t != null && t.EndsWith(RegionCompleteSuffix, StringComparison.Ordinal))) return false;
-            m.Title = "The valley is restored";
+            m.Title = PlayerStrings.T("shell.theValleyIsRestored");
             m.Lines.Insert(0, CelebrationHeadline);
-            m.Lines.Insert(1, "Every place you brought back stays restored. Your walks keep the valley flourishing.");
+            m.Lines.Insert(1, PlayerStrings.T("shell.everyPlaceYouBrought"));
             return true;
         }
 
         /// <summary>Home's one-line story pointer once every chapter is unlocked (the epilogue line).</summary>
-        public const string StoryEpilogueLine = "Story: Millbrook's story is complete. The valley stays restored, and every chapter is here to reread.";
+        public static string StoryEpilogueLine => PlayerStrings.T("shell.story.epilogue");
 
         /// <summary>
         /// D-090: one line on Home linking play to the story. Names the latest unlocked chapter and
@@ -548,13 +548,13 @@ namespace WalkGame.Shell
             if (story == null || story.TotalChapters == 0) return string.Empty;
             if (story.UnlockedCount >= story.TotalChapters || story.NextHintKey == null) return StoryEpilogueLine;
             var latest = story.Chapters.LastOrDefault(c => c.Unlocked);
-            string where = latest == null ? "The story begins soon."
+            string where = latest == null ? PlayerStrings.T("shell.theStoryBeginsSoon")
                 : (latest.Number == 0 ? "Prologue · " : "Chapter " + latest.Number + " · ") + latest.TitleKey + ".";
             return "Story: " + where + " Next: " + story.NextHintKey;
         }
 
         /// <summary>Prefix the composer uses for chapter moments (ReturnSummaryComposer, D-076).</summary>
-        public const string ChapterMomentPrefix = "New chapter: ";
+        public const string ChapterMomentPrefix = "New chapter: "; // l10n-ignore: matches Application summary copy; moves with the Application-layer table
 
         /// <summary>
         /// Story journal (D-076). Unlocked chapters show title and text in reading order; the
@@ -566,8 +566,8 @@ namespace WalkGame.Shell
             var story = _session.GetStory();
             var m = With(ShellScreen.Story, "Story");
             m.Lines.Add(story.UnlockedCount == story.TotalChapters
-                ? "You have read the whole story of the valley. It stays here to reread."
-                : story.UnlockedCount + " of " + story.TotalChapters + " chapters unlocked. Restoring the valley reveals the next one.");
+                ? PlayerStrings.T("shell.youHaveReadThe")
+                : PlayerStrings.F("shell.story.progress", story.UnlockedCount, story.TotalChapters));
             bool hinted = false;
             foreach (var c in story.Chapters)
             {
@@ -621,7 +621,7 @@ namespace WalkGame.Shell
             var story = _session.GetStory();
             long vitality = Math.Max(0L, diag.LifetimeVitalityCredited);
             bool empty = vitality == 0 && home.CompletedProjects == 0;
-            var m = With(ShellScreen.Progress, "Your progress", empty ? ScreenState.Empty : ScreenState.Normal);
+            var m = With(ShellScreen.Progress, PlayerStrings.T("shell.yourProgress"), empty ? ScreenState.Empty : ScreenState.Normal);
             foreach (var line in ProgressLines(vitality, home.CompletedProjects, home.TotalProjects, disc.UnlockedCount, disc.TotalDiscoveries,
                          story.UnlockedCount, story.TotalChapters, home.RegionComplete))
                 m.Lines.Add(line);
@@ -638,8 +638,9 @@ namespace WalkGame.Shell
         public static string DaysWalkedLine(int days, bool isLowerBound)
         {
             if (days <= 0) return null;
-            string unit = days == 1 ? " day." : " days.";
-            return (isLowerBound ? "You have walked on at least " : "You have walked on ") + days + unit;
+            string key = isLowerBound ? (days == 1 ? "shell.progress.daysAtLeast.one" : "shell.progress.daysAtLeast.many")
+                                      : (days == 1 ? "shell.progress.days.one" : "shell.progress.days.many");
+            return PlayerStrings.F(key, days);
         }
 
         /// <summary>D-099 Progress copy, pure so every state can be checked without a session.</summary>
@@ -650,20 +651,20 @@ namespace WalkGame.Shell
             var lines = new System.Collections.Generic.List<string>();
             if (lifetimeVitality <= 0 && projectsDone == 0)
             {
-                lines.Add("Your first walk will show up here. There is no rush.");
+                lines.Add(PlayerStrings.T("shell.yourFirstWalkWill"));
             }
             else
             {
                 long steps = lifetimeVitality * WalkGame.Domain.Activity.StepConversionRuleV1.StepsPerVitality;
-                lines.Add("Vitality gathered from your walks: " + lifetimeVitality.ToString("N0", ci) + ".");
-                lines.Add("That is about " + steps.ToString("N0", ci) + " steps, counted whenever they happened.");
+                lines.Add(PlayerStrings.F("shell.progress.vitality", lifetimeVitality.ToString("N0", ci)));
+                lines.Add(PlayerStrings.F("shell.progress.steps", steps.ToString("N0", ci)));
             }
             lines.Add(regionComplete
-                ? "Every restoration in the valley is finished (" + projectsDone + " of " + projectsTotal + ")."
-                : "Restorations finished: " + projectsDone + " of " + projectsTotal + ".");
-            lines.Add("Discoveries found: " + discoveriesFound + " of " + discoveriesTotal + ".");
-            lines.Add("Story chapters unlocked: " + chaptersRead + " of " + chaptersTotal + ".");
-            lines.Add("Nothing here expires. Every walk counts, whenever it happens.");
+                ? PlayerStrings.F("shell.progress.projects.complete", projectsDone, projectsTotal)
+                : PlayerStrings.F("shell.progress.projects", projectsDone, projectsTotal));
+            lines.Add(PlayerStrings.F("shell.progress.discoveries", discoveriesFound, discoveriesTotal));
+            lines.Add(PlayerStrings.F("shell.progress.chapters", chaptersRead, chaptersTotal));
+            lines.Add(PlayerStrings.T("shell.nothingHereExpiresEvery"));
             return lines;
         }
 
@@ -680,23 +681,23 @@ namespace WalkGame.Shell
             try { raw = TextScaleSource?.Invoke() ?? 1f; } catch (Exception) { raw = 1f; }
             m.Lines.Add(TextSizeLine(raw));
             m.TextPreview = TextPreviewSample;
-            m.Actions.Add(new ShellAction("toggle:reducedMotion", (s.ReducedMotion ? "Turn off" : "Turn on") + " reduced motion"));
-            m.Actions.Add(new ShellAction("toggle:sound", (s.SoundEnabled ? "Turn off" : "Turn on") + " sound"));
+            m.Actions.Add(new ShellAction("toggle:reducedMotion", PlayerStrings.T(s.ReducedMotion ? "shell.settings.motion.off" : "shell.settings.motion.on")));
+            m.Actions.Add(new ShellAction("toggle:sound", PlayerStrings.T(s.SoundEnabled ? "shell.settings.sound.off" : "shell.settings.sound.on")));
             if (Reminders != null)
                 m.Actions.Add(new ShellAction("toggle:reminder", reminderOn ? PlayerStrings.T("reminder.action.off") : PlayerStrings.T("reminder.action.on")));
             m.Actions.Add(new ShellAction("toggle:diagnostics", (s.DiagnosticsVisible ? "Hide" : "Show") + " diagnostics"));
-            m.Actions.Add(new ShellAction("nav:Privacy", "Privacy and your data"));
-            m.Actions.Add(new ShellAction("delete:request", "Delete all local data…"));
+            m.Actions.Add(new ShellAction("nav:Privacy", PlayerStrings.T("shell.privacyAndYourData")));
+            m.Actions.Add(new ShellAction("delete:request", PlayerStrings.T("shell.deleteAllLocalData")));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
 
         private ScreenModel DeleteConfirm()
         {
-            var m = With(ShellScreen.DeleteConfirm, "Delete all local data?");
-            m.Lines.Add("This permanently removes your world, its backup and your preferences from this device. It cannot be undone.");
-            m.Actions.Add(new ShellAction("delete:cancel", "Keep my data"));
-            m.Actions.Add(new ShellAction("delete:confirm", "Delete everything"));
+            var m = With(ShellScreen.DeleteConfirm, PlayerStrings.T("shell.delete.title"));
+            m.Lines.Add(PlayerStrings.T("shell.thisPermanentlyRemovesYour"));
+            m.Actions.Add(new ShellAction("delete:cancel", PlayerStrings.T("shell.keepMyData")));
+            m.Actions.Add(new ShellAction("delete:confirm", PlayerStrings.T("shell.deleteEverything")));
             return m;
         }
 
@@ -709,9 +710,9 @@ namespace WalkGame.Shell
             string next = PlayerCopy.ActivityAction(a.RecommendedAction);
             if (next != null) m.Lines.Add(next);
             if (a.RecommendedAction == ActivityRecommendedAction.Connect && _requestPermission != null)
-                m.Actions.Add(new ShellAction("activity:connect", "Connect walking data"));
-            if (!a.HasProcessedAnyRecord) m.Lines.Add("No walking data has arrived yet. Your progress starts with your first walk.");
-            else m.Lines.Add("Your last walks added " + a.LastBatchVitalityCredited + " vitality.");
+                m.Actions.Add(new ShellAction("activity:connect", PlayerStrings.T("shell.connectWalkingData")));
+            if (!a.HasProcessedAnyRecord) m.Lines.Add(PlayerStrings.T("shell.noWalkingDataHas"));
+            else m.Lines.Add(PlayerStrings.F("shell.activity.lastBatch", a.LastBatchVitalityCredited));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
@@ -726,47 +727,47 @@ namespace WalkGame.Shell
                 case OnboardingStage.NotStarted:
                 case OnboardingStage.Premise:
                 case OnboardingStage.WorldBaseline:
-                    m = With(ShellScreen.Guide, "The valley today");
+                    m = With(ShellScreen.Guide, PlayerStrings.T("shell.theValleyToday"));
                     var damaged = _session.GetRegion().Landmarks.FirstOrDefault();
                     if (damaged != null) m.Lines.Add(GlancePhrases.FormatLandmark(PlayerCopy.Title(damaged.TitleKey), damaged.Stage));
-                    m.Lines.Add("The valley is quiet and worn. Your walks will bring it back.");
+                    m.Lines.Add(PlayerStrings.T("shell.theValleyIsQuiet"));
                     m.Actions.Add(new ShellAction("guide:next", "Continue"));
                     break;
                 case OnboardingStage.ActivityConnection:
                     bool needsUpdate = ob.ActivityStep == OnboardingActivityStepState.ProviderUpdateRequired;
                     // D-094: an outdated Health Connect shows the update-required state, never a Connect dead end.
-                    m = With(ShellScreen.Guide, needsUpdate ? "Update Health Connect" : "Connect your walking");
-                    m.Lines.Add("The game reads only your step counts, on this device. Nothing is uploaded.");
+                    m = With(ShellScreen.Guide, needsUpdate ? PlayerStrings.T("shell.updateHealthConnect") : PlayerStrings.T("shell.connectYourWalking"));
+                    m.Lines.Add(PlayerStrings.T("shell.theGameReadsOnly"));
                     m.Lines.Add(PlayerCopy.ActivityStatus(_session.GetActivityStatus().Status));
                     if (needsUpdate) m.Lines.Add(PlayerCopy.ActivityAction(ActivityRecommendedAction.UpdateProvider));
-                    m.Lines.Add("You can keep going without connecting; nothing is locked.");
+                    m.Lines.Add(PlayerStrings.T("shell.youCanKeepGoing"));
                     if (!needsUpdate && _session.GetActivityStatus().RecommendedAction == ActivityRecommendedAction.Connect && _requestPermission != null)
-                        m.Actions.Add(new ShellAction("activity:connect", "Connect walking data"));
+                        m.Actions.Add(new ShellAction("activity:connect", PlayerStrings.T("shell.connectWalkingData")));
                     m.Actions.Add(new ShellAction("guide:next", "Continue"));
                     break;
                 case OnboardingStage.FirstProject:
-                    m = With(ShellScreen.Guide, "Choose a first restoration");
+                    m = With(ShellScreen.Guide, PlayerStrings.T("shell.chooseAFirstRestoration"));
                     if (ob.FirstProjectChosen)
                     {
-                        m.Lines.Add("Good choice. It will grow as you move.");
+                        m.Lines.Add(PlayerStrings.T("shell.goodChoiceItWill"));
                         m.Actions.Add(new ShellAction("guide:next", "Continue"));
                     }
                     else
                     {
-                        m.Lines.Add("Pick one place to restore first. You can change the order later.");
+                        m.Lines.Add(PlayerStrings.T("shell.pickOnePlaceTo"));
                         foreach (var r in _session.GetProjects().Projects.Where(r => r.Status == ProjectStatus.Available))
                             m.Actions.Add(new ShellAction("queue:" + r.ProjectId, QueueLabel(PlayerCopy.Title(r.TitleKey))));
                     }
                     break;
                 case OnboardingStage.Simulation:
-                    m = With(ShellScreen.Guide, "Progress while you're away");
-                    m.Lines.Add("Steps you take with the app closed still count. When you return, you'll see what changed.");
+                    m = With(ShellScreen.Guide, PlayerStrings.T("shell.progressWhileYouRe"));
+                    m.Lines.Add(PlayerStrings.T("shell.stepsYouTakeWith"));
                     m.Actions.Add(new ShellAction("guide:next", "Continue"));
                     break;
                 default:
-                    m = With(ShellScreen.Guide, "That's all");
-                    m.Lines.Add("You don't need to keep the app open. Walk as you normally do and check in whenever you like.");
-                    m.Actions.Add(new ShellAction("guide:next", "Go to the valley"));
+                    m = With(ShellScreen.Guide, PlayerStrings.T("shell.thatSAll"));
+                    m.Lines.Add(PlayerStrings.T("shell.youDonTNeed"));
+                    m.Actions.Add(new ShellAction("guide:next", PlayerStrings.T("shell.goToTheValley")));
                     break;
             }
             // UX_DESIGN §11/§21: a calm progress cue so the player knows the guide is short.
@@ -789,19 +790,19 @@ namespace WalkGame.Shell
 
         public static readonly string[] PrivacyLines =
         {
-            "Everything this game knows stays on this phone, in the game's own private storage. Your phone's encryption protects it.",
-            "It keeps your valley: projects, restored places, story chapters and discoveries.",
-            "It keeps your walks: step counts, when each walk started and ended, the day it was, and the record number your walking app gave it, so no walk is counted twice.",
-            "It keeps your settings, such as sound and reduced motion, and how far you are through the guide.",
-            "It never asks for your name, email or location. There are no accounts, ads or analytics, and nothing is sent anywhere.",
-            "You can share a copy of your save. Your phone's share menu opens and you choose where it goes. The copy includes your walks.",
+            PlayerStrings.T("shell.everythingThisGameKnows"),
+            PlayerStrings.T("shell.itKeepsYourValley"),
+            PlayerStrings.T("shell.itKeepsYourWalks"),
+            PlayerStrings.T("shell.itKeepsYourSettings"),
+            PlayerStrings.T("shell.itNeverAsksFor"),
+            PlayerStrings.T("shell.youCanShareA"),
         };
 
         private ScreenModel Privacy()
         {
-            var m = With(ShellScreen.Privacy, "Privacy and your data");
+            var m = With(ShellScreen.Privacy, PlayerStrings.T("shell.privacyAndYourData"));
             foreach (var line in PrivacyLines) m.Lines.Add(line);
-            m.Actions.Add(new ShellAction("export", "Share a copy of your save"));
+            m.Actions.Add(new ShellAction("export", PlayerStrings.T("shell.shareACopyOf")));
             m.Actions.Add(new ShellAction("nav:Settings", "Settings"));
             return m;
         }
@@ -810,23 +811,23 @@ namespace WalkGame.Shell
         private void Export()
         {
             _notice = null;
-            if (ShareText == null) { _error = "Sharing isn't available on this device. Your save is safe."; return; }
+            if (ShareText == null) { _error = PlayerStrings.T("shell.sharingIsnTAvailable"); return; }
             var result = WalkGame.Infrastructure.Persistence.SaveExport.ToReadableJson(_session.ExportSaveEnvelope());
             if (result.Status != WalkGame.Infrastructure.Persistence.SaveExportStatus.Exported || result.Json == null)
-            { _error = "We couldn't make a copy just now. Your save is safe."; return; }
-            if (result.Json.Length > MaxExportChars) { _error = "Your save is too large to share this way. Your save is safe."; return; }
+            { _error = PlayerStrings.T("shell.weCouldnTMake"); return; }
+            if (result.Json.Length > MaxExportChars) { _error = PlayerStrings.T("shell.yourSaveIsToo"); return; }
             bool shared;
             try { shared = ShareText(result.Json); } catch (Exception) { shared = false; }
-            if (shared) _notice = "Your phone's share menu has the copy. You choose where it goes.";
-            else _error = "The share menu didn't open. Your save is safe.";
+            if (shared) _notice = PlayerStrings.T("shell.yourPhoneSShare");
+            else _error = PlayerStrings.T("shell.theShareMenuDidn");
         }
 
         private ScreenModel BootErrorScreen()
         {
             // Deliberately no "start" action: a save we could not read is never overwritten from here.
-            var m = new ScreenModel(ShellScreen.BootError, ScreenState.Error, "We couldn't open your world");
+            var m = new ScreenModel(ShellScreen.BootError, ScreenState.Error, PlayerStrings.T("shell.weCouldnTOpen"));
             // D-109: no raw StartStatus identifier; the notice already explains the problem in plain words.
-            m.Actions.Add(new ShellAction("retry", "Try again"));
+            m.Actions.Add(new ShellAction("retry", PlayerStrings.T("shell.tryAgain")));
             return m;
         }
     }
