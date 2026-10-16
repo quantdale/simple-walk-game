@@ -574,6 +574,7 @@ None are pre-authorized by this roadmap.
 - [x] Adverse save damage (D-091): truncated / bit-flipped / oversized / re-encoded / NUL primary recovers and persists; both damaged fail closed and a safe start refuses; 11 cases (`docs/evidence/d-save-adverse/`, automated verified)
 - [x] Pooled action buttons (D-089, KI-018): per-switch view allocation ≤ ~4 KB on all 8 screens (Settings ~41 KB → ~4 KB), 3,000 enter/exits 384 → 151 ms; EditMode 109/109, PlayMode 4 + 1 ignored. `docs/evidence/d-buttons/PERFORMANCE_BUTTONS.md` (Unity-editor-tested; device UNVERIFIED, KI-002)
 - [x] Home story line (D-090): current chapter + next hint on Home, epilogue line once the story is complete; no content/save change; EditMode 111/111 on the merged branch (`docs/evidence/d-home-chapter/`, Unity-editor-tested; device UNVERIFIED, KI-002)
+- [x] Long-run save growth + save-load fuzz (D-098): 400-day profile gated at ≤ 100 B/day late growth (measured 60 B/day); 800 deterministic mutated-save cases (v1 migration path + current schema) load valid or fail closed untouched; fixed two throw-instead-of-fail-closed paths (null collection, null dedup entry). .NET 692/692 (automated verified)
 
 ## Features (B)
 - [x] KI-020 ring clipping fixed (D-087): `ValleyElement.RingGeometry` keeps the moment ring inside the picture; sweep test; EditMode 103/103 pre-merge; re-captured `docs/evidence/b-ki020-ring/celebration-editor-rendered.png` (Unity-editor-tested, editor-rendered; device UNVERIFIED, KI-002)
