@@ -1538,6 +1538,24 @@ namespace WalkGame.Application
             return new StoryReadModel(rows, StoryProgress.UnlockedCount(progress), nextHint);
         }
 
+        /// <summary>
+        /// D-118: Nell's letters. A letter is found once its project is completed; pure projection,
+        /// no clock and no writes. A letter whose project is not in the loaded content stays unfound.
+        /// </summary>
+        public LettersReadModel GetLetters()
+        {
+            var game = RequireState();
+            var rows = new List<LettersReadModel.LetterRow>(WalkGame.Application.Content.Region1Letters.All.Count);
+            foreach (var l in WalkGame.Application.Content.Region1Letters.All)
+            {
+                var p = game.Region.FindProject(l.ProjectId);
+                bool found = p != null && p.Status == ProjectStatus.Completed;
+                rows.Add(new LettersReadModel.LetterRow(l.Id, l.Order, l.PlaceKey, found ? l.Body : null, found,
+                    found ? p!.CompletedAtUtc : null));
+            }
+            return new LettersReadModel(rows);
+        }
+
         public DiscoveriesReadModel GetDiscoveries()
         {
             var game = RequireState();
