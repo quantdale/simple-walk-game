@@ -2591,7 +2591,7 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Tests.** `SyncReentrancyTests` (EditMode, 6): resume storm during boot sync → exactly two fetches; stray tap mid-sync dropped; double-tapped Start calm; non-IO bridge exception never aborts boot; unwritable save directory → calm error, save bytes unchanged, shell not left busy; 50× resume/nav storm reloads cleanly. EditMode 220/220 + 1 ignored (Unity-editor-tested); device UNVERIFIED (KI-002).
 
-**Residual.** After a failed commit the in-memory state can be ahead of disk until the next successful write (pre-existing session contract). Null scan: shell entry points already reject null/empty action ids (D-084); no new unhandled null path found in `ShellController`/`ShellBootstrap`.
+**Residual.** After a failed commit the in-memory state can be ahead of disk until the next successful write (pre-existing session contract; closed by D-131). Null scan: shell entry points already reject null/empty action ids (D-084); no new unhandled null path found in `ShellController`/`ShellBootstrap`.
 
 **Save compatibility.** None.
 
@@ -2613,6 +2613,16 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `NullBoundaryTests` (6). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-131 — Failed-save gap: mark unsaved, retry on resume, calm notice (2026-10-17)
+
+**Context.** D-128 residual: after a failed commit the in-memory state is ahead of disk until the next successful write. A resume re-ran `Continue()`, which reloaded disk and silently dropped that progress, and a failed commit inside the live sync was swallowed with no notice.
+
+**Decision.** `GameSession` tracks `HasUnsavedChanges` (set when `PersistOrThrow` fails with IO or access denied; cleared by any successful commit, a reload, a new game or erase) and offers `RetryPendingSave()` (writes the whole in-memory state; false, never throwing, while storage still fails). `ShellController.BootCore` retries first on resume. If the retry fails it keeps the in-memory world and does not reload. Any failure that leaves state unsaved shows `shell.notSavedYet`: "Your latest progress could not be saved just now. It is kept here, and saving will be tried again when you come back." No credit is lost or doubled. The ledger entry and processed-record ids travel with the state, so a retry or later commit lands them once. A reload drops them, and the next provider read credits them once.
+
+**Tests.** `FailedSaveGapTests` (.NET, 6). EditMode: `D131_unsaved_progress_is_retried_on_resume_and_lands_exactly_once`. The D-128 unwritable-save test now expects the D-131 notice (intended behaviour change, not a removed test). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None (no schema or content change).
 
 ## D-132 — Kill mid-save at each write step (2026-10-17)
 

@@ -99,6 +99,7 @@ namespace WalkGame.Shell
             ["shell.yourDataCouldNot"] = "Your data could not be deleted, so nothing was changed. You can try again.",
             ["shell.developmentToolsAreDisabled"] = "Development tools are disabled.",
             ["shell.thatCouldNotBe"] = "That could not be done just now. Your progress is safe.",
+            ["shell.notSavedYet"] = "Your latest progress could not be saved just now. It is kept here, and saving will be tried again when you come back.",
             ["shell.yourMovementRestoresThis"] = "Your movement restores this world",
             ["shell.aForgottenValleyIs"] = "A forgotten valley is waiting. Each walk you take brings it back, a little at a time.",
             ["shell.nothingIsLostWhile"] = "Nothing is lost while you are away.",
