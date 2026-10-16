@@ -348,8 +348,15 @@ namespace WalkGame.Shell
             m.Lines.Add("Discoveries: " + d.UnlockedCount + " of " + d.TotalDiscoveries + " found.");
             if (d.UnlockedCount == 0) m.Lines.Add("Nothing found yet. Restoring landmarks reveals what the valley kept.");
             foreach (var row in d.Discoveries.Where(x => x.Unlocked).OrderBy(x => x.DiscoveredAtUtc))
+            {
                 m.Lines.Add(PlayerCopy.Title(row.TitleKey) + " · " + PlayerCopy.DiscoveryCategory(row.Category)
                     + (row.DiscoveredAtUtc.HasValue ? " · found " + row.DiscoveredAtUtc.Value.UtcDateTime.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture) : ""));
+                // D-086: authored body and origin copy; a key without copy is skipped, never shown raw.
+                var body = WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.BodyKey);
+                if (body != null) m.Lines.Add(body);
+                var origin = WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.ProvenanceKey);
+                if (origin != null) m.Lines.Add("Where it came from: " + origin);
+            }
             int hidden = d.TotalDiscoveries - d.UnlockedCount;
             if (hidden > 0) m.Lines.Add(hidden + (hidden == 1 ? " more find is" : " more finds are") + " still waiting in the valley.");
 

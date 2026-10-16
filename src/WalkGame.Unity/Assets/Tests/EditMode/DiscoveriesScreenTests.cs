@@ -82,6 +82,35 @@ namespace WalkGame.Shell.Tests
             }
         }
 
+        [Test] public void Found_discoveries_show_their_story_and_origin()
+        {
+            var (c, s) = Play(90);
+            c.Invoke("nav:Discoveries");
+            var lines = c.Render().Lines;
+            int shown = 0;
+            foreach (var row in s.GetDiscoveries().Discoveries.Where(r => r.Unlocked))
+            {
+                int i = lines.FindIndex(l => l.StartsWith(row.TitleKey + " · "));
+                Assert.GreaterOrEqual(i, 0, row.TitleKey);
+                Assert.AreEqual(WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.BodyKey), lines[i + 1]);
+                Assert.AreEqual("Where it came from: " + WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.ProvenanceKey), lines[i + 2]);
+                shown++;
+            }
+            Assert.Greater(shown, 0);
+        }
+
+        [Test] public void Unfound_discovery_copy_is_never_shown()
+        {
+            var (c, s) = Play(10);
+            c.Invoke("nav:Discoveries");
+            var text = string.Join("\n", c.Render().Lines);
+            foreach (var row in s.GetDiscoveries().Discoveries.Where(r => !r.Unlocked))
+            {
+                StringAssert.DoesNotContain(WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.BodyKey), text);
+                StringAssert.DoesNotContain(WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.ProvenanceKey), text);
+            }
+        }
+
         [Test] public void Locked_routes_explain_what_opens_them_in_player_words()
         {
             var (c, _) = Play(0);
