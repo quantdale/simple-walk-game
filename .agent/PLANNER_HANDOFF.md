@@ -124,3 +124,10 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR (D-109): fixes the copy defects the tour found. EditMode 161/161 on the merged tree (Unity-editor-tested).
 - Next: data export / privacy screen (needs OpenSpec, since it is a new player feature); the HealthKit adapter (needs macOS); device lane (KI-002). Region 2 is still PROPOSED only.
 
+## Session note 2026-10-16 (grok2144)
+- #84 (`709a921`, D-110): with a game loaded, `nav:BootError` is refused calmly and the screen stays put. EditMode 167/167.
+- #85 (`56c24cb`, D-111): OpenSpec `add-privacy-data-export`, agent-approved (Region 1/shell scope, as D-103). Privacy screen from Settings; a checksum-verified readable JSON export goes to the Android share sheet as text. No network and no shared-storage file. .NET 739, EditMode 174 merged. Device share sheet UNVERIFIED (KI-002).
+- #86 (`3744530`, D-112): KI-022 started. The `HealthKitActivityAdapter` is headless-tested (35 cases, fake bridge). The P/Invoke and Swift bridges are UNVERIFIED (never compiled) and NOT composed. `docs/HEALTHKIT_SETUP.md` covers the entitlement and usage string. .NET 774, EditMode 174.
+- This PR: `PlatformParityTests` pins that the bootstrap does not compose the unverified HealthKit bridge. EditMode 175/175 (Unity-editor-tested), evidence in `docs/evidence/records-grok2144/`.
+- Next: a Privacy PNG in the screen tour; an APK build to compile the `AndroidShareSheet` JNI path; HealthKit composition only after a macOS build. Region 2 is still PROPOSED only.
+

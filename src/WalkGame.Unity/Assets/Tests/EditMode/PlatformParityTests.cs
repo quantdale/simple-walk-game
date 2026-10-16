@@ -66,5 +66,18 @@ namespace WalkGame.Shell.Tests
             c.Invoke("nav:Home");
             Assert.IsFalse(c.Render().Actions.Any(a => a.Id.StartsWith("dev:")));
         }
+        /// <summary>
+        /// D-112: the HealthKit adapter and Swift bridge exist but are UNVERIFIED, so the bootstrap must
+        /// not compose them yet. Wiring them in is a deliberate change that updates this test and D-108.
+        /// </summary>
+        [Test] public void Bootstrap_does_not_compose_the_unverified_healthkit_bridge()
+        {
+            var src = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, "Shell", "ShellBootstrap.cs"));
+            StringAssert.DoesNotContain("IosHealthKitBridge", src);
+            StringAssert.DoesNotContain("HealthKitActivityAdapter", src);
+            Assert.IsFalse(IosHealthKitBridge.IsIosPlayer, "editor runs the stub branch");
+            Assert.AreEqual("unsupported", new IosHealthKitBridge().GetAvailability());
+            Assert.AreEqual("error:unavailable", new IosHealthKitBridge().ReadSteps(0, 1));
+        }
     }
 }
