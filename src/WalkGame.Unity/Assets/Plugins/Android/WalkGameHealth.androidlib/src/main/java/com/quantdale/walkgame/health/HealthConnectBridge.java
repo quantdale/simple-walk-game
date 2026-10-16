@@ -185,7 +185,7 @@ public final class HealthConnectBridge {
         /**
          * Consumes the steps change log. The index is written BEFORE the next token is stored,
          * so a crash can only replay a deletion (harmless), never lose one. An expired token
-         * (ERROR_INVALID_ARGUMENT) restarts tracking; deletions inside that gap are missed (KI-016).
+         * (ERROR_INVALID_ARGUMENT) is recovered by a full re-read of the indexed span (KI-016(a)).
          */
         static void syncDeletions(Context ctx, final android.health.connect.HealthConnectManager manager, Index index)
                 throws BridgeError, InterruptedException, java.io.IOException {
@@ -203,7 +203,7 @@ public final class HealthConnectBridge {
                     resp = await(r -> manager.getChangeLogs(req, EXECUTOR, r));
                 } catch (BridgeError e) {
                     if (!e.code.equals("token")) throw e;
-                    prefs.edit().putString("changesToken", freshToken(manager)).putBoolean("changesGap", true).apply();
+                    recoverFromExpiredToken(prefs, manager, index);
                     return;
                 }
                 List<android.health.connect.changelog.ChangeLogsResponse.DeletedLog> logs = resp.getDeletedLogs();
@@ -217,6 +217,49 @@ public final class HealthConnectBridge {
                 prefs.edit().putString("changesToken", token).apply();
                 if (!resp.hasMorePages()) return;
             }
+        }
+
+        /**
+         * KI-016(a): the change log cannot report deletions made while the token was expired.
+         * Order matters: take the new token FIRST (later deletions land in its log), re-read the
+         * whole indexed span, move absent records to the deleted set, save the index, and only
+         * then store the token. Any failure throws before the token is stored, so the next read
+         * simply retries the recovery; nothing is lost and replays are stale-revision no-ops.
+         */
+        static void recoverFromExpiredToken(SharedPreferences prefs, final android.health.connect.HealthConnectManager manager,
+                                            Index index) throws BridgeError, InterruptedException, java.io.IOException {
+            String next = freshToken(manager);
+            long[] span = GapReconciler.span(index.known);
+            if (span != null) {
+                java.util.Set<String> present = new java.util.HashSet<>();
+                readIds(manager, span[0], span[1], present);
+                GapReconciler.reconcile(index.known, index.deleted, present, span[0], span[1], System.currentTimeMillis());
+                index.save(System.currentTimeMillis());
+            }
+            prefs.edit().putString("changesToken", next).putBoolean("changesGap", false)
+                 .putLong("changesGapRecoveredAt", System.currentTimeMillis()).apply();
+        }
+
+        static void readIds(final android.health.connect.HealthConnectManager manager, long startMs, long endMs,
+                            java.util.Set<String> ids) throws BridgeError, InterruptedException {
+            android.health.connect.TimeInstantRangeFilter range = new android.health.connect.TimeInstantRangeFilter.Builder()
+                .setStartTime(Instant.ofEpochMilli(startMs)).setEndTime(Instant.ofEpochMilli(endMs)).build();
+            long pageToken = -1;
+            for (int page = 0; page < MAX_PAGES; page++) {
+                android.health.connect.ReadRecordsRequestUsingFilters.Builder<android.health.connect.datatypes.StepsRecord> b =
+                    new android.health.connect.ReadRecordsRequestUsingFilters.Builder<>(android.health.connect.datatypes.StepsRecord.class)
+                        .setTimeRangeFilter(range).setPageSize(PAGE_SIZE);
+                if (pageToken != -1) b.setPageToken(pageToken);
+                final android.health.connect.ReadRecordsRequestUsingFilters<android.health.connect.datatypes.StepsRecord> req = b.build();
+                android.health.connect.ReadRecordsResponse<android.health.connect.datatypes.StepsRecord> resp =
+                    await(r -> manager.readRecords(req, EXECUTOR, r));
+                for (android.health.connect.datatypes.StepsRecord r : resp.getRecords())
+                    ids.add(r.getMetadata().getId().replace('\t', ' ').replace('\n', ' '));
+                pageToken = resp.getNextPageToken();
+                if (pageToken == -1) return;
+            }
+            // A partial span must never be read as "absent = deleted".
+            throw new BridgeError("error:io");
         }
 
         static String freshToken(final android.health.connect.HealthConnectManager manager) throws BridgeError, InterruptedException {

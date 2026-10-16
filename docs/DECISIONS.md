@@ -2003,6 +2003,36 @@ Cadence bounds come from measurement and are recorded below. OpenSpec: `openspec
 These days come from the test harness's first-available queue policy; a player who orders projects differently simply reads later chapters together when a cumulative gate clears.
 
 
+## D-077 — An expired Health Connect change token is recovered by re-reading the indexed span (2026-10-16)
+
+**Context.** KI-016(a) residual (D-069): Health Connect keeps change logs only for a limited time. Once the token expires, deletions made during the gap never appear in any log, so their credit would stand.
+
+**Decision.** On `ERROR_INVALID_ARGUMENT` from `getChangeLogs`, the bridge recovers in this order:
+1. It takes a fresh token first, so later deletions land in the new log.
+2. It re-reads every `StepsRecord` in the full span its D-069 index covers (minimum start to maximum end).
+3. `GapReconciler` (pure Java, no `android.*`) moves every indexed record that lies fully inside that span but was not returned to the deleted set. Each keeps its original interval and lastModified, with `deletedAt = now`.
+4. The index is saved, and only then is the new token stored.
+
+Any failure throws before step 4, so the next read retries the whole recovery. A partial re-read (more than `MAX_PAGES` pages) is refused rather than read as "absent means deleted". The resulting markers use the existing deletion path, so exactly-once still comes from the pipeline's stale-revision rule. A record already deleted through the change log keeps its original deletion time.
+
+**Evidence.**
+- `tools/android/test-bridge-logic.sh` runs 10 headless checks and is now a CI step.
+- The arm64 APK compiles the bridge (Unity-editor build).
+- Device behaviour is UNVERIFIED (KI-002).
+
+**Rejected alternatives:**
+- Ignoring the gap: it leaves credit for deleted walks.
+- Re-reading every window ever ingested: it is unbounded, and the 45-day index retention already bounds what the app can still reverse.
+
+**Security review addendum (same PR).** Hostile bridge output was driven through the real pipeline (`HealthConnectBridgeTamperTests`, 18 cases). The pipeline already:
+- clamps absurd counts to the per-record ceiling (2,500 Vitality);
+- rejects negative, inverted and zero-length records;
+- credits a repeated id once;
+- fails closed on unknown headers or a BOM;
+- keeps every save reloadable.
+
+One gap was fixed: record ids were persisted unbounded. A 100,000-character id or one with control characters went into the ledger and diagnostics. Ids are now limited to 128 characters with no control or lone-surrogate characters, and anything else is a malformed line (fail closed). The probe also found KI-019 (per-record rounding loses credit for small records).
+
 ## D-078 — Save tampering: fail closed on inconsistency, accept consistent self-edits (2026-10-16)
 
 **Context.** The save checksum is an unkeyed SHA-256, so anyone with file access can rewrite a save and re-hash it. A key on the device would not change that, because it can be extracted. The game is offline and single-player, so a "cheat" only affects the person who made it. The real risks are crashes, bricked saves, unbounded data reaching the UI, and degenerate state.
