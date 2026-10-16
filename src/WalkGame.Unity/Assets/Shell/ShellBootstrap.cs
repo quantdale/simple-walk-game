@@ -52,6 +52,7 @@ namespace WalkGame.Shell
                 _controller = new ShellController(CreateSession(SaveDirectory),
                     () => (ulong)DateTime.UtcNow.Ticks, Debug.isDebugBuild);
             _controller.Boot();
+            _controller.TextScaleSource = () => UnityEngine.Accessibility.AccessibilitySettings.fontScale;
             Debug.Log("WG_BOOT status=" + _controller.LastStartStatus + " screen=" + _controller.Current + " dir=" + SaveDirectory);
 
             _document = gameObject.AddComponent<UIDocument>();

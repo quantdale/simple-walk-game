@@ -2089,3 +2089,13 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - **Viewing is read-only.** It does not mark discoveries reviewed, so the save bytes are unchanged (tested).
 
 **Evidence.** `DiscoveriesScreenTests` (6 EditMode cases, including a completed region reached through the real pipeline); EditMode 71/71. Editor-rendered PNG (llvmpipe/Xvfb, NOT device). Device UNVERIFIED (KI-002).
+
+## D-083 — Settings previews the text size; it still follows the phone (2026-10-16)
+
+**Context.** D-073 scales text by the OS font scale (clamped 1–2×), but nothing told the player that, or showed the result.
+
+**Decision.** Settings adds "Text size: N%. It follows your phone's font size setting." and a bordered sample sentence drawn at the effective scale (`ScreenModel.TextPreview`, label `text-preview`). Above 2× it says this is the largest size the game supports. The outline reads the sample after the lines and before the actions.
+- **No in-app override.** A second, conflicting text-size control would need a new preference and could fight the OS setting. Following the phone stays the single source.
+- **Robust source.** `ShellController.TextScaleSource` is wired to `AccessibilitySettings.fontScale` by the bootstrap. NaN, infinities, out-of-range values and a throwing source all degrade to a clamped value without breaking the screen.
+
+**Evidence.** `TextSizePreviewTests` (9 EditMode cases); editor-rendered PNG at 150% (`WG_CAPTURE_TEXT_SCALE=1.5`; llvmpipe/Xvfb, NOT device). The real OS font scale on a phone is UNVERIFIED (KI-002).

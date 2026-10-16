@@ -33,5 +33,7 @@ namespace WalkGame.Shell
         public List<ShellAction> Actions { get; } = new List<ShellAction>();
         /// <summary>Optional picture (Region screen); always paired with text lines and an alt text.</summary>
         public RegionScene? Scene { get; set; }
+        /// <summary>Settings text-size sample (B3, D-083), drawn at the effective text scale after the lines.</summary>
+        public string? TextPreview { get; set; }
     }
 }

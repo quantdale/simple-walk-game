@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-16 09:08:37Z" end-time="2026-10-16 09:08:38Z" duration="1.1551988">
+  <test-suite type="TestSuite" id="1016" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-16 09:08:37Z" end-time="2026-10-16 09:08:38Z" duration="1.155199" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1012" name="WalkGame.Shell.PlayModeTests.dll" fullname="/workspace/simple-walk-game-wt-b-text-preview-grok1651/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.PlayModeTests.dll" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-16 09:08:37Z" end-time="2026-10-16 09:08:38Z" duration="1.144310" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="251642" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1013" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-16 09:08:37Z" end-time="2026-10-16 09:08:38Z" duration="1.140116" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1014" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-16 09:08:37Z" end-time="2026-10-16 09:08:38Z" duration="1.139716" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1015" name="PlayModeTests" fullname="WalkGame.Shell.PlayModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-16 09:08:37Z" end-time="2026-10-16 09:08:38Z" duration="1.139358" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1008" name="ValleyCaptureTests" fullname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests" classname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-16 09:08:37Z" end-time="2026-10-16 09:08:38Z" duration="1.137712" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1009" name="Capture_region_screen_png" fullname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests.Capture_region_screen_png" methodname="Capture_region_screen_png" classname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests" runstate="Runnable" seed="505239494" result="Passed" start-time="2026-10-16 09:08:37Z" end-time="2026-10-16 09:08:38Z" duration="1.125828" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/simple-walk-game-wt-b-text-preview-grok1651/docs/evidence/b-text-preview/settings-text-150-editor-rendered.png
+Saving results to: /workspace/simple-walk-game-wt-b-text-preview-grok1651/docs/evidence/b-text-preview/capture-results.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
