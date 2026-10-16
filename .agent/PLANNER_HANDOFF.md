@@ -116,3 +116,11 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 ## Session note 2026-10-16 (grok2058)
 - The APK built from main `62f33d4` compiles the D-103 Java offset change: `getEndZoneOffset` is in `classes3.dex`, and no fix was needed. The full rerun on main after D-105 gave .NET 728/728, EditMode 151/151 and PlayMode 4 + 1 ignored. Evidence: `docs/evidence/apk-d103/RESULTS.md`. Device: UNVERIFIED (KI-002).
 - #78 (`7ae6de3`) records that evidence. D-106: Home layout polish (no repeated line, no doubled empty-state message); before/after PNGs in `docs/evidence/d106-home/` (editor-rendered); EditMode 154/154 (Unity-editor-tested).
+
+## Session note 2026-10-16 (grok2121)
+- #80 (`c260c6f`): screen tour. `tools/unity/capture-screen-tour.sh` captures all 13 `ShellScreen`s plus the celebration into `docs/evidence/screen-tour/` (editor-rendered, 14/14).
+- #81 (`b7ca427`, D-107): battery and background-sync budget review. Reads happen only on boot and resume, over at most 30 days, with no polling; `BackgroundSyncBudgetTests` (5).
+- #82 (`04d4c71`, D-108): iOS parity check. No HealthKit adapter exists; KI-022, `docs/PLATFORM_PARITY.md`, `PlatformParityTests` (4).
+- This PR (D-109): fixes the copy defects the tour found. EditMode 161/161 on the merged tree (Unity-editor-tested).
+- Next: data export / privacy screen (needs OpenSpec, since it is a new player feature); the HealthKit adapter (needs macOS); device lane (KI-002). Region 2 is still PROPOSED only.
+
