@@ -8,5 +8,5 @@
   - a chapter moment in the return summary, with "Read the new chapter" placed after the primary Continue;
   - no journal link when a summary has no chapter moment;
   - screen-reader outline order.
-- `story-journal-editor-rendered.png`: the Story screen after a six-day synthetic walk, rendered in the editor with Mesa llvmpipe under Xvfb (`WG_CAPTURE_SCREEN=Story tools/unity/capture-valley.sh`). It is not a device screenshot.
+- `journal-editor-rendered.png` (editor-rendered): the Story screen after a six-day synthetic walk, rendered in the editor with Mesa llvmpipe under Xvfb (`WG_CAPTURE_SCREEN=Story tools/unity/capture-valley.sh`). It is not a device screenshot.
 - `capture-results.xml` / `capture-run.log`: that capture run. Machine and licence identifiers are redacted.

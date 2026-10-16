@@ -564,7 +564,7 @@ None are pre-authorized by this roadmap.
 ## Storyline (D-076, OpenSpec `add-restoration-storyline`)
 - [x] A1 Design: OpenSpec change and D-076 (PR #37)
 - [x] A2 Domain/content/application: ten milestone-gated chapters, content v5 (additive), `GetStory()`, "New chapter" summary moments, validator rules, cadence gate (`StoryCadenceTests`)
-- [x] A4 Unity Story journal screen (Home → Story), chapter moments in the return summary with a "Read the new chapter" link; EditMode 61/61; editor-rendered PNG `docs/evidence/story/story-journal-editor-rendered.png` (Unity-editor-tested; device UNVERIFIED, KI-002)
+- [x] A4 Unity Story journal screen (Home → Story), chapter moments in the return summary with a "Read the new chapter" link; EditMode 61/61; editor-rendered PNG `docs/evidence/story/journal-editor-rendered.png` (Unity-editor-tested; device UNVERIFIED, KI-002)
 
 # Cross-milestone rules
 
