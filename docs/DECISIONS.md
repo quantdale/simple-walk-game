@@ -2613,3 +2613,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `NullBoundaryTests` (6). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-132 — Kill mid-save at each write step (2026-10-17)
+
+**Context.** D-128 argued that an app pause cannot interleave inside the synchronous commit and that a kill is covered by the atomic store (D-040/D-052), but no test cut the write at every step of `AtomicFileSaveStore.WriteAtomic`.
+
+**Decision.** `KillMidSaveTests` reproduces what is left on disk after each completed step, plus a torn temp write: none, a half-written `save.tmp`, `save.tmp` written, backup temp copied, old backup deleted, backup promoted, primary deleted, and primary promoted. For each cut, a fresh session must boot `Loaded` or `RecoveredFromBackup` with either the old or the new credit total (never a partial or fabricated world). Replaying the same activity must then land the credit exactly once, and a second replay must credit nothing. A torn backup temp with an absent primary still recovers the previous generation. No production change was needed.
+
+**Tests.** `KillMidSaveTests` (.NET, 9). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None.
