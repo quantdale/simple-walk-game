@@ -66,7 +66,7 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-16 (grok1745)
 - D-089 (KI-018): pooled action buttons; per-switch view allocation ≤ ~4 KB on all screens, 3,000 enter/exits 384 → 151 ms (editor). `docs/evidence/d-buttons/`.
-- Discoveries PNG re-captured with D-086 copy: `docs/evidence/b-discovery-copy/discoveries-editor-rendered.png` (editor-rendered). The older `b-discoveries/` PNG shows the pre-copy keys.
+- Discoveries PNG re-captured with D-086 copy: `docs/evidence/b-discovery-copy/discoveries-editor-rendered.png` (editor-rendered). The older `b-discoveries/` PNG shows the pre-copy keys and is renamed `-SUPERSEDED-pre-D086` (see its SUPERSEDED.md).
 - D-090: Home story line (current chapter + next hint; epilogue once complete). Region 2 storyline still needs OpenSpec first.
 - D-091: `SaveRecoveryAdverseTests` (11) for byte-level primary/both damage; .NET 670 total.
 - Next: onboarding/permission edge cases at the shell (denied-then-granted mid-onboarding); Region 2 storyline OpenSpec; device lane (KI-002).
