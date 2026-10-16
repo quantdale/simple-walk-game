@@ -230,6 +230,8 @@ Measure at least:
 
 A device becoming hot during lightweight Home/Projects usage is a defect.
 
+**Headless review (D-107, 2026-10-16):** the shell reads walking data only on boot and resume, once each, over at most 30 days; navigation makes no data reads; no polling, timers or per-frame `Update` in the shell. Pinned by EditMode `BackgroundSyncBudgetTests`. Device battery numbers remain UNVERIFIED (KI-002).
+
 ---
 
 ## 14. Activity-query budgets
