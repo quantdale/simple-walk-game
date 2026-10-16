@@ -51,6 +51,37 @@ namespace WalkGame.Shell.Tests
             Assert.IsTrue(m.Actions.Any(a => a.Id == "nav:Home"));
         }
 
+        [Test] public void Home_shows_the_current_chapter_and_the_next_hint_without_spoilers()
+        {
+            var (c, s) = Fresh();
+            c.Invoke("nav:Home");
+            var story = s.GetStory();
+            var line = c.Render().Lines.Single(l => l.StartsWith("Story: ", StringComparison.Ordinal));
+            Assert.AreEqual("Story: Prologue · " + story.Chapters[0].TitleKey + ". Next: " + story.NextHintKey, line);
+            foreach (var locked in story.Chapters.Where(ch => !ch.Unlocked))
+                StringAssert.DoesNotContain(locked.TitleKey, line, "a locked chapter title is not spoiled on Home");
+
+            Walk(s, 200000, 10);
+            c.Invoke("nav:Home");
+            story = s.GetStory();
+            Assert.That(story.UnlockedCount, Is.GreaterThanOrEqualTo(2));
+            var latest = story.Chapters.Last(ch => ch.Unlocked);
+            line = c.Render().Lines.Single(l => l.StartsWith("Story: ", StringComparison.Ordinal));
+            StringAssert.StartsWith("Story: Chapter " + latest.Number + " · " + latest.TitleKey + ".", line);
+            foreach (var bad in new[] { "missed", "lost", "streak", "hurry", "don't forget", "falling behind", "decay", "expire", "behind", "penalty" })
+                StringAssert.DoesNotContain(bad, line.ToLowerInvariant());
+        }
+
+        [Test] public void Home_story_line_becomes_the_epilogue_when_every_chapter_is_unlocked()
+        {
+            var rows = Enumerable.Range(0, 3).Select(n => new WalkGame.Application.ReadModels.StoryReadModel.ChapterRow(
+                "c" + n, n, "T" + n, "B" + n, "H" + n, true, DateTimeOffset.UnixEpoch)).ToList();
+            var done = new WalkGame.Application.ReadModels.StoryReadModel(rows, 3, null);
+            Assert.AreEqual(ShellController.StoryEpilogueLine, ShellController.HomeStoryLine(done));
+            foreach (var bad in new[] { "missed", "lost", "streak", "hurry", "decay", "expire", "behind", "penalty" })
+                StringAssert.DoesNotContain(bad, ShellController.StoryEpilogueLine.ToLowerInvariant());
+        }
+
         [Test] public void Copy_has_no_guilt_or_pressure_language()
         {
             var (c, _) = Fresh();
