@@ -63,6 +63,28 @@ private func saveAnchor(_ anchor: HKQueryAnchor?) {
 
 private func ms(_ d: Date) -> Int64 { return Int64((d.timeIntervalSince1970 * 1000).rounded(.down)) }
 
+// D-113 pruning, mirroring HealthKitSampleLedger (C#, headless-tested): drop entries that ended
+// more than 30 + 7 days ago (never inside a read window again), then cap each map at 50,000 by
+// evicting the oldest end times (ties by UUID). UNVERIFIED like the rest of this file.
+private let retentionMs: Int64 = Int64(37) * 86_400_000
+private let maxEntriesPerMap = 50_000
+private func prune(_ map: [String: String], nowMs: Int64) -> [String: String] {
+    let cutoff = nowMs - retentionMs
+    var kept: [(String, String, Int64)] = []
+    for (id, iv) in map {
+        let parts = iv.split(separator: "\t")
+        guard parts.count == 2, let e = Int64(parts[1]) else { continue } // unreadable entry: drop
+        if e >= cutoff { kept.append((id, iv, e)) }
+    }
+    if kept.count > maxEntriesPerMap {
+        kept.sort { $0.2 != $1.2 ? $0.2 < $1.2 : $0.0 < $1.0 }
+        kept.removeFirst(kept.count - maxEntriesPerMap)
+    }
+    var out: [String: String] = [:]
+    for (id, iv, _) in kept { out[id] = iv }
+    return out
+}
+
 /// Reads stepCount samples with an anchored query restricted to [start, end). New samples become
 /// credit lines; deleted objects become `del` lines using the interval remembered when the sample
 /// was first returned (HKDeletedObject has only a UUID). If the anchor cannot be used, the bridge
@@ -127,6 +149,10 @@ public func wg_hk_read_steps(_ startMs: Int64, _ endMs: Int64) -> UnsafeMutableP
         guard parts.count == 2, let s0 = Int64(parts[0]), let e0 = Int64(parts[1]), s0 >= startMs, e0 <= endMs else { continue }
         lines.append("del\t\(id)\t\(iv)")
     }
+    // D-113: prune both maps (mirrors HealthKitSampleLedger.Prune, which is the tested rule).
+    let nowMs = ms(Date())
+    deleted = prune(deleted, nowMs: nowMs)
+    intervals = prune(intervals, nowMs: nowMs)
     UserDefaults.standard.set(deleted, forKey: deletedKey)
     UserDefaults.standard.set(intervals, forKey: intervalsKey)
     saveAnchor(newAnchor)
