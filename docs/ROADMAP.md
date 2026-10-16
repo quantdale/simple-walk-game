@@ -362,6 +362,9 @@ Make the ordinary daily experience polished before the optional 3D mode becomes 
 
 # M6 — Visit World visual vertical slice
 
+> **M6 Region restoration visuals (2026-10-16, Unity-editor-tested; device rendering UNVERIFIED):** the Region screen now shows a procedural valley picture (`RegionScene` model + `ValleyElement` Painter2D). Landmarks grow by restoration stage in size, structure and colour, so state is never shown by colour alone. Hills shift from dry to green with completed restorations. Every picture has a text alternative. No textures, no motion; at most 76 shapes per repaint. Assets are created in-repo and registered in `docs/ASSET_LICENSES.md`. EditMode 35/35, PlayMode 2/2 (`docs/evidence/m6-region/`). Pixels have never been rasterized on the box (no GPU), so visual quality is UNVERIFIED.
+
+
 ## Goal
 
 Create optional real-time presentation that makes restoration emotionally tangible without becoming authoritative state.

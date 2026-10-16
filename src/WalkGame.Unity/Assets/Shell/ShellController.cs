@@ -258,6 +258,7 @@ namespace WalkGame.Shell
         {
             var r = _session.GetRegion();
             var m = With(ShellScreen.Region, "The valley");
+            m.Scene = RegionScene.Build(r);
             if (r.RegionCompleted)
                 m.Lines.Add("The valley is fully restored. It stays this way; nothing will reset.");
             else

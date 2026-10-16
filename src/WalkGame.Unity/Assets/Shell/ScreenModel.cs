@@ -31,5 +31,7 @@ namespace WalkGame.Shell
         public string? Notice { get; set; }
         public List<string> Lines { get; } = new List<string>();
         public List<ShellAction> Actions { get; } = new List<ShellAction>();
+        /// <summary>Optional picture (Region screen); always paired with text lines and an alt text.</summary>
+        public RegionScene? Scene { get; set; }
     }
 }

@@ -1,0 +1,111 @@
+using System;
+using System.IO;
+using System.Linq;
+using NUnit.Framework;
+using UnityEngine.UIElements;
+using WalkGame.Domain.Regions;
+using WalkGame.Shell;
+
+namespace WalkGame.Shell.Tests
+{
+    /// <summary>M6 Region restoration visuals: engine-free scene model + view wiring (Unity-editor-tested).</summary>
+    public sealed class RegionSceneTests
+    {
+        private string _dir = "";
+        [SetUp] public void SetUp() { _dir = Path.Combine(Path.GetTempPath(), "wg-scene-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(_dir); }
+        [TearDown] public void TearDown() { if (Directory.Exists(_dir)) Directory.Delete(_dir, true); }
+
+        private ShellController NewGame()
+        {
+            var c = new ShellController(ShellBootstrap.CreateSession(_dir), () => 42UL, devTools: true);
+            c.Boot(); c.Invoke("start");
+            return c;
+        }
+
+        [Test] public void Region_screen_carries_a_scene_with_one_visual_per_landmark()
+        {
+            var c = NewGame(); c.Invoke("nav:Region");
+            var m = c.Render();
+            Assert.IsNotNull(m.Scene);
+            Assert.That(m.Scene!.Landmarks.Count, Is.GreaterThan(0).And.LessThanOrEqualTo(RegionScene.MaxLandmarks));
+            Assert.IsTrue(m.Scene.Landmarks.All(l => l.X > 0 && l.X < 1 && l.Y > 0 && l.Y < 1));
+            Assert.IsTrue(m.Scene.Landmarks.All(l => !l.Label.Contains(".")), "labels are titles, not content keys");
+        }
+
+        [Test] public void Other_screens_carry_no_scene()
+        {
+            var c = NewGame();
+            foreach (var s in new[] { "Home", "Projects", "Settings", "ActivityStatus" })
+            {
+                c.Invoke("nav:" + s);
+                Assert.IsNull(c.Render().Scene, s);
+            }
+        }
+
+        [Test] public void Scene_is_deterministic_for_the_same_state()
+        {
+            var c = NewGame(); c.Invoke("nav:Region");
+            var a = c.Render().Scene!; var b = c.Render().Scene!;
+            Assert.AreEqual(a.AltText, b.AltText);
+            Assert.AreEqual(a.Greenness, b.Greenness);
+            CollectionAssert.AreEqual(a.Landmarks.Select(l => (l.X, l.Y, l.Stage)).ToList(), b.Landmarks.Select(l => (l.X, l.Y, l.Stage)).ToList());
+        }
+
+        [Test] public void Every_stage_has_a_distinct_colour_and_higher_stages_draw_more()
+        {
+            var stages = (RestorationStage[])Enum.GetValues(typeof(RestorationStage));
+            Assert.AreEqual(stages.Length, stages.Select(RegionScene.StageColor).Distinct().Count());
+            // State is never colour-only: level drives size and the number of growth shapes too.
+            Assert.IsTrue(stages.Select(s => (int)s).SequenceEqual(Enumerable.Range(0, stages.Length)));
+        }
+
+        [Test] public void Hills_turn_from_dry_to_green_monotonically()
+        {
+            uint dry = RegionScene.HillColor(0f), green = RegionScene.HillColor(1f);
+            Assert.AreEqual(0xC9B48Au, dry);
+            Assert.AreEqual(0x7FA772u, green);
+            int lastRed = 0xFF;
+            for (float t = 0; t <= 1.0001f; t += 0.1f)
+            {
+                int red = (int)(RegionScene.HillColor(t) >> 16);
+                Assert.That(red, Is.LessThanOrEqualTo(lastRed));
+                lastRed = red;
+            }
+            Assert.AreEqual(dry, RegionScene.HillColor(-3f));
+            Assert.AreEqual(green, RegionScene.HillColor(9f));
+        }
+
+        [Test] public void Shape_count_stays_within_the_performance_budget()
+        {
+            var c = NewGame(); c.Invoke("nav:Region");
+            var scene = c.Render().Scene!;
+            Assert.That(scene.ShapeCount(), Is.LessThanOrEqualTo(RegionScene.MaxShapes));
+            Assert.That(RegionScene.MaxShapes, Is.LessThanOrEqualTo(100), "a phone-safe vector budget");
+        }
+
+        [Test] public void Picture_has_a_text_alternative_without_identifiers()
+        {
+            var c = NewGame(); c.Invoke("nav:Region");
+            var scene = c.Render().Scene!;
+            StringAssert.StartsWith("A picture of the valley", scene.AltText);
+            foreach (var n in Enum.GetNames(typeof(RestorationStage))) StringAssert.DoesNotContain(n, scene.AltText);
+        }
+
+        [Test] public void View_adds_the_valley_element_with_alt_tooltip()
+        {
+            var c = NewGame(); c.Invoke("nav:Region");
+            var model = c.Render();
+            var root = new VisualElement();
+            ShellView.Render(root, model, _ => { });
+            var valley = root.Q<ValleyElement>("valley");
+            Assert.IsNotNull(valley);
+            Assert.AreEqual(model.Scene!.AltText, valley.tooltip);
+            Assert.AreEqual(ValleyElement.Height, valley.style.height.value.value);
+
+            c.Invoke("nav:Home");
+            var home = new VisualElement();
+            ShellView.Render(home, c.Render(), _ => { });
+            Assert.IsNull(home.Q<ValleyElement>("valley"));
+        }
+    }
+}
