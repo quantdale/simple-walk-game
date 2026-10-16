@@ -58,6 +58,16 @@ namespace WalkGame.Shell.PlayModeTests
                     c.Boot();
                     Assert.AreEqual(ShellScreen.BootError, c.Current);
                 }
+                else if (Environment.GetEnvironmentVariable("WG_CAPTURE_STATE") is string st && (st == "mid" || st == "late"))
+                {
+                    // Seeded mid-game (day 30) or late-game (day 70) save through the real pipeline, for the
+                    // Region 1 mid/late polish review. WG_CAPTURE_DAY overrides the day.
+                    int day = int.TryParse(Environment.GetEnvironmentVariable("WG_CAPTURE_DAY"), out var d) ? d : (st == "mid" ? 30 : 70);
+                    c = CompletedRegionFixture.BuildUntil(dir, out var played, out _, day);
+                    if (played.GetPendingReturnSummary() != null) played.AcknowledgeReturnSummary();
+                    c.Invoke("nav:" + screen);
+                    Assert.AreEqual(screen, c.Current.ToString(), "capture could not reach " + screen);
+                }
                 else
                 {
                     var session = ShellBootstrap.CreateSession(dir);

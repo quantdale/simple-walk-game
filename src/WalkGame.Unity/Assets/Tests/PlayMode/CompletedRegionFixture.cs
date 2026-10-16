@@ -18,7 +18,11 @@ namespace WalkGame.Shell.PlayModeTests
         public static readonly DateTimeOffset T0 = new DateTimeOffset(2026, 1, 1, 8, 0, 0, TimeSpan.Zero);
         public const int HorizonDays = 220;
 
-        public static ShellController Build(string dir, out GameSession session, out int days)
+        public static ShellController Build(string dir, out GameSession session, out int days) =>
+            BuildUntil(dir, out session, out days, HorizonDays);
+
+        /// <summary>Same seeded pipeline, stopped after <paramref name="maxDays"/> days (mid/late-game captures).</summary>
+        public static ShellController BuildUntil(string dir, out GameSession session, out int days, int maxDays)
         {
             var clock = new ManualClock(T0);
             session = ShellBootstrap.CreateSession(dir, new ShellConnectionPort(true), clock);
@@ -26,7 +30,7 @@ namespace WalkGame.Shell.PlayModeTests
             c.Boot(); c.Invoke("start");
             var source = new SyntheticWalkingSource(20000);
             days = 0;
-            while (days < HorizonDays && !session.GetRegion().RegionCompleted)
+            while (days < maxDays && !session.GetRegion().RegionCompleted)
             {
                 days++;
                 clock.Set(T0.AddDays(days));
