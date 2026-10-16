@@ -44,5 +44,18 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual(1, m.Lines.Count(l => l.StartsWith("Nothing is being restored", StringComparison.Ordinal)), string.Join("|", m.Lines));
             Assert.IsTrue(m.Lines.Contains("Nothing is being restored yet. Choose a project to begin."));
         }
+
+        [Test] public void First_run_home_has_no_since_last_time_line_and_asks_to_choose_once()
+        {
+            var s = ShellBootstrap.CreateSession(_dir);
+            var c = new ShellController(s, () => 42UL, devTools: false);
+            c.Boot(); c.Invoke("start"); c.Invoke("nav:Home");
+            var m = c.Render();
+            Assume.That(m.State, Is.EqualTo(ScreenState.Empty));
+            var all = string.Join("|", m.Lines);
+            Assert.IsFalse(m.Lines.Any(l => l.Contains("since you were last here")), all);
+            Assert.IsFalse(m.Lines.Contains("Choose the first thing to restore."), all);
+            Assert.AreEqual(1, m.Lines.Count(l => l.Contains("Choose a project")), all);
+        }
     }
 }

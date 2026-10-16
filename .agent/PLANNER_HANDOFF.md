@@ -184,3 +184,11 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Dependabot triage: #1/#2/#3 recreated on main as #113 (`f93d751`, checkout v7, setup-dotnet v6, upload-artifact v6; Node 24) and closed as superseded. #6 recreated as #114 (`65c27ba`, Test.Sdk 18.10.1, xunit 2.9.3, runner 4.0.1, coverlet 10.1.0) and closed. #5 (System.Text.Json 10) closed: runtime/Unity pin, see KI-024; dependabot.yml now ignores its majors.
 - #115 (`70b467e`): KI-023 slice 2 (D-122). Titles, chapters and discovery copy route through `ContentText`; `ContentTitleOverlayTests` (2). .NET 815, EditMode 205/205.
 - Next: glance phrases plus expedition/producer titles (D-122), then a language preference. Device lane (KI-002). Region 2 is still PROPOSED only.
+
+## Session note 2026-10-17 (grok0215)
+- #120 (`0db15d9`, D-124): System.Text.Json 8.0.5 → 10.0.13 (LTS); the plugin sync adds System.IO.Pipelines. EditMode 205/205; PlayMode 4 passed + 1 ignored (capture); arm64 IL2CPP APK built; iOS Xcode export built locally only (not pushed, D-116); stripped assemblies inspected. KI-024 closed. Evidence: `docs/evidence/stj10-grok0215/`. Device IL2CPP runtime UNVERIFIED (KI-002).
+- #121 (`a8b5339`): KI-023 slice 3 (D-122). Glance phrases (`glance.<name>#text`, patterns with an English fallback) and producer, expedition and care-program titles go through `ContentText`. `DiscoveriesLocaleRenderTests` (EditMode) renders Discoveries with a pseudo locale; the PNG is in `docs/evidence/ki023-discoveries-locale/`. .NET 820, EditMode 206.
+- #122 (`3aa5944`): Dependabot #117 (upload-artifact v7) and #118 (Test.Sdk 18.11.0) recreated and merged. #119 (STJ 8.0.6) was closed as superseded by #120.
+- This PR: Region 1 first-run polish on Home (no "since you were last here" line on a new world; the choose-a-project prompt appears once). Fresh-state PNG review in `docs/evidence/region1-early-polish/`. EditMode 207/207.
+- Next: stored summary lines and expedition/care descriptions through the overlay, a `PlayerStrings` locale and a language preference; the device lane (KI-002). Region 2 is still PROPOSED only.
+
