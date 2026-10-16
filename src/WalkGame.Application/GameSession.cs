@@ -392,6 +392,12 @@ namespace WalkGame.Application
 
         public bool HasLoadedState => _state != null;
 
+        /// <summary>
+        /// D-111: the current save as the exact envelope bytes the codec writes, for a player
+        /// export. Null before a game is loaded. Read-only: nothing is written or changed.
+        /// </summary>
+        public byte[]? ExportSaveEnvelope() => _state == null ? null : _codec.Encode(_state, _clock.UtcNow);
+
         public RegionDefinition Content => _content;
 
         /// <summary>

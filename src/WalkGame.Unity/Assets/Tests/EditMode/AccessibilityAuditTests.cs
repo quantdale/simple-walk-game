@@ -45,7 +45,7 @@ namespace WalkGame.Shell.Tests
                 var q = m.Actions.FirstOrDefault(a => a.Id.StartsWith("queue:"));
                 c.Invoke(m.Actions.Any(a => a.Id == "guide:next") ? "guide:next" : q?.Id ?? m.Actions[0].Id);
             }
-            foreach (var s in new[] { "Home", "ReturnSummary", "Projects", "Region", "Story", "Discoveries", "Progress", "Settings", "ActivityStatus" })
+            foreach (var s in new[] { "Home", "ReturnSummary", "Projects", "Region", "Story", "Discoveries", "Progress", "Settings", "Privacy", "ActivityStatus" })
             {
                 c.Invoke("nav:" + s);
                 Assert.AreEqual(s, c.Current.ToString(), "could not reach " + s);

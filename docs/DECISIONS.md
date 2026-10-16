@@ -2374,6 +2374,21 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests:** EditMode `ShellInputHardeningTests` +2 (`BootError_is_refused_while_a_game_is_loaded`, `BootError_stays_reachable_before_a_game_is_loaded`). Evidence: `docs/evidence/d110-booterror/`, EditMode 167/167 (Unity-editor-tested).
 
 **Gaps:** Device rendering UNVERIFIED (KI-002).
+## D-111 — Local-only Privacy screen with save export through the OS share sheet (2026-10-16)
+
+**Approval.** The OpenSpec change `openspec/changes/add-privacy-data-export/` was approved by the executing agent. As with D-103, repository policy allows it: it is Region 1 / shell scope, it changes no persisted shape, and the only gates on agent approval (D-011, the ROADMAP post-MVP gate) cover Region 2.
+
+**Decision.**
+- New `ShellScreen.Privacy` (appended last), reached from Settings ("Privacy and your data"). Six plain lines say what is stored (valley progress; walks: step counts, start/end, local day, the walking app's record number; settings and guide progress), where (app-private storage under the phone's encryption, D-067), and what is never collected (no name, email, location, accounts, ads, analytics; nothing sent anywhere).
+- `export` ("Share a copy of your save"): `GameSession.ExportSaveEnvelope()` (the exact envelope the codec writes, read-only) → `SaveExport.ToReadableJson` (Infrastructure; verifies the payload SHA-256, returns `Exported`/`Malformed`/`ChecksumMismatch`, never throws) → `ShellController.ShareText`. Document: `format` "simple-walk-game-export", `formatVersion` 1, `schemaVersion`, `savedAtUtc`, `payloadSha256`, `state`.
+- `AndroidShareSheet` sends `ACTION_SEND` `text/plain` through `createChooser` (C# JNI only; no Java, manifest or FileProvider change). Other platforms have no share sheet and say so.
+- Fail closed with one calm sentence: no share sheet, a failed or throwing share, a document over 512 KB, or a bad envelope. Before a game is loaded the screen and action are refused (D-084 rules).
+
+**Rejected:** writing an export file to shared storage (PRIVACY_REVIEW §3 forbids less-protected copies); exporting the raw base64 envelope (unreadable to players); import/restore (needs save-trust rules; a later change).
+
+**Tests:** .NET `SaveExportTests` (11: read-only export, decode round trip, document shape, tamper → `ChecksumMismatch`, hostile bytes → `Malformed`), .NET 739/739. EditMode `PrivacyScreenTests` (7) and the D-095 accessibility audit now covers Privacy; EditMode 172/172 on this branch and 174/174 merged with main after D-110 (Unity-editor-tested). Evidence: `docs/evidence/d111-privacy/`.
+
+**Gaps:** The Android share sheet on a device is UNVERIFIED (KI-002); the JNI path is compiled only when the APK is built. The screen tour does not yet include a Privacy PNG.
 
 ## D-112 — KI-022 started: HealthKit adapter (headless-tested), Swift bridge (UNVERIFIED), not composed (2026-10-16)
 
