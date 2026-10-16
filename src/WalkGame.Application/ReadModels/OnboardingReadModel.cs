@@ -41,6 +41,12 @@ namespace WalkGame.Application.ReadModels
         Denied = 3,
 
         SourceUnavailable = 4,
+
+        /// <summary>
+        /// D-093/D-094: Health Connect is installed but too old. The permission flow cannot run,
+        /// so the step asks for an update instead of offering Connect. Appended; values unchanged.
+        /// </summary>
+        ProviderUpdateRequired = 5,
     }
 
     /// <summary>

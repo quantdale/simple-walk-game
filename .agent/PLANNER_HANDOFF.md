@@ -82,3 +82,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - #61 (`bbb0d51`): `new-agent-worktree.sh` branches from a freshly fetched `origin/main` and refuses if the fetch fails; guard scenario 14, suite 49/49. #62 (`217d445`): blank lines in this file.
 - D-093: outdated Health Connect provider gets an Update action (it used to show Connect or Retry, both dead ends) and 9 failure-state tests (uninstalled, revoked mid-read, backward clock, timezone, 40-day gap). .NET 684, EditMode 116/116 (Unity-editor-tested); device UNVERIFIED (KI-002).
 - Not done: a deep link to the Play Store for the update; an accessibility audit beyond D-073. Region 2 is still PROPOSED only.
+
+## Session note 2026-10-16 (grok1844)
+- D-094: onboarding shows the D-093 update-required state (no Connect dead end). .NET 689, EditMode 117/117 (Unity-editor-tested); device UNVERIFIED (KI-002).

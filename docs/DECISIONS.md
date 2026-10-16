@@ -2198,3 +2198,14 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - These are ephemeral read-model values (D-043), never persisted: no save or content change (no save-compat impact).
 
 **Evidence.** `HealthConnectFailureStateTests` (9 .NET cases through the real adapter, session and projector with a fake bridge): outdated provider (no read, no credit loss, UpdateProvider), recovery after update (dedupe holds), provider uninstalled mid-session (no Connect dead end), permission revoked between status check and read (whole fetch fails, nothing credited, then OpenSettings), clock moved backwards, timezone change ×3, 40-day gap with a failure before success (backlog once). Projector precedence table +3 rows; the adapter SDK mapping row updated. .NET 684 total; EditMode 116/116 incl. every-status-has-copy (`docs/evidence/d093-hc-failure-ux/`, Unity-editor-tested). Device UNVERIFIED (KI-002): the real `update_required` signal and Play Store routing are untested; the shell shows the action text only, it does not deep-link.
+
+## D-094 — Onboarding shows the update-required state for an outdated Health Connect (2026-10-16)
+
+**Context.** D-093 fixed the Activity screen, but onboarding derived its step state from permission only. An outdated provider reports permission `NotRequested`, so the guide's walking step and the Glance onboarding sentence still said "Connect" (a dead end).
+
+**Decision.**
+- New `OnboardingActivityStepState.ProviderUpdateRequired = 5` (appended). Availability `ProviderUpdateRequired` outranks every permission state, as in D-093's projector step 0.
+- Guide step title becomes "Update Health Connect", shows the D-093 status and "Next: update…" lines, never offers Connect, and keeps Continue (nothing is locked). Glance onboarding sentence: "Your movement app needs an update before new walks can count. You can keep going; nothing is locked."
+- The onboarding stage never moves because of this; after an update the normal Connect step returns. Ephemeral read-model value only: no save or content change.
+
+**Evidence.** `OnboardingProviderUpdateTests` (5 .NET cases); EditMode `Outdated_health_connect_shows_update_required_not_connect`. .NET 689 total; EditMode 117/117 (`docs/evidence/d094-onboarding-update/`, Unity-editor-tested). Device UNVERIFIED (KI-002).

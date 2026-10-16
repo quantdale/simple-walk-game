@@ -2020,7 +2020,10 @@ namespace WalkGame.Application
             if (_connectionPort != null)
             {
                 var snapshot = _connectionPort.SnapshotConnection();
-                switch (snapshot.Permission)
+                // D-094: an outdated provider outranks every permission state (as in D-093's projector step 0).
+                if (snapshot.Availability == ActivitySourceAvailability.ProviderUpdateRequired)
+                    activityStep = OnboardingActivityStepState.ProviderUpdateRequired;
+                else switch (snapshot.Permission)
                 {
                     case ActivityPermissionState.Granted:
                     case ActivityPermissionState.PartiallyGranted:
