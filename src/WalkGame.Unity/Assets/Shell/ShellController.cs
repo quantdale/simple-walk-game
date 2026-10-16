@@ -300,17 +300,15 @@ namespace WalkGame.Shell
                 case OnboardingStage.Premise:
                 case OnboardingStage.WorldBaseline:
                     m = With(ShellScreen.Guide, "The valley today");
-                    var home = _session.GetHome();
-                    var damaged = home.Landmarks.FirstOrDefault();
-                    m.Lines.Add(damaged != null
-                        ? damaged.TitleKey + " is still damaged (stage " + damaged.Stage + "). Your walks will bring it back."
-                        : "The valley is quiet and worn. Your walks will bring it back.");
+                    var damaged = _session.GetRegion().Landmarks.FirstOrDefault();
+                    if (damaged != null) m.Lines.Add(GlancePhrases.FormatLandmark(PlayerCopy.Title(damaged.TitleKey), damaged.Stage));
+                    m.Lines.Add("The valley is quiet and worn. Your walks will bring it back.");
                     m.Actions.Add(new ShellAction("guide:next", "Continue"));
                     break;
                 case OnboardingStage.ActivityConnection:
                     m = With(ShellScreen.Guide, "Connect your walking");
                     m.Lines.Add("The game reads only your step counts, on this device. Nothing is uploaded.");
-                    m.Lines.Add("Activity source: " + _session.GetActivityStatus().Status + ".");
+                    m.Lines.Add(PlayerCopy.ActivityStatus(_session.GetActivityStatus().Status));
                     m.Lines.Add("You can keep going without connecting; nothing is locked.");
                     m.Actions.Add(new ShellAction("guide:next", "Continue"));
                     break;
@@ -325,7 +323,7 @@ namespace WalkGame.Shell
                     {
                         m.Lines.Add("Pick one place to restore first. You can change the order later.");
                         foreach (var r in _session.GetProjects().Projects.Where(r => r.Status == ProjectStatus.Available))
-                            m.Actions.Add(new ShellAction("queue:" + r.ProjectId, "Restore " + r.TitleKey));
+                            m.Actions.Add(new ShellAction("queue:" + r.ProjectId, "Restore " + PlayerCopy.Title(r.TitleKey)));
                     }
                     break;
                 case OnboardingStage.Simulation:
@@ -339,7 +337,18 @@ namespace WalkGame.Shell
                     m.Actions.Add(new ShellAction("guide:next", "Go to the valley"));
                     break;
             }
+            // UX_DESIGN §11/§21: a calm progress cue so the player knows the guide is short.
+            m.Lines.Insert(0, GuideProgress(ob.CurrentStage));
             return m;
+        }
+
+        /// <summary>Five player-visible steps: valley, walking, first project, away, done.</summary>
+        public const int GuideSteps = 5;
+
+        public static string GuideProgress(OnboardingStage stage)
+        {
+            int step = stage <= OnboardingStage.WorldBaseline ? 1 : Math.Min(GuideSteps, (int)stage - 1);
+            return "Step " + step + " of " + GuideSteps;
         }
 
         private ScreenModel BootErrorScreen()

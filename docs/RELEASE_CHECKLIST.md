@@ -34,7 +34,7 @@ the remaining documents into the evidence package. Run it; do not assemble a pac
 | D | On-device performance and battery budgets | **UNVERIFIED** (KI-002). |
 | E | Health Connect / HealthKit adapter behaviour | **UNVERIFIED** (KI-002; the trust pipeline itself is automated-verified). |
 | F | At-rest confidentiality of the health-adjacent save | **Decided (D-067):** OS device encryption is a system requirement. Before release, verify on device that the save and backup paths are app-private and that the iOS protection class is not lowered. |
-| G | PRODUCT_SPEC privacy requirements section | **OPEN** (KI-005). |
+| G | PRODUCT_SPEC privacy requirements section | **CLOSED** (KI-005 closed on main via `589150b`: PRODUCT_SPEC §7a, eight requirements traced in PRIVACY_REVIEW §7). |
 
 ## Final Device and Release Qualification Checklist
 

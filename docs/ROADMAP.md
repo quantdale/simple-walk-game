@@ -310,6 +310,10 @@ All seven reports are committed under `docs/evidence/m4/` and reproduce byte-for
 >
 > **M5-U1 (implemented 2026-10-16, box-verified):** `src/WalkGame.Unity` on 6000.3.26f1 (D-035) with prebuilt plugins, one composition root on `persistentDataPath` (D-067), a StartStatus router and Home/Return/Projects/Settings (incl. delete-all confirmation)/Activity screens. The batchmode EditMode suite passes 13/13 and a batchmode IL2CPP arm64 debug APK builds (30.7 MB); see `docs/evidence/m5-u1/M5-U1-RESULTS.md`. The APK has never been run on a device, and visual rendering, accessibility and the Health Connect adapter remain UNVERIFIED.
 >
+> **M5-U2 (merged 2026-10-16, PR #19):** player copy for Projects/Activity/Settings, Region screen, §17 empty states; EditMode 20/20 (Unity-editor-tested).
+>
+> **M5-U3 (2026-10-16, Unity-editor-tested):** onboarding/first-run polish per UX_DESIGN §11/§12: the guide shows "Step n of 5", landmarks render as stage phrases, the activity step uses player copy, and first-project choices use titles, so no identifier, content key or enum name reaches the guide. EditMode 23/23 and the first **PlayMode** suite 1/1 both pass in batchmode `-nographics` (`tools/unity/run-playmode-tests.sh`; evidence `docs/evidence/m5-u3/`). Device runtime stays UNVERIFIED (KI-002, no KVM).
+>
 > **NOT yet delivered by M5-H1 (runtime/platform, remains open until an editor exists, D-035): actual Unity screens/scenes, screen-reader navigation, reduced-motion runtime behavior, notification DELIVERY, OS permission dialogs, device lifecycle/performance evidence. These stay UNVERIFIED and M5 is NOT complete as a milestone.**
 
 ## Goal
