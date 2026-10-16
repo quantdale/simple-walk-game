@@ -121,7 +121,7 @@ namespace WalkGame.Shell
                         Current = OnboardingIncomplete() ? ShellScreen.Guide : ShellScreen.Home;
                     }
                     else if (started.Status == StartStatus.ExistingSaveRefused) _error = "A game is already here; it was not replaced.";
-                    else _error = "Could not start a new game (" + started.Status + "): " + started.Detail;
+                    else _error = "We couldn't start a new world. Nothing on this device was changed.";
                     return;
                 case "retry": Boot(); return;
                 case "activity:connect":
@@ -141,14 +141,14 @@ namespace WalkGame.Shell
                     {
                         _booted = false; _notice = "All local data was deleted."; Current = ShellScreen.Onboarding;
                     }
-                    else { Current = ShellScreen.Settings; _error = "Delete failed (" + (erased.FailureCategory ?? erased.Status.ToString()) + "). Your data was not changed."; }
+                    else { Current = ShellScreen.Settings; _error = "Your data could not be deleted, so nothing was changed. You can try again."; }
                     return;
                 case "dev:walk":
                     if (!_devTools) { _error = "Development tools are disabled."; return; }
                     var now = DateTimeOffset.UtcNow;
                     _session.IngestFromSource(new SyntheticWalkingSource(6000), now.AddDays(-1), now);
                     return;
-                default: _error = "Unknown action: " + actionId; return;
+                default: _error = "Unknown action."; return;
             }
         }
 
@@ -187,7 +187,9 @@ namespace WalkGame.Shell
         private bool Check(DomainResult r)
         {
             if (r.IsSuccess) return true;
-            _error = r.Error?.Message ?? "The action could not be completed.";
+            // D-096: domain error text is for developers (it can echo ids such as 'proj.x');
+            // the player sees one calm sentence.
+            _error = "That could not be done just now. Your progress is safe.";
             return false;
         }
 
@@ -292,7 +294,7 @@ namespace WalkGame.Shell
             if (open.Count == 0)
                 m.Lines.Add(p.Projects.All(r => r.Status == ProjectStatus.Completed)
                     ? "Every restoration in this valley is finished. It stays restored; check the valley to see it flourish."
-                    : "No projects are open right now. Keep walking: finishing restorations unlocks new ones.");
+                    : "No projects are open right now. Finishing a restoration opens new ones.");
             else if (!anyQueued)
                 m.Lines.Add("Nothing is queued. Choose a project below and your walks will start restoring it.");
             foreach (var r in p.Projects.Where(r => r.Status != ProjectStatus.Locked).OrderBy(r => r.QueuedPosition ?? int.MaxValue))
