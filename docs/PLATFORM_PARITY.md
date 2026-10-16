@@ -8,8 +8,8 @@ Status as of 2026-10-16, main `33a72cf`. Labels follow TESTING_AND_RELEASE: **au
 The ingestion seam is platform-neutral (`IActivityRecordSource`, `IActivityConnectionPort`, D-034/D-043),
 but **only Android has a composed provider adapter**. Since D-112 a HealthKit adapter exists in code:
 `HealthKitActivityAdapter` (automated-verified headless with a fake bridge), the `IosHealthKitBridge`
-P/Invoke class and a Swift bridge (`Assets/Plugins/iOS/WalkGameHealthKitBridge.swift`, **UNVERIFIED: never
-compiled or run**). It is NOT composed into `ShellBootstrap`, and no iOS build exists. The entitlement and
+P/Invoke class and a Swift bridge (`Assets/Plugins/iOS/WalkGameHealthKitBridge.swift`, **compiled on hosted
+macOS** by CI, never run or device-tested). It is NOT composed into `ShellBootstrap`, and no iOS build exists. The entitlement and
 `NSHealthShareUsageDescription` steps are documented in [`HEALTHKIT_SETUP.md`](HEALTHKIT_SETUP.md) but not
 applied. This gap is still tracked as **KI-022**.
 ROADMAP M7 ("HealthKit integration or current approved equivalent") stays unchecked.

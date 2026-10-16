@@ -3,7 +3,7 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
     /// <summary>
     /// String-protocol seam to the native iOS bridge (<c>Assets/Plugins/iOS/WalkGameHealthKitBridge.swift</c>,
     /// D-112). Same shape as the Health Connect seam (D-068) so every mapping rule is tested headless
-    /// with a fake. The native side is UNVERIFIED: it has never been compiled or run (no macOS host, KI-022).
+    /// with a fake. The Swift side compiles on hosted macOS (CI) but has never run: runtime UNVERIFIED (KI-022).
     ///
     /// Protocol (lower-case ASCII):
     /// <list type="bullet">
