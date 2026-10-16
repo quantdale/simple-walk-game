@@ -1957,3 +1957,8 @@ not complete M5 as a roadmap milestone.
 ## D-072 — M8 Lifecycle is proven headlessly at process boundaries (2026-10-16)
 
 The device-independent half of the M8 Lifecycle campaign is modelled as process boundaries, each a fresh `GameSession` over one save directory. It covers repeated resume with overlapping re-fetch, process death with torn temp files, interrupted boots, and permission revoked and re-granted outside the app. The guarded invariant is canonical progress (lifetime credit, completed projects, exactly-once ingestion), not save bytes, because boots legitimately commit bookkeeping. Real OS kill, reboot and on-device revocation stay UNVERIFIED (KI-002). Evidence: `docs/evidence/m8-h1/LIFECYCLE_HEADLESS.md`.
+
+
+## D-073 — Accessibility uses the OS: font scale and Unity's screen-reader bridge (2026-10-16)
+
+Large text follows the OS font size (`AccessibilitySettings.fontScale`) rather than an in-game setting, clamped to 1–2× so text never drops below the base sizes. Layout must wrap rather than clip. Screen-reader support is an engine-free `AccessibleOutline` (reading order: title, problem/notice, picture description, text, then actions) published through Unity's `AssistiveSupport.activeHierarchy` only while a screen reader is on. Button nodes invoke the same action ids as taps. Empty states are the screen's own explanatory line at body size; no generic filler. The headless half is Unity-editor-tested; TalkBack and hardware font scaling are UNVERIFIED (KI-002). Evidence: `docs/evidence/m8-h1/UX_ACCESSIBILITY_HEADLESS.md`.
