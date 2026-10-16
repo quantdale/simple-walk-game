@@ -40,6 +40,7 @@ namespace WalkGame.Shell
             Hill(p, w, h, 0.45f, C(Mix(SceneHill(), 0xFFFFFF, 0.35f))); shapes++;                       // far hills
             Hill(p, w, h, 0.60f, C(SceneHill())); shapes++;                                             // near hills
             Rect(p, 0, h * 0.86f, w, h * 0.06f, C(Scene.Greenness > 0.5f ? 0x6FA3BFu : 0x9FB3B8u)); shapes++; // river
+            shapes += DrawAmbient(p, w, h);                                                             // D-101 ambience
 
             foreach (var l in Scene.Landmarks)
             {
@@ -143,6 +144,39 @@ namespace WalkGame.Shell
                     break;
             }
             return 2;
+        }
+
+        /// <summary>
+        /// D-101: footpaths between recovered neighbours, meadow flowers and birds. Bounded by
+        /// <see cref="RegionScene.MaxAmbientShapes"/>; positions are fixed fractions, so it is static.
+        /// </summary>
+        private int DrawAmbient(Painter2D p, float w, float h)
+        {
+            int shapes = 0;
+            var ls = Scene.Landmarks;
+            int trail = 0;
+            for (int i = 1; i < ls.Count && trail < Scene.TrailSegments; i++)
+            {
+                if (ls[i - 1].Stage == RestorationStage.Ruined || ls[i].Stage == RestorationStage.Ruined) continue;
+                p.strokeColor = C(0xD9C9A3u); p.lineWidth = 3f; p.lineCap = LineCap.Round; p.BeginPath();
+                p.MoveTo(new Vector2(ls[i - 1].X * w, ls[i - 1].Y * h + 6f));
+                p.LineTo(new Vector2(ls[i].X * w, ls[i].Y * h + 6f));
+                p.Stroke(); shapes++; trail++;
+            }
+            uint[] petals = { 0xF2C6D0u, 0xF4E3A1u, 0xE8EEF2u, 0xD7B8E8u, 0xF6D0A8u };
+            for (int f = 0; f < Scene.Flowers; f++)
+            {
+                float fx = w * (0.10f + 0.19f * f), fy = h * (0.80f + 0.025f * (f % 2));
+                Circle(p, fx, fy, 3.5f, C(petals[f % petals.Length])); shapes++;
+            }
+            for (int b = 0; b < Scene.Birds; b++)
+            {
+                float bx = w * (0.30f + 0.18f * b), by = h * (0.18f + 0.06f * b), r = 6f;
+                p.strokeColor = C(0x4A5A55u); p.lineWidth = 1.6f; p.BeginPath();
+                p.MoveTo(new Vector2(bx - r, by - r * 0.4f)); p.LineTo(new Vector2(bx, by)); p.LineTo(new Vector2(bx + r, by - r * 0.4f));
+                p.Stroke(); shapes++;
+            }
+            return shapes;
         }
 
         private uint SceneHill() => RegionScene.HillColor(Scene.Greenness);
