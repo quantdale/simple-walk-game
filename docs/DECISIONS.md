@@ -2170,3 +2170,11 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Decision.** Home shows one line, `ShellController.HomeStoryLine`: "Story: <latest unlocked chapter heading>. Next: <next chapter's hint>", using the same title and hint the journal already shows, so a locked chapter's title or body never appears. Once every chapter is unlocked it shows the epilogue line ("Millbrook's story is complete. The valley stays restored, and every chapter is here to reread."). Shell-only: no content version, fingerprint or save change. Copy obeys the no-guilt check.
 
 **Evidence.** `StoryJournalTests.Home_shows_the_current_chapter_and_the_next_hint_without_spoilers` (new game prologue + after a 10-day walk) and `Home_story_line_becomes_the_epilogue_when_every_chapter_is_unlocked`. EditMode 111/111 on the merged branch (`docs/evidence/d-home-chapter/`, Unity-editor-tested). Device UNVERIFIED (KI-002).
+
+## D-091 — Adverse byte-level save damage: recovery must persist; both damaged fail closed (2026-10-16)
+
+**Context.** D-078 covered checksum-valid semantic tampering, and Infrastructure tests covered empty/junk generations at the store level. No session-level test proved that byte-level damage to the primary (truncation, one flipped byte, oversized garbage, UTF-16 re-encoding, NUL fill) recovers and that the recovered game then persists.
+
+**Decision.** No production change: the existing envelope checksum and backup fallback already behave correctly. `SaveRecoveryAdverseTests` locks the contract in: (a) each damaged primary yields `RecoveredFromBackup`, a later ingest commits, and the next boot is `Loaded` with progress not below the recovered value; (b) with both generations damaged the session fails closed (`SaveUnreadable`/`StateInvalid`, no loaded state) and `StartNewGame(seed, overwriteExisting: false)` returns `ExistingSaveRefused` with both files byte-identical (D-085).
+
+**Evidence.** 11 cases, `docs/evidence/d-save-adverse/save-recovery-adverse.trx` (automated verified, headless .NET). Full .NET: Domain 148, Infrastructure 109, Application 413 (670). Device storage faults (real power loss, full disk) remain UNVERIFIED (KI-002).
