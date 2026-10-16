@@ -2114,3 +2114,14 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - The Application API is unchanged (KI-021).
 
 **Evidence.** `ShellInputHardeningTests` (21 EditMode cases). The comma-list case failed first (it opened Discoveries), then passed after the fix. Device UNVERIFIED (KI-002).
+
+## D-086 — Discoveries get authored story and origin text (2026-10-16)
+
+**Context.** D-082 showed found discoveries by title, kind and date only; body and provenance were content keys with no copy.
+
+**Decision.**
+- `WalkGame.Application.Content.Region1DiscoveryCopy` holds authored text for all 26 Region 1 body/provenance keys. The catalog keeps its keys, so canonical state, the content fingerprint and saves are unchanged (no save-compat impact).
+- The copy follows the D-076 Millbrook chapters: the floods and the failed drainage scheme, the heron-over-wheel mark (millstone, workshop ledger, mural, roost boards, survey stone), the cranes, the ribboned oak, the pencilled map on the market board, and the survey that closes the story.
+- The Discoveries screen shows, under each found discovery, its body and "Where it came from: …". Unfound discoveries still show nothing (no spoilers). A key without copy is skipped; a raw key never reaches the screen.
+
+**Evidence.** `DiscoveryCopyTests` (6 .NET cases: every discovery has body+origin, no placeholders or keys, length bounds, no orphan copy, unknown keys return null). `DiscoveriesScreenTests` +2 EditMode cases (copy shown under found discoveries in order; unfound copy never shown). EditMode 103/103 (`docs/evidence/b-discovery-copy/`, Unity-editor-tested). Device UNVERIFIED (KI-002).
