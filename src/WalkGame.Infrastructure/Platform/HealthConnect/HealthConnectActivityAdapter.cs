@@ -24,6 +24,21 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
     {
         public const string Namespace = "android.health-connect";
 
+        /// <summary>
+        /// Upper bound for a Health Connect record id (they are UUID-like). Ids are persisted in the
+        /// save's ledger and shown in support diagnostics, so an oversized or control-character id
+        /// is treated as a malformed line (fail closed) rather than stored (security review 2026-10-16).
+        /// </summary>
+        public const int MaxRecordIdLength = 128;
+
+        internal static bool IsAcceptableId(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id) || id.Length > MaxRecordIdLength) return false;
+            foreach (char c in id)
+                if (char.IsControl(c) || char.IsSurrogate(c)) return false;
+            return true;
+        }
+
         /// <summary>Revision epoch: lastModified seconds since this instant (fits int until 2088).</summary>
         private static readonly DateTimeOffset RevisionEpoch = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero);
 
@@ -110,7 +125,7 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
         {
             if (line.StartsWith("del\t", StringComparison.Ordinal)) return ParseDeletion(line);
             var f = line.Split('\t');
-            if (f.Length != 5 || string.IsNullOrWhiteSpace(f[0])) return null;
+            if (f.Length != 5 || !IsAcceptableId(f[0].Trim())) return null;
             var inv = CultureInfo.InvariantCulture;
             if (!long.TryParse(f[1], NumberStyles.Integer, inv, out long s) ||
                 !long.TryParse(f[2], NumberStyles.Integer, inv, out long e) ||
@@ -139,7 +154,7 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
         private static NormalizedActivityRecord? ParseDeletion(string line)
         {
             var f = line.Split('\t');
-            if (f.Length != 6 || string.IsNullOrWhiteSpace(f[1])) return null;
+            if (f.Length != 6 || !IsAcceptableId(f[1].Trim())) return null;
             var inv = CultureInfo.InvariantCulture;
             if (!long.TryParse(f[2], NumberStyles.Integer, inv, out long s) ||
                 !long.TryParse(f[3], NumberStyles.Integer, inv, out long e) ||
