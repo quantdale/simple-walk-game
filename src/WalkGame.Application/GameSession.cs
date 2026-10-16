@@ -922,7 +922,8 @@ namespace WalkGame.Application
                 throw;
             }
 
-            return IngestActivityBatch(records);
+            // D-130: a provider bridge that returns null (not an empty list) means "nothing new".
+            return IngestActivityBatch(records ?? Array.Empty<NormalizedActivityRecord>());
         }
 
         /// <summary>
@@ -1116,6 +1117,9 @@ namespace WalkGame.Application
         public DomainResult EnqueueProject(string projectId)
         {
             var game = RequireState();
+            // D-130: a null/empty id is an unknown project, not an ArgumentNullException from a dictionary lookup.
+            if (string.IsNullOrEmpty(projectId))
+                return DomainResult.Fail(ErrorCodes.UnknownProject, "Unknown project ''.");
             var definition = _content.FindProject(projectId);
             var runtime = game.Region.FindProject(projectId);
             if (definition == null || runtime == null)
@@ -1184,6 +1188,8 @@ namespace WalkGame.Application
                 return DomainResult.Fail(ErrorCodes.ProjectAlreadyActive,
                     $"'{game.Queue.ActiveProjectId}' is already active; only one project can be active.");
 
+            if (string.IsNullOrEmpty(projectId)) // D-130
+                return DomainResult.Fail(ErrorCodes.NotQueued, "Project '' is not queued.");
             var definition = _content.FindProject(projectId);
             var runtime = game.Region.FindProject(projectId);
             if (definition == null || runtime == null || runtime.Status != ProjectStatus.Queued)
