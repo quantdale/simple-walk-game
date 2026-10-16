@@ -11,12 +11,12 @@ namespace WalkGame.Shell
     public sealed class ShellConnectionPort : IActivityConnectionPort
     {
         /// <summary>Support-diagnostics detail (never player-facing, UX_DESIGN §5).</summary>
-        public const string UnsupportedDetail = "no walking data provider on this platform (HealthKit adapter not implemented, KI-022)";
+        public const string UnsupportedDetail = "no walking data provider on this platform (HealthKit adapter not implemented, KI-022)"; // l10n-ignore: diagnostic technical detail
         private readonly bool _development;
         public ShellConnectionPort(bool development) { _development = development; }
 
         public ActivityConnectionSnapshot SnapshotConnection() => _development
-            ? new ActivityConnectionSnapshot(ActivityPermissionState.Granted, ActivitySourceAvailability.Available, technicalDetail: "synthetic development source")
+            ? new ActivityConnectionSnapshot(ActivityPermissionState.Granted, ActivitySourceAvailability.Available, technicalDetail: "synthetic development source") // l10n-ignore: diagnostic technical detail
             : new ActivityConnectionSnapshot(ActivityPermissionState.NotRequested, ActivitySourceAvailability.Unsupported, technicalDetail: UnsupportedDetail);
     }
 }

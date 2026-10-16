@@ -24,7 +24,7 @@ namespace WalkGame.Shell
     /// </summary>
     public static class AccessibleOutline
     {
-        public const string PrimaryHint = "Main action on this screen.";
+        public static string PrimaryHint => PlayerStrings.T("a11y.primaryHint");
 
         public static List<AccessibleItem> Build(ScreenModel model)
         {
