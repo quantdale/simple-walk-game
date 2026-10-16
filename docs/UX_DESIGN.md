@@ -303,6 +303,17 @@ Requirements:
 
 Accessibility regressions are release blockers when they prevent core use.
 
+**Implementation status (2026-10-16, D-073; Unity-editor-tested, device UNVERIFIED KI-002):**
+- **Semantic labels and focus order:** `AccessibleOutline` (title → problem/notice → picture description → text → actions), published through `AssistiveSupport` while a screen reader is on.
+- **Text scaling:** OS font scale, 1–2×, with wrapping layout.
+- **Touch targets:** 56 dp × scale.
+- **Contrast:** at least 7:1 body text.
+- **No colour-only state:** problem/note prefixes; the primary action is marked by fill and position.
+- **Reduced motion:** met by construction (no motion).
+- **Picture alternative:** the valley picture always has alt text.
+
+Scenario 12 above (screen reader Home → Projects → Settings) is covered headlessly by the outline tests; real TalkBack is unverified.
+
 ---
 
 ## 15. Reduced motion

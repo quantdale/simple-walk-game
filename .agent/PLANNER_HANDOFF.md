@@ -27,4 +27,5 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - M8 lifecycle headless is done (D-072, 4 tests).
 - M8 UX/accessibility headless is done (D-073): OS font scale, screen-reader outline and AssistiveSupport bridge, empty states, 7/30-day returns; Unity-editor-tested, and the Android debug APK compiles.
 - M8 performance in the editor is done (D-074): mature-save/end-state/enter-exit budgets, ScrollView reuse fix, KI-018 residual.
-- Next slice: M8 exit item "docs reflect actual implementation state" (docs audit), then M9 release-qualification paperwork; device lanes stay blocked (KI-002).
+- M8 docs audit is done: README, WORLD_AND_CONTENT, UX_DESIGN §14 and PERFORMANCE_BUDGETS reconciled; ROADMAP exit item checked.
+- Next slice: M9 headless release qualification. Write a clean-clone validation script (fresh clone → identity → build → all .NET + Unity suites → content/pacing gates → evidence package). Device matrix, provider, battery and TalkBack evidence stay blocked (KI-002).

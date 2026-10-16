@@ -68,6 +68,8 @@ Targets:
 - no large synchronous save serialization on every minor UI event;
 - no avoidable frame hitch during return-summary construction.
 
+**Measured (editor only, D-074):** on a mature 365-day restored save, every lightweight screen builds and renders in 0.14–0.41 ms (model + view) and warm boot takes 5–7 ms. These are well inside the 100 ms input budget on the box. Device timings are UNVERIFIED (KI-002).
+
 ---
 
 ## 5. Frame-rate targets
@@ -117,6 +119,8 @@ Exact device-class budgets must be established during implementation, but initia
 - asset loading/unloading must be explicit;
 - memory after repeated Visit World enter/exit cycles should return near a stable baseline;
 - no monotonic memory growth across repeated background/resume cycles.
+
+**Measured (editor only, D-074):** repeated screen enter/exit is gated at < 1 MB of live-panel managed growth from 750 to 3,000 renders. The measured residual is about 116 B/render (KI-018), after the ScrollView-reuse fix. Device memory remains UNVERIFIED (KI-002); see `docs/evidence/m8-h1/PERFORMANCE_EDITOR.md`.
 
 Track:
 
