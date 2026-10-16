@@ -439,6 +439,7 @@ namespace WalkGame.Application
 
             _state = fresh;
             CaptureBootOutcome(DiagnosticsBootOutcome.NewGameCreated, recoveredFromBackup: false);
+            if (!overwriteExisting) ResetStaleOnboarding();
             return new StartResult(StartStatus.NewGameCreated, new[]
             {
                 "A new restoration begins in " + _content.TitleKey + ".",
@@ -1737,6 +1738,21 @@ namespace WalkGame.Application
                 throw new IOException("Persisting UX preferences failed: " + ex.Message, ex);
             }
             return DomainResult.Ok();
+        }
+
+        /// <summary>
+        /// D-092: a fresh-device start (no save in either slot) must not inherit onboarding
+        /// progress from an erased world. Delete-all erases saves before preferences, so an
+        /// app killed between the two leaves a stale stage (possibly Complete) that would
+        /// skip onboarding for the new world. Only the stage is reset; other preferences
+        /// (motion, sound, text) are player choices and stay. Best-effort: a preferences
+        /// write failure never fails the start (the save is already durable).
+        /// </summary>
+        private void ResetStaleOnboarding()
+        {
+            if (_preferencesStore == null || _preferences.OnboardingStage == OnboardingStage.NotStarted) return;
+            try { UpdatePreferences(p => p.OnboardingStage = OnboardingStage.NotStarted); }
+            catch (IOException) { }
         }
 
         // ---------------------------------------------------------------------

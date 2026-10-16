@@ -70,3 +70,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - D-090: Home story line (current chapter + next hint; epilogue once complete). Region 2 storyline still needs OpenSpec first.
 - D-091: `SaveRecoveryAdverseTests` (11) for byte-level primary/both damage; .NET 670 total.
 - Next: onboarding/permission edge cases at the shell (denied-then-granted mid-onboarding); Region 2 storyline OpenSpec; device lane (KI-002).
+
+## Session note 2026-10-16 (grok1814)
+- D-092: onboarding/permission edge cases. A fresh-device start resets a stale onboarding stage left by a kill mid delete-all. `StaleOnboardingResetTests` (5), `OnboardingPermissionEdgeTests` (5); .NET 675, EditMode 116/116 (Unity-editor-tested). Device permission dialog UNVERIFIED (KI-002).
