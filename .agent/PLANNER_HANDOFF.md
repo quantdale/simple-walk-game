@@ -198,3 +198,9 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR (D-127): Region 1 mid/late PNG review (`docs/evidence/region1-midlate-polish/`); Projects now lists active/waiting/ready before restored rows. Capture `WG_CAPTURE_STATE=mid|late`. EditMode 215/215 (Unity-editor-tested).
 - No Dependabot PRs were open. Next: stored summary lines and expedition/care descriptions through the overlay; the first real translation plus a language preference; device lane (KI-002). Region 2 is still PROPOSED only.
 
+
+## Session note 2026-10-17 (grok0316 resumed as grok0702)
+- #127 (`2ba0e6f`, D-128): the shell sync pipeline runs one at a time. Resume during boot is coalesced, mid-pipeline taps are dropped, and IO/access exceptions at the Unity boundary become the calm sentence. `SyncReentrancyTests` (6).
+- #128 (D-129): Region 1 epilogue (OpenSpec `add-region1-epilogue`, agent-approved as Region 1 scope): Nell's closing letters, a final journal entry and cycling valley notes. No save change.
+- This PR (D-130): null-input scan. Null project ids give calm results; a null provider batch counts as empty. `NullBoundaryTests` (6).
+- No new Dependabot PRs. Region 2 is still PROPOSED only. Next: device lane (KI-002); first real translation.

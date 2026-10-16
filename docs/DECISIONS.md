@@ -2594,3 +2594,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Residual.** After a failed commit the in-memory state can be ahead of disk until the next successful write (pre-existing session contract). Null scan: shell entry points already reject null/empty action ids (D-084); no new unhandled null path found in `ShellController`/`ShellBootstrap`.
 
 **Save compatibility.** None.
+
+## D-130 — Null-input scan of GameSession entry points (2026-10-17)
+
+**Context.** This follows the D-128 boundary audit and covers the Application side. `EnqueueProject(null)` and `ActivateQueuedProject(null)` threw `ArgumentNullException` from a dictionary lookup. An `IActivityRecordSource` that returned `null` instead of an empty list threw out of `IngestFromSource`. The shell's D-128 boundary does not catch `ArgumentNullException` from the live-source read, but its catch-all swallowed it, so the result was silent but unrecorded.
+
+**Decision.** A null or empty project id is now a calm `UnknownProject` (enqueue) or `NotQueued` (activate) result. A null batch from a provider is read as "nothing new" and ingested as an empty batch. `DequeueProject`, `MarkDiscoveryReviewed` and `DiscoveryCopy` already handled null and are now pinned by tests.
+
+**Tests.** `NullBoundaryTests` (6). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None.
