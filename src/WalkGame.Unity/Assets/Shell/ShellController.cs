@@ -221,7 +221,19 @@ namespace WalkGame.Shell
             var s = _session.GetPendingReturnSummary();
             var m = With(ShellScreen.ReturnSummary, "While you were away", s == null ? ScreenState.Empty : ScreenState.Normal);
             if (s == null) m.Lines.Add("Nothing new since your last visit.");
-            else foreach (var item in s.Items) m.Lines.Add(item.Text);
+            else
+            {
+                // UX_DESIGN §4/§19: lead with transformation; restoration moments are shown inline on
+                // the valley picture (static, skippable by simply continuing), never as a blocking sequence.
+                var moments = s.Items.Where(i => i.Kind == WalkGame.Domain.Summaries.SummaryItemKind.Transformation && i.IsCurrent)
+                                     .Select(i => i.Text).ToList();
+                if (moments.Count > 0)
+                {
+                    m.Scene = RegionScene.Build(_session.GetRegion(), moments);
+                    m.Lines.Add(m.Scene.ChangedCount > 0 ? "The valley changed while you were away." : "Your walks changed the valley.");
+                }
+                foreach (var item in s.Items) m.Lines.Add((item.IsCurrent ? "" : "Earlier: ") + item.Text);
+            }
             if (s != null) m.Actions.Add(new ShellAction("ack", "Continue"));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;

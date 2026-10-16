@@ -8,8 +8,10 @@ namespace WalkGame.Shell
     /// <summary>One landmark as drawn in the valley picture.</summary>
     public sealed class LandmarkVisual
     {
-        public LandmarkVisual(string label, RestorationStage stage, float x, float y)
-        { Label = label; Stage = stage; X = x; Y = y; }
+        public LandmarkVisual(string label, RestorationStage stage, float x, float y, bool changed = false)
+        { Label = label; Stage = stage; X = x; Y = y; Changed = changed; }
+        /// <summary>Restoration moment: this landmark changed while the player was away (UX_DESIGN §4/§19).</summary>
+        public bool Changed { get; }
         public string Label { get; }
         public RestorationStage Stage { get; }
         /// <summary>Normalized position in the picture, 0..1.</summary>
@@ -29,7 +31,7 @@ namespace WalkGame.Shell
     public sealed class RegionScene
     {
         public const int MaxLandmarks = 12;
-        public const int ShapesPerLandmark = 6;   // base + up to 4 growth shapes + marker
+        public const int ShapesPerLandmark = 7;   // base + up to 4 growth shapes + marker + moment ring
         public const int BackdropShapes = 4;      // sky, far hills, near hills, river
         public const int MaxShapes = BackdropShapes + MaxLandmarks * ShapesPerLandmark;
 
@@ -43,7 +45,14 @@ namespace WalkGame.Shell
         private RegionScene(IReadOnlyList<LandmarkVisual> landmarks, float greenness, bool completed, string alt)
         { Landmarks = landmarks; Greenness = greenness; Completed = completed; AltText = alt; }
 
-        public static RegionScene Build(RegionReadModel region)
+        public static RegionScene Build(RegionReadModel region) => Build(region, null);
+
+        /// <summary>
+        /// <paramref name="changedTexts"/>: current Transformation lines of the pending return
+        /// summary. A landmark whose player title appears in one is marked as a restoration moment.
+        /// Matching is by title because summary items carry text only (documented limitation).
+        /// </summary>
+        public static RegionScene Build(RegionReadModel region, IReadOnlyList<string>? changedTexts)
         {
             if (region == null) throw new ArgumentNullException(nameof(region));
             var list = new List<LandmarkVisual>();
@@ -54,7 +63,12 @@ namespace WalkGame.Shell
                 // Deterministic layout: spread along the valley floor, alternating near/far rows.
                 float x = (i + 0.5f) / n;
                 float y = 0.62f + (i % 2 == 0 ? 0.08f : -0.04f);
-                list.Add(new LandmarkVisual(PlayerCopy.Title(l.TitleKey), l.Stage, x, y));
+                string title = PlayerCopy.Title(l.TitleKey);
+                bool changed = false;
+                if (changedTexts != null && title != GlancePhrases.UntitledProject)
+                    foreach (var t in changedTexts)
+                        if (t != null && t.IndexOf(title, StringComparison.Ordinal) >= 0) { changed = true; break; }
+                list.Add(new LandmarkVisual(title, l.Stage, x, y, changed));
             }
             float green = region.TotalProjects <= 0 ? 0f : Clamp01((float)region.CompletedProjects / region.TotalProjects);
             if (region.RegionCompleted) green = 1f;
@@ -64,14 +78,21 @@ namespace WalkGame.Shell
                 ? "A picture of the valley, green and fully restored."
                 : "A picture of the valley: " + restored + " of " + list.Count + " landmarks restored, the hills "
                   + (green < 0.34f ? "still dry." : green < 0.67f ? "turning green." : "mostly green.");
+            int moments = 0;
+            foreach (var v in list) if (v.Changed) moments++;
+            if (moments > 0)
+                alt += moments == 1 ? " One landmark that changed while you were away is circled."
+                                    : " " + moments + " landmarks that changed while you were away are circled.";
             return new RegionScene(list, green, region.RegionCompleted, alt);
         }
 
         /// <summary>Total filled shapes a repaint will issue (budget check).</summary>
+        public int ChangedCount { get { int n = 0; foreach (var l in Landmarks) if (l.Changed) n++; return n; } }
+
         public int ShapeCount()
         {
             int shapes = BackdropShapes;
-            foreach (var l in Landmarks) shapes += 2 + l.Level; // base + marker + growth
+            foreach (var l in Landmarks) shapes += 2 + l.Level + (l.Changed ? 1 : 0); // base + marker + growth + ring
             return shapes;
         }
 

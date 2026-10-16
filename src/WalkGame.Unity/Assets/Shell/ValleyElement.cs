@@ -51,6 +51,11 @@ namespace WalkGame.Shell
                     Tri(p, tx, cy - s * 1.1f - (g % 2) * 4f, 6f + l.Level, C(0x3E7A4Bu)); shapes++;
                 }
                 Circle(p, cx, cy + 6f, 3f, col); shapes++;                                               // marker
+                if (l.Changed)                                                                          // moment ring (static, no motion)
+                {
+                    p.strokeColor = C(0x1F2A24u); p.lineWidth = 2.5f; p.BeginPath();
+                    p.Arc(new Vector2(cx, cy - s * 0.5f), s * 1.9f, 0f, 360f); p.Stroke(); shapes++;
+                }
             }
             LastShapeCount = shapes;
         }
