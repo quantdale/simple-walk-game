@@ -25,9 +25,17 @@ namespace WalkGame.Shell
         private string? _notice;
         private string? _error;
         private bool _booted;
+        private readonly IActivityRecordSource? _liveSource;
+        private readonly Action? _requestPermission;
 
-        public ShellController(GameSession session, Func<ulong> seedSource, bool devTools)
+        /// <summary>Days of provider history re-read on each boot/resume; replays are exactly-once no-ops.</summary>
+        public const int SyncWindowDays = 30;
+
+        public ShellController(GameSession session, Func<ulong> seedSource, bool devTools,
+            IActivityRecordSource? liveSource = null, Action? requestPermission = null)
         {
+            _liveSource = liveSource;
+            _requestPermission = requestPermission;
             _session = session ?? throw new ArgumentNullException(nameof(session));
             _seedSource = seedSource ?? throw new ArgumentNullException(nameof(seedSource));
             _devTools = devTools;
@@ -45,6 +53,7 @@ namespace WalkGame.Shell
             _notice = notice;
             _error = null;
             Current = screen;
+            if (_booted) SyncLiveSource();
             if (_booted && OnboardingIncomplete()) Current = ShellScreen.Guide;
             else if (_booted && _session.GetPendingReturnSummary() != null) Current = ShellScreen.ReturnSummary;
         }
@@ -81,6 +90,10 @@ namespace WalkGame.Shell
                     else _error = "Could not start a new game (" + started.Status + "): " + started.Detail;
                     return;
                 case "retry": Boot(); return;
+                case "activity:connect":
+                    if (_requestPermission == null) { _error = "Walking data can't be connected on this device."; return; }
+                    _requestPermission();
+                    return;
                 case "guide:next": GuideNext(); return;
                 case "ack": if (Check(_session.AcknowledgeReturnSummary())) Current = ShellScreen.Home; return;
                 case "toggle:reducedMotion": Check(_session.SetReducedMotion(!_session.GetSettings().ReducedMotion)); return;
@@ -103,6 +116,19 @@ namespace WalkGame.Shell
                     return;
                 default: _error = "Unknown action: " + actionId; return;
             }
+        }
+
+        /// <summary>
+        /// Pulls the live provider (Health Connect, D-068) through the unchanged trust pipeline.
+        /// Only when permission is granted; a failed fetch is already recorded durably by the
+        /// session (D-063) and never blocks the shell.
+        /// </summary>
+        private void SyncLiveSource()
+        {
+            if (_liveSource == null || !_session.GetActivityStatus().PermissionGranted) return;
+            var now = DateTimeOffset.UtcNow;
+            try { _session.IngestFromSource(_liveSource, now.AddDays(-SyncWindowDays), now); }
+            catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException || ex is InvalidOperationException) { }
         }
 
         private bool OnboardingIncomplete() => _session.GetOnboarding().CurrentStage < OnboardingStage.Complete;
@@ -283,6 +309,8 @@ namespace WalkGame.Shell
             m.Lines.Add(PlayerCopy.ActivityStatus(a.Status));
             string next = PlayerCopy.ActivityAction(a.RecommendedAction);
             if (next != null) m.Lines.Add(next);
+            if (a.RecommendedAction == ActivityRecommendedAction.Connect && _requestPermission != null)
+                m.Actions.Add(new ShellAction("activity:connect", "Connect walking data"));
             if (!a.HasProcessedAnyRecord) m.Lines.Add("No walking data has arrived yet. Your progress starts with your first walk.");
             else m.Lines.Add("Your last walks added " + a.LastBatchVitalityCredited + " vitality.");
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
@@ -310,6 +338,8 @@ namespace WalkGame.Shell
                     m.Lines.Add("The game reads only your step counts, on this device. Nothing is uploaded.");
                     m.Lines.Add(PlayerCopy.ActivityStatus(_session.GetActivityStatus().Status));
                     m.Lines.Add("You can keep going without connecting; nothing is locked.");
+                    if (_session.GetActivityStatus().RecommendedAction == ActivityRecommendedAction.Connect && _requestPermission != null)
+                        m.Actions.Add(new ShellAction("activity:connect", "Connect walking data"));
                     m.Actions.Add(new ShellAction("guide:next", "Continue"));
                     break;
                 case OnboardingStage.FirstProject:

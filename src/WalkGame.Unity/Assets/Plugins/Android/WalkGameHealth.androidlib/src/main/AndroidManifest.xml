@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Health Connect (Android 14+ framework API, D-068): read steps only. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <application>
+        <!-- Required by Health Connect: the privacy rationale shown from the permission screen. -->
+        <activity
+            android:name="com.quantdale.walkgame.health.HealthPermissionRationaleActivity"
+            android:exported="true"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

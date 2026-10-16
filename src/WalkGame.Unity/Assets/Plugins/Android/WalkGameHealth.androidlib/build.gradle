@@ -1,0 +1,11 @@
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.quantdale.walkgame.health'
+    compileSdk 34
+    defaultConfig { minSdk 25 }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}

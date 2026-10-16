@@ -263,4 +263,20 @@ public sealed class ActivityStatusProjectionTests : IDisposable
             System.IO.File.ReadAllBytes(System.IO.Path.Combine(_temp.Path, "snapshot.json")),
             System.IO.File.ReadAllBytes(System.IO.Path.Combine(_temp.Path, "save.json")));
     }
+
+    [Theory]
+    [InlineData(ActivityPermissionState.NotRequested, ActivityPlayerStatus.SourceUnavailable, ActivityRecommendedAction.None)]
+    [InlineData(ActivityPermissionState.Denied, ActivityPlayerStatus.PermissionDenied, ActivityRecommendedAction.OpenSettings)]
+    [InlineData(ActivityPermissionState.Revoked, ActivityPlayerStatus.PermissionDenied, ActivityRecommendedAction.OpenSettings)]
+    public void Unsupported_provider_never_asks_the_player_to_connect(
+        ActivityPermissionState permission, ActivityPlayerStatus status, ActivityRecommendedAction action)
+    {
+        // D-068: "connect" is a dead end on a device without a provider; an explicit
+        // denial/revocation is still reported as such.
+        var m = ActivityStatusProjector.Project(
+            new ActivityConnectionSnapshot(permission, ActivitySourceAvailability.Unsupported),
+            false, IngestionOutcomeKind.NeverRun, 0L, null);
+        Assert.Equal(status, m.Status);
+        Assert.Equal(action, m.RecommendedAction);
+    }
 }

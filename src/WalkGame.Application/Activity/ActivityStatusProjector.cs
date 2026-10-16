@@ -99,6 +99,12 @@ namespace WalkGame.Application.Activity
         private static ActivityPlayerStatus Classify(
             ActivityConnectionSnapshot snapshot, bool hasProcessedAnyRecord, IngestionOutcomeKind lastOutcome)
         {
+            // D-068: with no provider on the device, permission is meaningless; asking the
+            // player to "connect" something that cannot exist is a dead end.
+            if (snapshot.Availability == ActivitySourceAvailability.Unsupported
+                && (snapshot.Permission == ActivityPermissionState.NotRequested))
+                return ActivityPlayerStatus.SourceUnavailable;
+
             switch (snapshot.Permission)
             {
                 case ActivityPermissionState.Denied:

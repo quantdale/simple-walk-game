@@ -1,0 +1,14 @@
+# APK inspection (aapt2 + dexdump, build-tools 36.0.0), 2026-10-16
+apk bytes: 30979826
+        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=25
+        A: http://schemas.android.com/apk/res/android:targetSdkVersion(0x01010270)=36
+        A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.permission.health.READ_STEPS" (Raw: "android.permission.health.READ_STEPS")
+            A: http://schemas.android.com/apk/res/android:name(0x01010003)="com.quantdale.walkgame.health.HealthPermissionRationaleActivity" (Raw: "com.quantdale.walkgame.health.HealthPermissionRationaleActivity")
+            A: http://schemas.android.com/apk/res/android:permission(0x01010006)="android.permission.START_VIEW_PERMISSION_USAGE" (Raw: "android.permission.START_VIEW_PERMISSION_USAGE")
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.action.VIEW_PERMISSION_USAGE" (Raw: "android.intent.action.VIEW_PERMISSION_USAGE")
+                    A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.intent.category.HEALTH_PERMISSIONS" (Raw: "android.intent.category.HEALTH_PERMISSIONS")
+Lcom/quantdale/walkgame/health/HealthConnectBridge$Api34$1;
+Lcom/quantdale/walkgame/health/HealthConnectBridge$Api34;
+Lcom/quantdale/walkgame/health/HealthConnectBridge;
+Lcom/quantdale/walkgame/health/HealthPermissionRationaleActivity;
+Lcom/quantdale/walkgame/health/R;

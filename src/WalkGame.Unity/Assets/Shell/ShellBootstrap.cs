@@ -5,6 +5,7 @@ using WalkGame.Application;
 using WalkGame.Application.Content;
 using WalkGame.Infrastructure.Persistence;
 using WalkGame.Infrastructure.Platform;
+using WalkGame.Infrastructure.Platform.HealthConnect;
 
 namespace WalkGame.Shell
 {
@@ -19,7 +20,10 @@ namespace WalkGame.Shell
 
         public static string SaveDirectory => System.IO.Path.Combine(UnityEngine.Application.persistentDataPath, "walkgame");
 
-        public static GameSession CreateSession(string directory)
+        public static GameSession CreateSession(string directory) =>
+            CreateSession(directory, new ShellConnectionPort(UnityEngine.Debug.isDebugBuild));
+
+        public static GameSession CreateSession(string directory, WalkGame.Application.Activity.IActivityConnectionPort port)
         {
             return new GameSession(
                 new AtomicFileSaveStore(directory),
@@ -27,14 +31,22 @@ namespace WalkGame.Shell
                 new SystemClock(),
                 Region1Catalog.Create(),
                 new LocalPreferencesStore(directory),
-                new ShellConnectionPort(UnityEngine.Debug.isDebugBuild));
+                port);
         }
 
         private void Start()
         {
             System.IO.Directory.CreateDirectory(SaveDirectory);
-            _controller = new ShellController(CreateSession(SaveDirectory),
-                () => (ulong)DateTime.UtcNow.Ticks, Debug.isDebugBuild);
+            if (AndroidHealthConnectBridge.IsAndroidPlayer)
+            {
+                // D-068: Android players read real steps through Health Connect.
+                var health = new HealthConnectActivityAdapter(new AndroidHealthConnectBridge(), () => DateTimeOffset.UtcNow);
+                _controller = new ShellController(CreateSession(SaveDirectory, health),
+                    () => (ulong)DateTime.UtcNow.Ticks, Debug.isDebugBuild, health, AndroidHealthConnectBridge.RequestPermission);
+            }
+            else
+                _controller = new ShellController(CreateSession(SaveDirectory),
+                    () => (ulong)DateTime.UtcNow.Ticks, Debug.isDebugBuild);
             _controller.Boot();
             Debug.Log("WG_BOOT status=" + _controller.LastStartStatus + " screen=" + _controller.Current + " dir=" + SaveDirectory);
 
