@@ -14,8 +14,8 @@ namespace WalkGame.Shell
     {
         public static readonly Color Background = new Color32(0xF4, 0xF1, 0xEA, 0xFF); // warm paper
         public static readonly Color Ink = new Color32(0x1F, 0x2A, 0x24, 0xFF);        // ~13:1 on Background
-        public static readonly Color Muted = new Color32(0x44, 0x50, 0x48, 0xFF);      // ~7.9:1 on Background
-        public static readonly Color Accent = new Color32(0x2F, 0x6B, 0x4F, 0xFF);     // white text ~6.3:1
+        public static readonly Color Muted = new Color32(0x44, 0x50, 0x48, 0xFF);      // 7.49:1 on Background (D-095 measured)
+        public static readonly Color Accent = new Color32(0x24, 0x5A, 0x41, 0xFF);     // white text 8.03:1 (D-095: was 2F6B4F, 6.29:1, below the 7:1 body target)
         public static readonly Color ErrorInk = new Color32(0x8A, 0x1C, 0x1C, 0xFF);
 
         public const float TitleSize = 28f, BodySize = 18f, ButtonHeight = 56f;
