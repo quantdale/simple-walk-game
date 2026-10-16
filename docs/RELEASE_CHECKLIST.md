@@ -36,6 +36,14 @@ the remaining documents into the evidence package. Run it; do not assemble a pac
 | F | At-rest confidentiality of the health-adjacent save | **Decided (D-067):** OS device encryption is a system requirement. Before release, verify on device that the save and backup paths are app-private and that the iOS protection class is not lowered. |
 | G | PRODUCT_SPEC privacy requirements section | **OPEN** (KI-005). |
 
+## Final Device and Release Qualification Checklist
+
+Must be ticked on real hardware (or, for H's option (a) only, a KVM-accelerated emulator, labelled emulator-tested, never device-tested) before release qualification.
+
+| # | Item | Status |
+|---|---|---|
+| H | Android debug APK launches and reaches the first screen; onboarding → Home → Settings → delete confirmation reachable; logcat free of crashes. Blocked on the box: no `/dev/kvm` access, emulator unusable (`docs/evidence/m5-u1/EMULATOR_RESULTS.md`). Unblock: box user joins `kvm`, or Michael installs the arm64 debug APK on his phone and reports. | **UNVERIFIED** (KNOWN_ISSUES "Needs Michael", KI-002) |
+
 ## Repository hygiene
 
 - [ ] `git status` clean apart from intended files; the writer lease is released.

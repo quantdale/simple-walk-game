@@ -1,0 +1,228 @@
+10-16 08:55:29.178 D/MediaProvider( 4866): Deleted 0 Android/media items belonging to com.quantdale.simplewalkgame on /data/user/0/com.google.android.providers.media.module/databases/external.db
+10-16 08:55:29.910 D/PersistedStoragePackageUninstalledReceiver(  917): Received android.intent.action.PACKAGE_DATA_CLEARED for com.quantdale.simplewalkgame for u0
+10-16 08:55:29.945 D/MediaGrants( 4866): Removed 0 media_grants for 0 user for com.quantdale.simplewalkgame. Reason: Package orphaned
+10-16 08:55:44.790 W/Monkey  (17301): args: [-p, com.quantdale.simplewalkgame, -c, android.intent.category.LAUNCHER, 1]
+10-16 08:55:44.852 W/Monkey  (17301):  arg: "com.quantdale.simplewalkgame"
+10-16 08:55:44.854 W/Monkey  (17301): data="com.quantdale.simplewalkgame"
+10-16 08:55:53.530 V/WindowManagerShell(  912): Transition requested: android.os.BinderProxy@a02963b TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=14 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity } baseActivity=ComponentInfo{com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity} topActivity=ComponentInfo{com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity} origActivity=null realActivity=ComponentInfo{com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity} numActivities=1 lastActiveTime=3993672 supportsMultiWindow=true resizeMode=2 isResizeable=true minWidth=400 minHeight=300 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@9822158} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{4a132b1 com.unity3d.player.UnityPlayerGameActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-16 08:55:53.894 I/ActivityTaskManager(  561): START u0 {act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+10-16 08:55:56.634 V/WindowManager(  561): Sent Transition #21 createdAt=10-16 08:55:52.850 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=14 displayId=0 isRunning=true baseIntent=Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] flg=0x10200000 cmp=com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity } baseActivity=ComponentInfo{com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity} topActivity=ComponentInfo{com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity} origActivity=null realActivity=ComponentInfo{com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity} numActivities=1 lastActiveTime=3993672 supportsMultiWindow=true resizeMode=2 isResizeable=true minWidth=400 minHeight=300 defaultMinSize=220 token=WCT{RemoteToken{b8c2de2 Task{8dfd7c8 #14 type=standard A=10192:com.quantdale.simplewalkgame}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=Rect(0, 128 - 0, 0) topActivityInfo=ActivityInfo{f769573 com.unity3d.player.UnityPlayerGameActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-16 08:55:56.667 V/WindowManager(  561):     info={id=21 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{b8c2de2 Task{8dfd7c8 #14 type=standard A=10192:com.quantdale.simplewalkgame}}} m=OPEN f=NONE leash=Surface(name=Task=14)/@0x1107c4 sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0},{WCT{RemoteToken{2948fc9 Task{6d1a920 #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0x410b0ca sb=Rect(0, 0 - 1080, 2400) eb=Rect(0, 0 - 1080, 2400) d=0}]}
+10-16 08:55:56.770 I/ActivityManager(  561): Start proc 17458:com.quantdale.simplewalkgame/u0a192 for next-top-activity {com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity}
+10-16 08:55:57.459 I/.simplewalkgame(17458): Late-enabling -Xcheck:jni
+10-16 08:55:58.266 I/.simplewalkgame(17458): Using CollectorTypeCC GC.
+10-16 08:55:58.420 W/.simplewalkgame(17458): Unexpected CPU variant for x86: x86_64.
+10-16 08:55:58.420 W/.simplewalkgame(17458): Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+10-16 08:56:01.574 D/CompatibilityChangeReporter(17458): Compat change id reported: 171979766; UID 10192; state: ENABLED
+10-16 08:56:01.601 D/CompatibilityChangeReporter(17458): Compat change id reported: 242716250; UID 10192; state: ENABLED
+10-16 08:56:02.028 W/ziparchive(17458): Unable to open '/data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/base.dm': No such file or directory
+10-16 08:56:02.029 W/ziparchive(17458): Unable to open '/data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/base.dm': No such file or directory
+10-16 08:56:04.067 D/nativeloader(17458): Configuring clns-6 for other apk /data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/lib/x86_64:/data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.quantdale.simplewalkgame
+10-16 08:56:05.269 V/GraphicsEnvironment(17458): Currently set values for:
+10-16 08:56:05.286 V/GraphicsEnvironment(17458):   angle_gl_driver_selection_pkgs=[]
+10-16 08:56:05.321 V/GraphicsEnvironment(17458):   angle_gl_driver_selection_values=[]
+10-16 08:56:05.349 V/GraphicsEnvironment(17458): ANGLE GameManagerService for com.quantdale.simplewalkgame: false
+10-16 08:56:05.351 V/GraphicsEnvironment(17458): com.quantdale.simplewalkgame is not listed in per-application setting
+10-16 08:56:05.375 V/GraphicsEnvironment(17458): Neither updatable production driver nor prerelease driver is supported.
+10-16 08:56:11.110 D/GameActivity(17458): GameActivity_register
+10-16 08:56:13.154 W/.simplewalkgame(17458): Verification of boolean androidx.appcompat.app.AppCompatDelegateImpl.initializePanelDecor(androidx.appcompat.app.AppCompatDelegateImpl$PanelFeatureState) took 158.691ms (138.63 bytecodes/s) (1816B approximate peak alloc)
+10-16 08:56:13.541 D/AppCompatDelegate(17458): Checking for metadata for AppLocalesMetadataHolderService : Service not found
+10-16 08:56:14.715 D/gti.InputConnection(17458): InputConnection created
+10-16 08:56:14.734 D/gti.InputConnection(17458): setEditorInfo
+10-16 08:56:16.055 W/.simplewalkgame(17458): Accessing hidden method Landroid/view/View;->computeFitSystemWindows(Landroid/graphics/Rect;Landroid/graphics/Rect;)Z (unsupported, reflection, allowed)
+10-16 08:56:16.069 W/.simplewalkgame(17458): Accessing hidden method Landroid/view/ViewGroup;->makeOptionalFitsSystemWindows()V (unsupported, reflection, allowed)
+10-16 08:56:16.598 I/Unity   (17458): applyWindowUIChanges fullScreen = true, renderOutsideSafeArea = true
+10-16 08:56:21.265 I/IL2CPP  (17458): JNI_OnLoad
+10-16 08:56:21.293 V/Unity   (17458): Context Type: GameActivity
+10-16 08:56:21.366 D/Unity   (17458): CommandLine:  
+10-16 08:56:22.497 I/GameActivity(17458): Looking for library libgame.so
+10-16 08:56:22.499 I/GameActivity(17458): Found library libgame.so. Loading...
+10-16 08:56:22.655 D/GameActivity(17458): SDK version: 34
+10-16 08:56:22.692 I/Unity   (17458): UnityApplication::CreateInstance
+10-16 08:56:22.695 I/Unity   (17458): GameActivity Package Version '4.4.0'
+10-16 08:56:22.742 I/Unity   (17458): Starting Game Loop
+10-16 08:56:25.235 W/.simplewalkgame(17458): Verification of kotlin.Pair kotlin.text.StringsKt__StringsKt.findAnyOf$StringsKt__StringsKt(java.lang.CharSequence, java.util.Collection, int, boolean, boolean) took 177.198ms (1489.85 bytecodes/s) (7440B approximate peak alloc)
+10-16 08:56:26.342 I/Unity   (17458): Handle cmd APP_CMD_START(11)
+10-16 08:56:26.509 I/Unity   (17458): onResume
+10-16 08:56:27.096 I/Unity   (17458): Handle cmd APP_CMD_RESUME(12)
+10-16 08:56:27.317 D/CompatibilityChangeReporter(17458): Compat change id reported: 237531167; UID 10192; state: DISABLED
+10-16 08:56:28.966 I/Choreographer(17458): Skipped 82 frames!  The application may be doing too much work on its main thread.
+10-16 08:56:29.453 D/CoreBackPreview(  561): Window{a69dbf6 u0 com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@b136c7e, mPriority=1, mIsAnimationCallback=false}
+10-16 08:56:29.676 W/.simplewalkgame(17458): Suspending all threads took: 36.146ms
+10-16 08:56:29.854 W/.simplewalkgame(17458): Verification of void androidx.core.view.WindowInsetsCompat.<init>(android.view.WindowInsets) took 219.367ms (246.16 bytecodes/s) (2768B approximate peak alloc)
+10-16 08:56:29.990 I/.simplewalkgame(17458): Background concurrent copying GC freed 6176(691KB) AllocSpace objects, 0(0B) LOS objects, 49% free, 2560KB/5121KB, paused 482.369ms,206.115ms total 2.761s
+10-16 08:56:30.140 V/GameActivity(17458): onImeInsetsChanged from Text Listener
+10-16 08:56:30.221 I/Unity   (17458): Handle cmd APP_CMD_WINDOW_INSETS_CHANGED(17)
+10-16 08:56:30.999 I/Unity   (17458): Handle cmd APP_CMD_CONTENT_RECT_CHANGED(5)
+10-16 08:56:31.331 I/Unity   (17458): Handle cmd APP_CMD_INIT_WINDOW(1)
+10-16 08:56:31.811 I/Gralloc4(17458): mapper 4.x is not supported
+10-16 08:56:32.829 E/SurfaceSyncGroup(17458): Failed to receive transaction ready in 1000ms. Marking SurfaceSyncGroup(wmsSync-VRI[UnityPlayerGameActivity]#1) as ready
+10-16 08:56:32.915 E/SurfaceSyncGroup(17458): Failed to receive transaction ready in 1000ms. Marking SurfaceSyncGroup(VRI[UnityPlayerGameActivity]#2) as ready
+10-16 08:56:33.353 W/ziparchive(  561): Unable to open '/data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/base.dm': No such file or directory
+10-16 08:56:33.367 I/Unity   (17458): MemoryManager: Using 'Dynamic Heap' Allocator.
+10-16 08:56:33.390 D/Unity   (17458): [UnityMemory] Configuration Parameters - Can be set up in boot.config
+10-16 08:56:33.412 D/Unity   (17458):     "memorysetup-allocator-temp-initial-block-size-main=262144"
+10-16 08:56:33.414 D/Unity   (17458):     "memorysetup-allocator-temp-initial-block-size-worker=262144"
+10-16 08:56:33.415 D/Unity   (17458):     "memorysetup-temp-allocator-size-background-worker=32768"
+10-16 08:56:33.430 D/Unity   (17458):     "memorysetup-temp-allocator-size-job-worker=262144"
+10-16 08:56:33.431 D/Unity   (17458):     "memorysetup-temp-allocator-size-preload-manager=262144"
+10-16 08:56:33.442 D/Unity   (17458):     "memorysetup-remapper-allocator-initial-capacity=32768"
+10-16 08:56:33.442 D/Unity   (17458):     "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+10-16 08:56:33.443 D/Unity   (17458):     "memorysetup-temp-allocator-size-audio-worker=65536"
+10-16 08:56:33.443 D/Unity   (17458):     "memorysetup-temp-allocator-size-cloud-worker=32768"
+10-16 08:56:33.443 D/Unity   (17458):     "memorysetup-bucket-allocator-granularity=16"
+10-16 08:56:33.443 D/Unity   (17458):     "memorysetup-bucket-allocator-bucket-count=8"
+10-16 08:56:33.443 D/Unity   (17458):     "memorysetup-bucket-allocator-block-size=4194304"
+10-16 08:56:33.443 D/Unity   (17458):     "memorysetup-bucket-allocator-block-count=1"
+10-16 08:56:33.443 D/Unity   (17458):     "memorysetup-main-allocator-block-size=16777216"
+10-16 08:56:33.459 D/Unity   (17458):     "memorysetup-thread-allocator-block-size=16777216"
+10-16 08:56:33.472 D/Unity   (17458):     "memorysetup-gfx-main-allocator-block-size=16777216"
+10-16 08:56:33.473 D/Unity   (17458):     "memorysetup-gfx-thread-allocator-block-size=16777216"
+10-16 08:56:33.473 D/Unity   (17458):     "memorysetup-cache-allocator-block-size=4194304"
+10-16 08:56:33.473 D/Unity   (17458):     "memorysetup-typetree-allocator-block-size=2097152"
+10-16 08:56:33.473 D/Unity   (17458):     "memorysetup-profiler-bucket-allocator-granularity=16"
+10-16 08:56:33.473 D/Unity   (17458):     "memorysetup-profiler-bucket-allocator-bucket-count=8"
+10-16 08:56:33.474 D/Unity   (17458):     "memorysetup-profiler-bucket-allocator-block-size=4194304"
+10-16 08:56:33.474 D/Unity   (17458):     "memorysetup-profiler-bucket-allocator-block-count=1"
+10-16 08:56:33.474 D/Unity   (17458):     "memorysetup-profiler-allocator-block-size=16777216"
+10-16 08:56:33.474 D/Unity   (17458):     "memorysetup-profiler-editor-allocator-block-size=1048576"
+10-16 08:56:33.474 D/Unity   (17458):     "memorysetup-temp-allocator-size-main=4194304"
+10-16 08:56:33.474 D/Unity   (17458):     "memorysetup-job-temp-allocator-block-size=2097152"
+10-16 08:56:33.474 D/Unity   (17458):     "memorysetup-job-temp-allocator-block-size-background=1048576"
+10-16 08:56:33.474 D/Unity   (17458):     "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+10-16 08:56:33.475 D/Unity   (17458):     "memorysetup-temp-allocator-size-gfx=262144"
+10-16 08:56:33.810 I/ActivityTaskManager(  561): Displayed com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity for user 0: +41s307ms
+10-16 08:56:34.305 W/InputManager-JNI(  561): Input channel object '348493f Splash Screen com.quantdale.simplewalkgame (client)' was disposed without first being removed with the input manager!
+10-16 08:56:34.449 I/Choreographer(17458): Skipped 296 frames!  The application may be doing too much work on its main thread.
+10-16 08:56:35.466 V/GameActivity(17458): onImeInsetsChanged from Text Listener
+10-16 08:56:35.525 W/.simplewalkgame(17458): Verification of androidx.core.provider.FontsContractCompat$FontInfo[] androidx.core.provider.FontProvider.query(android.content.Context, androidx.core.provider.FontRequest, java.lang.String, android.os.CancellationSignal) took 190.792ms (1472.80 bytecodes/s) (7184B approximate peak alloc)
+10-16 08:56:38.695 D/Unity   (17458): Enabling Unity systrace
+10-16 08:56:38.701 D/Unity   (17458): Starting Unity systrace
+10-16 08:56:40.919 I/Unity   (17458): SetGameState: isLoading: true, mode: UNKNOWN, label: -2, quality: -1
+10-16 08:56:41.662 D/Unity   (17458): [VFS] Mount /data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/base.apk
+10-16 08:56:42.134 W/.simplewalkgame(17458): Verification of void com.unity3d.player.PlayAssetDeliveryUnityWrapper.cancelAssetPackDownloads(java.lang.String[]) took 114.803ms (130.66 bytecodes/s) (1856B approximate peak alloc)
+10-16 08:56:42.319 W/.simplewalkgame(17458): Verification of void com.unity3d.player.PlayAssetDeliveryUnityWrapper.downloadAssetPacks(java.lang.String[], com.unity3d.player.IAssetPackManagerDownloadStatusCallback) took 145.812ms (240.04 bytecodes/s) (2552B approximate peak alloc)
+10-16 08:56:42.501 W/.simplewalkgame(17458): Verification of void com.unity3d.player.PlayAssetDeliveryUnityWrapper.getAssetPackStates(java.lang.String[], com.unity3d.player.IAssetPackManagerStatusQueryCallback) took 103.212ms (251.91 bytecodes/s) (2240B approximate peak alloc)
+10-16 08:56:43.161 I/Unity   (17458): SystemInfo CPU = x86-64 SSE3 SSE4.1 SSE4.2, Cores = 4, Memory = 3921mb
+10-16 08:56:43.250 I/Unity   (17458): ApplicationInfo 'com.quantdale.simplewalkgame', Version '1.0', Min API Level '25', Target API Level '36'
+10-16 08:56:43.262 I/Unity   (17458): Built from '6000.3/staging' branch, Version '6000.3.26f1 (de8167e7440c)', Build type 'Development', Scripting Backend 'il2cpp', CPU 'x86_64', Stripping 'Enabled'
+10-16 08:56:43.272 I/Unity   (17458): Device Model 'Google sdk_gphone64_x86_64', OS 'Android OS 14 (API 34)'
+10-16 08:56:43.385 I/Unity   (17458): applyWindowUIChanges fullScreen = true, renderOutsideSafeArea = true
+10-16 08:56:43.487 V/GameActivity(17458): onImeInsetsChanged from Text Listener
+10-16 08:56:43.772 D/Unity   (17458): Determine if il2cpp resources need to extracted:
+10-16 08:56:43.805 D/Unity   (17458):     Missing '/storage/emulated/0/Android/data/com.quantdale.simplewalkgame/files/il2cpp/unity.ver'
+10-16 08:56:43.805 D/Unity   (17458):     Extracting il2cpp resources
+10-16 08:56:44.523 D/Unity   (17458): Unable to find library path for 'il2cpp.usym'.
+10-16 08:56:45.082 W/FontLog (17525): No resolver, short-circuit {Noto Color Emoji Compat, wdth 100.0, wght 400, ital 0.0, bestEffort false} for com.quantdale.simplewalkgame to failure [CONTEXT service_id=132 ]
+10-16 08:56:47.202 D/Unity   (17458): [EGL] Attaching window :0x7d840f0e02b0
+10-16 08:56:47.203 D/Unity   (17458): InitializeScriptEngine OK (0x7d85ca409fc0)
+10-16 08:56:47.247 D/Unity   (17458): Found 1 interfaces on host :
+10-16 08:56:47.258 D/Unity   (17458):  0) 10.0.2.16
+10-16 08:56:47.268 D/Unity   (17458): 
+10-16 08:56:47.328 D/Unity   (17458): Player connection [138000541744368]  Target information:
+10-16 08:56:47.328 D/Unity   (17458): 
+10-16 08:56:47.330 D/Unity   (17458): Player connection [138000541744368]  * "[IP] 10.0.2.16 [Port] 55000 [Flags] 2 [Guid] 185202962 [EditorId] 4030029496 [Version] 1048832 [Id] AndroidPlayer(11,Google_sdk_gphone64_x86_64@10.0.2.16) [Debug] 0 [PackageName] AndroidPlayer [ProjectName] Simple Walk Game" 
+10-16 08:56:47.330 D/Unity   (17458): 
+10-16 08:56:47.331 D/Unity   (17458): Player connection [138000541744368] Started UDP target info broadcast (1) on [225.0.0.222:54997].
+10-16 08:56:47.331 D/Unity   (17458): 
+10-16 08:56:49.162 D/Unity   (17458): [Physics::Module] Initialized fallback backend.
+10-16 08:56:49.189 D/Unity   (17458): [Physics::Module] Id: 0xdecafbad
+10-16 08:56:49.272 V/GameActivity(17458): onImeInsetsChanged from Text Listener
+10-16 08:56:49.367 D/Unity   (17458): PlayerInitEngineNoGraphics OK
+10-16 08:56:49.389 I/Unity   (17458): Company Name: quantdale
+10-16 08:56:49.391 I/Unity   (17458): Product Name: Simple Walk Game
+10-16 08:56:49.392 D/Unity   (17458): AndroidGraphics::Startup window =  0x7d840f0e02b0
+10-16 08:56:49.421 D/Unity   (17458): [EGL] Attaching window :0x7d840f0e02b0
+10-16 08:56:49.481 I/Unity   (17458): applyWindowUIChanges fullScreen = true, renderOutsideSafeArea = true
+10-16 08:56:49.587 V/GameActivity(17458): onImeInsetsChanged from Text Listener
+10-16 08:56:50.266 E/platform(17458): Failed to open rendernode: No such file or directory
+10-16 08:56:50.267 I/androidemu(17458): HealthMonitor enabled. Returning monitor.
+10-16 08:56:50.346 D/vulkan  (17458): searching for layers in '/data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/lib/x86_64'
+10-16 08:56:50.410 D/vulkan  (17458): searching for layers in '/data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/base.apk!/lib/x86_64'
+10-16 08:56:50.423 D/Unity   (17458): [Vulkan init] extensions: count=12
+10-16 08:56:50.434 D/Unity   (17458): [Vulkan init] extensions: name=VK_EXT_debug_report [enabled=1, external=0]
+10-16 08:56:50.435 D/Unity   (17458): [Vulkan init] extensions: name=VK_EXT_surface_maintenance1 [enabled=0, external=0]
+10-16 08:56:50.436 D/Unity   (17458): [Vulkan init] extensions: name=VK_EXT_swapchain_colorspace [enabled=1, external=0]
+10-16 08:56:50.449 D/Unity   (17458): [Vulkan init] extensions: name=VK_GOOGLE_surfaceless_query [enabled=0, external=0]
+10-16 08:56:50.449 D/Unity   (17458): [Vulkan init] extensions: name=VK_KHR_android_surface [enabled=1, external=0]
+10-16 08:56:50.450 D/Unity   (17458): [Vulkan init] extensions: name=VK_KHR_external_fence_capabilities [enabled=1, external=0]
+10-16 08:56:50.450 D/Unity   (17458): [Vulkan init] extensions: name=VK_KHR_external_memory_capabilities [enabled=1, external=0]
+10-16 08:56:50.451 D/Unity   (17458): [Vulkan init] extensions: name=VK_KHR_external_semaphore_capabilities [enabled=1, external=0]
+10-16 08:56:50.451 D/Unity   (17458): [Vulkan init] extensions: name=VK_KHR_get_physical_device_properties2 [enabled=1, external=0]
+10-16 08:56:50.451 D/Unity   (17458): [Vulkan init] extensions: name=VK_KHR_get_surface_capabilities2 [enabled=0, external=0]
+10-16 08:56:50.452 D/Unity   (17458): [Vulkan init] extensions: name=VK_KHR_surface [enabled=1, external=0]
+10-16 08:56:50.465 D/Unity   (17458): [Vulkan init] extensions: name=VK_KHR_surface_protected_capabilities [enabled=0, external=0]
+10-16 08:56:50.532 D/Unity   (17458): [Vulkan init] SelectPhysicalDevice requestedDeviceIndex=-1 xrDevice=0x0
+10-16 08:56:50.534 D/Unity   (17458): [Vulkan init] Physical Device 0x7d834f0dc3c0 [0]: "SwiftShader Device (Subzero)" deviceType=4 vendorID=1ae0 deviceID=c0de
+10-16 08:56:50.545 D/Unity   (17458): Vulkan detection: 0
+10-16 08:56:50.639 D/libEGL  (17458): loaded /vendor/lib64/egl/libEGL_emulation.so
+10-16 08:56:50.699 D/libEGL  (17458): loaded /vendor/lib64/egl/libGLESv1_CM_emulation.so
+10-16 08:56:50.843 D/libEGL  (17458): loaded /vendor/lib64/egl/libGLESv2_emulation.so
+10-16 08:56:51.719 D/Unity   (17458): [EGL] Request: ES 3.2 RGB 000 0/0
+10-16 08:56:51.745 D/Unity   (17458): [EGL] Checking ES 3.2 support...
+10-16 08:56:51.806 E/EGL_emulation(17458): eglCreateContext: EGL_BAD_CONFIG: no ES 3.2 support
+10-16 08:56:51.807 E/EGL_emulation(17458): tid 17572: eglCreateContext(1834): error 0x3005 (EGL_BAD_CONFIG)
+10-16 08:56:51.807 D/Unity   (17458): [EGL] ES3.2 not supported
+10-16 08:56:51.813 D/Unity   (17458): [EGL] Request: ES 3.1+AEP RGB 000 0/0
+10-16 08:56:51.829 D/Unity   (17458): [EGL] Checking ES 3.1 support...
+10-16 08:56:51.835 E/EGL_emulation(17458): eglCreateContext: EGL_BAD_CONFIG: no ES 3.1 support
+10-16 08:56:51.835 E/EGL_emulation(17458): tid 17572: eglCreateContext(1828): error 0x3005 (EGL_BAD_CONFIG)
+10-16 08:56:51.835 D/Unity   (17458): [EGL] ES3.1 not supported
+10-16 08:56:51.863 D/Unity   (17458): [EGL] Request: ES 3.1 RGB 000 0/0
+10-16 08:56:51.877 D/Unity   (17458): [EGL] Request: ES 3.0 RGB 000 0/0
+10-16 08:56:51.878 E/EGL_emulation(17458): [getAttribValue] Bad attribute idx
+10-16 08:56:51.879 E/EGL_emulation(17458): tid 17572: eglGetConfigAttrib(1277): error 0x3004 (EGL_BAD_ATTRIBUTE)
+10-16 08:56:51.879 D/Unity   (17458): [EGL] Found: ID[7] ES 3.0 RGB 565 24/8
+10-16 08:56:51.903 D/Unity   (17458): GfxDevice: creating device client; kGfxThreadingModeThreaded
+10-16 08:56:51.911 D/Unity   (17458): [EGL] Request: ES 3.2 RGB 000 0/0
+10-16 08:56:51.919 D/Unity   (17458): [EGL] Request: ES 3.1+AEP RGB 000 0/0
+10-16 08:56:51.932 D/Unity   (17458): [EGL] Request: ES 3.1 RGB 000 0/0
+10-16 08:56:51.934 D/Unity   (17458): [EGL] Request: ES 3.0 RGB 000 0/0
+10-16 08:56:51.935 D/Unity   (17458): [EGL] Found: ID[7] ES 3.0 RGB 565 24/8
+10-16 08:56:52.016 D/Unity   (17458): [EGL] Request: ES 3.0 RGBA 8888 0/0
+10-16 08:56:52.019 D/Unity   (17458): [EGL] Found: ID[2] ES 3.0 RGBA 8888 24/8
+10-16 08:56:52.144 I/Unity   (17458): applyWindowUIChanges fullScreen = true, renderOutsideSafeArea = true
+10-16 08:56:52.222 D/Unity   (17458): ANativeWindow: (1080/2400) RequestedResolution: (0/0) RenderingResolution: (0/0) EGLSurface: (1080/2400)
+10-16 08:56:52.298 V/GameActivity(17458): onImeInsetsChanged from Text Listener
+10-16 08:56:52.666 D/Unity   (17458): Renderer: Android Emulator OpenGL ES Translator (Google SwiftShader)
+10-16 08:56:52.666 D/Unity   (17458): Vendor:   Google (Google Inc.)
+10-16 08:56:52.666 D/Unity   (17458): Version:  OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)
+10-16 08:56:52.666 D/Unity   (17458): GLES:     3
+10-16 08:56:52.667 D/Unity   (17458):  GL_EXT_debug_marker GL_EXT_robustness GL_OES_EGL_sync GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_depth24 GL_OES_depth32 GL_OES_element_index_uint GL_OES_texture_float GL_OES_texture_float_linear GL_OES_compressed_paletted_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth_texture GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_packed_depth_stencil GL_OES_vertex_half_float GL_OES_standard_derivatives GL_OES_texture_npot GL_OES_rgb8_rgba8 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_texture_format_BGRA8888 GL_APPLE_texture_format_BGRA8888 ANDROID_EMU_CHECKSUM_HELPER_v1 ANDROID_EMU_native_sync_v2 ANDROID_EMU_dma_v1 ANDROID_EMU_direct_mem ANDROID_EMU_host_composition_v1 ANDROID_EMU_host_composition_v2 ANDROID_EMU_vulkan ANDROID_EMU_deferred_vulkan_commands ANDROID_EMU_vulkan_null_optional_strings ANDROID_EMU_vulkan_create_resources_with_requirements ANDROID_EMU_YUV_Cache ANDROID_EMU_vulkan_ignored_handles ANDROID_EMU_has_shared_slots_host_memory_allocator ANDROI
+10-16 08:56:52.667 D/Unity   (17458): D_EMU_vulkan_free_memory_sync ANDROID_EMU_vulkan_shader_float16_int8 ANDROID_EMU_vulkan_async_queue_submit ANDROID_EMU_vulkan_queue_submit_with_commands ANDROID_EMU_sync_buffer_data ANDROID_EMU_vulkan_async_qsri ANDROID_EMU_read_color_buffer_dma ANDROID_EMU_hwc_multi_configs ANDROID_EMU_hwc_color_transform GL_OES_EGL_image_external_essl3 GL_OES_vertex_array_object GL_KHR_texture_compression_astc_ldr ANDROID_EMU_host_side_tracing ANDROID_EMU_gles_max_version_3_0
+10-16 08:56:52.783 D/Unity   (17458): OPENGL LOG: Creating OpenGL ES 3.0 graphics device ; Context level  <OpenGL ES 3.0> ; Context handle -1357967152
+10-16 08:56:53.331 D/Unity   (17458): [EGL] Attaching window :0x7d840f0e02b0
+10-16 08:56:53.414 D/Unity   (17458): Requested framebuffer: resolution[1080x2400], rgba[8/8/8/8], depth+stencil[on], samples[1]
+10-16 08:56:53.456 D/Unity   (17458): Created framebuffer: resolution[1080x2400], rgba[8/8/8/8], depth+stencil[24/8], samples[0] 
+10-16 08:56:53.666 I/SwappyWrapper(17458): SwappyWrapperInit() succeeded. Build: Fri Oct 16 07:57:25 2026
+10-16 08:56:53.689 D/Unity   (17458): SwappyWrapper: InitSwappyWrapper() succeeded.
+10-16 08:56:53.889 D/AChoreographer(17458): Attaching thread to JVM for AChoreographer
+10-16 08:56:54.420 E/SwappyDisplayManager(17458): dalvik.system.InMemoryDexClassLoader[DexPathList[[dex file "InMemoryDexFile[cookie=[0, 138007215692432]]"],nativeLibraryDirectories=[/system/lib64, /system_ext/lib64]]] couldn't find "libgame.so"
+10-16 08:56:54.474 I/SwappyDisplayManager(17458): Starting looper thread
+10-16 08:56:54.558 D/Unity   (17458): [EGL] Attaching window :0x7d840f0e02b0
+10-16 08:56:54.574 D/Unity   (17458): Initialize engine version: 6000.3.26f1 (de8167e7440c)
+10-16 08:56:57.727 D/Unity   (17458): [Physics::Module] Selected backend.
+10-16 08:56:57.741 D/Unity   (17458): [Physics::Module] Name: PhysX
+10-16 08:56:57.741 D/Unity   (17458): [Physics::Module] Id: 0xf2b8ea05
+10-16 08:56:57.742 D/Unity   (17458): [Physics::Module] SDK Version: 4.1.2
+10-16 08:56:57.742 D/Unity   (17458): [Physics::Module] Integration Version: 1.0.0
+10-16 08:56:57.742 D/Unity   (17458): [Physics::Module] Threading Mode: Multi-Threaded
+10-16 08:56:58.749 D/Unity   (17458): PlayerInitEngineGraphics OK
+10-16 08:56:59.071 D/Unity   (17458): Found 18 native sensors
+10-16 08:56:59.201 D/Unity   (17458): Sensor :        Accelerometer ( 1) ; 0.000248 / 0.01s ; Goldfish 3-axis Accelerometer / The Android Open Source Project 
+10-16 08:56:59.218 D/Unity   (17458): Sensor :        Accelerometer ( 1) ; 0.000248 / 0.01s ; Goldfish 3-axis Accelerometer / The Android Open Source Project 
+10-16 08:56:59.218 D/Unity   (17458): enabled Accelerometer sensor
+10-16 08:56:59.658 I/Unity   (17458): SetGameState: isLoading: false, mode: UNKNOWN, label: -1, quality: 2
+10-16 08:56:59.665 I/Unity   (17458):     HasWindow = 1, HasFocus = 0
+10-16 08:56:59.701 I/Unity   (17458): Handle cmd APP_CMD_WINDOW_RESIZED(3)
+10-16 08:56:59.701 D/Unity   (17458): NativeWindow resized 1080x2400
+10-16 08:56:59.739 I/Unity   (17458): Handle cmd APP_CMD_WINDOW_REDRAW_NEEDED(4)
+10-16 08:56:59.753 I/Unity   (17458): Handle cmd APP_CMD_WINDOW_INSETS_CHANGED(17)
+10-16 08:56:59.782 I/Unity   (17458): Handle cmd APP_CMD_WINDOW_INSETS_CHANGED(17)
+10-16 08:56:59.795 I/Unity   (17458): Handle cmd APP_CMD_WINDOW_INSETS_CHANGED(17)
+10-16 08:56:59.803 I/Unity   (17458): Handle cmd APP_CMD_WINDOW_INSETS_CHANGED(17)
+10-16 08:56:59.810 I/Unity   (17458): Handle cmd APP_CMD_WINDOW_INSETS_CHANGED(17)
+10-16 08:57:00.047 I/ActivityTaskManager(  561): Fully drawn com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity: +1m8s130ms
+10-16 08:57:00.335 W/ziparchive(  561): Unable to open '/data/app/~~OfnfMLYmmYajFV-DRvwCGQ==/com.quantdale.simplewalkgame-yq6IsIR_Lus4XQtLjYhUZA==/base.dm': No such file or directory
+10-16 09:03:35.103 W/InputDispatcher(  561): Waiting because no window has focus but ActivityRecord{764606b u0 com.quantdale.simplewalkgame/com.unity3d.player.UnityPlayerGameActivity t14} may eventually add a window when it finishes starting up. Will wait for 5000ms
+10-16 09:19:54.762 I/AppsFilter(  561): interaction: PackageSetting{f160005 com.quantdale.simplewalkgame/10192} -> PackageSetting{93db85a com.google.android.devicelockcontroller/10188} BLOCKED
