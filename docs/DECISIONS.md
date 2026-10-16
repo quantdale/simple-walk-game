@@ -2077,3 +2077,15 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - `ValleyCaptureTests` takes `WG_CAPTURE_SCREEN=Celebration` and captures the same seeded state.
 
 **Evidence.** PlayMode 4 passed + 1 capture-only ignored (`docs/evidence/b-celebration-capture/playmode-results.xml`, Unity-editor-tested). PNG `docs/evidence/b-celebration-capture/celebration-editor-rendered.png` (editor-rendered, llvmpipe/Xvfb, NOT device). The capture found KI-020 (highlight ring clipping). Device UNVERIFIED (KI-002).
+
+## D-082 — Discoveries and expeditions get a read-only detail screen (2026-10-16)
+
+**Context.** The Region screen only counted discoveries and expedition routes. Players could not see what they had found or what opens a route.
+
+**Decision.** A new `Discoveries` shell screen, linked from the valley, built only from `GetDiscoveries()`, `GetExpeditions()`, `GetProjects()` and `GetRegion()`:
+- **Found discoveries** show title, kind (closed `PlayerCopy.DiscoveryCategory` table; an unknown kind reads "find") and the date found, oldest first.
+- **Unfound discoveries are never named**, only counted, so nothing is spoiled. Body and provenance text are content keys without authored copy yet, so they are not shown.
+- **Routes** show completed / open ("completes on its own while you walk", matching D-037: no start or claim mechanic) / locked with "opens after:" in player words. Unknown project or landmark ids degrade to generic words, never raw ids.
+- **Viewing is read-only.** It does not mark discoveries reviewed, so the save bytes are unchanged (tested).
+
+**Evidence.** `DiscoveriesScreenTests` (6 EditMode cases, including a completed region reached through the real pipeline); EditMode 71/71. Editor-rendered PNG (llvmpipe/Xvfb, NOT device). Device UNVERIFIED (KI-002).

@@ -51,6 +51,22 @@ namespace WalkGame.Shell
             }
         }
 
+        /// <summary>Closed table for discovery kinds; unknown kinds read as a plain "find".</summary>
+        public static string DiscoveryCategory(string category)
+        {
+            switch (category)
+            {
+                case "artifact": return "artifact";
+                case "infrastructure-history": return "piece of valley history";
+                case "settlement-story": return "settlement story";
+                case "archive-fragment": return "archive fragment";
+                case "flora": return "plant life";
+                case "wildlife": return "wildlife";
+                case "science-record": return "science record";
+                default: return "find";
+            }
+        }
+
         private static string Ordinal(int n)
         {
             int t = n % 100;
