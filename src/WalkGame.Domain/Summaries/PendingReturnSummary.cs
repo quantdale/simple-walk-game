@@ -44,6 +44,12 @@ namespace WalkGame.Domain.Summaries
         /// <summary>Hard bound keeping the summary inside the 5–15 second glance budget.</summary>
         public const int MaxItems = 12;
 
+        /// <summary>
+        /// Hard bound on one item's text. Composed items are a title plus a short phrase (well under
+        /// 200 characters); anything longer can only come from a tampered or corrupted save.
+        /// </summary>
+        public const int MaxItemTextLength = 400;
+
         public List<PendingSummaryItemState> Items { get; } = new List<PendingSummaryItemState>();
 
         /// <summary>Single primary next action for the player, or null when nothing needs attention.</summary>

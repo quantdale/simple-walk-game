@@ -320,6 +320,11 @@ namespace WalkGame.Domain.Validation
                 && (state.Region.PostCompletionInvestedVitality > 0L || state.Region.PostCompletionCyclesCompleted > 0L))
                 violations.Add("Post-completion progress is recorded before the region was completed.");
 
+            // xoshiro256** with an all-zero state emits zeros forever; seeding can never produce it,
+            // so only a corrupted or tampered save can (security review 2026-10-16).
+            if (state.Rng.S0 == 0UL && state.Rng.S1 == 0UL && state.Rng.S2 == 0UL && state.Rng.S3 == 0UL)
+                violations.Add("RNG state is all zero (degenerate generator).");
+
             // Durable pending return summary.
             var pendingSummary = state.PendingReturnSummary;
             if (pendingSummary != null)
@@ -333,6 +338,8 @@ namespace WalkGame.Domain.Validation
                     foreach (var item in pendingSummary.Items)
                         if (item == null || string.IsNullOrWhiteSpace(item.Text))
                             violations.Add("Pending return summary contains an empty item.");
+                        else if (item.Text.Length > PendingReturnSummaryState.MaxItemTextLength)
+                            violations.Add($"Pending return summary item exceeds {PendingReturnSummaryState.MaxItemTextLength} characters.");
 
                     // DELIBERATELY NOT VALIDATED (D-055): that an item's first-commit
                     // timestamp is at or before the summary's own generation timestamp.

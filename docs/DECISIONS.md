@@ -2001,3 +2001,19 @@ Cadence bounds come from measurement and are recorded below. OpenSpec: `openspec
 *Gates.* The prologue is available at day 0. The first milestone chapter lands by day 10. No two chapters unlock on the same day. The maximum gap between chapters is 25 (high), 35 (irregular), 55 (moderate), 50 (weekend-heavy) and 90 (inactivity and low). Every engaged profile reads the whole story within 400 days.
 
 These days come from the test harness's first-available queue policy; a player who orders projects differently simply reads later chapters together when a cumulative gate clears.
+
+
+## D-078 — Save tampering: fail closed on inconsistency, accept consistent self-edits (2026-10-16)
+
+**Context.** The save checksum is an unkeyed SHA-256, so anyone with file access can rewrite a save and re-hash it. A key on the device would not change that, because it can be extracted. The game is offline and single-player, so a "cheat" only affects the person who made it. The real risks are crashes, bricked saves, unbounded data reaching the UI, and degenerate state.
+
+**Decision.** Checksum-valid but tampered payloads are tested through the real boot path (`SaveTamperTests`, 14 cases):
+- **One tampered generation** recovers from the backup.
+- **Both generations tampered** fail closed with a typed status (`StateInvalid`, `SaveUnreadable` or `ContentIncompatible`), and nothing throws.
+- **Two validator rules were added:** RNG state must not be all zero (xoshiro would emit zeros forever), and a return-summary item's text must be at most 400 characters.
+- **Consistent self-edits still load by design.** Examples are a huge balance or unknown extra fields. Arithmetic is overflow-guarded (`ResourceWallet.Add` clamps), and story chapters stay derived and bounded.
+
+**Not added:**
+- A device-held HMAC key: the key is extractable.
+- Cross-checking ledger totals against records: these are diagnostics only and do not affect gameplay.
+

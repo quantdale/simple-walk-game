@@ -37,3 +37,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - A2: ten derived chapters, content v5 with no save change, `StoryChapterUnlocked` emitted in `AllocateVitality`, `GetStory()`, and "New chapter" return-summary items. 608 .NET tests; compatibility and pacing gates green; cadence bounds in D-076.
 - Next: A4 Unity Story screen. C: KI-016(a) re-read on expired token, KI-007 fixture identity, save/bridge tamper tests.
 - A4: Story journal screen and chapter-moment link; EditMode 61/61; journal PNG at docs/evidence/story/ (editor-rendered).
+
+## Session note 2026-10-16 (A4 + C, grok1537)
+- #39 A4 Story journal; #40 KI-007 `--allow-no-origin`; #41 KI-016(a) expired-token recovery (D-077), bridge tamper tests, id bounds, KI-019 logged; this PR: save tamper (D-078).
+- Next: KI-019 sub-unit carry (economy; needs a D-entry), then B (MVP features).
+
