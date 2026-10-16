@@ -14,12 +14,11 @@ campaign accepts something open; entries are removed only with evidence.
 
 ## Needs Michael (morning queue)
 
-*(empty as of 2026-10-16: Unity activated, KI-001 and KI-006 closed)*
-
 Operator-only actions. Agents log these and keep working on unblocked tasks (see `docs/AGENT_EXECUTION_GUIDE.md` "Blockers never stop the campaign").
 
 | Blocker | Exact fix | Links | Unblocks |
 |---|---|---|---|
+| Android emulator unusable: the box user has no access to `/dev/kvm` (`root:kvm 0660`, user not in group `kvm`, no sudo), so AVD `wg34` runs with `-accel off`; the x86_64 debug APK installs and the Unity player starts, but no app code ran within ~25 min (2026-10-16, part of KI-002) | Either (a) add the box user to the `kvm` group (`sudo usermod -aG kvm box`, then restart the box session) so agents can rerun with KVM, or (b) Michael installs the arm64 debug APK (`src/WalkGame.Unity/Build/Android/simple-walk-game-debug.apk`, built by `tools/unity/build-android-debug.sh`) on his Android phone (`adb install -r` or sideload) and reports what he sees: first screen, onboarding steps, Home, Settings → delete confirmation, any crash | `docs/evidence/m5-u1/EMULATOR_RESULTS.md`, PR #18, KI-002 | Android runtime verification (M5 screens/accessibility runtime half, M8 lifecycle); RELEASE_CHECKLIST Final Device and Release Qualification item H |
 
 ## Rules
 
