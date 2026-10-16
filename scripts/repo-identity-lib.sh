@@ -46,8 +46,12 @@ fail_identity() {
 
 # Full assertion. Usage: assert_repo_identity [repo_root]
 # Resolves the root itself when unset, so it behaves correctly from nested dirs.
+# Optional 2nd argument "allow-no-origin" (KI-007): ONLY for throwaway fixture repos that have
+# no remote at all. With it, a missing origin skips step 1; the declared slug, sentinels and
+# GITHUB_REPOSITORY are still enforced, and an origin that EXISTS is still verified.
 assert_repo_identity() {
     _ari_root="$1"
+    _ari_mode="${2:-}"
     if [ -z "$_ari_root" ]; then
         _ari_root="$(git rev-parse --show-toplevel 2>/dev/null)" ||
             fail_identity "not inside a Git work tree."
@@ -61,12 +65,23 @@ assert_repo_identity() {
     [ -n "$_ari_expected_repo" ] || fail_identity ".repo-identity.json has no 'repository' slug."
 
     # 1. Origin slug.
-    _ari_origin="$(git -C "$_ari_root" remote get-url origin 2>/dev/null)" ||
+    if _ari_origin="$(git -C "$_ari_root" remote get-url origin 2>/dev/null)"; then
+        _ari_slug="$(normalize_github_slug "$_ari_origin")" ||
+            fail_identity "origin '$_ari_origin' is not a recognizable GitHub remote."
+        if [ "$_ari_slug" != "$_ari_expected_repo" ]; then
+            fail_identity "origin resolves to '$_ari_slug' but this checkout declares '$_ari_expected_repo'."
+        fi
+    elif [ "$_ari_mode" = "allow-no-origin" ]; then
+        if [ -n "$(git -C "$_ari_root" remote 2>/dev/null)" ]; then
+            fail_identity "no 'origin' remote, but other remotes exist; --allow-no-origin is only for remote-less fixtures."
+        fi
+        # With nothing external to compare against, pin the declaration to the one canonical slug.
+        if [ "$_ari_expected_repo" != "quantdale/simple-walk-game" ]; then
+            fail_identity "remote-less fixture declares '$_ari_expected_repo', not quantdale/simple-walk-game."
+        fi
+        _ari_slug="$_ari_expected_repo (fixture: no remote)"
+    else
         fail_identity "no 'origin' remote configured."
-    _ari_slug="$(normalize_github_slug "$_ari_origin")" ||
-        fail_identity "origin '$_ari_origin' is not a recognizable GitHub remote."
-    if [ "$_ari_slug" != "$_ari_expected_repo" ]; then
-        fail_identity "origin resolves to '$_ari_slug' but this checkout declares '$_ari_expected_repo'."
     fi
 
     # 2. Sentinel files from the identity manifest.

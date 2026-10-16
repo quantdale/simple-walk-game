@@ -14,6 +14,8 @@
 #   9. guard behaves correctly from a nested working directory
 #  10. both HTTPS and SSH forms of the correct remote normalize correctly
 #  11. architecture rule 7 self-test (Unity shell never mutates Domain state)
+#  12. new-agent-worktree.sh honours SWG_SESSION_ID (KI-008)
+#  13. install-git-hooks.sh --allow-no-origin works only in remote-less fixtures (KI-007)
 set -u
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -197,6 +199,22 @@ expect_in_exit "same exported id releases its own lease" 0 "$WT12A" env SWG_SESS
 expect_in_exit "helper without SWG_SESSION_ID defaults to wt-<campaign>-<session>" 0 "$C12" env -u SWG_SESSION_ID sh "$C12/scripts/new-agent-worktree.sh" camp b
 WT12B="$C12/../simple-walk-game-wt-camp-b"
 expect_in_exit "default id releases the default lease" 0 "$WT12B" env SWG_SESSION_ID=wt-camp-b sh "$C12/scripts/writer-lease.sh" release
+
+echo "== scenario 13: hook installer in a remote-less fixture (KI-007) =="
+C13="$SANDBOX/s13"; git clone -q --no-hardlinks "$GOLDEN" "$C13"; git -C "$C13" remote remove origin
+expect_in_exit "no origin, no flag: refused" 86 "$C13" sh "$C13/scripts/install-git-hooks.sh"
+expect_in_exit "no origin, --allow-no-origin: passes without GITHUB_REPOSITORY" 0 "$C13" env -u GITHUB_REPOSITORY sh "$C13/scripts/install-git-hooks.sh" --allow-no-origin
+if [ "$(git -C "$C13" config core.hooksPath)" = ".githooks" ]; then ok "hooksPath configured in the fixture"; else bad "hooksPath not configured"; fi
+expect_in_exit "flag still enforces GITHUB_REPOSITORY" 86 "$C13" env GITHUB_REPOSITORY=quantdale/walk-game sh "$C13/scripts/install-git-hooks.sh" --allow-no-origin
+expect_in_exit "the plain guard stays strict without origin" 86 "$C13" sh "$C13/scripts/assert-repo-identity.sh"
+git -C "$C13" remote add upstream "https://github.com/quantdale/simple-walk-game.git"
+expect_in_exit "flag refused when other remotes exist" 86 "$C13" sh "$C13/scripts/install-git-hooks.sh" --allow-no-origin
+git -C "$C13" remote remove upstream
+git -C "$C13" remote add origin "https://github.com/quantdale/walk-game.git"
+expect_in_exit "flag never excuses a WRONG origin" 86 "$C13" sh "$C13/scripts/install-git-hooks.sh" --allow-no-origin
+sed -i 's#quantdale/simple-walk-game#quantdale/walk-game#' "$C13/.repo-identity.json"; git -C "$C13" remote remove origin
+expect_in_exit "flag refuses a remote-less fixture declaring walk-game" 86 "$C13" env -u GITHUB_REPOSITORY sh "$C13/scripts/install-git-hooks.sh" --allow-no-origin
+expect_in_exit "unknown argument is a usage error" 2 "$C13" sh "$C13/scripts/install-git-hooks.sh" --force
 
 echo "=============================="
 echo "GUARD PROOF SUITE: $PASS passed, $FAIL failed"
