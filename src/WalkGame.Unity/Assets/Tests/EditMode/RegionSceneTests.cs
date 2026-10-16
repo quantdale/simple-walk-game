@@ -143,5 +143,32 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual(LandmarkKind.Generic, RegionScene.KindOf("lm.something-new"));
             Assert.AreEqual(LandmarkKind.Generic, RegionScene.KindOf(null!));
         }
+    
+        [Test] public void Moment_ring_always_stays_inside_the_picture_and_around_its_landmark()
+        {
+            // KI-020 (D-087): same layout math as ValleyElement for every position, level and width.
+            float h = ValleyElement.Height, half = ValleyElement.RingStroke * 0.5f;
+            foreach (float w in new[] { 240f, 320f, 360f, 412f, 600f, 1080f })
+            for (int n = 1; n <= RegionScene.MaxLandmarks; n++)
+            for (int i = 0; i < n; i++)
+            for (int level = 0; level <= 4; level++)
+            {
+                float cx = (i + 0.5f) / n * w, cy = (0.62f + (i % 2 == 0 ? 0.08f : -0.04f)) * h;
+                float s = Math.Min(24f + 3f * level, w * 0.06f + 3f * level);
+                var r = ValleyElement.RingGeometry(cx, cy, s, w, h);
+                string at = "w=" + w + " n=" + n + " i=" + i + " level=" + level;
+                Assert.GreaterOrEqual(r.X - r.R - half, 0f, at); Assert.LessOrEqual(r.X + r.R + half, w, at);
+                Assert.GreaterOrEqual(r.Y - r.R - half, 0f, at); Assert.LessOrEqual(r.Y + r.R + half, h, at);
+                float dx = r.X - cx, dy = r.Y - (cy - s * 0.5f);
+                Assert.LessOrEqual(Math.Sqrt(dx * dx + dy * dy), r.R, at + ": ring no longer surrounds the landmark");
+                Assert.GreaterOrEqual(r.R, s * 1.2f - 0.001f, at + ": ring shrank inside the landmark");
+            }
+        }
+
+        [Test] public void Moment_ring_is_unchanged_when_there_is_room()
+        {
+            var r = ValleyElement.RingGeometry(500f, 130f, 30f, 1000f, ValleyElement.Height);
+            Assert.AreEqual(500f, r.X, 1e-4); Assert.AreEqual(115f, r.Y, 1e-4); Assert.AreEqual(57f, r.R, 1e-4);
+        }
     }
 }
