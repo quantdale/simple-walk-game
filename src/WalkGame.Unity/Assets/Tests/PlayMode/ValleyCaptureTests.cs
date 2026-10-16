@@ -61,11 +61,16 @@ namespace WalkGame.Shell.PlayModeTests
                     var session = ShellBootstrap.CreateSession(dir);
                     c = new ShellController(session, () => 42UL, devTools: true);
                     c.Boot(); c.Invoke("start");
-                    // A mid-game valley: queue what is open and walk a few days so stages differ.
-                    foreach (var p in session.GetProjects().Projects)
-                        if (p.Status == ProjectStatus.Available) session.EnqueueProject(p.ProjectId);
-                    var now = DateTimeOffset.UtcNow;
-                    session.IngestFromSource(new SyntheticWalkingSource(120000), now.AddDays(-6), now);
+                    // WG_CAPTURE_STATE=fresh: the first minutes after "start" (no walks, nothing queued),
+                    // for the empty/early-game review. Default: a mid-game valley.
+                    if (Environment.GetEnvironmentVariable("WG_CAPTURE_STATE") != "fresh")
+                    {
+                        // A mid-game valley: queue what is open and walk a few days so stages differ.
+                        foreach (var p in session.GetProjects().Projects)
+                            if (p.Status == ProjectStatus.Available) session.EnqueueProject(p.ProjectId);
+                        var now = DateTimeOffset.UtcNow;
+                        session.IngestFromSource(new SyntheticWalkingSource(120000), now.AddDays(-6), now);
+                    }
                     if (screen == "DeleteConfirm") c.Invoke("delete:request");
                     else if (screen != "Guide") c.Invoke("nav:" + screen);
                     Assert.AreEqual(screen, c.Current.ToString(), "capture could not reach " + screen);

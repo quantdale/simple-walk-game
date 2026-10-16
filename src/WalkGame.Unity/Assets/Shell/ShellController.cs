@@ -368,10 +368,17 @@ namespace WalkGame.Shell
             var glance = _session.GetGlance();
             bool empty = home.ActiveProjectId == null && home.Queued.Count == 0;
             var m = With(ShellScreen.Home, "Home", empty ? ScreenState.Empty : ScreenState.Normal);
-            m.Lines.Add(glance.WhatChangedSentence);
+            // Region 1 polish (grok0215): a brand-new world has no "last time", so "Nothing has changed
+            // since you were last here" reads oddly on first run; skip it until anything has happened.
+            bool firstRun = empty && !home.HasPendingSummary && home.CompletedProjects == 0 && home.Vitality == 0
+                && home.AttentionReason == HomeAttentionReason.NoProjectStartedYet;
+            if (!firstRun) m.Lines.Add(glance.WhatChangedSentence);
             // D-106: the empty-state line below already says nothing is being restored; skip the duplicate.
             if (!empty) m.Lines.Add(glance.RestoringNowSentence);
-            if (glance.AttentionSentence != null) m.Lines.Add(glance.AttentionSentence);
+            // The empty-state line also says "Choose a project to begin", so the glance's
+            // "Choose the first thing to restore." would say it twice.
+            if (glance.AttentionSentence != null && !(empty && home.AttentionReason == HomeAttentionReason.NoProjectStartedYet))
+                m.Lines.Add(glance.AttentionSentence);
             m.Lines.Add(glance.ActivitySentence);
             m.Lines.Add(HomeStoryLine(_session.GetStory()));
             m.Lines.Add("Vitality " + home.Vitality + " · Materials " + home.Materials + " · Knowledge " + home.Knowledge);
