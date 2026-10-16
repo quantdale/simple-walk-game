@@ -5,7 +5,7 @@
 set -uo pipefail
 root="$(git rev-parse --show-toplevel)"
 out="$(realpath -m "${1:-$root/docs/evidence/screen-tour}")"; mkdir -p "$out"
-screens="Onboarding Guide Home ReturnSummary Projects Region Story Discoveries Progress Settings ActivityStatus DeleteConfirm BootError Celebration"
+screens="Onboarding Guide Home ReturnSummary Projects Region Story Discoveries Progress Settings ActivityStatus DeleteConfirm Privacy BootError Celebration"
 summary="$out/TOUR_RUN.txt"; : > "$summary"
 for s in $screens; do
   name="$(echo "$s" | tr 'A-Z' 'a-z')"
