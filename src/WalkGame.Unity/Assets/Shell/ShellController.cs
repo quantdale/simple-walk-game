@@ -287,7 +287,17 @@ namespace WalkGame.Shell
                     m.Scene = RegionScene.Build(_session.GetRegion(), moments);
                     m.Lines.Add(m.Scene.ChangedCount > 0 ? "The valley changed while you were away." : "Your walks changed the valley.");
                 }
-                foreach (var item in s.Items) m.Lines.Add((item.IsCurrent ? "" : "Earlier: ") + item.Text);
+                // D-100: a finished project gets one calm follow-up line naming the landmark stage it
+                // brought and its storyline chapter (derived from authored content; stored text unchanged).
+                var content = WalkGame.Application.Content.Region1Catalog.Create();
+                var unlocked = new HashSet<string>(_session.GetStory().Chapters.Where(c => c.Unlocked).Select(c => c.ChapterId));
+                foreach (var item in s.Items)
+                {
+                    m.Lines.Add((item.IsCurrent ? "" : "Earlier: ") + item.Text);
+                    if (!item.IsCurrent) continue;
+                    var detail = WalkGame.Application.Summaries.ProjectCompletionMoments.Describe(content, item.Text, unlocked);
+                    if (detail != null) m.Lines.Add(detail);
+                }
             }
             bool celebrating = s != null && Celebrate(m, s.Items.Where(i => i.IsCurrent).Select(i => i.Text));
             if (s != null) m.Actions.Add(new ShellAction("ack", "Continue"));
