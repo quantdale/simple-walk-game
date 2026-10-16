@@ -44,6 +44,15 @@ namespace WalkGame.Shell
         /// <summary>Effective OS font scale source (D-073); the bootstrap wires AccessibilitySettings.fontScale. Tests inject values.</summary>
         public Func<float> TextScaleSource { get; set; } = () => 1f;
 
+        /// <summary>
+        /// D-111: hands text to the OS share sheet; returns false if it could not. Null means this
+        /// device has no share sheet. The bootstrap wires <see cref="AndroidShareSheet"/>; tests inject fakes.
+        /// </summary>
+        public Func<string, bool>? ShareText { get; set; }
+
+        /// <summary>D-111: larger exports are refused (Android intent extras are limited to about 1 MB).</summary>
+        public const int MaxExportChars = 512 * 1024;
+
         public const string TextPreviewSample = "Preview: The valley remembers every walk you take.";
 
         /// <summary>Settings text-size line (B3, D-083). Never throws on a hostile scale source.</summary>
@@ -146,6 +155,7 @@ namespace WalkGame.Shell
                 case "toggle:reducedMotion": Check(_session.SetReducedMotion(!_session.GetSettings().ReducedMotion)); return;
                 case "toggle:sound": Check(_session.SetSoundEnabled(!_session.GetSettings().SoundEnabled)); return;
                 case "toggle:diagnostics": Check(_session.SetDiagnosticsVisible(!_session.GetSettings().DiagnosticsVisible)); return;
+                case "export": Export(); return;
                 case "delete:request": Current = ShellScreen.DeleteConfirm; return;
                 case "delete:cancel": Current = ShellScreen.Settings; return;
                 case "delete:confirm":
@@ -230,6 +240,7 @@ namespace WalkGame.Shell
                 case ShellScreen.Story: return Story();
                 case ShellScreen.Discoveries: return Discoveries();
                 case ShellScreen.Progress: return Progress();
+                case ShellScreen.Privacy: return Privacy();
                 default: throw new InvalidOperationException("Unmapped screen " + Current);
             }
         }
@@ -582,6 +593,7 @@ namespace WalkGame.Shell
             m.Actions.Add(new ShellAction("toggle:reducedMotion", (s.ReducedMotion ? "Turn off" : "Turn on") + " reduced motion"));
             m.Actions.Add(new ShellAction("toggle:sound", (s.SoundEnabled ? "Turn off" : "Turn on") + " sound"));
             m.Actions.Add(new ShellAction("toggle:diagnostics", (s.DiagnosticsVisible ? "Hide" : "Show") + " diagnostics"));
+            m.Actions.Add(new ShellAction("nav:Privacy", "Privacy and your data"));
             m.Actions.Add(new ShellAction("delete:request", "Delete all local data…"));
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
@@ -682,6 +694,40 @@ namespace WalkGame.Shell
         /// <summary>D-109: project titles are already verb phrases ("Restore the river intake"), so the
         /// queue button must not prefix another verb ("Restore Restore the river intake").</summary>
         public static string QueueLabel(string title) => "Start: " + title;
+
+        public static readonly string[] PrivacyLines =
+        {
+            "Everything this game knows stays on this phone, in the game's own private storage. Your phone's encryption protects it.",
+            "It keeps your valley: projects, restored places, story chapters and discoveries.",
+            "It keeps your walks: step counts, when each walk started and ended, the day it was, and the record number your walking app gave it, so no walk is counted twice.",
+            "It keeps your settings, such as sound and reduced motion, and how far you are through the guide.",
+            "It never asks for your name, email or location. There are no accounts, ads or analytics, and nothing is sent anywhere.",
+            "You can share a copy of your save. Your phone's share menu opens and you choose where it goes. The copy includes your walks.",
+        };
+
+        private ScreenModel Privacy()
+        {
+            var m = With(ShellScreen.Privacy, "Privacy and your data");
+            foreach (var line in PrivacyLines) m.Lines.Add(line);
+            m.Actions.Add(new ShellAction("export", "Share a copy of your save"));
+            m.Actions.Add(new ShellAction("nav:Settings", "Settings"));
+            return m;
+        }
+
+        /// <summary>D-111: readable JSON copy of the save to the OS share sheet. Local only; fails closed.</summary>
+        private void Export()
+        {
+            _notice = null;
+            if (ShareText == null) { _error = "Sharing isn't available on this device. Your save is safe."; return; }
+            var result = WalkGame.Infrastructure.Persistence.SaveExport.ToReadableJson(_session.ExportSaveEnvelope());
+            if (result.Status != WalkGame.Infrastructure.Persistence.SaveExportStatus.Exported || result.Json == null)
+            { _error = "We couldn't make a copy just now. Your save is safe."; return; }
+            if (result.Json.Length > MaxExportChars) { _error = "Your save is too large to share this way. Your save is safe."; return; }
+            bool shared;
+            try { shared = ShareText(result.Json); } catch (Exception) { shared = false; }
+            if (shared) _notice = "Your phone's share menu has the copy. You choose where it goes.";
+            else _error = "The share menu didn't open. Your save is safe.";
+        }
 
         private ScreenModel BootErrorScreen()
         {
