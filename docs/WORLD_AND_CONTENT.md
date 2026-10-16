@@ -434,7 +434,7 @@ Region 1 is content-complete when:
 
 ## 23. Region 1 authored contract (M4-H, implemented)
 
-Region 1 — Millbrook Valley — is authored at **content version 2** in `Region1Catalog` and validated by the M4 `ContentValidator` gate before any runtime can load it:
+Region 1 — Millbrook Valley — is authored at **content version 4** in `Region1Catalog` (v3: D-062 rebalance and closure criterion; v4: D-071 visible build stages on the workshop (2), wetland drainage (3) and canopy walkway (5); costs, ids and prerequisites unchanged, so older saves load as CompatibleOlder without migration) and validated by the M4 `ContentValidator` gate before any runtime can load it:
 
 - **19 projects** across six chains (vitality per chain): trail access 1,400 · water system 2,350 · settlement community 3,700 · wetland recovery 4,150 · woodland 5,000 · research/closure 2,800.
 - **6 landmarks**: Old Trailhead, River Intake, Canopy Grove, Millbrook Settlement, East Wetland, Ridge Observatory — each with explicit ascending stage triggers on named projects.
