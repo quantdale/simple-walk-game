@@ -316,6 +316,8 @@ All seven reports are committed under `docs/evidence/m4/` and reproduce byte-for
 >
 > **M7-A Health Connect adapter (2026-10-16, Unity-editor-tested build; device UNVERIFIED):** `HealthConnectActivityAdapter` plus a Java bridge on the Android 14+ framework API (D-068). It covers permission/revocation/failure states, a Connect action, and a 30-day sync on boot/resume. Headless: 35 adapter/projector tests. EditMode 27/27, PlayMode 1/1. The arm64 IL2CPP APK builds with the bridge classes, `READ_STEPS` and the rationale activity (`docs/evidence/m7-a/`). Gaps are tracked in KI-016.
 >
+> **M7-B Health Connect deletions (2026-10-16, Unity-editor-tested build; device UNVERIFIED):** change-log deletions reverse credit through the existing deletion path, exactly-once across re-delivery and restart (D-069); 9 new headless tests; the APK builds with the index and change-log code.
+>
 > **NOT yet delivered by M5-H1 (runtime/platform, remains open until an editor exists, D-035): actual Unity screens/scenes, screen-reader navigation, reduced-motion runtime behavior, notification DELIVERY, OS permission dialogs, device lifecycle/performance evidence. These stay UNVERIFIED and M5 is NOT complete as a milestone.**
 
 ## Goal

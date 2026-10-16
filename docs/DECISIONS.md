@@ -1908,3 +1908,16 @@ not complete M5 as a roadmap milestone.
 
 **Not covered (open):** deletions through the Health Connect changes API (`IsDeletion` records); background reads; Android 9–13; device behaviour. All device behaviour is **UNVERIFIED** (KI-002).
 
+## D-069 — Health Connect deletions use the existing deletion path, re-emitted idempotently
+
+**Status:** Accepted (2026-10-16, executor campaign M7-B). Closes KI-016(a) at the contract level.
+
+**Context.** Health Connect's change log reports a deleted record only as an id and a deletion time. The existing deletion path (`ProcessDeletion`) needs the record's identity, an interval that passes validation, and a revision above the credited one.
+
+**Decision.**
+- The Java bridge keeps an app-private index (`noBackupFilesDir/wg_hc_index.tsv`) of id → start, end, lastModified for every record it returned, pruned after 45 days. On each read it consumes the `StepsRecord` change log. A deleted id that is in the index moves to a "deleted" set. The index is written **before** the next change token is stored, so a crash can only replay a deletion, never lose one.
+- Every read re-emits each deleted entry as `del \t id \t start \t end \t lastModified \t deletedAt`. The adapter maps it to a marker with `IsDeletion = true`, quantity 0, the ORIGINAL interval and identity, and `Revision = max(rev(deletedAt), rev(lastModified) + 1)`.
+- **Exactly-once comes from the pipeline, not the bridge.** The first marker reverses the credit (clamped at the balance, as for every deletion). Each re-delivery has the same revision and is a stale-revision no-op, including after a restart or a failed save. A deletion of a record never credited is ignored.
+
+**Consequences / open:** if a change token expires (Health Connect keeps change logs for a limited time), tracking restarts and deletions inside the gap are missed (`changesGap` flag stored; KI-016). Device behaviour is UNVERIFIED (KI-002).
+
