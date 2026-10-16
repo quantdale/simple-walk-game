@@ -128,12 +128,42 @@ namespace WalkGame.Shell.Tests
             {
                 Assert.DoesNotThrow(() => c.Invoke("dev:walk"));
                 Assert.AreEqual(ScreenState.Error, c.Render().State);
-                Assert.AreEqual("That could not be done just now. Your progress is safe.", c.Render().Notice);
+                // D-131: the walk was credited in memory but not committed, so the notice says so calmly.
+                Assert.AreEqual(PlayerStrings.T("shell.notSavedYet"), c.Render().Notice);
                 Assert.IsFalse(c.IsBusy, "a failure never leaves the shell locked");
             }
             finally { Chmod("755"); }
             CollectionAssert.AreEqual(before, File.ReadAllBytes(Path.Combine(_dir, "save.json")), "the committed save is untouched");
             Assert.DoesNotThrow(() => c.Invoke("nav:Home"));
+        }
+
+        [Test] public void D131_unsaved_progress_is_retried_on_resume_and_lands_exactly_once()
+        {
+            if (Environment.OSVersion.Platform != PlatformID.Unix) Assert.Ignore("needs POSIX permissions");
+            var c = Started();
+            var before = File.ReadAllBytes(Path.Combine(_dir, "save.json"));
+            Chmod("555");
+            try
+            {
+                c.Invoke("dev:walk");
+                Assert.AreEqual(PlayerStrings.T("shell.notSavedYet"), c.Render().Notice);
+                c.Resume(); // storage still failing: keep the in-memory world, same calm notice, no reload
+                Assert.AreEqual(PlayerStrings.T("shell.notSavedYet"), c.Render().Notice);
+                Assert.IsFalse(c.IsBusy);
+            }
+            finally { Chmod("755"); }
+            CollectionAssert.AreEqual(before, File.ReadAllBytes(Path.Combine(_dir, "save.json")));
+            c.Resume(); // storage back: the retry commits the whole state once
+            Assert.AreNotEqual(PlayerStrings.T("shell.notSavedYet"), c.Render().Notice);
+            CollectionAssert.AreNotEqual(before, File.ReadAllBytes(Path.Combine(_dir, "save.json")), "the pending progress was committed");
+            var a = ShellBootstrap.CreateSession(_dir, new GrantedPort()); a.Continue();
+            var b = ShellBootstrap.CreateSession(_dir, new GrantedPort()); b.Continue();
+            long credited = a.GetDiagnostics().LifetimeVitalityCredited;
+            Assert.AreEqual(credited, b.GetDiagnostics().LifetimeVitalityCredited);
+            Assert.Greater(credited, 0L, "the walk credited during the gap was not lost");
+            c.Resume(); c.Resume(); // further resumes never re-credit the gap
+            var d = ShellBootstrap.CreateSession(_dir, new GrantedPort()); d.Continue();
+            Assert.AreEqual(credited, d.GetDiagnostics().LifetimeVitalityCredited, "landed exactly once");
         }
 
         [Test] public void Pause_resume_storm_leaves_one_consistent_state()

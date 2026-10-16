@@ -327,6 +327,7 @@ namespace WalkGame.Application
             }
 
             _state = null;
+            _hasUnsavedChanges = false;
             _preferences = UxPreferencesState.CreateDefault();
             _preferencesLoadOutcome = UxPreferencesLoadOutcome.NotFound;
             _preferencesLoadDetail = null;
@@ -444,6 +445,7 @@ namespace WalkGame.Application
             }
 
             _state = fresh;
+            _hasUnsavedChanges = false;
             CaptureBootOutcome(DiagnosticsBootOutcome.NewGameCreated, recoveredFromBackup: false);
             if (!overwriteExisting) ResetStaleOnboarding();
             return new StartResult(StartStatus.NewGameCreated, new[]
@@ -482,6 +484,7 @@ namespace WalkGame.Application
         /// </summary>
         public StartResult Continue()
         {
+            _hasUnsavedChanges = false; // D-131: a reload discards any un-committed in-memory state.
             var primary = SafeReadPrimary();
             bool primaryAbsent = primary.Outcome == SaveReadOutcome.NotFound;
 
@@ -2342,12 +2345,42 @@ namespace WalkGame.Application
             try
             {
                 _store.WriteAtomic(_codec.Encode(state, _clock.UtcNow));
+                _hasUnsavedChanges = false;
                 return true;
             }
             catch (UnauthorizedAccessException ex)
             {
+                _hasUnsavedChanges = true;
                 throw new IOException("Persisting game state failed: " + ex.Message, ex);
             }
+            catch (IOException)
+            {
+                _hasUnsavedChanges = true;
+                throw;
+            }
+        }
+
+        private bool _hasUnsavedChanges;
+
+        /// <summary>
+        /// D-131: true after a commit failed, while the in-memory state is ahead of the last
+        /// durable generation. Cleared by any later successful commit, by
+        /// <see cref="RetryPendingSave"/>, or by a reload (<see cref="Continue"/> replaces the
+        /// in-memory state with the durable one, so nothing is "ahead" any more).
+        /// </summary>
+        public bool HasUnsavedChanges => _state != null && _hasUnsavedChanges;
+
+        /// <summary>
+        /// D-131: re-attempts the commit that failed. Writes the whole in-memory state, so a
+        /// credited transaction lands exactly once (its ledger entry and processed-record id
+        /// travel with it). Returns true when nothing is pending or the retry committed;
+        /// false (never throws for I/O) when storage is still failing.
+        /// </summary>
+        public bool RetryPendingSave()
+        {
+            if (!HasUnsavedChanges) return true;
+            try { return PersistOrThrow(); }
+            catch (IOException) { return false; }
         }
 
         private GameState RequireState() =>
