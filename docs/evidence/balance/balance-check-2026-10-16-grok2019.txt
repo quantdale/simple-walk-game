@@ -1,0 +1,39 @@
+# Balance check 2026-10-16 (grok2019), main c5a6bba
+# Command: dotnet run --project tools/simulation -- profile --save <tmp> --profile <p> --days 400 [--cadence]
+# Targets: D-062 (high <=120, irregular <=250, low exempt from closure); D-071 cadence (longest gap <=30, first change <=10).
+# The profile reports are byte-identical to docs/evidence/m4/pacing-{low,irregular,high}.txt (cmp).
+
+== low ==
+pattern steps/day: 3000
+region completed: NO (horizon reached)
+days simulated: 400  horizon: 400
+queue-empty days: 0
+producer capped-store days: 0
+per-chain completion day: trail-access=34, water-system=92, settlement-community=189, wetland-recovery=304, woodland=incomplete, research=incomplete
+validator-clean: yes
+cadence: first visible change: day 10; longest gap without change: 27 days; visible changes: 20 in 400 days (1.5 per 30 days)
+cadence change days: 10,20,34,60,74,92,117,142,164,189,213,238,262,272,285,304,310,322,349,375
+
+== irregular ==
+pattern steps/day: 26000,15000,2000,18000,6000,22000,9000
+region completed: yes on day 109
+days simulated: 109  horizon: 400
+queue-empty days: 1
+producer capped-store days: 0
+per-chain completion day: trail-access=8, water-system=20, settlement-community=41, wetland-recovery=65, woodland=98, research=109
+validator-clean: yes
+cadence: first visible change: day 2; longest gap without change: 7 days; visible changes: 26 in 109 days (7.2 per 30 days)
+cadence change days: 2,4,8,13,15,20,25,30,35,41,46,50,57,58,62,65,67,69,75,81,86,92,98,102,105,109
+
+== high ==
+pattern steps/day: 20000
+region completed: yes on day 77
+days simulated: 77  horizon: 400
+queue-empty days: 1
+producer capped-store days: 0
+per-chain completion day: trail-access=5, water-system=14, settlement-community=29, wetland-recovery=46, woodland=69, research=77
+validator-clean: yes
+cadence: first visible change: day 2; longest gap without change: 4 days; visible changes: 26 in 77 days (10.1 per 30 days)
+cadence change days: 2,3,5,9,11,14,18,22,25,29,32,36,40,41,43,46,47,49,53,57,61,65,69,71,74,77
+
+Verdict: every profile is on its targets: high closes on day 77 (target <=120), irregular on day 109 (<=250), and low is exempt (4/6 chains by day 400). Cadence: gaps 4 / 7 / 27, first change on day 2 / 2 / 10. No tuning is needed. D-100..D-103 did not change conversion or content numbers.
