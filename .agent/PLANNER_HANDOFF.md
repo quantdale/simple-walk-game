@@ -66,10 +66,13 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-16 (grok1745)
 - D-089 (KI-018): pooled action buttons; per-switch view allocation ≤ ~4 KB on all screens, 3,000 enter/exits 384 → 151 ms (editor). `docs/evidence/d-buttons/`.
-- Discoveries PNG re-captured with D-086 copy: `docs/evidence/b-discovery-copy/discoveries-editor-rendered.png` (editor-rendered). The older `b-discoveries/` PNG shows the pre-copy keys.
+- Discoveries PNG re-captured with D-086 copy: `docs/evidence/b-discovery-copy/discoveries-editor-rendered.png` (editor-rendered). The older `b-discoveries/` PNG shows the pre-copy keys and is renamed `-SUPERSEDED-pre-D086` (see its SUPERSEDED.md).
 - D-090: Home story line (current chapter + next hint; epilogue once complete). Region 2 storyline still needs OpenSpec first.
 - D-091: `SaveRecoveryAdverseTests` (11) for byte-level primary/both damage; .NET 670 total.
 - Next: onboarding/permission edge cases at the shell (denied-then-granted mid-onboarding); Region 2 storyline OpenSpec; device lane (KI-002).
 
+## Session note 2026-10-16 (grok1814)
+- D-092: onboarding/permission edge cases. A fresh-device start resets a stale onboarding stage left by a kill mid delete-all. `StaleOnboardingResetTests` (5), `OnboardingPermissionEdgeTests` (5); .NET 675, EditMode 116/116 (Unity-editor-tested). Device permission dialog UNVERIFIED (KI-002).
 ## Session note 2026-10-16 (grok1814, Region 2)
 - `openspec/changes/add-region2-storyline/` is PROPOSED only. D-011 and the ROADMAP post-MVP gate forbid agent approval; logged in the KNOWN_ISSUES morning queue. No implementation.
+- Worktree cleanup: 37 merged, clean worktrees removed with `git worktree remove` (no --force). Kept: `wt-checkin-grok1537` and `wt-story-openspec-grok1520` (merged but with uncommitted changes; a human should inspect). Branches were not deleted.
