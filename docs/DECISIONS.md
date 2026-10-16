@@ -2047,3 +2047,15 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - A device-held HMAC key: the key is extractable.
 - Cross-checking ledger totals against records: these are diagnostics only and do not affect gameplay.
 
+
+## D-079 — Sub-unit step remainders carry per provider (2026-10-16, closes KI-019)
+
+**Context.** Conversion (100 steps = 1 Vitality) was applied per record with the remainder discarded. Health Connect stores many small records, so real walking lost up to 99 steps per record (100 × 150-step records credited 100 instead of 150; sub-100 records credited nothing).
+
+**Decision.** `ProcessedRecordLedgerState.StepCarryByProvider` holds each provider's remainder (0..99). A new record credits `floor((carry + steps) / 100)` and keeps the rest. Rule version stays 1 (same rate, same transaction ids).
+- **Correction:** the record's old uncredited steps (`steps − 100 × credited`) come back out of the pool, the corrected steps go in, and the row is re-attributed. Clawback limits (ACTIVITY_PIPELINE §11) are unchanged.
+- **Deletion:** the row's credit is reversed exactly as before. Its uncredited steps come back out of the pool, which is clamped to 0..99, so a deletion never creates credit. Drift is under one Vitality per deletion.
+- **Save compatibility:** the field is additive; older saves decode with no carry. Legacy rows keep their per-record credits. The validator rejects a carry outside 0..99 or with an empty provider key.
+- **Pacing:** synthetic profiles use day-sized records, so pacing gains at most one Vitality per day.
+
+**Evidence.** `StepCarryTests` (7 cases: many small records, sub-100 records across reload, per-provider pools, replay, deletion, correction, validator bound).

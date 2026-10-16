@@ -315,7 +315,7 @@ namespace WalkGame.Domain.Activity
 
     /// <summary>
     /// Conversion rule version 1: integer math, floor rounding, documented unit.
-    /// 100 walking steps convert to 1 Vitality; sub-unit remainder is discarded.
+    /// 100 walking steps convert to 1 Vitality; the sub-unit remainder carries per provider (D-079).
     /// Rule version is stored on every processed-record entry so historical credits
     /// remain auditable when rules evolve (DECISIONS D-014).
     /// </summary>
@@ -326,6 +326,23 @@ namespace WalkGame.Domain.Activity
 
         public static long ConvertSteps(long clampedSteps) =>
             clampedSteps / StepsPerVitality;
+
+        /// <summary>Largest legal carried remainder (D-079).</summary>
+        public const long MaxCarry = StepsPerVitality - 1L;
+
+        /// <summary>
+        /// Converts steps with the provider's carried sub-unit remainder (D-079, KI-019):
+        /// returns the Vitality for <c>carry + steps</c> and the new remainder (0..99).
+        /// A negative pool (a reversal that consumed more carry than exists) clamps to 0;
+        /// the player is never charged for it.
+        /// </summary>
+        public static long ConvertWithCarry(long carry, long steps, out long newCarry)
+        {
+            long pool = carry + steps;
+            if (pool < 0L) pool = 0L;
+            newCarry = pool % StepsPerVitality;
+            return pool / StepsPerVitality;
+        }
     }
 
     /// <summary>Durable proof that one logical activity record was already trusted.</summary>
@@ -458,6 +475,23 @@ namespace WalkGame.Domain.Activity
         }
 
         public int Count => Entries.Count;
+
+        /// <summary>
+        /// Per-provider sub-unit step remainder (D-079, KI-019): steps that did not yet make a
+        /// whole Vitality. Absent on older saves, which decode to "no carry". Values are 0..99.
+        /// </summary>
+        public Dictionary<string, long> StepCarryByProvider { get; } =
+            new Dictionary<string, long>(StringComparer.Ordinal);
+
+        public long GetCarry(string provider) =>
+            provider != null && StepCarryByProvider.TryGetValue(provider, out var c) ? c : 0L;
+
+        public void SetCarry(string provider, long carry)
+        {
+            if (provider == null) return;
+            if (carry == 0L) StepCarryByProvider.Remove(provider);
+            else StepCarryByProvider[provider] = carry;
+        }
 
         /// <summary>
         /// Cumulative reversal remainder the correction policy refused to claw back because

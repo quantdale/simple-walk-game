@@ -382,6 +382,12 @@ namespace WalkGame.Domain.Validation
             if (state.ProcessedRecords.TotalVitalityCredited > state.Ledger.TotalVitalityCredited)
                 violations.Add("Processed-record credited vitality exceeds reward ledger total: durable dedup state outruns reward state.");
 
+            foreach (var carry in state.ProcessedRecords.StepCarryByProvider)
+            {
+                if (string.IsNullOrEmpty(carry.Key) || carry.Value < 0L || carry.Value > StepConversionRuleV1.MaxCarry)
+                    violations.Add($"Step carry for provider '{carry.Key}' out of bounds: {carry.Value}.");
+            }
+
             if (state.ProcessedRecords.UnappliedReversalVitality < 0L)
                 violations.Add("Unapplied reversal counter is negative.");
 

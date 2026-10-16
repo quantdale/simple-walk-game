@@ -42,3 +42,7 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - #39 A4 Story journal; #40 KI-007 `--allow-no-origin`; #41 KI-016(a) expired-token recovery (D-077), bridge tamper tests, id bounds, KI-019 logged; this PR: save tamper (D-078).
 - Next: KI-019 sub-unit carry (economy; needs a D-entry), then B (MVP features).
 
+
+## Session note 2026-10-16 (hardening + B, grok1628)
+- #43 renamed the A4 journal PNG to `docs/evidence/story/journal-editor-rendered.png`.
+- KI-019 closed by D-079 (per-provider sub-unit step carry); `StepCarryTests` 7 cases; pacing-pathological +1 Vitality regenerated.
