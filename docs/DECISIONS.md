@@ -2099,3 +2099,18 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - **Robust source.** `ShellController.TextScaleSource` is wired to `AccessibilitySettings.fontScale` by the bootstrap. NaN, infinities, out-of-range values and a throwing source all degrade to a clamped value without breaking the screen.
 
 **Evidence.** `TextSizePreviewTests` (9 EditMode cases); editor-rendered PNG at 150% (`WG_CAPTURE_TEXT_SCALE=1.5`; llvmpipe/Xvfb, NOT device). The real OS font scale on a phone is UNVERIFIED (KI-002).
+
+## D-084 — The shell rejects malformed and out-of-order input calmly (2026-10-16)
+
+**Context.** A hardening probe of `ShellController.Invoke` found three defects:
+1. `nav:` used `Enum.Parse`. An unknown name threw, and a comma list (`nav:Home,Story`) parsed to the OR of the values, which is another real screen (Discoveries).
+2. Before a game was loaded, any game action or game screen called a read model that throws (`RequireState`).
+3. `start` called `StartNewGame`, which writes unconditionally. From a loaded game (via `nav:Onboarding`) or the BootError screen, that would replace the player's world or an unreadable save that might still be recoverable.
+
+**Decision.**
+- Navigation accepts exact screen names only; anything else is "That screen does not exist." on the current screen.
+- Before a game is loaded, only `start`, `retry`, `activity:connect`, `nav:Onboarding` and `nav:BootError` work; the rest is a calm error. A null or empty action id is an error too.
+- `start` works only on the onboarding screen of an unbooted shell. Starting after "Delete all local data" still works.
+- The Application API is unchanged (KI-021).
+
+**Evidence.** `ShellInputHardeningTests` (21 EditMode cases). The comma-list case failed first (it opened Discoveries), then passed after the fix. Device UNVERIFIED (KI-002).
