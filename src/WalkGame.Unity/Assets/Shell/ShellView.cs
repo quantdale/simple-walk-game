@@ -109,38 +109,79 @@ namespace WalkGame.Shell
                 scroll.Add(preview);
             }
 
-            var actions = new VisualElement { name = "actions" };
-            actions.style.marginTop = 24;
-            scroll.Add(actions);
-            bool first = true;
-            foreach (var a in model.Actions)
+            // D-089 (KI-018): the actions container and its buttons are pooled per root like the
+            // body lines. A pooled button keeps ONE click handler that reads the action id and
+            // callback current for this render, so no closure is allocated per switch; label,
+            // name, tooltip, size and primary/secondary styling are reset on every render.
+            var state = Pool(root);
+            state.OnAction = onAction;
+            if (state.Actions == null)
             {
-                var id = a.Id;
-                var b = new Button(() => onAction(id)) { text = a.Label, name = id, tooltip = a.Label };
+                state.Actions = new VisualElement { name = "actions" };
+                state.Actions.style.marginTop = 24;
+            }
+            var actions = state.Actions;
+            scroll.Add(actions);
+            actions.Clear();
+            for (int i = 0; i < model.Actions.Count; i++)
+            {
+                var a = model.Actions[i];
+                ActionButton b;
+                if (i < state.Buttons.Count) b = state.Buttons[i];
+                else
+                {
+                    b = new ActionButton(state);
+                    b.style.marginBottom = 12;
+                    b.style.marginLeft = 0; b.style.marginRight = 0;
+                    b.style.borderTopLeftRadius = b.style.borderTopRightRadius = b.style.borderBottomLeftRadius = b.style.borderBottomRightRadius = 12;
+                    b.style.whiteSpace = WhiteSpace.Normal;
+                    b.style.borderTopWidth = b.style.borderBottomWidth = b.style.borderLeftWidth = b.style.borderRightWidth = 2;
+                    b.style.borderTopColor = b.style.borderBottomColor = b.style.borderLeftColor = b.style.borderRightColor = Accent;
+                    state.Buttons.Add(b);
+                }
+                bool first = i == 0;
+                b.ActionId = a.Id;
+                b.text = a.Label; b.name = a.Id; b.tooltip = a.Label;
                 b.style.minHeight = ButtonHeight * k;
                 b.style.fontSize = BodySize * k;
-                b.style.marginBottom = 12;
-                b.style.marginLeft = 0; b.style.marginRight = 0;
-                b.style.borderTopLeftRadius = b.style.borderTopRightRadius = b.style.borderBottomLeftRadius = b.style.borderBottomRightRadius = 12;
-                b.style.whiteSpace = WhiteSpace.Normal;
                 // Primary action is distinguished by fill AND position (first), not colour alone.
                 b.style.backgroundColor = first ? Accent : Color.white;
                 b.style.color = first ? Color.white : Ink;
-                b.style.borderTopWidth = b.style.borderBottomWidth = b.style.borderLeftWidth = b.style.borderRightWidth = 2;
-                b.style.borderTopColor = b.style.borderBottomColor = b.style.borderLeftColor = b.style.borderRightColor = Accent;
                 actions.Add(b);
-                first = false;
             }
         }
 
-        private static System.Collections.Generic.List<Label> LinePool(VisualElement root)
+        private sealed class PoolState
         {
-            if (root.userData is System.Collections.Generic.List<Label> pool) return pool;
-            pool = new System.Collections.Generic.List<Label>();
-            root.userData = pool;
-            return pool;
+            public readonly System.Collections.Generic.List<Label> Lines = new System.Collections.Generic.List<Label>();
+            public readonly System.Collections.Generic.List<ActionButton> Buttons = new System.Collections.Generic.List<ActionButton>();
+            public VisualElement Actions;
+            public System.Action<string> OnAction;
         }
 
+        /// <summary>A reusable action button: one handler for its lifetime, id set per render.</summary>
+        public sealed class ActionButton : Button
+        {
+            public string ActionId { get; internal set; }
+            private readonly PoolState _owner;
+            internal ActionButton(object owner)
+            {
+                _owner = (PoolState)owner;
+                clicked += Activate;
+            }
+            /// <summary>Runs exactly what a tap runs: the current render's callback with the current id.</summary>
+            public void Activate() { if (ActionId != null) _owner.OnAction?.Invoke(ActionId); }
+        }
+
+        private static PoolState Pool(VisualElement root)
+        {
+            if (root.userData is PoolState st) return st;
+            st = new PoolState();
+            root.userData = st;
+            return st;
+        }
+
+        private static System.Collections.Generic.List<Label> LinePool(VisualElement root) => Pool(root).Lines;
         private static Label Text(string text, float size, Color color)
         {
             var l = new Label(text);
