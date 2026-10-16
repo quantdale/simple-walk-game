@@ -48,3 +48,10 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - KI-019 closed by D-079 (per-provider sub-unit step carry); `StepCarryTests` 7 cases; pacing-pathological +1 Vitality regenerated.
 - B1: Region 1 completion celebration in the return summary (D-080), EditMode 65/65.
 - Next B candidates: discoveries/expeditions detail screen; settings polish (text size preview).
+
+## Session note 2026-10-16 (B1b–B3 + C, grok1651)
+- #46 (D-081): celebration reached from a real completed region (`CompletedRegionFixture`, day 77) in PlayMode, with an editor-rendered PNG. Found KI-020 (ring clipping).
+- #47 (D-082): Discoveries and expeditions detail screen. #48 (D-083): Settings text-size preview (follows the OS, no override).
+- This PR (D-084): shell input hardening. Exact-name nav, no game actions before load, `start` cannot replace a game or an unreadable save. KI-021 is the Application-level residual.
+- Capture now takes `WG_CAPTURE_SCREEN=Celebration|Discoveries|Settings` and `WG_CAPTURE_TEXT_SCALE`.
+- Next: KI-020 ring inset; KI-021 decision; authored discovery body copy (keys only today); device lane (KI-002).

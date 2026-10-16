@@ -568,6 +568,7 @@ None are pre-authorized by this roadmap.
 
 ## Hardening (C)
 - [x] KI-019 per-provider sub-unit step carry (D-079, PR #44)
+- [x] Shell input hardening (D-084): exact-name navigation (a comma list such as `nav:Home,Story` used to open a different screen), no game action or game screen before a game is loaded, and `start` can no longer replace a loaded game or an unreadable save. `ShellInputHardeningTests` 21 cases; EditMode 101/101, PlayMode 4 passed + 1 capture-only ignored (`docs/evidence/c-nav-hardening/`, Unity-editor-tested); see KI-021 for the Application-level residual
 
 ## Features (B)
 - [x] B1 Region 1 completion celebration in the return summary (D-080): retitled, calm static headline, "See the restored valley" link after Continue; EditMode 65/65 (`docs/evidence/b-celebration/`; Unity-editor-tested; device UNVERIFIED, KI-002)
