@@ -36,7 +36,7 @@ namespace WalkGame.Shell.Tests
 
         [TestCase("ShellController.cs")]
         [TestCase("PlayerCopy.cs")]
-        [TestCase("BootRouter.cs")]
+        [TestCase("PlayerStrings.cs")] // D-120: boot copy moved into the table; the scan now covers every table string
         public void Shell_copy_passes_the_no_guilt_check(string file)
         {
             var literals = Literals(file);

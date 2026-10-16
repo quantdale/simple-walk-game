@@ -22,7 +22,7 @@ namespace WalkGame.Shell
     /// <summary>D-119 reminder copy: an invitation, never a streak, count or guilt line.</summary>
     public static class ReminderCopy
     {
-        public const string Title = "Millbrook";
-        public const string Body = "The valley is here whenever you feel like a walk.";
+        public static string Title => PlayerStrings.T("reminder.title");
+        public static string Body => PlayerStrings.T("reminder.body");
     }
 }
