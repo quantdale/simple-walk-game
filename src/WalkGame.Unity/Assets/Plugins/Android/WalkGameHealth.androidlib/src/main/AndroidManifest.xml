@@ -4,8 +4,16 @@
     <uses-permission android:name="android.permission.health.READ_STEPS" />
     <!-- D-119: optional gentle reminder (opt-in; asked only when the player turns it on). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- D-121: normal (install-time) permission so the reminder survives a phone restart. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <application>
         <receiver android:name="com.quantdale.walkgame.reminder.ReminderReceiver" android:exported="false" />
+        <!-- D-121: system boot broadcasts reach non-exported receivers; no other app can trigger it. -->
+        <receiver android:name="com.quantdale.walkgame.reminder.ReminderBootReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
         <!-- Required by Health Connect: the privacy rationale shown from the permission screen. -->
         <activity
             android:name="com.quantdale.walkgame.health.HealthPermissionRationaleActivity"

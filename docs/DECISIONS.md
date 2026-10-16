@@ -2503,3 +2503,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Decision.** `WalkGame.Shell.PlayerStrings` is the single table for shell player copy (`T(key)`, and `F(key, args)` with invariant `{n}` templates; a missing key yields an empty string, never the raw key). Migrated so far: BootRouter, `ReminderCopy`, the reminder lines (D-119), the letters lines (D-118) and the Settings status lines. `LocalizationReadinessTests` (EditMode, 5) scans `Assets/Shell` source. Migrated files must have zero multi-word literals; other files are capped at their current count and may only go down; `// l10n-ignore: reason` marks non-player literals. Every key used in code must exist in the table. `CopyPolishTests` now scans `PlayerStrings.cs` for guilt wording instead of BootRouter. A full migration is tracked as KI-023.
 
 **Labels.** Unity-editor-tested (EditMode 191/191). No save, content or behaviour change; every rendered string is byte-identical.
+
+## D-121 — Reminder time picker and re-arm after a phone restart (2026-10-17)
+
+**Context.** D-119 residuals: the reminder always fired at the stored 08:00 default, and a phone restart cleared the alarm until the game was next opened.
+
+**Decision.** OpenSpec `add-reminder-time-and-reboot` (agent-approved, Region 1/shell scope, as D-103/D-119). While the reminder is on, Settings offers "Remind me earlier/later, around HH:MM": 30-minute steps inside 06:00–21:00, never moving the wrong way, hidden at the window edge. A move saves the existing `DailyReminderMinutesOfDay`, re-schedules once, shows a calm note, and never re-asks permission. Android: a non-exported `ReminderBootReceiver` (`BOOT_COMPLETED` only, normal install-time `RECEIVE_BOOT_COMPLETED`) re-arms the same inexact RTC alarm only if `ReminderBridge` had armed it and notifications are still allowed; `cancel` clears the flag. Battery: one AlarmManager call at boot; no service, wake lock, network or exact alarm.
+
+**Save compatibility.** No save or content change (the time field already existed, D-119). Installs from before D-121 have no armed flag, so the receiver does nothing until the game next opens and re-syncs.
+
+**Labels.** Unity-editor-tested (EditMode 205/205); Java compiled into an arm64 debug APK (`docs/evidence/apk-d121/`). Device boot and delivery UNVERIFIED (KI-002). No iOS delivery.

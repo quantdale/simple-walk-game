@@ -101,6 +101,41 @@ namespace WalkGame.Shell
             return (m / 60).ToString("00", System.Globalization.CultureInfo.InvariantCulture) + ":" + (m % 60).ToString("00", System.Globalization.CultureInfo.InvariantCulture);
         }
 
+        /// <summary>D-121: the reminder time moves in calm half-hour steps inside a daytime window (no night notes).</summary>
+        public const int ReminderStepMinutes = 30;
+        public const int ReminderEarliestMinutes = 6 * 60;
+        public const int ReminderLatestMinutes = 21 * 60;
+
+        /// <summary>
+        /// D-121: the next reminder time one step earlier (direction &lt; 0) or later (&gt; 0). A stored
+        /// time off the half-hour grid or outside the window is first snapped into it, so the result is
+        /// always on the grid and inside 06:00–21:00. Returns the same time when no move in that direction is possible.
+        /// </summary>
+        public static int NextReminderTime(int minutesOfDay, int direction)
+        {
+            int snapped = (int)Math.Round(minutesOfDay / (double)ReminderStepMinutes, MidpointRounding.AwayFromZero) * ReminderStepMinutes;
+            snapped = Math.Max(ReminderEarliestMinutes, Math.Min(ReminderLatestMinutes, snapped));
+            int next = snapped + Math.Sign(direction) * ReminderStepMinutes;
+            if (snapped != minutesOfDay && Math.Sign(snapped - minutesOfDay) == Math.Sign(direction)) next = snapped;
+            next = Math.Max(ReminderEarliestMinutes, Math.Min(ReminderLatestMinutes, next));
+            // Never move the "wrong" way: "later" from 23:00 must not offer 21:00.
+            if (direction > 0 && next <= minutesOfDay) return minutesOfDay;
+            if (direction < 0 && next >= minutesOfDay) return minutesOfDay;
+            return next;
+        }
+
+        private void MoveReminder(int direction)
+        {
+            if (Reminders == null) { _error = PlayerStrings.T("reminder.error.unavailable"); return; }
+            var s = _session.GetSettings();
+            if (!ReminderWanted(s)) return;
+            int next = NextReminderTime(s.DailyReminderMinutesOfDay, direction);
+            if (next == s.DailyReminderMinutesOfDay) return;
+            if (!Check(_session.SetDailyReminder(true, next))) return;
+            _notice = PlayerStrings.F("reminder.moved", ReminderTime(next));
+            SyncReminder();
+        }
+
         /// <summary>D-119: the reminder is wanted only when BOTH the master opt-in and the reminder are on (default off).</summary>
         private static bool ReminderWanted(WalkGame.Application.ReadModels.SettingsReadModel s) => s.NotificationsOptIn && s.DailyReminderEnabled;
 
@@ -222,6 +257,8 @@ namespace WalkGame.Shell
                 case "toggle:reducedMotion": Check(_session.SetReducedMotion(!_session.GetSettings().ReducedMotion)); return;
                 case "toggle:sound": Check(_session.SetSoundEnabled(!_session.GetSettings().SoundEnabled)); return;
                 case "toggle:reminder": ToggleReminder(); return;
+                case "reminder:earlier": MoveReminder(-1); return;
+                case "reminder:later": MoveReminder(1); return;
                 case "toggle:diagnostics": Check(_session.SetDiagnosticsVisible(!_session.GetSettings().DiagnosticsVisible)); return;
                 case "export": Export(); return;
                 case "delete:request": Current = ShellScreen.DeleteConfirm; return;
@@ -684,7 +721,16 @@ namespace WalkGame.Shell
             m.Actions.Add(new ShellAction("toggle:reducedMotion", PlayerStrings.T(s.ReducedMotion ? "shell.settings.motion.off" : "shell.settings.motion.on")));
             m.Actions.Add(new ShellAction("toggle:sound", PlayerStrings.T(s.SoundEnabled ? "shell.settings.sound.off" : "shell.settings.sound.on")));
             if (Reminders != null)
+            {
                 m.Actions.Add(new ShellAction("toggle:reminder", reminderOn ? PlayerStrings.T("reminder.action.off") : PlayerStrings.T("reminder.action.on")));
+                if (reminderOn)
+                {
+                    // D-121: plain buttons that name the resulting time, so a screen reader announces it.
+                    int earlier = NextReminderTime(s.DailyReminderMinutesOfDay, -1), later = NextReminderTime(s.DailyReminderMinutesOfDay, 1);
+                    if (earlier != s.DailyReminderMinutesOfDay) m.Actions.Add(new ShellAction("reminder:earlier", PlayerStrings.F("reminder.action.earlier", ReminderTime(earlier))));
+                    if (later != s.DailyReminderMinutesOfDay) m.Actions.Add(new ShellAction("reminder:later", PlayerStrings.F("reminder.action.later", ReminderTime(later))));
+                }
+            }
             m.Actions.Add(new ShellAction("toggle:diagnostics", (s.DiagnosticsVisible ? "Hide" : "Show") + " diagnostics"));
             m.Actions.Add(new ShellAction("nav:Privacy", PlayerStrings.T("shell.privacyAndYourData")));
             m.Actions.Add(new ShellAction("delete:request", PlayerStrings.T("shell.deleteAllLocalData")));

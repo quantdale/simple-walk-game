@@ -47,8 +47,10 @@ public final class ReminderBridge {
         if (minutesOfDay < 0 || minutesOfDay >= 24 * 60) return false;
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return false;
+        // D-121: remember what is armed so ReminderBootReceiver can re-arm it after a restart.
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                .putString("title", title).putString("body", body).apply();
+                .putString("title", title).putString("body", body)
+                .putInt("minutes", minutesOfDay).putBoolean("armed", true).apply();
         Calendar next = Calendar.getInstance();
         next.set(Calendar.HOUR_OF_DAY, minutesOfDay / 60);
         next.set(Calendar.MINUTE, minutesOfDay % 60);
@@ -61,7 +63,22 @@ public final class ReminderBridge {
         return true;
     }
 
+    /**
+     * D-121: after a phone restart, re-arm the same inexact alarm only if the game had armed one
+     * and notifications are still allowed. One AlarmManager call, no network, no wake lock.
+     */
+    static boolean rearmAfterBoot(Context context) {
+        android.content.SharedPreferences p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        if (!p.getBoolean("armed", false) || !canNotify(context)) return false;
+        int minutes = p.getInt("minutes", -1);
+        String title = p.getString("title", null);
+        String body = p.getString("body", null);
+        if (minutes < 0 || title == null || body == null) return false;
+        return scheduleDaily(context, minutes, title, body);
+    }
+
     public static void cancel(Context context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("armed", false).apply();
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (am != null) am.cancel(pending(context));
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
