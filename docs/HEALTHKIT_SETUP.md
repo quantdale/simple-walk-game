@@ -13,7 +13,7 @@ made that an iOS build works.
 | P/Invoke bridge | `src/WalkGame.Unity/Assets/Shell/IosHealthKitBridge.cs` | compiles in the editor (stub branch only); the iOS branch is UNVERIFIED |
 | Swift bridge | `src/WalkGame.Unity/Assets/Plugins/iOS/WalkGameHealthKitBridge.swift` | UNVERIFIED (never compiled) |
 | Seen-samples pruning (D-113) | `src/WalkGame.Infrastructure/Platform/HealthKit/HealthKitSampleLedger.cs`, mirrored in the Swift bridge | C# rule automated-verified (`HealthKitPrepTests`); Swift mirror UNVERIFIED |
-| iPhone/Watch dedup design (D-113) | `src/WalkGame.Infrastructure/Platform/HealthKit/HealthKitSourceDedup.cs` | automated-verified (headless); NOT wired (the bridge protocol has no source field yet) |
+| iPhone/Watch dedup (D-113, wired by D-114) | `HealthKitSourceDedup.cs`, applied in `HealthKitActivityAdapter` via the bridge's sixth `source` field | C# automated-verified (headless, `HealthKitSourceFieldTests`); Swift classification compiled on hosted macOS by CI, runtime UNVERIFIED; adapter not composed |
 | Composition | none: `ShellBootstrap` does not use the adapter yet | iOS players still get the D-108 unsupported state |
 
 ## Steps for the first macOS build
@@ -34,7 +34,7 @@ made that an iOS build works.
 
 - The dialog shows only "Steps" under read; no write rows.
 - Deny all, then grant in Settings → Health → Data Access: steps appear after the next resume.
-- Steps from iPhone and Apple Watch: HealthKit returns both as separate samples, and today's pipeline would double count them. D-113 designs the fix (`HealthKitSourceDedup`: Watch > iPhone > other, the lower-priority sample keeps only its steps outside time already covered, prorated and floored) but it is not wired. Wiring needs a sixth bridge field (source kind from `HKDevice.model` + `HKSource.bundleIdentifier`) and its own D-entry. Check on a device with both before release.
+- Steps from iPhone and Apple Watch: HealthKit returns both as separate samples, and today's pipeline would double count them. D-113 designs the fix (`HealthKitSourceDedup`: Watch > iPhone > other, the lower-priority sample keeps only its steps outside time already covered, prorated and floored) and D-114 wires it: the bridge sends a sixth field `watch|phone|other` (from `HKDevice.model` + `HKSource.bundleIdentifier`) and the adapter credits each sample's deduplicated share. Residuals (late-arriving Watch samples, deleted covering samples) are in D-114. Check on a device with both before release.
 - Delete a sample in the Health app: Vitality reverses once on the next resume.
 - Reinstall: see "UserDefaults loss on reinstall" below.
 - Fractional step quantities are floored by the bridge.

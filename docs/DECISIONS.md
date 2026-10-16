@@ -2420,3 +2420,19 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Labels.** C# rules: automated-verified (headless). Swift pruning mirror: UNVERIFIED. Reinstall table: documented reasoning, UNVERIFIED on a device.
 
+
+## D-114 — HealthKit bridge source field; iPhone/Watch dedup wired in the adapter (2026-10-16)
+
+**Context.** D-113 designed `HealthKitSourceDedup` (Watch > iPhone > other) but left it unwired because the bridge protocol had no source field.
+
+**Decision.**
+- Credit lines gain an optional sixth tab field `source`: `watch` | `phone` | `other`. Absent or empty means `other`; any other token fails the whole fetch as a protocol error (D-063). Five-field lines behave exactly as before, so an older bridge is not broken.
+- The Swift bridge classifies natively with the D-113 rule (only `com.apple.*` bundle identifiers count, by `HKDevice.model` prefix `Watch` / `iPhone`) and always emits the field.
+- `HealthKitActivityAdapter.FetchRecords` runs `HealthKitSourceDedup.Resolve` over the in-window credit lines of one response. Each credit's quantity becomes its deduplicated share (never above the bridge count). A share of 0 is omitted rather than sent as a zero-quantity record (which the trust pipeline would reject); deletions and non-positive counts pass through unchanged.
+- The adapter stays NOT composed (D-112). No save, content or Android change.
+
+**Known residuals (logged under KI-022).** Dedup is per response, and the pipeline is exactly-once by sample id and revision. A share credited before a higher-priority overlapping sample arrives is not reduced later (worst case: the pre-D-114 double count for that window, never more). If a covering Watch sample is deleted, an omitted phone sample is credited in full on the next read, but a partially credited one keeps its earlier share (under-credit). Both need device data to size.
+
+**Tests:** .NET `HealthKitSourceFieldTests` (token theory ×4, unknown tokens ×4 fail closed, five-field compatibility, full overlap omits the phone sample, partial overlap prorates, deletions pass through, non-positive counts untouched, 200-round randomised order-independence and never-above-input).
+
+**Labels.** C# parsing and wiring: automated-verified (headless). Swift classification: compiled on hosted macOS once CI runs on this PR (`ios-bridge-compile`); runtime and device UNVERIFIED.

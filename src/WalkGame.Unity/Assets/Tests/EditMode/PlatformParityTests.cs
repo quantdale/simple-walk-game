@@ -82,7 +82,7 @@ namespace WalkGame.Shell.Tests
     
         /// <summary>
         /// D-113: the HealthKit seen-samples pruning is safe only while the shell never reads further
-        /// back than the ledger's read window, and the dedup design stays unwired until a protocol change.
+        /// back than the ledger's read window, and the dedup (wired inside the adapter by D-114) stays out of the shell because the adapter is not composed.
         /// </summary>
         [Test] public void Healthkit_prune_window_matches_the_shell_sync_window_and_prep_stays_unwired()
         {
