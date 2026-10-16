@@ -2033,3 +2033,17 @@ Any failure throws before step 4, so the next read retries the whole recovery. A
 
 One gap was fixed: record ids were persisted unbounded. A 100,000-character id or one with control characters went into the ledger and diagnostics. Ids are now limited to 128 characters with no control or lone-surrogate characters, and anything else is a malformed line (fail closed). The probe also found KI-019 (per-record rounding loses credit for small records).
 
+## D-078 — Save tampering: fail closed on inconsistency, accept consistent self-edits (2026-10-16)
+
+**Context.** The save checksum is an unkeyed SHA-256, so anyone with file access can rewrite a save and re-hash it. A key on the device would not change that, because it can be extracted. The game is offline and single-player, so a "cheat" only affects the person who made it. The real risks are crashes, bricked saves, unbounded data reaching the UI, and degenerate state.
+
+**Decision.** Checksum-valid but tampered payloads are tested through the real boot path (`SaveTamperTests`, 14 cases):
+- **One tampered generation** recovers from the backup.
+- **Both generations tampered** fail closed with a typed status (`StateInvalid`, `SaveUnreadable` or `ContentIncompatible`), and nothing throws.
+- **Two validator rules were added:** RNG state must not be all zero (xoshiro would emit zeros forever), and a return-summary item's text must be at most 400 characters.
+- **Consistent self-edits still load by design.** Examples are a huge balance or unknown extra fields. Arithmetic is overflow-guarded (`ResourceWallet.Add` clamps), and story chapters stay derived and bounded.
+
+**Not added:**
+- A device-held HMAC key: the key is extractable.
+- Cross-checking ledger totals against records: these are diagnostics only and do not affect gameplay.
+
