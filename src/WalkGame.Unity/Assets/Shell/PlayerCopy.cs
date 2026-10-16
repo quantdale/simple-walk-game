@@ -47,7 +47,7 @@ namespace WalkGame.Shell
             {
                 case ActivityRecommendedAction.Connect: return "Next: connect your walking data.";
                 case ActivityRecommendedAction.OpenSettings: return "Next: turn access back on in your phone's settings.";
-                case ActivityRecommendedAction.RetryLater: return "Next: nothing to do; it will retry on its own.";
+                case ActivityRecommendedAction.RetryLater: return "Next: nothing to do. It will try again on its own.";
                 case ActivityRecommendedAction.UpdateProvider: return "Next: update Health Connect from your app store, then come back.";
                 default: return null;
             }

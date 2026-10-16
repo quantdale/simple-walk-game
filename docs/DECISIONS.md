@@ -2219,3 +2219,11 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Finding fixed.** The primary-button text (white on `Accent` #2F6B4F) measured 6.29:1, below the documented 7:1 body target. `Accent` is now #245A41 (8.03:1 with white; 7.1:1 against the page). The Muted comment is corrected to the measured 7.49:1. The valley picture's own palette (RegionScene) is unchanged. Visual-only; no save or content change.
 
 **Evidence.** EditMode 125/125 (`docs/evidence/d095-a11y-audit/`, Unity-editor-tested). TalkBack, switch access and real touch on hardware UNVERIFIED (KI-002).
+
+## D-096 — Copy polish pass with a source-level no-guilt check (2026-10-16)
+
+**Context.** A review of every shell string found pressure or code leakage outside the summaries that D-073 checked: "Keep walking: …" on the empty Projects screen; "Delete failed (<category>)" and "Could not start a new game (<status>): <detail>"; "Unknown action: <id>"; domain error text shown verbatim (e.g. "Unknown project 'proj.nope'."); "failed its integrity check"; "Please update." with no reassurance.
+
+**Decision.** Rewritten calmly, with no codes or ids: "No projects are open right now. Finishing a restoration opens new ones."; "We couldn't start a new world. Nothing on this device was changed."; "Your data could not be deleted, so nothing was changed. You can try again."; "Unknown action."; any failed domain result shows "That could not be done just now. Your progress is safe."; "Your save did not pass its safety check. …"; "This save was made by a newer version of the game. Update the game to open it; nothing has been changed."; "Next: nothing to do. It will try again on its own." Copy only; no save, content or behaviour change.
+
+**Evidence.** `CopyPolishTests` (6 EditMode cases): a source scan of the player strings in ShellController, PlayerCopy and BootRouter against a guilt/pressure list (including "!"); every activity status/action and boot outcome; bad action ids never echoed. EditMode 131/131 (`docs/evidence/d096-copy-polish/`, Unity-editor-tested). Gap: Application-layer Glance copy is covered by the existing .NET GlanceLanguageTests, not by this scan.

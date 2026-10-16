@@ -19,8 +19,8 @@ namespace WalkGame.Shell
                 case StartStatus.RecoveredFromBackup: return (ShellScreen.Home, "Your last save was damaged; your world was restored from the backup copy.");
                 case StartStatus.NoSaveFound: return (ShellScreen.Onboarding, null);
                 case StartStatus.SaveUnreadable: return (ShellScreen.BootError, "Your save could not be read. Nothing has been changed or deleted.");
-                case StartStatus.StateInvalid: return (ShellScreen.BootError, "Your save failed its integrity check. Nothing has been changed or deleted.");
-                case StartStatus.ContentIncompatible: return (ShellScreen.BootError, "This save was made by a newer version of the game. Please update.");
+                case StartStatus.StateInvalid: return (ShellScreen.BootError, "Your save did not pass its safety check. Nothing has been changed or deleted.");
+                case StartStatus.ContentIncompatible: return (ShellScreen.BootError, "This save was made by a newer version of the game. Update the game to open it; nothing has been changed.");
                 // D-085: never produced by a boot; mapped so the router stays total. Retry loads the save.
                 case StartStatus.ExistingSaveRefused: return (ShellScreen.BootError, "A saved game is already on this device; it was not replaced. Try again to load it.");
                 default: throw new ArgumentOutOfRangeException(nameof(status), status, "Unmapped boot outcome.");
