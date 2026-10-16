@@ -2552,3 +2552,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Residual.** IL2CPP runtime save/load on a device and a macOS xcodebuild of the export are UNVERIFIED (KI-002, D-116).
 
+
+## D-125 — Titles are typed as text, not sniffed with a dot heuristic (2026-10-17)
+
+**Context.** `PlayerCopy.Title` and `GlanceProjector.DisplayTitle` treated any title containing '.' as a stable id and replaced it with "A restoration project". With the D-122 overlay a translated title can legitimately contain a dot ("St. Ives"), so it vanished.
+
+**Decision.** Explicit typing: every read-model title field (`*.TitleKey` in read models) carries display text only (authored English or its overlay), and an unknown title is blank, never an id. The one id fallback (`HomeReadModel.QueuedRow` for an unknown project) now yields an empty string. `PlayerCopy.Title` and `DisplayTitle` only check for blank; the dot test is gone. Stored return-summary text (`ReturnSummaryComposer.Title`, id fallback for a missing definition) is unchanged: it is recorded text, never passed through `PlayerCopy.Title`, and changing it would alter stored copy.
+
+**Tests.** `TitleTypingTests` (.NET, 2: a dotted translated title reaches the glance, which fails without the fix; read-model titles never equal a stable id) and `TitleTypingShellTests` (EditMode, 2). .NET 822/822, EditMode 209/209 (Unity-editor-tested).
+
+**Save compatibility.** None: no save, schema or content change.

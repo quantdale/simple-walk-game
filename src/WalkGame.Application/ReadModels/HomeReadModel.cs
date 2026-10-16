@@ -134,6 +134,7 @@ namespace WalkGame.Application.ReadModels
         public sealed class QueuedRow
         {
             public string ProjectId { get; }
+            /// <summary>Display text only (D-125); blank when the project is unknown, never the id.</summary>
             public string TitleKey { get; }
 
             public QueuedRow(string projectId, string titleKey)
