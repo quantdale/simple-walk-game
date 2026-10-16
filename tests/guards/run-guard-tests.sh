@@ -16,6 +16,7 @@
 #  11. architecture rule 7 self-test (Unity shell never mutates Domain state)
 #  12. new-agent-worktree.sh honours SWG_SESSION_ID (KI-008)
 #  13. install-git-hooks.sh --allow-no-origin works only in remote-less fixtures (KI-007)
+#  14. new-agent-worktree.sh branches from a freshly fetched <remote>/main, refuses on fetch failure
 set -u
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -191,6 +192,8 @@ expect_exit "verify-architecture.sh --selftest-rule7" 0 bash "$REPO_ROOT/scripts
 
 echo "== scenario 12: new-agent-worktree.sh honours an exported SWG_SESSION_ID (KI-008) =="
 C12="$(new_clone s12)"
+git -C "$C12" remote add fixture-base "$GOLDEN"
+export SWG_WORKTREE_BASE_REMOTE=fixture-base
 expect_in_exit "helper with exported SWG_SESSION_ID creates worktree" 0 "$C12" env SWG_SESSION_ID=exported-sid sh "$C12/scripts/new-agent-worktree.sh" camp a
 WT12A="$C12/../simple-walk-game-wt-camp-a"
 expect_in_exit "same exported id resumes its own lease" 0 "$WT12A" env SWG_SESSION_ID=exported-sid sh "$C12/scripts/writer-lease.sh" acquire
@@ -199,6 +202,23 @@ expect_in_exit "same exported id releases its own lease" 0 "$WT12A" env SWG_SESS
 expect_in_exit "helper without SWG_SESSION_ID defaults to wt-<campaign>-<session>" 0 "$C12" env -u SWG_SESSION_ID sh "$C12/scripts/new-agent-worktree.sh" camp b
 WT12B="$C12/../simple-walk-game-wt-camp-b"
 expect_in_exit "default id releases the default lease" 0 "$WT12B" env SWG_SESSION_ID=wt-camp-b sh "$C12/scripts/writer-lease.sh" release
+
+unset SWG_WORKTREE_BASE_REMOTE
+
+echo "== scenario 14: new-agent-worktree.sh branches from a freshly fetched remote main =="
+C14="$(new_clone s14)"
+STALE14="$(git -C "$C14" rev-parse HEAD)"
+git -C "$GOLDEN" -c user.name=fixture -c user.email=fixture@local commit -q --allow-empty -m "fixture: remote advanced"
+ADV14="$(git -C "$GOLDEN" rev-parse HEAD)"
+git -C "$C14" remote add fixture-base "$GOLDEN"
+expect_in_exit "helper creates worktree from fetched base" 0 "$C14" env SWG_WORKTREE_BASE_REMOTE=fixture-base SWG_SESSION_ID=s14 sh "$C14/scripts/new-agent-worktree.sh" camp c
+WT14="$C14/../simple-walk-game-wt-camp-c"
+GOT14="$(git -C "$WT14" rev-parse HEAD 2>/dev/null || echo none)"
+if [ "$GOT14" = "$ADV14" ] && [ "$GOT14" != "$STALE14" ]; then ok "worktree HEAD is the fetched remote main, not the stale local HEAD"
+else bad "worktree HEAD $GOT14; want fetched $ADV14 (stale local $STALE14)"; fi
+git -C "$C14" remote add fixture-dead "$SANDBOX/does-not-exist"
+expect_in_exit "fetch failure refuses (no stale fallback)" 1 "$C14" env SWG_WORKTREE_BASE_REMOTE=fixture-dead SWG_SESSION_ID=s14 sh "$C14/scripts/new-agent-worktree.sh" camp d
+if [ ! -e "$C14/../simple-walk-game-wt-camp-d" ]; then ok "no worktree created after fetch failure"; else bad "worktree created despite fetch failure"; fi
 
 echo "== scenario 13: hook installer in a remote-less fixture (KI-007) =="
 C13="$SANDBOX/s13"; git clone -q --no-hardlinks "$GOLDEN" "$C13"; git -C "$C13" remote remove origin
