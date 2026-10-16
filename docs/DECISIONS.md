@@ -2389,3 +2389,19 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests:** .NET `SaveExportTests` (11: read-only export, decode round trip, document shape, tamper → `ChecksumMismatch`, hostile bytes → `Malformed`), .NET 739/739. EditMode `PrivacyScreenTests` (7) and the D-095 accessibility audit now covers Privacy; EditMode 172/172 on this branch and 174/174 merged with main after D-110 (Unity-editor-tested). Evidence: `docs/evidence/d111-privacy/`.
 
 **Gaps:** The Android share sheet on a device is UNVERIFIED (KI-002); the JNI path is compiled only when the APK is built. The screen tour does not yet include a Privacy PNG.
+
+## D-112 — KI-022 started: HealthKit adapter (headless-tested), Swift bridge (UNVERIFIED), not composed (2026-10-16)
+
+**Context.** D-108 found no iOS provider. The adapter contract is in `docs/PLATFORM_PARITY.md`. There is no macOS host, so nothing native can be compiled or run here.
+
+**Decision.**
+- `HealthKitActivityAdapter` (Infrastructure) implements `IActivityRecordSource` and `IActivityConnectionPort` over the string seam `IHealthKitBridge`, mirroring D-068. Namespace `ios.healthkit`. Samples are immutable in HealthKit, so a credit is revision 1 and a deletion revision 2 (re-delivery is a stale-revision no-op). Deletion lines carry the interval the bridge remembered, because `HKDeletedObject` has only a UUID. The local day comes from `HKMetadataKeyTimeZone` when present (D-103 rules). Malformed or duplicate lines fail the whole fetch (D-063). Ids reuse the Health Connect id bounds.
+- Read access is not observable in HealthKit. An answered dialog (`unnecessary`) maps to Granted so reads can run, and `ReadAccessConfirmed` becomes true only after a read returns a sample.
+- `IosHealthKitBridge` (Shell, `DllImport("__Internal")`, editor stub) and `Assets/Plugins/iOS/WalkGameHealthKitBridge.swift` (`@_cdecl`, read-only stepCount, sample query plus anchored query for deletions, 10 s timeouts, deletions re-emitted while in the window as in D-069).
+- **Not composed.** `ShellBootstrap` is unchanged, so iOS players keep the D-108 unsupported state until a macOS build and device check exist. Entitlement (`com.apple.developer.healthkit`) and `NSHealthShareUsageDescription` are documented in `docs/HEALTHKIT_SETUP.md`, not applied.
+
+**Tests:** .NET `HealthKitActivityAdapterTests` (35 cases with theories: mapping, offsets, malformed/duplicate/oversized lines, window and order, request-status mapping, unavailable/not-asked never read, bridge errors, read-access honesty, one read per fetch, credit once and deletion reversal once across a restart, per-provider identity). .NET 774/774 and EditMode 174/174 merged with main after D-111 (Unity-editor-tested; the editor compiles only the stub branch of `IosHealthKitBridge`). Evidence: `docs/evidence/d112-healthkit/`.
+
+**Labels.** Adapter: automated-verified (headless). Swift and the iOS P/Invoke branch: UNVERIFIED (never compiled). No iOS build claim.
+
+**Gaps:** macOS build; composition and "connected" copy that respects unobservable read access; iPhone+Watch double counting; anchor and interval maps are lost on reinstall; the interval map grows with every sample (pruning to the sync window is not done).
