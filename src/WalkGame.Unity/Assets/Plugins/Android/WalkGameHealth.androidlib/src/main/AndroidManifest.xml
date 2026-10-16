@@ -2,7 +2,10 @@
 <!-- Health Connect (Android 14+ framework API, D-068): read steps only. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <!-- D-119: optional gentle reminder (opt-in; asked only when the player turns it on). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application>
+        <receiver android:name="com.quantdale.walkgame.reminder.ReminderReceiver" android:exported="false" />
         <!-- Required by Health Connect: the privacy rationale shown from the permission screen. -->
         <activity
             android:name="com.quantdale.walkgame.health.HealthPermissionRationaleActivity"
