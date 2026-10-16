@@ -30,4 +30,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - M8 docs audit is done: README, WORLD_AND_CONTENT, UX_DESIGN §14 and PERFORMANCE_BUDGETS reconciled; ROADMAP exit item checked.
 - M9 headless: scripts/validate-clean-clone.sh and the assembler's --clean-clone / hosted-CI check are in (D-075). The Final Device and Release Qualification Checklist is expanded to H–Q.
 - Verified release evidence package for 0f9f3d7 is committed at docs/evidence/m9/ (all 11 mechanical claims PASS, including clean clone and hosted CI).
-- Next: the final campaign report (.agent/FINAL_CAMPAIGN_REPORT.md). After that, only device work remains (checklist H–Q).
+- The final campaign report is at .agent/FINAL_CAMPAIGN_REPORT.md. Everything feasible without a device is done; next steps are in its §6 (device lane H–Q, Needs Michael).
