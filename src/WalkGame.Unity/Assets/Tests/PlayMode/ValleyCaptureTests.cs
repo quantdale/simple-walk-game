@@ -52,6 +52,9 @@ namespace WalkGame.Shell.PlayModeTests
                     c.Invoke("nav:" + screen);
                 }
 
+                float textScale = float.TryParse(Environment.GetEnvironmentVariable("WG_CAPTURE_TEXT_SCALE"),
+                    System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var ts) ? ts : 1f;
+                c.TextScaleSource = () => textScale;
                 var doc = go.AddComponent<UIDocument>();
                 var panel = ScriptableObject.CreateInstance<PanelSettings>();
                 panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("ShellTheme");
@@ -61,7 +64,7 @@ namespace WalkGame.Shell.PlayModeTests
                 panel.clearColor = true;
                 doc.panelSettings = panel;
                 yield return null;
-                ShellView.Render(doc.rootVisualElement, c.Render(), _ => { });
+                ShellView.Render(doc.rootVisualElement, c.Render(), _ => { }, textScale);
                 for (int i = 0; i < 10; i++) yield return null;
 
                 var prev = RenderTexture.active;

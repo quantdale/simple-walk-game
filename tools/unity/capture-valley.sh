@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Editor-rendered (NOT device) PNG of a shell screen: software OpenGL (Mesa llvmpipe) under Xvfb.
-# Usage: tools/unity/capture-valley.sh [out.png]   (WG_CAPTURE_SCREEN=Region|ReturnSummary|Home|Celebration)
+# Usage: tools/unity/capture-valley.sh [out.png]   (WG_CAPTURE_SCREEN=Region|ReturnSummary|Home|Celebration; WG_CAPTURE_TEXT_SCALE=1.5)
 set -uo pipefail
 root="$(git rev-parse --show-toplevel)"
 unity="${UNITY:-$HOME/Unity/Hub/Editor/6000.3.26f1/Editor/Unity}"

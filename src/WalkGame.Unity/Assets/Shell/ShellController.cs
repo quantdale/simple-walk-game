@@ -41,6 +41,21 @@ namespace WalkGame.Shell
             _devTools = devTools;
         }
 
+        /// <summary>Effective OS font scale source (D-073); the bootstrap wires AccessibilitySettings.fontScale. Tests inject values.</summary>
+        public Func<float> TextScaleSource { get; set; } = () => 1f;
+
+        public const string TextPreviewSample = "Preview: The valley remembers every walk you take.";
+
+        /// <summary>Settings text-size line (B3, D-083). Never throws on a hostile scale source.</summary>
+        public static string TextSizeLine(float raw)
+        {
+            float k = ShellView.ClampTextScale(raw);
+            string pct = Math.Round(k * 100f).ToString(System.Globalization.CultureInfo.InvariantCulture) + "%";
+            return raw > ShellView.MaxTextScale
+                ? "Text size: " + pct + ", the largest this game supports. It follows your phone's font size setting."
+                : "Text size: " + pct + ". It follows your phone's font size setting.";
+        }
+
         public ShellScreen Current { get; private set; } = ShellScreen.Onboarding;
         public StartStatus? LastStartStatus { get; private set; }
 
@@ -364,6 +379,10 @@ namespace WalkGame.Shell
             m.Lines.Add("Reduced motion: " + (s.ReducedMotion ? "on" : "off"));
             m.Lines.Add("Sound: " + (s.SoundEnabled ? "on" : "off"));
             m.Lines.Add("Diagnostics: " + (s.DiagnosticsVisible ? "visible" : "hidden"));
+            float raw;
+            try { raw = TextScaleSource?.Invoke() ?? 1f; } catch (Exception) { raw = 1f; }
+            m.Lines.Add(TextSizeLine(raw));
+            m.TextPreview = TextPreviewSample;
             m.Actions.Add(new ShellAction("toggle:reducedMotion", (s.ReducedMotion ? "Turn off" : "Turn on") + " reduced motion"));
             m.Actions.Add(new ShellAction("toggle:sound", (s.SoundEnabled ? "Turn off" : "Turn on") + " sound"));
             m.Actions.Add(new ShellAction("toggle:diagnostics", (s.DiagnosticsVisible ? "Hide" : "Show") + " diagnostics"));

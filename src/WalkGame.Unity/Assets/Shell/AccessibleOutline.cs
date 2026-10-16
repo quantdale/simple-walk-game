@@ -36,6 +36,7 @@ namespace WalkGame.Shell
             if (model.Scene != null) items.Add(new AccessibleItem(AccessibleRole.Image, model.Scene.AltText));
             foreach (var line in model.Lines)
                 if (!string.IsNullOrWhiteSpace(line)) items.Add(new AccessibleItem(AccessibleRole.StaticText, line));
+            if (!string.IsNullOrWhiteSpace(model.TextPreview)) items.Add(new AccessibleItem(AccessibleRole.StaticText, model.TextPreview!));
             bool first = true;
             foreach (var a in model.Actions)
             {
