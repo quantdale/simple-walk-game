@@ -2450,3 +2450,20 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Labels.** Xcode-built unsigned on hosted macOS, not device-tested. Signing, entitlement, usage string, runtime: UNVERIFIED.
 
+**Superseded transport (D-116).** The public `ios-export/<tag>` transport published Unity's proprietary engine library (`libiPhone-lib.a`) in this public repository. The owner deleted `ios-export/grok2251-a`; `push-ios-export.sh` is retired and the workflow is manual-only. The run 38920379246 result above stays valid evidence.
+
+## D-116 — Unity engine binaries must never be pushed to the public repository (2026-10-16)
+
+**Context.** D-115 moved a Unity iOS Xcode export to hosted macOS by pushing it, as xz chunks, to the throwaway branch `ios-export/grok2251-a` of this public repository. That export contains Unity's proprietary iOS engine library (`Libraries/libiPhone-lib.a`) and other Unity binaries. Publishing them is a licence and redistribution risk. The owner deleted the branch. An audit for this decision also found that commit `3ca344e` had accidentally tracked the repo-root Unity editor cache (`Library/`, 544 files including Unity-compiled `Unity.Multiplayer.Center.*.dll`/`.pdb`, `Library/Artifacts`, `Library/Bee`) and `Logs/`.
+
+**Decision.**
+- Unity engine binaries (player libraries such as `libiPhone-lib.a`, `UnityFramework`, `libil2cpp*`), exported player or Xcode trees, chunked export payloads and editor caches (`Library/`, `Temp/`, `Logs/`) must never be committed or pushed to this repository, on any branch.
+- `tools/unity/push-ios-export.sh` is retired: it prints the reason and exits 3.
+- `.github/workflows/ios-xcode-export-verify.yml` is manual-only (`workflow_dispatch`; the `ios-export/**` push trigger is removed). It first runs the guard, then fails closed in "Obtain export" until a PRIVATE transport (a private repository or private storage, at no paid cost) is designed in its own D-entry.
+- Guard: `scripts/verify-no-engine-binaries.sh` checks tracked file names (engine payload paths, editor caches, native extensions `.a/.so/.dylib/.dll/.pdb/.framework/...`) and content magic (ar static library, Mach-O, ELF, xz). `--history` checks every path ever committed on the current history for engine payloads. `--self-test` proves it can fail (7 cases). CI runs all three; the pre-commit hook runs `--staged`.
+- The root `Library/` and `Logs/` are untracked and git-ignored. `export-ios-xcode.sh` stays (it writes only to the git-ignored `src/WalkGame.Unity/Build/`).
+
+**History check.** `origin/main` history (c616b22) never contained `libiPhone-lib.a`, `ios-export/` or any chunk (`--history` PASS); the payload commit was only on the deleted branch. The accidental `Library/` files do remain in main history from `3ca344e`. Removing them would need a history rewrite and a force-push of main, which this project forbids for agents. That is an owner decision (morning queue). They are Unity package editor assemblies and caches, not player engine libraries.
+
+**Labels.** Guard automated-verified (self-test plus a clean run on this tree). Whether GitHub still serves the deleted payload commit by SHA, or keeps it in cached Actions data, is UNVERIFIED and outside the repository (owner/GitHub support).
+
