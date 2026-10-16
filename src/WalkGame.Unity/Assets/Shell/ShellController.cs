@@ -336,7 +336,7 @@ namespace WalkGame.Shell
             {
                 string title = PlayerCopy.Title(r.TitleKey);
                 m.Lines.Add(title + " — " + PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition) + " (" + r.VitalityInvested + " of " + r.VitalityCost + " vitality)");
-                if (r.Status == ProjectStatus.Available) m.Actions.Add(new ShellAction("queue:" + r.ProjectId, "Restore " + title));
+                if (r.Status == ProjectStatus.Available) m.Actions.Add(new ShellAction("queue:" + r.ProjectId, QueueLabel(title)));
                 if (r.Status == ProjectStatus.Queued && r.QueuedPosition > 0) m.Actions.Add(new ShellAction("up:" + r.ProjectId, "Move " + title + " up"));
             }
             int locked = p.Projects.Count(r => r.Status == ProjectStatus.Locked);
@@ -651,7 +651,7 @@ namespace WalkGame.Shell
                     {
                         m.Lines.Add("Pick one place to restore first. You can change the order later.");
                         foreach (var r in _session.GetProjects().Projects.Where(r => r.Status == ProjectStatus.Available))
-                            m.Actions.Add(new ShellAction("queue:" + r.ProjectId, "Restore " + PlayerCopy.Title(r.TitleKey)));
+                            m.Actions.Add(new ShellAction("queue:" + r.ProjectId, QueueLabel(PlayerCopy.Title(r.TitleKey))));
                     }
                     break;
                 case OnboardingStage.Simulation:
@@ -679,11 +679,15 @@ namespace WalkGame.Shell
             return "Step " + step + " of " + GuideSteps;
         }
 
+        /// <summary>D-109: project titles are already verb phrases ("Restore the river intake"), so the
+        /// queue button must not prefix another verb ("Restore Restore the river intake").</summary>
+        public static string QueueLabel(string title) => "Start: " + title;
+
         private ScreenModel BootErrorScreen()
         {
             // Deliberately no "start" action: a save we could not read is never overwritten from here.
             var m = new ScreenModel(ShellScreen.BootError, ScreenState.Error, "We couldn't open your world");
-            m.Lines.Add("Status: " + LastStartStatus);
+            // D-109: no raw StartStatus identifier; the notice already explains the problem in plain words.
             m.Actions.Add(new ShellAction("retry", "Try again"));
             return m;
         }
