@@ -2405,3 +2405,18 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Labels.** Adapter: automated-verified (headless). Swift and the iOS P/Invoke branch: UNVERIFIED (never compiled). No iOS build claim.
 
 **Gaps:** macOS build; composition and "connected" copy that respects unobservable read access; iPhone+Watch double counting; anchor and interval maps are lost on reinstall; the interval map grows with every sample (pruning to the sync window is not done).
+
+## D-113 — HealthKit prep: seen-samples pruning, iPhone/Watch dedup design, reinstall behaviour (2026-10-16)
+
+**Context.** D-112 left three HealthKit gaps that can be worked on without a Mac: the Swift bridge's interval map grows with every sample, iPhone and Apple Watch samples double count, and the reinstall behaviour of the `UserDefaults` state was only a one-line note.
+
+**Decision.**
+- `HealthKitSampleLedger` (Infrastructure) is the tested model of the bridge's `intervals` / `deleted` maps. `Prune(now)` drops entries that ended before now − 37 days (the 30-day shell read window, D-107, plus a 7-day clock margin) and caps each map at 50,000 entries, oldest end first. Pruning never changes what a read window emits. The Swift bridge mirrors the rule (UNVERIFIED, never compiled).
+- `HealthKitSourceDedup` is the dedup design: fixed priority Watch > iPhone > other (only `com.apple.*` collectors count as Watch/iPhone); a sample keeps the share of its steps outside time covered by strictly higher-priority samples, prorated and floored; same-priority samples are not merged; the result is order-independent and never above the input. **Not wired**: the bridge protocol has no source field yet; wiring needs a sixth field and its own D-entry.
+- Reinstall behaviour is documented in `docs/HEALTHKIT_SETUP.md`: every failure mode keeps a credit at worst, never double credits.
+- The adapter stays unwired (D-112); no change to save format, content or the Android path.
+
+**Tests:** .NET `HealthKitPrepTests` (15 cases: retention constants, prune boundary, prune preserves emitted deletions including a clock moved back by the margin, cap eviction order, unknown/pruned/resurrected UUIDs, classification theory ×5, full and partial overlap, untouched non-overlaps, three levels with point samples, 200-round order-independence and bounds). .NET 789/789; EditMode 175/175 (Unity-editor-tested; evidence `docs/evidence/d113-healthkit-prep/`).
+
+**Labels.** C# rules: automated-verified (headless). Swift pruning mirror: UNVERIFIED. Reinstall table: documented reasoning, UNVERIFIED on a device.
+
