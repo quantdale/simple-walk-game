@@ -1,0 +1,15 @@
+Onboarding rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/onboarding-editor-rendered.png
+Guide rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/guide-editor-rendered.png
+Home rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/home-editor-rendered.png
+ReturnSummary rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=32 path=/workspace/tour-grok2121/returnsummary-editor-rendered.png
+Projects rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/projects-editor-rendered.png
+Region rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=31 path=/workspace/tour-grok2121/region-editor-rendered.png
+Story rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/story-editor-rendered.png
+Discoveries rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/discoveries-editor-rendered.png
+Progress rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/progress-editor-rendered.png
+Settings rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/settings-editor-rendered.png
+ActivityStatus rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/activitystatus-editor-rendered.png
+DeleteConfirm rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/deleteconfirm-editor-rendered.png
+BootError rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1 path=/workspace/tour-grok2121/booterror-editor-rendered.png
+Celebration rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=62 path=/workspace/tour-grok2121/celebration-editor-rendered.png
+TOUR DONE

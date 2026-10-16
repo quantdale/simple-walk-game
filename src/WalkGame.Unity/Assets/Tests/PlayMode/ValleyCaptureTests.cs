@@ -39,6 +39,23 @@ namespace WalkGame.Shell.PlayModeTests
                     Assert.IsTrue(done.GetRegion().RegionCompleted);
                     c.Invoke(screen == "Celebration" ? "nav:ReturnSummary" : "nav:Discoveries");
                 }
+                else if (screen == "Onboarding")
+                {
+                    // Fresh device: boot with no save, before any start (screen tour, D-107).
+                    c = new ShellController(ShellBootstrap.CreateSession(dir), () => 42UL, devTools: true);
+                    c.Boot();
+                    Assert.AreEqual(ShellScreen.Onboarding, c.Current);
+                }
+                else if (screen == "BootError")
+                {
+                    // Both save slots unreadable, as in AccessibilityAuditTests: recovery cannot open the world.
+                    var first = new ShellController(ShellBootstrap.CreateSession(dir), () => 42UL, devTools: true);
+                    first.Boot(); first.Invoke("start");
+                    foreach (var f in Directory.GetFiles(dir, "save*.json")) File.WriteAllText(f, "{ not a save");
+                    c = new ShellController(ShellBootstrap.CreateSession(dir), () => 42UL, devTools: true);
+                    c.Boot();
+                    Assert.AreEqual(ShellScreen.BootError, c.Current);
+                }
                 else
                 {
                     var session = ShellBootstrap.CreateSession(dir);
@@ -49,7 +66,9 @@ namespace WalkGame.Shell.PlayModeTests
                         if (p.Status == ProjectStatus.Available) session.EnqueueProject(p.ProjectId);
                     var now = DateTimeOffset.UtcNow;
                     session.IngestFromSource(new SyntheticWalkingSource(120000), now.AddDays(-6), now);
-                    c.Invoke("nav:" + screen);
+                    if (screen == "DeleteConfirm") c.Invoke("delete:request");
+                    else if (screen != "Guide") c.Invoke("nav:" + screen);
+                    Assert.AreEqual(screen, c.Current.ToString(), "capture could not reach " + screen);
                 }
 
                 float textScale = float.TryParse(Environment.GetEnvironmentVariable("WG_CAPTURE_TEXT_SCALE"),
