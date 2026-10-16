@@ -505,10 +505,10 @@ namespace WalkGame.Shell
             {
                 m.Lines.Add(PlayerCopy.Title(row.TitleKey) + " · " + PlayerCopy.DiscoveryCategory(row.Category)
                     + (row.DiscoveredAtUtc.HasValue ? " · found " + row.DiscoveredAtUtc.Value.UtcDateTime.ToString("d MMM yyyy", System.Globalization.CultureInfo.InvariantCulture) : "")); // l10n-ignore: date format pattern, not copy
-                // D-086: authored body and origin copy; a key without copy is skipped, never shown raw.
-                var body = WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.BodyKey);
+                // D-086/D-122: authored body and origin copy via the overlay; a key without copy is skipped, never shown raw.
+                var body = _session.DiscoveryCopy(row.DiscoveryId, WalkGame.Application.Content.ContentText.Fields.Body, row.BodyKey);
                 if (body != null) m.Lines.Add(body);
-                var origin = WalkGame.Application.Content.Region1DiscoveryCopy.Text(row.ProvenanceKey);
+                var origin = _session.DiscoveryCopy(row.DiscoveryId, WalkGame.Application.Content.ContentText.Fields.Provenance, row.ProvenanceKey);
                 if (origin != null) m.Lines.Add(PlayerStrings.F("shell.discoveries.origin", origin));
             }
             int hidden = d.TotalDiscoveries - d.UnlockedCount;

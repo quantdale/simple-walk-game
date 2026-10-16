@@ -2526,6 +2526,8 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Save compatibility.** None: no save, schema or content change.
 
+**Slice 2 (2026-10-17, grok0157).** Project, landmark and region titles (`GetHome`, `GetProjects`, `GetRegion`, by stable id + `title`), chapter title/body/hint (`GetStory`, by chapter id), discovery titles (`GetDiscoveries`) and D-086 discovery body/origin copy (`GameSession.DiscoveryCopy(id, field, key)`, used by the Discoveries screen) resolve through `ContentLocale`. Read-model field names and id/key fields are unchanged. `ContentTitleOverlayTests` (2): English equals the catalog text; a pseudo-locale changes every routed string but not ids, save bytes, `ContentVersion` or the catalog. Remaining: glance phrases, expedition/producer/care-program titles, stored return-summary lines, language preference.
+
 ## D-123 — Reminder time maths and restart path: property tests and one edge-case fix (2026-10-17)
 
 **Context.** D-119/D-121 computed the next reminder trigger inline in `ReminderBridge` (Android-only, untestable headless) and the restart re-arm decision was untested. An audit also found that a damaged or hand-edited preferences file with an out-of-range reminder time was applied as-is; "turn on the reminder" then re-submits that stored time, which fails validation every time (a dead end).
