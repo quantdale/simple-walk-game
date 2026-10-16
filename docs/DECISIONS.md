@@ -2329,3 +2329,16 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Decision.** Home drops the glance "restoring now" sentence when the queue is empty (the empty-state line keeps the call to action), and shows each line once, with ordinal de-duplication and the first occurrence kept. Read models and copy are unchanged; this is shell-only, with no save or content change.
 
 **Tests:** EditMode `HomeLayoutPolishTests` (3 cases). Evidence: `docs/evidence/d106-home/` holds before/after PNGs (editor-rendered, llvmpipe) and EditMode 154/154 (Unity-editor-tested). Device rendering is UNVERIFIED (KI-002).
+
+## D-107 — Battery / background-sync budget review (2026-10-16)
+
+**Context.** PERFORMANCE_BUDGETS §12–§14 ask for no polling loops, no wake-heavy timers and bounded activity queries, and the release checklist (L) asks about battery drain from background reads. Nothing checked the shell's actual query frequency.
+
+**Decision (review result).** The current design meets the budget and is now pinned by tests. Walking data is read only on boot and on return to the foreground (`OnApplicationPause(false)` → `Resume`), once each, over a window of `SyncWindowDays` = 30 days. There is no background sync (KI-016c), no timer, and no per-frame `Update`. Navigation and rendering only make cheap status queries (SDK and permission state), never data reads. The only `WaitForSeconds` is the development-only emulator autodrive. No code change was needed.
+
+**Tests:** EditMode `BackgroundSyncBudgetTests` (5): 100 navigations make zero data reads; each resume reads exactly once; every read window is ≤ 30 days; status calls per render stay within a cap of 8 (measured 0.89 in the editor); a source scan bans `Update`/`InvokeRepeating`/timers/`while(true)` in the shell.
+
+Evidence: `docs/evidence/d107-sync-budget/editmode-results.xml`, EditMode 159/159 (Unity-editor-tested).
+
+**Gaps:** Device battery drain, binder cost of status calls, and thermal behaviour are UNVERIFIED (KI-002). Background sync remains deliberately absent (KI-016c).
+
