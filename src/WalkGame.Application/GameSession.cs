@@ -737,7 +737,11 @@ namespace WalkGame.Application
                     clamped++;
                 eligibleStepsTotal += eligibleSteps;
 
-                long vitality = StepConversionRuleV1.ConvertSteps(eligibleSteps);
+                // D-079: pool with the provider's carried remainder so many small records
+                // credit the same as one large record (KI-019).
+                long vitality = StepConversionRuleV1.ConvertWithCarry(
+                    game.ProcessedRecords.GetCarry(record.ProviderNamespace), eligibleSteps, out long carryAfter);
+                game.ProcessedRecords.SetCarry(record.ProviderNamespace, carryAfter);
 
                 if (vitality > 0L)
                 {
@@ -910,7 +914,12 @@ namespace WalkGame.Application
             // The net change is the honest contribution to the batch's eligible figure.
             eligibleStepsTotal += eligibleSteps - existing.EligibleSteps;
 
-            long targetVitality = StepConversionRuleV1.ConvertSteps(eligibleSteps);
+            // D-079: undo the old contribution to the provider pool (its steps less what it
+            // credited), then add the corrected steps. The row is re-attributed from that pool.
+            long poolBefore = game.ProcessedRecords.GetCarry(record.ProviderNamespace)
+                - (existing.EligibleSteps - existing.VitalityCredited * StepConversionRuleV1.StepsPerVitality);
+            long targetVitality = StepConversionRuleV1.ConvertWithCarry(poolBefore, eligibleSteps, out long carryAfter);
+            game.ProcessedRecords.SetCarry(record.ProviderNamespace, carryAfter);
             long delta = targetVitality - existing.VitalityCredited;
 
             long appliedAmount = 0L;
@@ -1011,6 +1020,14 @@ namespace WalkGame.Application
                 staleRevisions++;
                 return;
             }
+
+            // D-079: take this record's uncredited steps back out of the provider pool. Steps
+            // it borrowed from earlier carry are not re-issued (clamped to 0..99), so a
+            // deletion never creates credit; the drift is under one Vitality per deletion.
+            long pool = game.ProcessedRecords.GetCarry(record.ProviderNamespace)
+                - (existing.EligibleSteps - existing.VitalityCredited * StepConversionRuleV1.StepsPerVitality);
+            game.ProcessedRecords.SetCarry(record.ProviderNamespace,
+                Math.Max(0L, Math.Min(StepConversionRuleV1.MaxCarry, pool)));
 
             long reversalTarget = -existing.VitalityCredited;
             long balance = game.Resources.Get(ResourceType.Vitality);

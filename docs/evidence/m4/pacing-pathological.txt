@@ -6,7 +6,7 @@ closure criterion: met (6/6 chains)
 days simulated: 22  horizon: 400
 activity requested: 2,386,482 steps
 activity eligible: 1,636,482 steps (after bounded-quantity handling)
-effective ratio: 100.0 eligible steps/vitality (credited 16,363 vitality)
+effective ratio: 100.0 eligible steps/vitality (credited 16,364 vitality)
 foreground decisions: 19 (one queue choice per idle stop; auto-advance on)
 queue-empty days: 0
 producer capped-store days: 0
