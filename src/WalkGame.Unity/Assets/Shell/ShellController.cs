@@ -467,10 +467,16 @@ namespace WalkGame.Shell
                     : PlayerStrings.T("shell.noProjectsAreOpen"));
             else if (!anyQueued)
                 m.Lines.Add(PlayerStrings.T("shell.nothingIsQueuedChoose"));
-            foreach (var r in p.Projects.Where(r => r.Status != ProjectStatus.Locked).OrderBy(r => r.QueuedPosition ?? int.MaxValue))
+            // Mid/late-game polish (D-127): what the player can act on comes first (being restored,
+            // waiting, ready), restored projects last, so the options are not buried under history.
+            // A restored row needs no "(300 of 300 vitality)".
+            foreach (var r in p.Projects.Where(r => r.Status != ProjectStatus.Locked)
+                         .OrderBy(r => ProjectsOrder(r.Status)).ThenBy(r => r.QueuedPosition ?? int.MaxValue))
             {
                 string title = PlayerCopy.Title(r.TitleKey);
-                m.Lines.Add(title + " — " + PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition) + " (" + r.VitalityInvested + " of " + r.VitalityCost + " vitality)");
+                m.Lines.Add(r.Status == ProjectStatus.Completed
+                    ? title + " — " + PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition)
+                    : title + " — " + PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition) + " (" + r.VitalityInvested + " of " + r.VitalityCost + " vitality)");
                 if (r.Status == ProjectStatus.Available) m.Actions.Add(new ShellAction("queue:" + r.ProjectId, QueueLabel(title)));
                 if (r.Status == ProjectStatus.Queued && r.QueuedPosition > 0) m.Actions.Add(new ShellAction("up:" + r.ProjectId, "Move " + title + " up"));
             }
@@ -479,6 +485,9 @@ namespace WalkGame.Shell
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
         }
+
+        private static int ProjectsOrder(ProjectStatus s) =>
+            s == ProjectStatus.Active ? 0 : s == ProjectStatus.Queued ? 1 : s == ProjectStatus.Available ? 2 : 3;
 
         /// <summary>UX_DESIGN §9 compact region status: landmarks as phrases, producers, closure.</summary>
         private ScreenModel Region()

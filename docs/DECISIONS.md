@@ -2574,3 +2574,11 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `PlayerStringsLocaleTests` (EditMode, 5): English identity, replacement and fallback, template reorder and broken-template fallback, no added keys, `SetLocale` drives shell + content and leaves save bytes unchanged. EditMode 214/214 (Unity-editor-tested).
 
 **Save compatibility.** None.
+
+## D-127 — Projects lists what you can act on first (2026-10-17)
+
+**Context.** Region 1 mid/late-game review with editor-rendered PNGs (`docs/evidence/region1-midlate-polish/`). At day 30 the Projects screen showed nine restored projects before the active project and the ready-to-start options.
+
+**Decision.** Projects rows are ordered being restored → waiting (by queue position) → ready to start → restored, and a restored row drops the "(N of N vitality)" suffix. Presentation only. The capture gains `WG_CAPTURE_STATE=mid|late` (with `WG_CAPTURE_DAY`) via `CompletedRegionFixture.BuildUntil`.
+
+**Tests.** `MidGamePolishTests` (EditMode). EditMode 215/215 (Unity-editor-tested). No save or content change.

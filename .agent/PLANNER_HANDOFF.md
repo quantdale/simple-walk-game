@@ -192,3 +192,9 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR: Region 1 first-run polish on Home (no "since you were last here" line on a new world; the choose-a-project prompt appears once). Fresh-state PNG review in `docs/evidence/region1-early-polish/`. EditMode 207/207.
 - Next: stored summary lines and expedition/care descriptions through the overlay, a `PlayerStrings` locale and a language preference; the device lane (KI-002). Region 2 is still PROPOSED only.
 
+## Session note 2026-10-17 (grok0242)
+- #124 (`382cf1a`, D-125): titles are typed as text. Read-model titles are display text (blank when unknown, never an id); the dot-as-id heuristic in `PlayerCopy.Title` and the glance is gone, so a translated "St. Ives" shows. `TitleTypingTests` (.NET 2, fails without the fix), `TitleTypingShellTests` (EditMode 2). .NET 822/822.
+- #125 (`ab13487`, D-126): `PlayerStrings.Locale` with the D-122 fallbacks (`ui.<key>#text`); `ShellController.SetLocale` drives shell + content. No language setting until a real translation exists. EditMode 214.
+- This PR (D-127): Region 1 mid/late PNG review (`docs/evidence/region1-midlate-polish/`); Projects now lists active/waiting/ready before restored rows. Capture `WG_CAPTURE_STATE=mid|late`. EditMode 215/215 (Unity-editor-tested).
+- No Dependabot PRs were open. Next: stored summary lines and expedition/care descriptions through the overlay; the first real translation plus a language preference; device lane (KI-002). Region 2 is still PROPOSED only.
+
