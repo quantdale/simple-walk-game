@@ -2114,3 +2114,15 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - The Application API is unchanged (KI-021).
 
 **Evidence.** `ShellInputHardeningTests` (21 EditMode cases). The comma-list case failed first (it opened Discoveries), then passed after the fix. Device UNVERIFIED (KI-002).
+
+## D-085 — StartNewGame takes an explicit overwrite parameter; the shell refuses to replace (2026-10-16)
+
+**Context.** KI-021: `GameSession.StartNewGame(seed)` writes unconditionally. D-084 guarded it in the shell only. Changing the one-argument method to refuse would break a long-standing contract used by many headless tests and tools that deliberately start over a save.
+
+**Decision.**
+- New overload `StartNewGame(seed, overwriteExisting)`. With `false`, it reads both slots first and returns the new `StartStatus.ExistingSaveRefused` (appended value 7) when the primary or the backup holds anything, or when the store reports an I/O failure (fail closed). Nothing is written and the session is unchanged.
+- `StartNewGame(seed)` is kept and documented as the explicit overwrite (`overwriteExisting: true`), so every existing test and tool stays valid without edits.
+- The shell's `start` now calls `overwriteExisting: false` on top of the D-084 screen guard, so a save that appeared after boot (another session, a late restore) is refused, not replaced. `BootRouter` maps the new status to BootError ("Try again to load it"), keeping the router total.
+- No save-format or content change.
+
+**Evidence.** `StartOverwriteGuardTests` (6 .NET cases: empty store, existing save byte-identical, unreadable primary, backup-only, legacy overload still replaces, after delete-all). `ShellInputHardeningTests.Start_refuses_a_save_that_appeared_after_boot`. `ShellControllerTests.Router_maps_every_start_status` failed first on the new value, then passed. .NET 653/653; EditMode 102/102 (`docs/evidence/c-ki021/`, Unity-editor-tested). Device UNVERIFIED (KI-002).

@@ -21,6 +21,8 @@ namespace WalkGame.Shell
                 case StartStatus.SaveUnreadable: return (ShellScreen.BootError, "Your save could not be read. Nothing has been changed or deleted.");
                 case StartStatus.StateInvalid: return (ShellScreen.BootError, "Your save failed its integrity check. Nothing has been changed or deleted.");
                 case StartStatus.ContentIncompatible: return (ShellScreen.BootError, "This save was made by a newer version of the game. Please update.");
+                // D-085: never produced by a boot; mapped so the router stays total. Retry loads the save.
+                case StartStatus.ExistingSaveRefused: return (ShellScreen.BootError, "A saved game is already on this device; it was not replaced. Try again to load it.");
                 default: throw new ArgumentOutOfRangeException(nameof(status), status, "Unmapped boot outcome.");
             }
         }
