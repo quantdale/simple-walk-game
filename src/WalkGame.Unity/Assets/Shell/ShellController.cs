@@ -229,6 +229,7 @@ namespace WalkGame.Shell
                 case ShellScreen.Region: return Region();
                 case ShellScreen.Story: return Story();
                 case ShellScreen.Discoveries: return Discoveries();
+                case ShellScreen.Progress: return Progress();
                 default: throw new InvalidOperationException("Unmapped screen " + Current);
             }
         }
@@ -262,6 +263,7 @@ namespace WalkGame.Shell
             m.Actions.Add(new ShellAction("nav:Projects", "Projects"));
             m.Actions.Add(new ShellAction("nav:Region", "The valley"));
             m.Actions.Add(new ShellAction("nav:Story", "Story"));
+            m.Actions.Add(new ShellAction("nav:Progress", "Your progress"));
             m.Actions.Add(new ShellAction("nav:ActivityStatus", "Activity"));
             m.Actions.Add(new ShellAction("nav:Settings", "Settings"));
             if (_devTools) m.Actions.Add(new ShellAction("dev:walk", "[dev] Simulate a day of walking"));
@@ -485,6 +487,52 @@ namespace WalkGame.Shell
             }
             m.Actions.Add(new ShellAction("nav:Home", "Home"));
             return m;
+        }
+
+        /// <summary>
+        /// D-099: a calm look back at everything walking has done. Read-only; built from the
+        /// existing read models (lifetime credited Vitality, finished restorations, discoveries,
+        /// chapters). Deliberately no streaks, goals or per-day comparison.
+        /// </summary>
+        private ScreenModel Progress()
+        {
+            var home = _session.GetHome();
+            var diag = _session.GetDiagnostics();
+            var disc = _session.GetDiscoveries();
+            var story = _session.GetStory();
+            long vitality = Math.Max(0L, diag.LifetimeVitalityCredited);
+            bool empty = vitality == 0 && home.CompletedProjects == 0;
+            var m = With(ShellScreen.Progress, "Your progress", empty ? ScreenState.Empty : ScreenState.Normal);
+            foreach (var line in ProgressLines(vitality, home.CompletedProjects, home.TotalProjects, disc.UnlockedCount, disc.TotalDiscoveries,
+                         story.UnlockedCount, story.TotalChapters, home.RegionComplete))
+                m.Lines.Add(line);
+            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            return m;
+        }
+
+        /// <summary>D-099 Progress copy, pure so every state can be checked without a session.</summary>
+        public static System.Collections.Generic.List<string> ProgressLines(long lifetimeVitality, int projectsDone, int projectsTotal,
+            int discoveriesFound, int discoveriesTotal, int chaptersRead, int chaptersTotal, bool regionComplete)
+        {
+            var ci = System.Globalization.CultureInfo.InvariantCulture;
+            var lines = new System.Collections.Generic.List<string>();
+            if (lifetimeVitality <= 0 && projectsDone == 0)
+            {
+                lines.Add("Your first walk will show up here. There is no rush.");
+            }
+            else
+            {
+                long steps = lifetimeVitality * WalkGame.Domain.Activity.StepConversionRuleV1.StepsPerVitality;
+                lines.Add("Vitality gathered from your walks: " + lifetimeVitality.ToString("N0", ci) + ".");
+                lines.Add("That is about " + steps.ToString("N0", ci) + " steps, counted whenever they happened.");
+            }
+            lines.Add(regionComplete
+                ? "Every restoration in the valley is finished (" + projectsDone + " of " + projectsTotal + ")."
+                : "Restorations finished: " + projectsDone + " of " + projectsTotal + ".");
+            lines.Add("Discoveries found: " + discoveriesFound + " of " + discoveriesTotal + ".");
+            lines.Add("Story chapters unlocked: " + chaptersRead + " of " + chaptersTotal + ".");
+            lines.Add("Nothing here expires. Every walk counts, whenever it happens.");
+            return lines;
         }
 
         private ScreenModel Settings()
