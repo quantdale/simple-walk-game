@@ -187,6 +187,17 @@ echo ""
 echo "== scenario 11: architecture rule 7 (Unity shell) rejects violating fixtures =="
 expect_exit "verify-architecture.sh --selftest-rule7" 0 bash "$REPO_ROOT/scripts/verify-architecture.sh" --selftest-rule7
 
+echo "== scenario 12: new-agent-worktree.sh honours an exported SWG_SESSION_ID (KI-008) =="
+C12="$(new_clone s12)"
+expect_in_exit "helper with exported SWG_SESSION_ID creates worktree" 0 "$C12" env SWG_SESSION_ID=exported-sid sh "$C12/scripts/new-agent-worktree.sh" camp a
+WT12A="$C12/../simple-walk-game-wt-camp-a"
+expect_in_exit "same exported id resumes its own lease" 0 "$WT12A" env SWG_SESSION_ID=exported-sid sh "$C12/scripts/writer-lease.sh" acquire
+expect_in_exit "a different id is still refused" 87 "$WT12A" env SWG_SESSION_ID=someone-else sh "$C12/scripts/writer-lease.sh" acquire
+expect_in_exit "same exported id releases its own lease" 0 "$WT12A" env SWG_SESSION_ID=exported-sid sh "$C12/scripts/writer-lease.sh" release
+expect_in_exit "helper without SWG_SESSION_ID defaults to wt-<campaign>-<session>" 0 "$C12" env -u SWG_SESSION_ID sh "$C12/scripts/new-agent-worktree.sh" camp b
+WT12B="$C12/../simple-walk-game-wt-camp-b"
+expect_in_exit "default id releases the default lease" 0 "$WT12B" env SWG_SESSION_ID=wt-camp-b sh "$C12/scripts/writer-lease.sh" release
+
 echo "=============================="
 echo "GUARD PROOF SUITE: $PASS passed, $FAIL failed"
 echo "=============================="
