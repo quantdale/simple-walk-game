@@ -211,3 +211,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR (D-133): editor-rendered epilogue journal PNGs (`docs/evidence/d133-epilogue-journal/`). The Story header after restoration now points to tending, not restoring.
 - Epilogue lease: no lease is held. The only writer-lock files on the box belong to the two kept worktrees (`grok-story-1520`, `grok-b1-1537`). The epilogue worktree (grok0316/grok0702) was removed with `git worktree remove`, which deleted its per-worktree lock along with `.git/worktrees/<name>`. Nothing needed releasing, and `--force` was not used.
 - Counts on the merged tree (main `0248656` + D-133): .NET 853/853 and EditMode 225/225 + 1 ignored (Unity-editor-tested). Device UNVERIFIED (KI-002). There were no Dependabot PRs. Region 2 is still PROPOSED only.
+
+## Session note 2026-10-17 (grok0739)
+- D-134: closes the D-131 resume gap. While saves keep failing, a resume runs offline catch-up in memory via `GameSession.CatchUpWithoutReload()` (exactly once through monotonic checkpoints) and still shows the return summary. `ResumeCatchUpGapTests` (6) + EditMode `D134_…`. .NET 859/859, EditMode 226/226 + 1 ignored (Unity-editor-tested). Device UNVERIFIED (KI-002). No Dependabot PRs. Region 2 still PROPOSED only.

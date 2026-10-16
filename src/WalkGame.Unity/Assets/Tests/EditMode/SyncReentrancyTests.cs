@@ -166,6 +166,33 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual(credited, d.GetDiagnostics().LifetimeVitalityCredited, "landed exactly once");
         }
 
+        [Test] public void D134_resumes_during_failing_saves_catch_up_in_memory_and_land_once()
+        {
+            if (Environment.OSVersion.Platform != PlatformID.Unix) Assert.Ignore("needs POSIX permissions");
+            var c = Started();
+            Chmod("555");
+            try
+            {
+                c.Invoke("dev:walk");
+                for (int i = 0; i < 3; i++)
+                {
+                    Assert.DoesNotThrow(() => c.Resume()); // D-134: offline catch-up runs in memory, no reload
+                    Assert.AreEqual(PlayerStrings.T("shell.notSavedYet"), c.Render().Notice);
+                    Assert.IsFalse(c.IsBusy);
+                    AssertOpen(c);
+                }
+            }
+            finally { Chmod("755"); }
+            c.Resume();
+            Assert.AreNotEqual(PlayerStrings.T("shell.notSavedYet"), c.Render().Notice);
+            var a = ShellBootstrap.CreateSession(_dir, new GrantedPort()); a.Continue();
+            long credited = a.GetDiagnostics().LifetimeVitalityCredited;
+            Assert.Greater(credited, 0L, "the walk credited during the gap was not lost");
+            c.Resume();
+            var b = ShellBootstrap.CreateSession(_dir, new GrantedPort()); b.Continue();
+            Assert.AreEqual(credited, b.GetDiagnostics().LifetimeVitalityCredited, "landed exactly once");
+        }
+
         [Test] public void Pause_resume_storm_leaves_one_consistent_state()
         {
             var c = Started();
