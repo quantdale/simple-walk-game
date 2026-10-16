@@ -63,4 +63,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR (D-088): perf pass. Allocation per screen switch measured, pooled line labels, `WG_RENDER` debug-only; `docs/evidence/c-perf-pass/PERFORMANCE_PASS.md`.
 - Unity Mono returns 0 from `GC.GetAllocatedBytesForCurrentThread`; use `GC.GetTotalMemory` deltas, which have 4 KB resolution.
 - Next: pool or diff buttons too (largest remaining view allocation, KI-018); a Discoveries PNG with the new copy; Region 2 storyline design (OpenSpec first); device lane (KI-002).
+
+## Session note 2026-10-16 (grok1745)
+- D-089 (KI-018): pooled action buttons; per-switch view allocation ≤ ~4 KB on all screens, 3,000 enter/exits 384 → 151 ms (editor). `docs/evidence/d-buttons/`.
+- Discoveries PNG re-captured with D-086 copy: `docs/evidence/b-discovery-copy/discoveries-editor-rendered.png` (editor-rendered). The older `b-discoveries/` PNG shows the pre-copy keys.
 - D-090: Home story line (current chapter + next hint; epilogue once complete). Region 2 storyline still needs OpenSpec first.

@@ -164,6 +164,32 @@ namespace WalkGame.Shell.Tests
             }
         }
 
+        [Test] public void Pooled_buttons_match_each_screen_and_fire_the_current_action()
+        {
+            var root = new VisualElement();
+            ShellView.ActionButton? firstSeen = null; bool reused = false;
+            foreach (var screen in new[] { "Settings", "Home", "Story", "ActivityStatus", "Discoveries", "Settings" })
+            {
+                _mature!.Invoke("nav:" + screen);
+                var model = _mature.Render();
+                var fired = new List<string>();
+                ShellView.Render(root, model, fired.Add);
+                var buttons = root.Q("actions").Children().Cast<ShellView.ActionButton>().ToList();
+                CollectionAssert.AreEqual(model.Actions.Select(a => a.Id), buttons.Select(b => b.name), screen);
+                CollectionAssert.AreEqual(model.Actions.Select(a => a.Label), buttons.Select(b => b.text), screen);
+                for (int i = 0; i < buttons.Count; i++)
+                    Assert.AreEqual(i == 0 ? UnityEngine.Color.white : ShellView.Ink, buttons[i].style.color.value, screen + " primary styling");
+                foreach (var b in buttons) b.Activate();
+                CollectionAssert.AreEqual(model.Actions.Select(a => a.Id), fired, screen + " taps fire this render's ids");
+                if (buttons.Count > 0)
+                {
+                    if (firstSeen != null && buttons.Contains(firstSeen)) reused = true;
+                    firstSeen ??= buttons[0];
+                }
+            }
+            Assert.IsTrue(reused, "a button instance is reused across screen switches");
+        }
+
         private const long MaxModelBytesPerRender = 1_000_000;
         private const long MaxViewBytesPerRender = 1_000_000;
     }
