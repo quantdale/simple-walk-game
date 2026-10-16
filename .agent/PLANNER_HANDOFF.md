@@ -172,3 +172,10 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - KI-023: #105 (`0f810ca`) PlayerCopy and RegionScene, #106 (`da67877`) and #107 (`75a6ca1`) ShellController 127 → 0, all routed through `PlayerStrings` with identical text; the ratchet now lists them as migrated.
 - This PR (D-121): reminder time picker (earlier/later buttons) plus `ReminderBootReceiver`. EditMode 205/205; arm64 APK compiles the receiver (`docs/evidence/apk-d121/`). Device UNVERIFIED (KI-002).
 - Next: Application-layer copy into a table (KI-023); device lane (KI-002). Region 2 is still PROPOSED only.
+
+## Session note 2026-10-17 (grok0120)
+- #109 (`f1c3bc3`): KI-023 part 2. AccessibleOutline and AndroidShareSheet copy moved to `PlayerStrings`; ShellBootstrap logs and ShellConnectionPort diagnostics are marked `l10n-ignore`. Every shell file is now at zero and no ceilings remain. EditMode 205/205.
+- #110 (`7e8aa13`, D-122): content-copy localization design. A presentation-only `ContentText` overlay is keyed by stable id + field and falls back to the authored English; content, versions and saves are untouched. Letters are the first slice. .NET 811.
+- #111 (`521920e`, D-123): `ReminderTime.java` (pure) with a headless 200k-case property test across all time zones and DST, plus the restart decision table. Fix: a damaged stored reminder time no longer makes "turn on" a dead end. .NET 813.
+- RC on `521920e`: `docs/evidence/rc-521920e/` (11/11 mechanical PASS, clean clone with Unity and APK). Device UNVERIFIED (KI-002).
+- Next: D-122 slices (titles by id in read models, chapters, discovery copy, glance phrases), then a language preference. Device lane (KI-002). Region 2 is still PROPOSED only.

@@ -1,0 +1,21 @@
+Test run for /workspace/simple-walk-game-wt-rc-grok0120/tests/WalkGame.Domain.Tests/bin/Debug/net9.0/WalkGame.Domain.Tests.dll (.NETCoreApp,Version=v9.0)
+Test run for /workspace/simple-walk-game-wt-rc-grok0120/tests/WalkGame.Infrastructure.Tests/bin/Debug/net9.0/WalkGame.Infrastructure.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+VSTest version 17.14.1 (x64)
+
+Test run for /workspace/simple-walk-game-wt-rc-grok0120/tests/WalkGame.Application.Tests/bin/Debug/net9.0/WalkGame.Application.Tests.dll (.NETCoreApp,Version=v9.0)
+VSTest version 17.14.1 (x64)
+
+Starting test execution, please wait...
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+A total of 1 test files matched the specified pattern.
+Starting test execution, please wait...
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:   157, Skipped:     0, Total:   157, Duration: 97 ms - WalkGame.Domain.Tests.dll (net9.0)
+
+Passed!  - Failed:     0, Passed:   185, Skipped:     0, Total:   185, Duration: 2 s - WalkGame.Infrastructure.Tests.dll (net9.0)
+
+Passed!  - Failed:     0, Passed:   471, Skipped:     0, Total:   471, Duration: 6 s - WalkGame.Application.Tests.dll (net9.0)

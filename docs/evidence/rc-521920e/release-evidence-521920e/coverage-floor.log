@@ -1,0 +1,13 @@
+== collecting coverage (XPlat Code Coverage) ==
+  per-assembly line coverage:
+     86.22%  (5663/6568)  408781c1
+     67.86%  (1672/2464)  83a8c68e
+     50.46%  (3314/6568)  8ce25e3e
+
+  aggregate line coverage: 68.26%  (10649/15600)
+  floor: 55.00%
+  PASS: coverage is at or above the floor
+
+======================================
+COVERAGE FLOOR: satisfied
+======================================
