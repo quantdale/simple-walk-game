@@ -365,12 +365,13 @@ public sealed class M5H1ContractHardeningTests : IDisposable
                      nameof(GameSession.GetStory),
                      nameof(GameSession.GetDaysWalked),
                      nameof(GameSession.GetLetters),
+                     nameof(GameSession.GetEpilogue),
                  })
         {
             Assert.Contains(required, names);
         }
 
-        Assert.Equal(14, names.Count); // D-118 added GetLetters
+        Assert.Equal(15, names.Count); // D-118 added GetLetters, D-129 GetEpilogue
 
         foreach (var (name, text) in surfaces)
         {
