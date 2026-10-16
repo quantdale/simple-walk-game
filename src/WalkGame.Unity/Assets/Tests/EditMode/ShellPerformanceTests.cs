@@ -102,5 +102,69 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual(1, root.childCount, "each render replaces, never stacks");
             Assert.AreEqual(elementsAfterWarmup, CountElements(root));
         }
+    
+        private static readonly string[] AllGameScreens = { "Home", "Projects", "Region", "Settings", "ActivityStatus", "ReturnSummary", "Story", "Discoveries" };
+
+        // Unity's Mono returns 0 from GC.GetAllocatedBytesForCurrentThread, so allocation is read as
+        // the growth of GC.GetTotalMemory(false) per call; samples where a collection ran (negative
+        // or collection count changed) are dropped and the median kept. Approximate, in bytes.
+        private static long MedianBytes(System.Action act, int n)
+        {
+            var samples = new List<long>();
+            for (int i = 0; i < n; i++)
+            {
+                int gc = GC.CollectionCount(0);
+                long a = GC.GetTotalMemory(false);
+                act();
+                long b = GC.GetTotalMemory(false);
+                if (GC.CollectionCount(0) == gc && b >= a) samples.Add(b - a);
+            }
+            if (samples.Count == 0) return -1;
+            samples.Sort();
+            return samples[samples.Count / 2];
+        }
+
+        /// <summary>
+        /// Perf pass (D-088): approximate managed bytes allocated per screen switch on the mature
+        /// save, split into the screen model (controller + read models) and the view build. Logged
+        /// as WG_PERF; a loose ceiling catches order-of-magnitude regressions only.
+        /// </summary>
+        [Test] public void Screen_switch_allocations_are_measured_and_bounded()
+        {
+            var root = new VisualElement();
+            foreach (var screen in AllGameScreens)
+            {
+                _mature!.Invoke("nav:" + screen);
+                for (int i = 0; i < 5; i++) ShellView.Render(root, _mature.Render(), _ => { }); // warm-up / JIT
+                long modelBytes = MedianBytes(() => _mature.Render(), 60);
+                var model = _mature.Render();
+                long viewBytes = MedianBytes(() => ShellView.Render(root, model, _ => { }), 60);
+                var sw = Stopwatch.StartNew();
+                for (int i = 0; i < 200; i++) _mature.Invoke("nav:" + screen);
+                double switchUs = sw.Elapsed.TotalMilliseconds * 1000.0 / 200;
+                UnityEngine.Debug.Log("WG_PERF alloc screen=" + screen + " model_bytes~" + modelBytes + " view_bytes~" + viewBytes
+                    + " nav_invoke_us=" + switchUs.ToString("0.0"));
+                Assert.That(modelBytes, Is.LessThan(MaxModelBytesPerRender), screen + " model allocation ceiling");
+                Assert.That(viewBytes, Is.LessThan(MaxViewBytesPerRender), screen + " view allocation ceiling");
+            }
+        }
+
+        [Test] public void Pooled_line_labels_never_carry_stale_text_or_names_between_screens()
+        {
+            var root = new VisualElement();
+            foreach (var screen in new[] { "Story", "ActivityStatus", "Discoveries", "Home", "Settings", "Story" })
+            {
+                _mature!.Invoke("nav:" + screen);
+                var model = _mature.Render();
+                ShellView.Render(root, model, _ => { });
+                var shown = root.Query<Label>().ToList().Where(l => !(l is Button) && l.parent?.name != "actions"
+                    && l.name != "title" && l.name != "notice" && l.name != "error" && l.name != "text-preview").Select(l => l.text).ToList();
+                CollectionAssert.AreEqual(model.Lines, shown, screen);
+                Assert.AreEqual(model.State == ScreenState.Empty ? 1 : 0, root.Query<Label>("empty-state").ToList().Count, screen);
+            }
+        }
+
+        private const long MaxModelBytesPerRender = 1_000_000;
+        private const long MaxViewBytesPerRender = 1_000_000;
     }
 }

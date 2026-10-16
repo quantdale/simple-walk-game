@@ -103,7 +103,9 @@ namespace WalkGame.Shell
         {
             if (_controller == null || _document == null) return;
             var model = _controller.Render();
-            Debug.Log("WG_RENDER screen=" + model.Screen + " state=" + model.State + " lines=" + model.Lines.Count + " actions=" + model.Actions.Count + (model.Notice != null ? " notice=" + model.Notice : ""));
+            // D-088: per-render logging only in development builds (Debug.Log builds strings and
+            // captures a stack trace on every screen switch in a release build too).
+            if (Debug.isDebugBuild) Debug.Log("WG_RENDER screen=" + model.Screen + " state=" + model.State + " lines=" + model.Lines.Count + " actions=" + model.Actions.Count + (model.Notice != null ? " notice=" + model.Notice : ""));
             System.Action<string> act = id => { _controller.Invoke(id); Redraw(); };
             ShellView.Render(_document.rootVisualElement, model, act, UnityEngine.Accessibility.AccessibilitySettings.fontScale);
             ScreenReaderBridge.Publish(model, _document.rootVisualElement, act);
