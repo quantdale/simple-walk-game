@@ -30,5 +30,7 @@ Excerpt: `ci-run-38920379246-excerpt.txt`.
 - No device, no simulator run, no signing; HealthKit capability/entitlement and `NSHealthShareUsageDescription`
   are still not applied (docs/HEALTHKIT_SETUP.md steps 3–4).
 - Adapter not composed; iOS players still get the D-108 unsupported state.
-- The export branch carries Unity's iOS runtime static library (`libiPhone-lib.a`) inside the chunks in
-  a public repository; delete `ios-export/*` branches when no longer needed (left for the owner to decide).
+- The export branch carried Unity's iOS runtime static library (`libiPhone-lib.a`) inside the chunks in
+  a public repository. **2026-10-16 (D-116):** the owner deleted `ios-export/grok2251-a`; the public
+  transport is retired and the workflow is manual-only, needing a private transport. The result above
+  (run 38920379246) stays valid.

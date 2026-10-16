@@ -15,7 +15,7 @@ made that an iOS build works.
 | Swift bridge | `src/WalkGame.Unity/Assets/Plugins/iOS/WalkGameHealthKitBridge.swift` | compiled on hosted macOS (CI `ios-bridge-compile`, iOS SDK, arm64; not linked into an app, never run, not device-tested); runtime UNVERIFIED |
 | Seen-samples pruning (D-113) | `src/WalkGame.Infrastructure/Platform/HealthKit/HealthKitSampleLedger.cs`, mirrored in the Swift bridge | C# rule automated-verified (`HealthKitPrepTests`); Swift mirror UNVERIFIED |
 | iPhone/Watch dedup (D-113, wired by D-114) | `HealthKitSourceDedup.cs`, applied in `HealthKitActivityAdapter` via the bridge's sixth `source` field | C# automated-verified (headless, `HealthKitSourceFieldTests`); Swift classification compiled on hosted macOS by CI, runtime UNVERIFIED; adapter not composed |
-| Unity iOS app build (D-115) | `tools/unity/export-ios-xcode.sh` + `.github/workflows/ios-xcode-export-verify.yml` | Xcode-built unsigned on hosted macOS, not device-tested (`docs/evidence/ios-xcode-export/RESULTS.md`); Swift bridge and P/Invoke externs linked |
+| Unity iOS app build (D-115) | `tools/unity/export-ios-xcode.sh` + `.github/workflows/ios-xcode-export-verify.yml` | Xcode-built unsigned on hosted macOS, not device-tested (`docs/evidence/ios-xcode-export/RESULTS.md`, run 38920379246); Swift bridge and P/Invoke externs linked. **D-116:** the export contains Unity engine binaries (`libiPhone-lib.a`) and must never be pushed to this public repo; `push-ios-export.sh` is retired and the workflow is manual-only, needing a private transport (not configured) |
 | Composition | none: `ShellBootstrap` does not use the adapter yet | iOS players still get the D-108 unsupported state |
 
 ## Steps for the first macOS build

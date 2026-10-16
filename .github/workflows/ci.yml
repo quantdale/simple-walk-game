@@ -18,6 +18,12 @@ jobs:
       - name: Repository identity guard (declared slug must match)
         run: scripts/assert-repo-identity.sh
 
+      - name: No Unity engine binaries in tracked files or history (D-116)
+        run: |
+          scripts/verify-no-engine-binaries.sh --self-test
+          scripts/verify-no-engine-binaries.sh
+          scripts/verify-no-engine-binaries.sh --history
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:

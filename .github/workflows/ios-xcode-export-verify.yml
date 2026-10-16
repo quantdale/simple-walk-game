@@ -1,16 +1,17 @@
 name: ios-xcode-export-verify
 
-# Unsigned xcodebuild of a Unity iOS Xcode export (KI-022). The export is produced on the
-# Linux box by tools/unity/export-ios-xcode.sh (free iOS Build Support module) and pushed as
-# split xz chunks on a throwaway `ios-export/**` branch (never main). No Unity, no Unity
-# licence and no secrets on CI; no signing (CODE_SIGNING_ALLOWED=NO); no artifacts uploaded.
-# Free: public repository + standard macos-latest runner (GitHub Actions billing docs:
-# "free for public repositories that use standard GitHub-hosted runners").
+# MANUAL-ONLY since D-116. Unsigned xcodebuild of a Unity iOS Xcode export (KI-022).
+# The export contains Unity's proprietary engine library (libiPhone-lib.a) and other Unity
+# binaries, which must NEVER be pushed to this public repository. The old public transport
+# (tools/unity/push-ios-export.sh -> ios-export/** branches) is retired and the push trigger is
+# removed. Running this again REQUIRES A PRIVATE TRANSPORT (e.g. a private repository or private
+# storage) that places the export at $RUNNER_TEMP/x/xcode; none is configured, so the
+# "Obtain export" step fails closed. The workflow also refuses any ref that carries an ios-export/
+# payload. Evidence from run 38920379246 (D-115) remains valid.
+# No Unity, licence or secrets on CI; no signing (CODE_SIGNING_ALLOWED=NO); no artifacts.
 # Label: "Xcode-built unsigned on hosted macOS, not device-tested".
 
 on:
-  push:
-    branches: ["ios-export/**"]
   workflow_dispatch:
 
 jobs:
@@ -24,14 +25,15 @@ jobs:
       - name: Repository identity guard
         run: scripts/assert-repo-identity.sh
 
-      - name: Reassemble export
+      - name: Refuse public engine payloads (D-116)
+        run: scripts/verify-no-engine-binaries.sh
+
+      - name: Obtain export (private transport required, D-116)
         run: |
-          test -d ios-export || { echo "no ios-export/ payload on this ref"; exit 1; }
-          cat ios-export/MANIFEST.txt
-          (cd ios-export && shasum -a 256 -c SHA256SUMS)
-          mkdir -p "$RUNNER_TEMP/x"
-          cat ios-export/xcode.tar.xz.part-* | xz -d | tar -x -C "$RUNNER_TEMP/x"
-          du -sh "$RUNNER_TEMP/x/xcode"
+          echo "No private transport is configured. Unity engine binaries must never be pushed"
+          echo "to this public repository (D-116). Add a private transport that extracts the"
+          echo "export to \$RUNNER_TEMP/x/xcode before re-enabling this step."
+          exit 1
 
       - name: Toolchain
         run: |

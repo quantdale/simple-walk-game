@@ -17,3 +17,8 @@ TestResults/
 
 # Local save slots used during development smoke runs
 saves/
+
+# Unity editor caches at the repo root (D-116: never commit; 3ca344e did by accident)
+/Library/
+/Logs/
+/Temp/
