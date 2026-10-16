@@ -156,4 +156,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - New guard `scripts/verify-no-engine-binaries.sh` (tracked names + content magic, `--history`, `--self-test`) runs in CI and in pre-commit (`--staged`).
 - Audit finding: `3ca344e` had tracked the root `Library/` and `Logs/`; now untracked and ignored. History purge is an owner decision (morning queue). `origin/main` history never contained `libiPhone-lib.a` or export chunks.
 - Never use the retired public export transport again.
+- D-117 (KI-015): `scripts/verify-project-settings.sh` makes "never commit ProjectSettings.asset by accident" mechanical. Pre-commit `--staged` needs `SWG_PROJECT_SETTINGS_DECISION=D-NNN`; CI `--range` needs a `Project-Settings-Decision: D-NNN` trailer. Self-test 6/6.
+- Remaining open KIs (002, 016, 018, 022) are device- or macOS-gated. Region 2 is still PROPOSED only.
 
