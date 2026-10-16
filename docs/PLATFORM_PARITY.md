@@ -6,8 +6,12 @@ Status as of 2026-10-16, main `33a72cf`. Labels follow TESTING_AND_RELEASE: **au
 ## Summary
 
 The ingestion seam is platform-neutral (`IActivityRecordSource`, `IActivityConnectionPort`, D-034/D-043),
-but **only Android has a provider adapter**. No HealthKit adapter, no Swift/Objective-C bridge, no iOS
-entitlement or `NSHealthShareUsageDescription`, and no iOS build exist. This gap is tracked as **KI-022**.
+but **only Android has a composed provider adapter**. Since D-112 a HealthKit adapter exists in code:
+`HealthKitActivityAdapter` (automated-verified headless with a fake bridge), the `IosHealthKitBridge`
+P/Invoke class and a Swift bridge (`Assets/Plugins/iOS/WalkGameHealthKitBridge.swift`, **UNVERIFIED: never
+compiled or run**). It is NOT composed into `ShellBootstrap`, and no iOS build exists. The entitlement and
+`NSHealthShareUsageDescription` steps are documented in [`HEALTHKIT_SETUP.md`](HEALTHKIT_SETUP.md) but not
+applied. This gap is still tracked as **KI-022**.
 ROADMAP M7 ("HealthKit integration or current approved equivalent") stays unchecked.
 
 What an iOS (or any non-Android) **release** player does today is honest and playable, and is now
@@ -19,7 +23,8 @@ is offered (no dead end), onboarding completes, and no development walking is ex
 
 | Capability | Android (Health Connect) | iOS (HealthKit) |
 |---|---|---|
-| Composition | `ShellBootstrap` uses `HealthConnectActivityAdapter` + `AndroidHealthConnectBridge` (D-068) | `ShellConnectionPort(false)`: Unsupported, no live source |
+| Composition | `ShellBootstrap` uses `HealthConnectActivityAdapter` + `AndroidHealthConnectBridge` (D-068) | `ShellConnectionPort(false)`: Unsupported, no live source. `HealthKitActivityAdapter` exists but is not composed (D-112) |
+| Adapter mapping, failure policy, deletions, read-access honesty | automated-verified | automated-verified headless on a fake bridge (D-112); Swift bridge UNVERIFIED |
 | Availability states (unsupported / update required / available) | automated-verified (adapter tests, D-093) | Unsupported only (automated-verified, D-108) |
 | Permission request + rationale | wired (`activity:connect`); device dialog UNVERIFIED | not applicable; no Connect action (automated-verified) |
 | Step reads on boot/resume, 30-day bounded window | automated-verified (D-107 budget tests on the fake bridge); device UNVERIFIED | none |
