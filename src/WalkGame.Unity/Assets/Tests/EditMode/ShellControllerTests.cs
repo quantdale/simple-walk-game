@@ -236,5 +236,56 @@ namespace WalkGame.Shell.Tests
         {
             StringAssert.StartsWith(UnityEngine.Application.persistentDataPath, ShellBootstrap.SaveDirectory);
         }
-    }
+    
+        // M5-U3 onboarding polish (UX_DESIGN §11, §12).
+        private static System.Collections.Generic.List<ScreenModel> WalkGuide(ShellController c)
+        {
+            var seen = new System.Collections.Generic.List<ScreenModel>();
+            for (int i = 0; i < 12 && c.Current == ShellScreen.Guide; i++)
+            {
+                var m = c.Render(); seen.Add(m);
+                var next = m.Actions.FirstOrDefault(a => a.Id == "guide:next") ?? m.Actions.First(a => a.Id.StartsWith("queue:"));
+                c.Invoke(next.Id);
+            }
+            return seen;
+        }
+
+        [Test] public void Guide_screens_never_show_identifiers_keys_or_stage_names()
+        {
+            var c = NewController(); c.Boot(); c.Invoke("start");
+            var screens = WalkGuide(c);
+            Assert.That(screens.Count, Is.GreaterThanOrEqualTo(5));
+            var activityNames = Enum.GetNames(typeof(WalkGame.Application.Activity.ActivityPlayerStatus));
+            foreach (var m in screens)
+                foreach (var text in m.Lines.Concat(m.Actions.Select(a => a.Label)))
+                {
+                    Assert.IsFalse(WalkGame.Application.ReadModels.GlancePhrases.ContainsStageIdentifier(text), text);
+                    Assert.IsFalse(text.Contains("(stage"), text);
+                    foreach (var n in activityNames) Assert.IsFalse(text.Contains(n), text);
+                    foreach (var word in text.Split(' ')) Assert.IsFalse(word.Trim('.', ',').Contains("."), "content key leaked: " + text);
+                }
+            Assert.AreEqual(ShellScreen.Home, c.Current);
+        }
+
+        [Test] public void Guide_shows_monotonic_step_progress_ending_at_last_step()
+        {
+            var c = NewController(); c.Boot(); c.Invoke("start");
+            var steps = WalkGuide(c).Select(m => m.Lines[0]).ToList();
+            Assert.That(steps.All(s => s.StartsWith("Step ") && s.EndsWith(" of " + ShellController.GuideSteps)), string.Join("|", steps));
+            var nums = steps.Select(s => int.Parse(s.Split(' ')[1])).ToList();
+            Assert.AreEqual(1, nums.First());
+            Assert.AreEqual(ShellController.GuideSteps, nums.Last());
+            for (int i = 1; i < nums.Count; i++) Assert.That(nums[i], Is.GreaterThanOrEqualTo(nums[i - 1]));
+        }
+
+        [Test] public void Guide_progress_maps_every_stage_within_bounds()
+        {
+            foreach (WalkGame.Application.Ux.OnboardingStage st in Enum.GetValues(typeof(WalkGame.Application.Ux.OnboardingStage)))
+            {
+                var t = ShellController.GuideProgress(st);
+                int n = int.Parse(t.Split(' ')[1]);
+                Assert.That(n, Is.InRange(1, ShellController.GuideSteps), st.ToString());
+            }
+        }
+}
 }
