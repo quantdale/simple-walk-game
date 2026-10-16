@@ -2513,3 +2513,15 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Save compatibility.** No save or content change (the time field already existed, D-119). Installs from before D-121 have no armed flag, so the receiver does nothing until the game next opens and re-syncs.
 
 **Labels.** Unity-editor-tested (EditMode 205/205); Java compiled into an arm64 debug APK (`docs/evidence/apk-d121/`). Device boot and delivery UNVERIFIED (KI-002). No iOS delivery.
+
+## D-122 — Localizing application/content copy without touching content hashes or saves (2026-10-17)
+
+**Context.** KI-023: the shell table (D-120) is complete (every shell file at zero, #109). Application/content copy is not: project, landmark and region titles, chapter titles/bodies/hints, letters, discovery copy and glance phrases. Several content "key" fields (`TitleKey`, chapter `BodyKey`/`HintKey`) actually hold the authored English, and some of that text is copied into stored return summaries. Renaming those fields or replacing their values with real keys would change content definitions, the content-compatibility gate and potentially saved summary text.
+
+**Decision.** The authored English stays where it is, unchanged, as the canonical source. Localization is a presentation-only overlay, `WalkGame.Application.Content.ContentText`: a flat table keyed by a stable content id plus a field (`letter.trailhead#body`, later `proj.clear-trailhead#title`, `chapter.<id>#hint`, `disc.<key>#text`). `Resolve(id, field, authoredEnglish)` returns the overlay entry or, if missing or blank, the authored English, so a partial translation never shows a raw key or an empty line. `ContentText.English` has no overlay and returns the authored string instance itself. `GameSession.ContentLocale` defaults to English; it is never persisted, validated or read by canonical state. Stored summary text is out of scope: it stays as recorded (a later slice may re-derive summary lines from ids at render time).
+
+**First slice.** Letters (place and body) resolve through `ContentLocale` in `GetLetters`. `ContentTextTests` (4): English is identity, missing/blank entries fall back, the overlay is copied at construction, and a pseudo-locale changes letter text while save bytes, `ContentVersion` and catalog titles are unchanged.
+
+**Next slices.** Project/landmark/region titles (resolve by id in read models, not in `PlayerCopy.Title`, which only sees text), chapters, discovery copy, glance phrases; then a language preference (preferences file, not the save) and a locale loader. No translation ships yet.
+
+**Save compatibility.** None: no save, schema or content change.

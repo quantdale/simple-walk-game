@@ -1542,6 +1542,12 @@ namespace WalkGame.Application
         /// D-118: Nell's letters. A letter is found once its project is completed; pure projection,
         /// no clock and no writes. A letter whose project is not in the loaded content stays unfound.
         /// </summary>
+        /// <summary>
+        /// D-122: presentation overlay for content copy. Defaults to the authored English; never
+        /// persisted and never read by canonical state, validation or saves.
+        /// </summary>
+        public WalkGame.Application.Content.ContentText ContentLocale { get; set; } = WalkGame.Application.Content.ContentText.English;
+
         public LettersReadModel GetLetters()
         {
             var game = RequireState();
@@ -1550,7 +1556,10 @@ namespace WalkGame.Application
             {
                 var p = game.Region.FindProject(l.ProjectId);
                 bool found = p != null && p.Status == ProjectStatus.Completed;
-                rows.Add(new LettersReadModel.LetterRow(l.Id, l.Order, l.PlaceKey, found ? l.Body : null, found,
+                var text = ContentLocale;
+                rows.Add(new LettersReadModel.LetterRow(l.Id, l.Order,
+                    text.Resolve(l.Id, WalkGame.Application.Content.ContentText.Fields.Place, l.PlaceKey),
+                    found ? text.Resolve(l.Id, WalkGame.Application.Content.ContentText.Fields.Body, l.Body) : null, found,
                     found ? p!.CompletedAtUtc : null));
             }
             return new LettersReadModel(rows);
