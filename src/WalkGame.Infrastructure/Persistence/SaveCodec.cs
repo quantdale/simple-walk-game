@@ -72,7 +72,17 @@ namespace WalkGame.Infrastructure.Persistence
                 return new DecodeResult(CodecStatus.MalformedEnvelope, null, envelope.SchemaVersion, detail: ex.Message);
             }
 
-            var expectedChecksum = Convert.FromBase64String(envelope.PayloadSha256Base64 ?? string.Empty);
+            byte[] expectedChecksum;
+            try
+            {
+                expectedChecksum = Convert.FromBase64String(envelope.PayloadSha256Base64 ?? string.Empty);
+            }
+            catch (FormatException)
+            {
+                // D-098: a malformed checksum field is an integrity failure, not an exception.
+                return new DecodeResult(CodecStatus.ChecksumMismatch, null, envelope.SchemaVersion,
+                    detail: "Payload integrity hash is not readable.");
+            }
             var actualChecksum = Sha256(payloadBytes);
             if (!FixedTimeEquals(expectedChecksum, actualChecksum))
                 return new DecodeResult(CodecStatus.ChecksumMismatch, null, envelope.SchemaVersion,
@@ -113,6 +123,13 @@ namespace WalkGame.Infrastructure.Persistence
             }
             catch (JsonException ex)
             {
+                return new DecodeResult(CodecStatus.DeserializationFailed, null, sourceVersion, appliedMigrations, ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // D-098: System.Text.Json raises this (not JsonException) when a payload
+                // assigns null to a getter-only collection, e.g. "records": null. Found by
+                // migration fuzzing; it used to escape Continue() as an exception.
                 return new DecodeResult(CodecStatus.DeserializationFailed, null, sourceVersion, appliedMigrations, ex.Message);
             }
 
