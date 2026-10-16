@@ -2163,3 +2163,10 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Decision.** `ShellView` pools the `actions` container and its buttons per root alongside the body-line labels (one `PoolState` in `root.userData`). A pooled `ShellView.ActionButton` registers one click handler that invokes the current render's callback with the current action id; all visible properties and primary/secondary styling are reset per render. Element names stay the action ids, so tests, the accessibility outline and autodrive are unchanged.
 
 **Evidence.** `docs/evidence/d-buttons/PERFORMANCE_BUTTONS.md`: Settings view ~41 KB → ~4 KB, Home ~37 KB → ~0, 3,000 enter/exits 384 → 151 ms, live-panel growth within noise. EditMode 109/109, PlayMode 4 + 1 ignored (Unity-editor-tested). Device UNVERIFIED (KI-002); KI-018 open only for a device measurement.
+## D-090 — Home story line: current chapter, next hint, epilogue (2026-10-16)
+
+**Context.** The story (D-076) was only reachable from the journal and return-summary chapter moments; Home gave no sense of where the player is in Millbrook's story.
+
+**Decision.** Home shows one line, `ShellController.HomeStoryLine`: "Story: <latest unlocked chapter heading>. Next: <next chapter's hint>", using the same title and hint the journal already shows, so a locked chapter's title or body never appears. Once every chapter is unlocked it shows the epilogue line ("Millbrook's story is complete. The valley stays restored, and every chapter is here to reread."). Shell-only: no content version, fingerprint or save change. Copy obeys the no-guilt check.
+
+**Evidence.** `StoryJournalTests.Home_shows_the_current_chapter_and_the_next_hint_without_spoilers` (new game prologue + after a 10-day walk) and `Home_story_line_becomes_the_epilogue_when_every_chapter_is_unlocked`. EditMode 111/111 on the merged branch (`docs/evidence/d-home-chapter/`, Unity-editor-tested). Device UNVERIFIED (KI-002).

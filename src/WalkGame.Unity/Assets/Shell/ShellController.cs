@@ -240,6 +240,7 @@ namespace WalkGame.Shell
             m.Lines.Add(glance.RestoringNowSentence);
             if (glance.AttentionSentence != null) m.Lines.Add(glance.AttentionSentence);
             m.Lines.Add(glance.ActivitySentence);
+            m.Lines.Add(HomeStoryLine(_session.GetStory()));
             m.Lines.Add("Vitality " + home.Vitality + " · Materials " + home.Materials + " · Knowledge " + home.Knowledge);
             if (empty) m.Lines.Add("Nothing is being restored yet. Choose a project to begin.");
             if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", "While you were away"));
@@ -413,6 +414,24 @@ namespace WalkGame.Shell
             m.Lines.Insert(0, CelebrationHeadline);
             m.Lines.Insert(1, "Every place you brought back stays restored. Your walks keep the valley flourishing.");
             return true;
+        }
+
+        /// <summary>Home's one-line story pointer once every chapter is unlocked (the epilogue line).</summary>
+        public const string StoryEpilogueLine = "Story: Millbrook's story is complete. The valley stays restored, and every chapter is here to reread.";
+
+        /// <summary>
+        /// D-090: one line on Home linking play to the story. Names the latest unlocked chapter and
+        /// the next chapter's gentle hint (the same hint the journal shows, so nothing is spoiled);
+        /// once the story is fully read it shows the epilogue line. Shell-only: no content or save change.
+        /// </summary>
+        public static string HomeStoryLine(WalkGame.Application.ReadModels.StoryReadModel story)
+        {
+            if (story == null || story.TotalChapters == 0) return string.Empty;
+            if (story.UnlockedCount >= story.TotalChapters || story.NextHintKey == null) return StoryEpilogueLine;
+            var latest = story.Chapters.LastOrDefault(c => c.Unlocked);
+            string where = latest == null ? "The story begins soon."
+                : (latest.Number == 0 ? "Prologue · " : "Chapter " + latest.Number + " · ") + latest.TitleKey + ".";
+            return "Story: " + where + " Next: " + story.NextHintKey;
         }
 
         /// <summary>Prefix the composer uses for chapter moments (ReturnSummaryComposer, D-076).</summary>
