@@ -68,17 +68,33 @@ namespace WalkGame.Shell
         public void Invoke(string actionId)
         {
             _error = null;
+            if (string.IsNullOrEmpty(actionId)) { _error = "Unknown action."; return; }
             if (actionId.StartsWith("nav:", StringComparison.Ordinal))
             {
                 _notice = null;
-                Current = (ShellScreen)Enum.Parse(typeof(ShellScreen), actionId.Substring(4));
+                // C (D-084): a malformed or unknown target, or a game screen before a game is
+                // loaded, is a calm error on the current screen, never an exception.
+                string target = actionId.Substring(4);
+                // Exact names only: Enum.TryParse also accepts numbers and comma lists ("Home,Story"
+                // parses to the flags OR of the two values, which is another real screen).
+                if (Array.IndexOf(Enum.GetNames(typeof(ShellScreen)), target) < 0 || !Enum.TryParse(target, false, out ShellScreen screen))
+                { _error = "That screen does not exist."; return; }
+                if (!_booted && screen != ShellScreen.Onboarding && screen != ShellScreen.BootError)
+                { _error = "Start or continue a game first."; return; }
+                Current = screen;
                 return;
             }
+            if (!_booted && actionId != "start" && actionId != "retry" && actionId != "activity:connect")
+            { _error = "Start or continue a game first."; return; }
             if (actionId.StartsWith("queue:", StringComparison.Ordinal)) { Check(_session.EnqueueProject(actionId.Substring(6))); return; }
             if (actionId.StartsWith("up:", StringComparison.Ordinal)) { MoveUp(actionId.Substring(3)); return; }
             switch (actionId)
             {
                 case "start":
+                    // C (D-084): StartNewGame overwrites unconditionally, so only the onboarding
+                    // screen of an unbooted shell may start. A loaded game or an unreadable save
+                    // (BootError) is never replaced from here.
+                    if (_booted || Current != ShellScreen.Onboarding) { _error = "A game is already here; it was not replaced."; return; }
                     var started = _session.StartNewGame(_seedSource());
                     LastStartStatus = started.Status;
                     if (started.Status == StartStatus.NewGameCreated)
