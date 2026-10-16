@@ -30,8 +30,8 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
     /// Rule: a sample keeps the share of its steps that falls outside the time already covered by
     /// strictly higher-priority samples (linear proration, floored). Same-priority samples are not
     /// merged (one device does not double-count itself). The result is independent of input order.
-    /// Headless-tested design only: the bridge protocol has no source field yet and the adapter is
-    /// not composed, so this is NOT wired anywhere (a later PR adds a protocol field + D-entry).
+    /// D-114: wired into <see cref="HealthKitActivityAdapter"/> through the bridge's optional sixth
+    /// field. The adapter itself is still NOT composed (D-112), so no shipped build runs this.
     /// </summary>
     public static class HealthKitSourceDedup
     {

@@ -62,6 +62,17 @@ private func saveAnchor(_ anchor: HKQueryAnchor?) {
     UserDefaults.standard.set(data, forKey: anchorKey)
 }
 
+// D-114 source field, mirroring HealthKitSourceDedup.Classify (C#, headless-tested): only Apple's
+// own collectors (bundle "com.apple.*") count as watch/phone, by HKDevice.model prefix.
+private func sourceKind(_ s: HKSample) -> String {
+    let bundle = s.sourceRevision.source.bundleIdentifier
+    let model = s.device?.model ?? ""
+    guard bundle.hasPrefix("com.apple.") else { return "other" }
+    if model.hasPrefix("Watch") { return "watch" }
+    if model.hasPrefix("iPhone") { return "phone" }
+    return "other"
+}
+
 private func ms(_ d: Date) -> Int64 { return Int64((d.timeIntervalSince1970 * 1000).rounded(.down)) }
 
 // D-113 pruning, mirroring HealthKitSampleLedger (C#, headless-tested): drop entries that ended
@@ -118,7 +129,7 @@ public func wg_hk_read_steps(_ startMs: Int64, _ endMs: Int64) -> UnsafeMutableP
                     offset = String(tz.secondsFromGMT(for: s.endDate))
                 }
                 let id = s.uuid.uuidString
-                lines.append("\(id)\t\(ms(s.startDate))\t\(ms(s.endDate))\t\(count)\t\(offset)")
+                lines.append("\(id)\t\(ms(s.startDate))\t\(ms(s.endDate))\t\(count)\t\(offset)\t\(sourceKind(s))")
                 intervals[id] = "\(ms(s.startDate))\t\(ms(s.endDate))"
             }
         }

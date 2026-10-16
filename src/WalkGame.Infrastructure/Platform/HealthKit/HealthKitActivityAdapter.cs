@@ -88,18 +88,21 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
             }
 
             var records = new List<NormalizedActivityRecord>();
+            var kinds = new Dictionary<string, HealthKitSourceKind>(StringComparer.Ordinal);
             var seen = new HashSet<string>(StringComparer.Ordinal);
             for (int i = 1; i < lines.Length; i++)
             {
                 if (lines[i].Length == 0) continue;
-                var record = ParseLine(lines[i]);
+                var record = ParseLine(lines[i], out var kind);
                 if (record == null) throw Fail("protocol", new InvalidOperationException("Malformed step sample on line " + i + "."));
                 // A sample UUID appears at most once per kind in one response; a repeat is a bridge bug.
                 if (!seen.Add((record.IsDeletion ? "del:" : "add:") + record.SourceRecordId))
                     throw Fail("protocol", new InvalidOperationException("Duplicate sample on line " + i + "."));
                 if (record.StartUtc < windowStartUtc || record.EndUtc > windowEndUtc) continue;
+                if (!record.IsDeletion) kinds[record.SourceRecordId!] = kind;
                 records.Add(record);
             }
+            records = ApplySourceDedup(records, kinds);
             records.Sort((a, b) =>
             {
                 if (a.IsDeletion != b.IsDeletion) return a.IsDeletion ? 1 : -1;
@@ -111,8 +114,46 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
             return records;
         }
 
-        private static NormalizedActivityRecord? ParseLine(string line)
+        /// <summary>
+        /// D-114: iPhone + Apple Watch overlap is resolved with <see cref="HealthKitSourceDedup"/> over the
+        /// credit lines of ONE response (Watch &gt; Phone &gt; Other). A credit's quantity becomes its
+        /// deduplicated share (never above the bridge count; a zero share is omitted); deletions are untouched. Lines without
+        /// the sixth field are Other, so a five-field bridge behaves exactly as before D-114.
+        /// </summary>
+        private static List<NormalizedActivityRecord> ApplySourceDedup(List<NormalizedActivityRecord> records, Dictionary<string, HealthKitSourceKind> kinds)
         {
+            var credits = records.FindAll(r => !r.IsDeletion);
+            if (credits.Count < 2) return records;
+            var resolved = HealthKitSourceDedup.Resolve(credits.ConvertAll(r => new HealthKitSourcedSample(
+                r.SourceRecordId!, r.StartUtc.ToUnixTimeMilliseconds(), r.EndUtc.ToUnixTimeMilliseconds(), r.Quantity, kinds[r.SourceRecordId!])));
+            var output = new List<NormalizedActivityRecord>(records.Count);
+            foreach (var r in records)
+            {
+                if (r.IsDeletion || r.Quantity <= 0) { output.Add(r); continue; } // invalid counts: judged by the trust pipeline
+                long share = Math.Min(r.Quantity, resolved[r.SourceRecordId!]);
+                // A sample fully covered by a higher-priority device is omitted, not sent as 0 (the
+                // pipeline would reject a zero quantity); if the covering sample is later deleted,
+                // the next read re-emits this one with its full share.
+                if (share > 0) output.Add(r with { Quantity = share });
+            }
+            return output;
+        }
+
+        /// <summary>D-114 sixth field: <c>watch</c> | <c>phone</c> | <c>other</c>; absent or empty → Other.</summary>
+        public static bool TryParseSourceKind(string token, out HealthKitSourceKind kind)
+        {
+            switch (token)
+            {
+                case "": case "other": kind = HealthKitSourceKind.Other; return true;
+                case "watch": kind = HealthKitSourceKind.Watch; return true;
+                case "phone": kind = HealthKitSourceKind.Phone; return true;
+                default: kind = HealthKitSourceKind.Other; return false;
+            }
+        }
+
+        private static NormalizedActivityRecord? ParseLine(string line, out HealthKitSourceKind kind)
+        {
+            kind = HealthKitSourceKind.Other;
             var f = line.Split('\t');
             var inv = CultureInfo.InvariantCulture;
             if (f[0] == "del")
@@ -123,7 +164,7 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
                 return new NormalizedActivityRecord(Namespace, f[1].Trim(), ActivityCategory.Walking, ActivityUnits.Steps,
                     0L, dStart, dEnd, DeletionRevision, IsDeletion: true);
             }
-            if (f.Length != 5 || !HealthConnectActivityAdapter.IsAcceptableId(f[0].Trim())) return null;
+            if (f.Length < 5 || f.Length > 6 || !HealthConnectActivityAdapter.IsAcceptableId(f[0].Trim())) return null;
             if (!long.TryParse(f[1], NumberStyles.Integer, inv, out long s) ||
                 !long.TryParse(f[2], NumberStyles.Integer, inv, out long e) ||
                 !long.TryParse(f[3], NumberStyles.Integer, inv, out long count))
@@ -136,6 +177,7 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
                     return null;
                 offset = off;
             }
+            if (f.Length == 6 && !TryParseSourceKind(f[5], out kind)) return null;
             if (!TryInstant(s, out var start) || !TryInstant(e, out var end)) return null;
             // Quantity/timestamp validity is judged by the trust pipeline, not here.
             return new NormalizedActivityRecord(Namespace, f[0].Trim(), ActivityCategory.Walking, ActivityUnits.Steps,
