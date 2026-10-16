@@ -11,7 +11,7 @@ namespace WalkGame.Application.Tests;
 /// <summary>
 /// D-070 balance cadence: how long low / irregular / high players wait to SEE the valley change.
 /// Bounds are the measured 2026-10-16 baseline (regression guards), not ratified product targets;
-/// the low-player gap is an open balance finding (KI-017).
+/// the KI-017 gaps were closed by D-071 visible build stages.
 /// </summary>
 public sealed class VisibleChangeCadenceTests : IDisposable
 {
@@ -105,13 +105,36 @@ public sealed class VisibleChangeCadenceTests : IDisposable
         Assert.InRange(r.LongestGapDays, 1, 30); // baseline 29
     }
 
-    [Fact]
-    public void Low_player_cadence_does_not_regress_beyond_the_recorded_baseline()
+    private static long WeekendHeavy(DayOfWeek d) => d switch
     {
-        // KI-017: 78 days without a visible change is a real balance gap; this bound only stops it getting worse.
+        DayOfWeek.Saturday => 22_000L, DayOfWeek.Sunday => 24_000L, DayOfWeek.Friday => 6_000L,
+        DayOfWeek.Thursday => 4_500L, DayOfWeek.Wednesday => 4_000L, DayOfWeek.Tuesday => 3_500L, _ => 3_000L,
+    };
+
+    // D-070 gate (KI-017 resolved by D-071 visible build stages).
+    [Fact]
+    public void Moderate_player_sees_change_within_ten_days_and_never_waits_over_thirty()
+    {
+        var r = Drive(_ => 8_000L, 300);
+        Assert.InRange(r.FirstChangeDay, 1, 10);
+        Assert.InRange(r.LongestGapDays, 1, 30);
+    }
+
+    [Fact]
+    public void Weekend_heavy_player_sees_change_within_ten_days_and_never_waits_over_thirty()
+    {
+        var r = Drive(d => WeekendHeavy(T0.AddDays(d - 1).DayOfWeek), 300);
+        Assert.InRange(r.FirstChangeDay, 1, 10);
+        Assert.InRange(r.LongestGapDays, 1, 30);
+    }
+
+    [Fact]
+    public void Low_player_meets_the_d070_cadence_best_effort()
+    {
+        // D-039: low need not finish; D-070 asks best effort. Measured 27 days after D-071 (was 78).
         var r = Drive(_ => 3_000L, 400);
         Assert.InRange(r.FirstChangeDay, 1, 10);
-        Assert.InRange(r.LongestGapDays, 1, 78);
-        Assert.True(r.Changes >= 15);
+        Assert.InRange(r.LongestGapDays, 1, 30);
+        Assert.True(r.Changes >= 18);
     }
 }

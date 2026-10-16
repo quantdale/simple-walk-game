@@ -25,6 +25,11 @@ namespace WalkGame.Application.Content
     /// M4-authored projects. Content version 2 remains readable: a save recorded against it
     /// classifies as CompatibleOlder (D-059) and keeps its whole history.
     ///
+    /// Content version 4 (D-071): the three longest projects (workshop, wetland drainage,
+    /// canopy walkway) author VISIBLE BUILD STAGES so the valley visibly advances while they
+    /// are funded. Costs, prerequisites and ids are unchanged (the seeds stay verbatim); the
+    /// stages are derived from invested Vitality, so v3 saves need no content migration.
+    ///
     /// Six interdependent restoration chains, six landmarks, three bounded producers,
     /// thirteen provenance-bearing discoveries, three deterministic expedition routes,
     /// region-level ecology/settlement arcs, the Complete Valley Survey closure criterion,
@@ -35,7 +40,7 @@ namespace WalkGame.Application.Content
     /// </summary>
     public static class Region1Catalog
     {
-        public const int AuthoredContentVersion = 3;
+        public const int AuthoredContentVersion = 4;
 
         /// <summary>
         /// Authored per-resource storage caps for Region 1, in whole units (D-054).
@@ -182,7 +187,8 @@ namespace WalkGame.Application.Content
                 // Settlement community
                 new ProjectDefinition(new ProjectId(BuildWorkshop), "Rebuild the settlement workshop", 1500L,
                     prerequisites: new[] { new ProjectId(RiverIntake) },
-                    descriptionKey: "Roof, bench and tool the workshop that the valley builds with."),
+                    descriptionKey: "Roof, bench and tool the workshop that the valley builds with.",
+                    visibleBuildStages: 2),
                 new ProjectDefinition(new ProjectId(RestoreMarketHall), "Restore the market hall", 650L,
                     prerequisites: new[] { new ProjectId(BuildWorkshop) },
                     descriptionKey: "Raise the market hall where the community trades and gathers.",
@@ -201,7 +207,8 @@ namespace WalkGame.Application.Content
                 // Wetland recovery
                 new ProjectDefinition(new ProjectId(WetlandDrainage), "Drain and replant the east wetland", 2200L,
                     prerequisites: new[] { new ProjectId(RiverIntake) },
-                    descriptionKey: "Undo the failed drainage scheme and let the marsh breathe."),
+                    descriptionKey: "Undo the failed drainage scheme and let the marsh breathe.",
+                    visibleBuildStages: 3),
                 new ProjectDefinition(new ProjectId(ReplantNativeSedges), "Replant native sedges", 300L,
                     prerequisites: new[] { new ProjectId(WetlandDrainage) },
                     descriptionKey: "Reinforce the banks with native sedge beds."),
@@ -223,7 +230,8 @@ namespace WalkGame.Application.Content
                 // Canopy link (original seed definition, preserved verbatim incl. cost/prereqs)
                 new ProjectDefinition(new ProjectId(CanopyWalkway), "Raise the canopy walkway", 4000L,
                     prerequisites: new[] { new ProjectId(BuildWorkshop), new ProjectId(WetlandDrainage) },
-                    descriptionKey: "Bridge the grove crowns with the valley's signature walkway."),
+                    descriptionKey: "Bridge the grove crowns with the valley's signature walkway.",
+                    visibleBuildStages: 5),
 
                 // Research
                 new ProjectDefinition(new ProjectId(RefitObservatoryDome), "Refit the observatory dome", 550L,

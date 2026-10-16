@@ -49,6 +49,13 @@ namespace WalkGame.Application.ReadModels
         /// </summary>
         public PostCompletionCareRow? PostCompletionCare { get; }
 
+        /// <summary>Visible build stage of the active project (D-071): 0..ActiveBuildStages-1.</summary>
+        public int ActiveBuildStage { get; }
+        /// <summary>Authored visible build stages of the active project (1 = none shown).</summary>
+        public int ActiveBuildStages { get; }
+        /// <summary>Title key of the active project, or null.</summary>
+        public string? ActiveProjectTitleKey { get; }
+
         public RegionReadModel(
             string regionTitleKey,
             IReadOnlyList<LandmarkRow> landmarks,
@@ -63,8 +70,14 @@ namespace WalkGame.Application.ReadModels
             int discoveriesUnlocked = 0,
             int expeditionsAvailable = 0,
             int expeditionsCompleted = 0,
-            PostCompletionCareRow? postCompletionCare = null)
+            PostCompletionCareRow? postCompletionCare = null,
+            int activeBuildStage = 0,
+            int activeBuildStages = 1,
+            string? activeProjectTitleKey = null)
         {
+            ActiveBuildStage = activeBuildStage;
+            ActiveBuildStages = activeBuildStages;
+            ActiveProjectTitleKey = activeProjectTitleKey;
             RegionTitleKey = regionTitleKey;
             Landmarks = landmarks;
             Producers = producers;

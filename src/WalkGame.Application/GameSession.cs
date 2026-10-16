@@ -1416,6 +1416,22 @@ namespace WalkGame.Application
                 }
             }
 
+            int buildStage = 0, buildStages = 1;
+            string? activeTitle = null;
+            if (game.Queue.ActiveProjectId != null)
+            {
+                foreach (var def in _content.Projects)
+                {
+                    if (def.Id.Value != game.Queue.ActiveProjectId) continue;
+                    var st = game.Region.FindProject(def.Id.Value);
+                    activeTitle = def.TitleKey;
+                    buildStages = def.VisibleBuildStages;
+                    if (st != null && st.Status != ProjectStatus.Completed)
+                        buildStage = def.BuildStageFor(st.VitalityInvested);
+                    break;
+                }
+            }
+
             return new RegionReadModel(
                 _content.TitleKey,
                 landmarks,
@@ -1430,7 +1446,10 @@ namespace WalkGame.Application
                 game.Region.Discoveries.Count,
                 expeditionsAvailable,
                 expeditionsCompleted,
-                care);
+                care,
+                buildStage,
+                buildStages,
+                activeTitle);
         }
 
         /// <summary>Discovery journal snapshot: every authored discovery with its flags.</summary>

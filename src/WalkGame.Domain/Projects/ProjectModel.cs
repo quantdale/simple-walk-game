@@ -39,14 +39,37 @@ namespace WalkGame.Domain.Projects
         /// <summary>True when this project has at least one secondary-resource requirement.</summary>
         public bool HasResourceRequirement => ResourceCosts.Count > 0;
 
+        /// <summary>
+        /// Authored visible build stages (D-071, content v4). A long project shows its
+        /// construction advancing in N steps; stage k of N is reached when k/N of the cost is
+        /// invested. Pure presentation data derived from <see cref="ProjectState.VitalityInvested"/>:
+        /// it never changes cost, prerequisites or save state, so no migration is needed.
+        /// 1 (the default) means the project shows only "not done" / "done".
+        /// </summary>
+        public int VisibleBuildStages { get; }
+
+        public const int MaxVisibleBuildStages = 8;
+
+        /// <summary>Build stage reached for an INCOMPLETE project: 0..VisibleBuildStages-1.</summary>
+        public int BuildStageFor(long vitalityInvested)
+        {
+            if (VisibleBuildStages <= 1 || vitalityInvested <= 0L) return 0;
+            long stage = vitalityInvested * VisibleBuildStages / VitalityCost;
+            return (int)Math.Min(stage, VisibleBuildStages - 1);
+        }
+
         public ProjectDefinition(
             ProjectId id,
             string titleKey,
             long vitalityCost,
             IEnumerable<ProjectId>? prerequisites = null,
             string? descriptionKey = null,
-            IEnumerable<KeyValuePair<ResourceType, long>>? resourceCosts = null)
+            IEnumerable<KeyValuePair<ResourceType, long>>? resourceCosts = null,
+            int visibleBuildStages = 1)
         {
+            if (visibleBuildStages < 1 || visibleBuildStages > MaxVisibleBuildStages)
+                throw new ArgumentException("Project '" + id.Value + "' visible build stages must be 1.." + MaxVisibleBuildStages + ".", nameof(visibleBuildStages));
+            VisibleBuildStages = visibleBuildStages;
             if (!id.IsValid)
                 throw new ArgumentException("Project definition requires a valid ID.", nameof(id));
             if (string.IsNullOrWhiteSpace(titleKey))

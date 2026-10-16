@@ -9,7 +9,8 @@ namespace WalkGame.Application.Pacing
     /// <summary>
     /// "Does walking visibly matter?" balance metric (D-070). A VISIBLE CHANGE is something the
     /// player can see on the Region screen or the return summary: a landmark stage advancing,
-    /// a restoration finishing, or a discovery unlocking. Vitality totals alone do not count.
+    /// a restoration finishing, a discovery unlocking, or (D-071) the active project's
+    /// authored build stage advancing on the Region picture. Vitality totals alone do not count.
     /// Pure observation of read models; never mutates state.
     /// </summary>
     public sealed class VisibleChangeTracker
@@ -28,6 +29,8 @@ namespace WalkGame.Application.Pacing
             foreach (var l in region.Landmarks.OrderBy(l => l.LandmarkId, StringComparer.Ordinal))
                 sb.Append(l.LandmarkId).Append('=').Append((int)l.Stage).Append(';');
             sb.Append("|done=").Append(region.CompletedProjects).Append("|disc=").Append(discoveries.UnlockedCount);
+            if (region.ActiveProjectId != null && region.ActiveBuildStage > 0)
+                sb.Append("|build=").Append(region.ActiveProjectId).Append(':').Append(region.ActiveBuildStage);
             string now = sb.ToString();
             bool changed = _last != null && now != _last;
             _last = now;

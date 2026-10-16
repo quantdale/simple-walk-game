@@ -21,6 +21,16 @@ namespace WalkGame.Shell
         public int Level => (int)Stage;
     }
 
+    /// <summary>D-071 build site: the active long project rising in authored stages.</summary>
+    public sealed class BuildSiteVisual
+    {
+        public BuildSiteVisual(string label, int stage, int stages) { Label = label; Stage = stage; Stages = stages; }
+        public string Label { get; }
+        /// <summary>0-based stage reached (shown as Stage+1 posts).</summary>
+        public int Stage { get; }
+        public int Stages { get; }
+    }
+
     /// <summary>
     /// Engine-free description of the Region picture (M6 restoration visuals, created assets:
     /// procedural shapes only, no textures; docs/ASSET_LICENSES.md). Built only from
@@ -33,7 +43,12 @@ namespace WalkGame.Shell
         public const int MaxLandmarks = 12;
         public const int ShapesPerLandmark = 7;   // base + up to 4 growth shapes + marker + moment ring
         public const int BackdropShapes = 4;      // sky, far hills, near hills, river
-        public const int MaxShapes = BackdropShapes + MaxLandmarks * ShapesPerLandmark;
+        /// <summary>Build site (D-071): ground slab + one post per authored stage reached.</summary>
+        public const int BuildSiteShapes = 1 + WalkGame.Domain.Projects.ProjectDefinition.MaxVisibleBuildStages;
+        public const int MaxShapes = BackdropShapes + MaxLandmarks * ShapesPerLandmark + BuildSiteShapes;
+
+        /// <summary>Active project's visible build progress, or null when it authors no stages.</summary>
+        public BuildSiteVisual? BuildSite { get; }
 
         public IReadOnlyList<LandmarkVisual> Landmarks { get; }
         /// <summary>0..1 share of restorations finished; tints the hills from dry to green.</summary>
@@ -42,8 +57,8 @@ namespace WalkGame.Shell
         /// <summary>Text alternative for the picture (UX_DESIGN accessibility: never picture-only).</summary>
         public string AltText { get; }
 
-        private RegionScene(IReadOnlyList<LandmarkVisual> landmarks, float greenness, bool completed, string alt)
-        { Landmarks = landmarks; Greenness = greenness; Completed = completed; AltText = alt; }
+        private RegionScene(IReadOnlyList<LandmarkVisual> landmarks, float greenness, bool completed, string alt, BuildSiteVisual? site)
+        { BuildSite = site; Landmarks = landmarks; Greenness = greenness; Completed = completed; AltText = alt; }
 
         public static RegionScene Build(RegionReadModel region) => Build(region, null);
 
@@ -83,7 +98,16 @@ namespace WalkGame.Shell
             if (moments > 0)
                 alt += moments == 1 ? " One landmark that changed while you were away is circled."
                                     : " " + moments + " landmarks that changed while you were away are circled.";
-            return new RegionScene(list, green, region.RegionCompleted, alt);
+            BuildSiteVisual? site = null;
+            if (!region.RegionCompleted && region.ActiveProjectId != null && region.ActiveBuildStages > 1)
+            {
+                int stages = Math.Min(region.ActiveBuildStages, WalkGame.Domain.Projects.ProjectDefinition.MaxVisibleBuildStages);
+                int stage = Math.Max(0, Math.Min(region.ActiveBuildStage, stages - 1));
+                string t = PlayerCopy.Title(region.ActiveProjectTitleKey ?? string.Empty);
+                site = new BuildSiteVisual(t, stage, stages);
+                alt += " Work on " + t + " stands at stage " + (stage + 1) + " of " + stages + ".";
+            }
+            return new RegionScene(list, green, region.RegionCompleted, alt, site);
         }
 
         /// <summary>Total filled shapes a repaint will issue (budget check).</summary>
@@ -93,6 +117,7 @@ namespace WalkGame.Shell
         {
             int shapes = BackdropShapes;
             foreach (var l in Landmarks) shapes += 2 + l.Level + (l.Changed ? 1 : 0); // base + marker + growth + ring
+            if (BuildSite != null) shapes += 1 + BuildSite.Stage + 1;                  // slab + posts (stage 0 shows one post)
             return shapes;
         }
 

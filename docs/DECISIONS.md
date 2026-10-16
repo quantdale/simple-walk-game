@@ -1921,7 +1921,7 @@ not complete M5 as a roadmap milestone.
 
 **Consequences / open:** if a change token expires (Health Connect keeps change logs for a limited time), tracking restarts and deletions inside the gap are missed (`changesGap` flag stored; KI-016). Device behaviour is UNVERIFIED (KI-002).
 
-## D-070 — Balance cadence: "visible change" gaps are measured per profile (targets provisional)
+## D-070 — Balance cadence: "visible change" gaps are measured per profile (targets adopted 2026-10-16, see D-071)
 
 **Status:** Accepted as a measurement (2026-10-16, executor campaign); the targets are **provisional, not ratified**. They await the product owner.
 
@@ -1941,3 +1941,14 @@ not complete M5 as a roadmap milestone.
 
 **Not done here:** changing costs or the conversion rate. Those are ratified numbers (D-062) and need an owner decision. Candidate levers, which keep the D-062 closure numbers intact: split the large late-chain projects into smaller visible stages, or add intermediate landmark stages or discoveries to the woodland/wetland chains.
 
+
+
+## D-071 — Visible build stages on the long seed projects; D-070 cadence targets adopted (2026-10-16)
+
+**Authority:** Michael delegated gameplay/design decisions on 2026-10-16. A check of D-062 and AGENTS.md found no "requires owner ratification" marker on cadence numbers; "ratified" there covers only the per-profile closure-day bounds. So the D-070 targets are adopted: **no gap over 30 days without a visible change, and a first change within 10 days**, for moderate, weekend-heavy and low (low is best effort, D-039).
+
+**Lever:** the gaps came from three single big projects: BuildWorkshop 1500, WetlandDrainage 2200 and CanopyWalkway 4000. All three are M1/M3 seed definitions that D-062 keeps VERBATIM (the M3 acceptance proof asserts their costs). So instead of splitting them into new ids, which would need a save migration and break the seed contract, each one authors `VisibleBuildStages` (2, 3 and 5 respectively, so each stage is at most 800 Vitality). Stage k of N is reached when k/N of the cost is invested. The Region picture draws a build site whose posts rise per stage, and the alt text names the stage. `VisibleChangeTracker` counts a stage advance as a visible change.
+
+**Compatibility:** content version 3 → 4. This is purely additive presentation data derived from `VitalityInvested`: ids, costs, prerequisites and state are unchanged, so no content upgrade is needed. A v3 save classifies as CompatibleOlder (D-059) and immediately shows its in-progress stage. `verify-content-compatibility.sh` and `verify-pacing-evidence.sh` stay green, and closure days are unchanged for every profile.
+
+**Measured (profile --cadence, longest gap / first change):** moderate 50→10 / day 4; weekend-heavy 42→10 / day 3; low 78→27 / day 10; high 20→4; irregular 29→7. Closure days: high 77, irregular 109, moderate 192, weekend-heavy 158, inactivity 376, pathological 22, all within D-062. Inactivity's 60-day gap is its authored 45-day silence and is out of scope. Gate: `VisibleChangeCadenceTests` (≤30 / ≤10 for moderate, weekend-heavy and low).

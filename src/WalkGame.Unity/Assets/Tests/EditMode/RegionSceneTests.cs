@@ -107,5 +107,27 @@ namespace WalkGame.Shell.Tests
             ShellView.Render(home, c.Render(), _ => { });
             Assert.IsNull(home.Q<ValleyElement>("valley"));
         }
+
+        private static WalkGame.Application.ReadModels.RegionReadModel Model(string? active, int stage, int stages) =>
+            new WalkGame.Application.ReadModels.RegionReadModel("Millbrook Valley",
+                new[] { new WalkGame.Application.ReadModels.RegionReadModel.LandmarkRow("lm.a", "Old Mill", RestorationStage.Ruined) },
+                Array.Empty<WalkGame.Application.ReadModels.RegionReadModel.ProducerRow>(), 3, 20, active,
+                activeBuildStage: stage, activeBuildStages: stages, activeProjectTitleKey: "Raise the canopy walkway");
+
+        [Test] public void Staged_active_project_shows_a_build_site_that_rises_per_stage()
+        {
+            var a = RegionScene.Build(Model("proj.canopy-walkway", 1, 5));
+            var b = RegionScene.Build(Model("proj.canopy-walkway", 3, 5));
+            Assert.IsNotNull(a.BuildSite);
+            Assert.AreEqual(2, b.ShapeCount() - a.ShapeCount(), "one post per stage reached");
+            StringAssert.Contains("stage 4 of 5", b.AltText);
+            Assert.That(b.ShapeCount(), Is.LessThanOrEqualTo(RegionScene.MaxShapes));
+        }
+
+        [Test] public void Unstaged_or_idle_project_shows_no_build_site()
+        {
+            Assert.IsNull(RegionScene.Build(Model("proj.clear-trailhead", 0, 1)).BuildSite);
+            Assert.IsNull(RegionScene.Build(Model(null, 0, 1)).BuildSite);
+        }
     }
 }
