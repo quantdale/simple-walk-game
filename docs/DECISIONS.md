@@ -1952,3 +1952,8 @@ not complete M5 as a roadmap milestone.
 **Compatibility:** content version 3 → 4. This is purely additive presentation data derived from `VitalityInvested`: ids, costs, prerequisites and state are unchanged, so no content upgrade is needed. A v3 save classifies as CompatibleOlder (D-059) and immediately shows its in-progress stage. `verify-content-compatibility.sh` and `verify-pacing-evidence.sh` stay green, and closure days are unchanged for every profile.
 
 **Measured (profile --cadence, longest gap / first change):** moderate 50→10 / day 4; weekend-heavy 42→10 / day 3; low 78→27 / day 10; high 20→4; irregular 29→7. Closure days: high 77, irregular 109, moderate 192, weekend-heavy 158, inactivity 376, pathological 22, all within D-062. Inactivity's 60-day gap is its authored 45-day silence and is out of scope. Gate: `VisibleChangeCadenceTests` (≤30 / ≤10 for moderate, weekend-heavy and low).
+
+
+## D-072 — M8 Lifecycle is proven headlessly at process boundaries (2026-10-16)
+
+The device-independent half of the M8 Lifecycle campaign is modelled as process boundaries, each a fresh `GameSession` over one save directory. It covers repeated resume with overlapping re-fetch, process death with torn temp files, interrupted boots, and permission revoked and re-granted outside the app. The guarded invariant is canonical progress (lifetime credit, completed projects, exactly-once ingestion), not save bytes, because boots legitimately commit bookkeeping. Real OS kill, reboot and on-device revocation stay UNVERIFIED (KI-002). Evidence: `docs/evidence/m8-h1/LIFECYCLE_HEADLESS.md`.
