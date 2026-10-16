@@ -49,7 +49,12 @@ namespace WalkGame.Shell
         public const int BackdropShapes = 5;      // sky, sun, far hills, near hills, river
         /// <summary>Build site (D-071): ground slab + one post per authored stage reached.</summary>
         public const int BuildSiteShapes = 1 + WalkGame.Domain.Projects.ProjectDefinition.MaxVisibleBuildStages;
-        public const int MaxShapes = BackdropShapes + MaxLandmarks * ShapesPerLandmark + BuildSiteShapes;
+        /// <summary>D-101 restoration ambience: footpath links between recovered neighbours, meadow flowers, birds.</summary>
+        public const int MaxTrailSegments = MaxLandmarks - 1;
+        public const int MaxFlowers = 5;
+        public const int MaxBirds = 2;
+        public const int MaxAmbientShapes = MaxTrailSegments + MaxFlowers + MaxBirds;
+        public const int MaxShapes = BackdropShapes + MaxLandmarks * ShapesPerLandmark + BuildSiteShapes + MaxAmbientShapes;
 
         /// <summary>Active project's visible build progress, or null when it authors no stages.</summary>
         public BuildSiteVisual? BuildSite { get; }
@@ -61,8 +66,34 @@ namespace WalkGame.Shell
         /// <summary>Text alternative for the picture (UX_DESIGN accessibility: never picture-only).</summary>
         public string AltText { get; }
 
+        /// <summary>Footpath segments: one per adjacent pair of landmarks that are both past Ruined.</summary>
+        public int TrailSegments { get; }
+        /// <summary>Meadow flowers, 0..<see cref="MaxFlowers"/>, growing with restorations finished.</summary>
+        public int Flowers { get; }
+        /// <summary>Birds over the valley once it is at least half green (0..<see cref="MaxBirds"/>).</summary>
+        public int Birds { get; }
+
         private RegionScene(IReadOnlyList<LandmarkVisual> landmarks, float greenness, bool completed, string alt, BuildSiteVisual? site)
-        { BuildSite = site; Landmarks = landmarks; Greenness = greenness; Completed = completed; AltText = alt; }
+        {
+            BuildSite = site; Landmarks = landmarks; Greenness = greenness; Completed = completed; AltText = alt;
+            (TrailSegments, Flowers, Birds) = Ambient(landmarks, greenness);
+        }
+
+        /// <summary>
+        /// D-101: static, bounded ambience derived only from landmark stages and greenness, so the
+        /// picture visibly fills in as restoration proceeds without any per-frame work.
+        /// </summary>
+        public static (int Trail, int Flowers, int Birds) Ambient(IReadOnlyList<LandmarkVisual> landmarks, float greenness)
+        {
+            int trail = 0;
+            for (int i = 1; i < landmarks.Count && trail < MaxTrailSegments; i++)
+                if (landmarks[i - 1].Stage > RestorationStage.Ruined && landmarks[i].Stage > RestorationStage.Ruined) trail++;
+            float g = Clamp01(greenness);
+            int flowers = Math.Min(MaxFlowers, (int)Math.Floor(g * MaxFlowers + 0.0001f));
+            if (flowers == 0 && g > 0f) flowers = 1;  // the first finished restoration already shows a bloom
+            int birds = g < 0.5f ? 0 : g < 1f ? 1 : MaxBirds;
+            return (trail, flowers, birds);
+        }
 
         public static RegionScene Build(RegionReadModel region) => Build(region, null);
 
@@ -97,6 +128,9 @@ namespace WalkGame.Shell
                 ? "A picture of the valley, green and fully restored."
                 : "A picture of the valley: " + restored + " of " + list.Count + " landmarks restored, the hills "
                   + (green < 0.34f ? "still dry." : green < 0.67f ? "turning green." : "mostly green.");
+            var amb = Ambient(list, green);
+            if (amb.Trail > 0) alt += amb.Trail == 1 ? " A footpath links two recovered places." : " Footpaths link " + (amb.Trail + 1) + " recovered places.";
+            if (amb.Birds > 0) alt += " Birds are back over the valley.";
             int moments = 0;
             foreach (var v in list) if (v.Changed) moments++;
             if (moments > 0)
@@ -122,7 +156,7 @@ namespace WalkGame.Shell
             int shapes = BackdropShapes;
             foreach (var l in Landmarks) shapes += 4 + l.Level + (l.Changed ? 1 : 0); // body + top + detail + marker + growth + ring
             if (BuildSite != null) shapes += 1 + BuildSite.Stage + 1;                  // slab + posts (stage 0 shows one post)
-            return shapes;
+            return shapes + TrailSegments + Flowers + Birds;                            // D-101 ambience
         }
 
         /// <summary>Calm palette, dry ochre → living green. Returned as 0xRRGGBB.</summary>
