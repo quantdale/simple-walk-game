@@ -2154,4 +2154,4 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 - The `WG_RENDER` per-render `Debug.Log` runs only in debug builds (release builds paid for string building and a stack trace on every screen switch).
 - The model side measured ≤ ~20 KB and mostly ~0, so it was left unchanged.
 
-**Evidence.** `docs/evidence/c-perf-pass/PERFORMANCE_PASS.md` has the before/after tables. Story view ~86 KB → ~12 KB, Projects ~78 KB → ~8 KB, 3,000 enter/exits 678 → 392 ms, live-panel growth ~116 → ~78 B/render. EditMode 103/103, PlayMode 4 passed + 1 capture-only ignored (Unity-editor-tested). Device UNVERIFIED (KI-002); KI-018 stays open.
+**Evidence.** `docs/evidence/c-perf-pass/PERFORMANCE_PASS.md` has the before/after tables. Story view ~86 KB → ~12 KB, Projects ~78 KB → ~8 KB, 3,000 enter/exits 678 → 392 ms, live-panel growth ~116 → ~78 B/render (about 0 on a rerun, within noise). EditMode 108/108 on the merged branch, PlayMode 4 passed + 1 capture-only ignored (Unity-editor-tested). Device UNVERIFIED (KI-002); KI-018 stays open.

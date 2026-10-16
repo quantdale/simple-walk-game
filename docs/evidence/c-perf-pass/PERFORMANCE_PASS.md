@@ -32,9 +32,9 @@ Also, `ShellBootstrap.Redraw` called `Debug.Log` on **every** render in release 
 | Measure | Before | After |
 |---|---|---|
 | 3,000 screen enter/exits (EditMode wall) | 678 ms | 392 ms |
-| Live-panel retained growth 750→3,000 renders | ~116 B/render (D-074) | ~78 B/render (176,128 B / 2,250) |
+| Live-panel retained growth 750→3,000 renders | ~116 B/render (D-074) | ~78 B/render first run (176,128 B / 2,250); about 0 on the rerun after merging main (−4 KB, within GC noise) |
 | `nav:` invoke | 1–4 µs | 1–2 µs |
 
 Model-side numbers are at or under the 4 KB resolution and were left alone: no hotspot worth the code. The remaining view allocations are buttons (closures and style) and the valley element; KI-018 stays open for device measurement.
 
-Raw logs: `baseline/editmode-run.log`, `after/editmode-run.log`, `after/playmode-run.log` (grep `WG_PERF`). EditMode after the fix: 103/103 on this branch. PlayMode: 4 passed, 1 capture-only ignored.
+Raw logs: `baseline/editmode-run.log`, `after/editmode-run.log`, `after/playmode-run.log` (grep `WG_PERF`; `after/` is the rerun after merging main with #50–#52, where 3,000 enter/exits took 384 ms). EditMode after the fix and the merge: 108/108. PlayMode: 4 passed, 1 capture-only ignored.
