@@ -2594,3 +2594,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Residual.** After a failed commit the in-memory state can be ahead of disk until the next successful write (pre-existing session contract). Null scan: shell entry points already reject null/empty action ids (D-084); no new unhandled null path found in `ShellController`/`ShellBootstrap`.
 
 **Save compatibility.** None.
+
+## D-129 — Region 1 epilogue: closing letters, a final journal entry, valley notes (2026-10-17)
+
+**Context.** After Millbrook's closure milestone the Story journal ended on one static line. OpenSpec `add-region1-epilogue` is agent-approved as Region 1 scope on the same basis as D-103/D-118. D-011 and the ROADMAP post-MVP gate apply to Region 2 only; this change adds no Region 2 content or hook, and `add-region2-storyline` stays PROPOSED.
+
+**Decision.** `Region1Epilogue` (Application content) has a final journal entry, two closing letters from Nell (day 0 and day 7 after completion) and eight valley notes (one per 30 days, then the "In the valley now" line cycles forever). `GameSession.GetEpilogue()` is a pure projection of `RegionCompletedAtUtc` and the trusted clock. It returns `None` before completion. A backward clock shows the day-0 epilogue, and nothing that was shown disappears while the clock moves forward. The Story journal adds an Epilogue block. Notes describe the valley without naming calendar seasons, so they read true in either hemisphere. There are no counts, "N of M", notifications, rewards, streaks or timers.
+
+**Tests.** `EpilogueTests` (.NET) and `EpilogueJournalTests` (EditMode). The read-model sweep in `M5H1ContractHardeningTests` now counts 15. Counts are in the PR. Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None. There is no save, schema or content-fingerprint change, and existing completed saves show the epilogue at once.
