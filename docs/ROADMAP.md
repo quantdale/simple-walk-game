@@ -490,7 +490,7 @@ Attack the system as if trying to break player trust.
 
 - [ ] no unresolved Critical/High defect;
 - [x] all failure classes have explicit recovery behavior *(headless classes: persistence hostile-path matrix, activity red-team, temporal anomalies — automated verified, M8-H1; lifecycle/device classes await runtime)*;
-- [ ] performance budgets supported by measurements *(long-horizon growth/wall-time records landed in M8-H1: `docs/evidence/m8-h1/`; device budgets remain open)*;
+- [ ] performance budgets supported by measurements *(long-horizon growth/wall-time records landed in M8-H1: `docs/evidence/m8-h1/`; editor-measured shell budgets for the mature save, restored end-state and repeated enter/exit landed in D-074 ([`PERFORMANCE_EDITOR.md`](evidence/m8-h1/PERFORMANCE_EDITOR.md)), with a ScrollView retention fix; device budgets remain open)*;
 - [x] migration/recovery evidence exists *(genuine mature-v1 migration + exactly-once post-migration replay, recovery-safe commits — automated verified)*;
 - [ ] docs reflect actual implementation state.
 

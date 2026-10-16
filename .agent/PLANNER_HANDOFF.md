@@ -26,4 +26,5 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Valley readability (M6b) is done: per-kind landmark silhouettes; recapture at docs/evidence/m6-region/valley-editor-rendered-m6b.png (editor-rendered).
 - M8 lifecycle headless is done (D-072, 4 tests).
 - M8 UX/accessibility headless is done (D-073): OS font scale, screen-reader outline and AssistiveSupport bridge, empty states, 7/30-day returns; Unity-editor-tested, and the Android debug APK compiles.
-- Next slice: M8 performance in the editor (mature save, restored end-state, repeated enter/exit); then M9 release-qualification paperwork.
+- M8 performance in the editor is done (D-074): mature-save/end-state/enter-exit budgets, ScrollView reuse fix, KI-018 residual.
+- Next slice: M8 exit item "docs reflect actual implementation state" (docs audit), then M9 release-qualification paperwork; device lanes stay blocked (KI-002).

@@ -1962,3 +1962,8 @@ The device-independent half of the M8 Lifecycle campaign is modelled as process 
 ## D-073 — Accessibility uses the OS: font scale and Unity's screen-reader bridge (2026-10-16)
 
 Large text follows the OS font size (`AccessibilitySettings.fontScale`) rather than an in-game setting, clamped to 1–2× so text never drops below the base sizes. Layout must wrap rather than clip. Screen-reader support is an engine-free `AccessibleOutline` (reading order: title, problem/notice, picture description, text, then actions) published through Unity's `AssistiveSupport.activeHierarchy` only while a screen reader is on. Button nodes invoke the same action ids as taps. Empty states are the screen's own explanatory line at body size; no generic filler. The headless half is Unity-editor-tested; TalkBack and hardware font scaling are UNVERIFIED (KI-002). Evidence: `docs/evidence/m8-h1/UX_ACCESSIBILITY_HEADLESS.md`.
+
+
+## D-074 — M8 performance measured in the editor; the shell reuses its ScrollView (2026-10-16)
+
+Measured in the Unity editor, not on a device: a mature 365-day restored save, every screen, and 3,000 repeated screen enters/exits in a live UIDocument panel. Wall-times are logged, never gated; structural budgets (≤ 250 elements per screen, ≤ 86 picture shapes, no element stacking, < 1 MB live-panel growth from 750 to 3,000 renders) are asserted. The campaign found that per-render ScrollView creation retained about 233 B each inside UI Toolkit. `ShellView` now reuses one ScrollView per root, which cut growth from about 470 to about 116 B/render and halved render time. The residual is KI-018. Evidence: `docs/evidence/m8-h1/PERFORMANCE_EDITOR.md`.
