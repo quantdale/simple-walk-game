@@ -34,7 +34,7 @@ public sealed class MigrationV1ToV2Tests
         bool ok = runner.TryMigrate(SchemaVersions.MinimumSupported, SchemaVersions.Current, ref payload, out applied, out error);
 
         Assert.True(ok, error);
-        Assert.Equal(new[] { MigrationV1ToV2.Id }, applied);
+        Assert.Equal(new[] { MigrationV1ToV2.Id, MigrationV2ToV3.Id }, applied);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public sealed class MigrationV1ToV2Tests
 
         Assert.Equal(CodecStatus.Ok, result.Status);
         Assert.Equal(1, result.SourceSchemaVersion);
-        Assert.Equal(new[] { MigrationV1ToV2.Id }, result.AppliedMigrations);
+        Assert.Equal(new[] { MigrationV1ToV2.Id, MigrationV2ToV3.Id }, result.AppliedMigrations);
 
         var state = result.State!;
         Assert.Equal(SchemaVersions.Current, state.SchemaVersion);
@@ -64,7 +64,7 @@ public sealed class MigrationV1ToV2Tests
         var result = codec.Decode(V1Envelope(null));
 
         Assert.Equal(CodecStatus.Ok, result.Status);
-        Assert.Equal(new[] { MigrationV1ToV2.Id }, result.AppliedMigrations);
+        Assert.Equal(new[] { MigrationV1ToV2.Id, MigrationV2ToV3.Id }, result.AppliedMigrations);
     }
 
     [Fact]

@@ -76,6 +76,32 @@ public sealed class HealthConnectActivityAdapterTests : IDisposable
     }
 
     [Fact]
+    public void Sixth_field_carries_the_end_zone_offset_and_empty_or_absent_means_unknown()
+    {
+        var b = new FakeBridge
+        {
+            Response = "ok\n" + Line("hc-1", T0, T0.AddHours(1), 4200, T0.AddHours(2)) + "\t28800\n"
+                + Line("hc-2", T0, T0.AddHours(1), 10, T0.AddHours(2)) + "\t\n"
+                + Line("hc-3", T0, T0.AddHours(1), 10, T0.AddHours(2)) + "\t-18000",
+        };
+        var rs = Adapter(b).FetchRecords(T0, T0.AddDays(1)).ToDictionary(r => r.SourceRecordId!);
+        Assert.Equal(28800, rs["hc-1"].EndZoneOffsetSeconds);
+        Assert.Null(rs["hc-2"].EndZoneOffsetSeconds);
+        Assert.Equal(-18000, rs["hc-3"].EndZoneOffsetSeconds);
+        // Identity is unchanged by the offset (dedup stays stable across bridge versions).
+        Assert.Equal(ActivityIdentity.Compute(rs["hc-1"] with { EndZoneOffsetSeconds = null }), ActivityIdentity.Compute(rs["hc-1"]));
+    }
+
+    [Theory]
+    [InlineData("abc")]
+    [InlineData("64801")]
+    public void Malformed_or_out_of_range_offset_is_a_protocol_error(string field)
+    {
+        var b = new FakeBridge { Response = "ok\n" + Line("hc-1", T0, T0.AddHours(1), 4200, T0.AddHours(2)) + "\t" + field };
+        Assert.ThrowsAny<Exception>(() => Adapter(b).FetchRecords(T0, T0.AddDays(1)));
+    }
+
+    [Fact]
     public void Records_outside_the_window_are_dropped_and_output_is_deterministically_ordered()
     {
         var b = new FakeBridge
