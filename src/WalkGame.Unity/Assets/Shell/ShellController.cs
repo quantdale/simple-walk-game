@@ -118,6 +118,10 @@ namespace WalkGame.Shell
                 { _error = "That screen does not exist."; return; }
                 if (!_booted && screen != ShellScreen.Onboarding && screen != ShellScreen.BootError)
                 { _error = "Start or continue a game first."; return; }
+                // D-110: BootError describes a save that could not be opened. With a game loaded
+                // that is false, so the shell refuses it calmly and stays where it is.
+                if (_booted && screen == ShellScreen.BootError)
+                { _error = "Your world is open and fine. There is no problem to show."; return; }
                 Current = screen;
                 return;
             }

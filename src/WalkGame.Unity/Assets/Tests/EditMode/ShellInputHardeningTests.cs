@@ -80,6 +80,26 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual("A game is already here; it was not replaced.", c.Render().Notice);
         }
 
+        [Test] public void BootError_is_refused_while_a_game_is_loaded()
+        {
+            // D-110: a loaded game never shows "We couldn't open your world".
+            var c = Shell(); c.Boot(); c.Invoke("start"); c.Invoke("nav:Home");
+            Assert.DoesNotThrow(() => c.Invoke("nav:BootError"));
+            Assert.AreEqual(ShellScreen.Home, c.Current);
+            var m = c.Render();
+            Assert.AreEqual(ScreenState.Error, m.State);
+            Assert.AreEqual("Your world is open and fine. There is no problem to show.", m.Notice);
+            c.Invoke("nav:Settings");
+            Assert.AreEqual(ShellScreen.Settings, c.Current, "navigation still works after the refusal");
+        }
+
+        [Test] public void BootError_stays_reachable_before_a_game_is_loaded()
+        {
+            var c = Shell(); c.Boot();
+            c.Invoke("nav:BootError");
+            Assert.AreEqual(ShellScreen.BootError, c.Current);
+        }
+
         [Test] public void After_delete_all_a_new_game_can_still_start()
         {
             var c = Shell(); c.Boot(); c.Invoke("start");
