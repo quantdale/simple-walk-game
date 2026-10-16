@@ -1972,3 +1972,13 @@ Measured in the Unity editor, not on a device: a mature 365-day restored save, e
 ## D-075 — Release qualification starts from a clean clone; the evidence package verifies, never copies (2026-10-16)
 
 `scripts/validate-clean-clone.sh` clones one exact commit from the remote into a new temp directory (`--no-local`), with no shared build output, Unity Library or hooks. It then runs the identity guard, every CI `run:` step verbatim (`verify-ci-steps.sh`, D-049), and, with `--with-unity`, EditMode, PlayMode and the arm64 APK build from a cold Library. It writes `CLEAN_CLONE.md`, one PASS/FAIL row per step, with counts parsed from logs. `assemble-release-evidence.sh --clean-clone` accepts that report only if it says PASS and names the same commit. It also reads hosted CI for the commit with `gh run list` rather than asserting it. The stale KI-001/KI-002 wording is replaced: editor evidence is labelled as such, and device items live only in the Final Device and Release Qualification Checklist (H–Q), which cannot be ticked from headless or editor evidence.
+
+
+## D-076 — A restoration storyline: milestone-gated, ordered, derived chapters (2026-10-16)
+
+Michael's campaign brief asks for narrative progression tied to walking. **Decision:** Region 1 gets nine authored chapters: a prologue, seven restoration chapters ending at the closure survey, and an epilogue after the first evergreen tending cycle. Each unlocks only from restoration milestones (completed projects or care cycles), never from raw steps, streaks or time. Chapters are cumulative, so the story always reads in order, and they never lock again. Unlock state is **derived** from completion state that saves already carry (`StoryProgress.Evaluate`), so there is no save schema change or migration. Content goes 4 → 5 as an additive change (CompatibleOlder). New chapters become "New chapter: …" Transformation items in the return summary (existing kind and bound) and live in a Story journal screen. Locked chapters show only a title and a gentle "restore X to continue" hint, with no guilt language. Rejected alternatives:
+- persisted chapter state: needs a migration and a new tamper surface;
+- step-count gates: punish low walkers and contradict "restoration, not numbers";
+- unordered fragments: that is already what discoveries are.
+
+Cadence bounds come from measurement (`profile --story`) and are recorded when the gate lands. OpenSpec: `openspec/changes/add-restoration-storyline/`.
