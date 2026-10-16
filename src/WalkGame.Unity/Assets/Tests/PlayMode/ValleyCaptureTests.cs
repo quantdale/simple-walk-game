@@ -30,16 +30,27 @@ namespace WalkGame.Shell.PlayModeTests
             var rt = new RenderTexture(540, 1170, 24, RenderTextureFormat.ARGB32);
             try
             {
-                var session = ShellBootstrap.CreateSession(dir);
-                var c = new ShellController(session, () => 42UL, devTools: true);
-                c.Boot(); c.Invoke("start");
-                // A mid-game valley: queue what is open and walk a few days so stages differ.
-                foreach (var p in session.GetProjects().Projects)
-                    if (p.Status == ProjectStatus.Available) session.EnqueueProject(p.ProjectId);
-                var now = DateTimeOffset.UtcNow;
-                session.IngestFromSource(new SyntheticWalkingSource(120000), now.AddDays(-6), now);
                 string screen = Environment.GetEnvironmentVariable("WG_CAPTURE_SCREEN") ?? "Region";
-                c.Invoke("nav:" + screen);
+                ShellController c;
+                if (screen == "Celebration")
+                {
+                    // Seeded completed-region state through the real pipeline (CompletedRegionFixture).
+                    c = CompletedRegionFixture.Build(dir, out var done, out _);
+                    Assert.IsTrue(done.GetRegion().RegionCompleted);
+                    c.Invoke("nav:ReturnSummary");
+                }
+                else
+                {
+                    var session = ShellBootstrap.CreateSession(dir);
+                    c = new ShellController(session, () => 42UL, devTools: true);
+                    c.Boot(); c.Invoke("start");
+                    // A mid-game valley: queue what is open and walk a few days so stages differ.
+                    foreach (var p in session.GetProjects().Projects)
+                        if (p.Status == ProjectStatus.Available) session.EnqueueProject(p.ProjectId);
+                    var now = DateTimeOffset.UtcNow;
+                    session.IngestFromSource(new SyntheticWalkingSource(120000), now.AddDays(-6), now);
+                    c.Invoke("nav:" + screen);
+                }
 
                 var doc = go.AddComponent<UIDocument>();
                 var panel = ScriptableObject.CreateInstance<PanelSettings>();

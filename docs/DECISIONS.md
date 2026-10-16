@@ -2067,3 +2067,13 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 **Decision.** When the pending summary carries the region-complete moment, the shell retitles it "The valley is restored" and leads with two static lines. A "See the restored valley" action follows the primary Continue. There is no new saved state: the summary is acknowledged durably, so the celebration shows once. It is text-first, so it works with reduced motion and screen readers (D-073 outline order), and the copy passes the no-guilt check.
 
 **Evidence.** `RegionCelebrationTests` (4 EditMode cases); EditMode 65/65 in `docs/evidence/b-celebration/`. Device UNVERIFIED (KI-002).
+
+## D-081 — The celebration is proven end to end from a real completed region (2026-10-16)
+
+**Context.** D-080 tested the celebration with hand-built summaries only; no test or picture reached it from a genuinely completed Region 1.
+
+**Decision.** `CompletedRegionFixture` (PlayMode tests) completes Region 1 through the real pipeline: a manual clock (`ShellBootstrap.CreateSession` clock seam), 20,000 synthetic steps per day and a low-decision player that queues the first open project when idle, mirroring `M4Region1AcceptanceTests`. No save is edited, so the seeded state is valid by construction. It completes on day 77.
+- `CelebrationPlayModeTests` checks Home offers the summary, the celebration title, headline and primary Continue, renders the screen in a live UIDocument over real frames, follows "See the restored valley", and checks that after Continue the celebration does not show again.
+- `ValleyCaptureTests` takes `WG_CAPTURE_SCREEN=Celebration` and captures the same seeded state.
+
+**Evidence.** PlayMode 4 passed + 1 capture-only ignored (`docs/evidence/b-celebration-capture/playmode-results.xml`, Unity-editor-tested). PNG `docs/evidence/b-celebration-capture/celebration-editor-rendered.png` (editor-rendered, llvmpipe/Xvfb, NOT device). The capture found KI-020 (highlight ring clipping). Device UNVERIFIED (KI-002).
