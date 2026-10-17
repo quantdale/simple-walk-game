@@ -507,6 +507,29 @@ namespace WalkGame.Domain.Activity
 
         public bool DaysWalkedIsLowerBound => IsLegacyLowerBound || HasUndatedCredits;
 
+        // ---- Per-day earnings (D-156) ---------------------------------------------------
+
+        /// <summary>
+        /// D-156: Vitality the player's walks earned on local day <paramref name="localDay"/>, derived
+        /// from the retained rows (no separate ledger is persisted; schema unchanged). Each row counts its
+        /// net APPLIED Vitality, so a correction reduces its day by what was actually reversed. A deleted
+        /// row (zero eligible steps) counts 0 even when its clawback was clamped by the balance: the
+        /// source says that walk did not happen. Rows without a local day (legacy v1/v2 or undated
+        /// sources) never count, so the figure can only understate. Returns null when the day may
+        /// include retired rows (at or before <see cref="RetiredThroughLocalDay"/>): unknowable.
+        /// </summary>
+        public long? VitalityOnLocalDay(int localDay)
+        {
+            if (RetiredThroughLocalDay is int r && localDay <= r) return null;
+            long total = 0L;
+            foreach (var entry in Entries.Values)
+            {
+                if (entry.LocalDay != localDay || entry.EligibleSteps <= 0L || entry.VitalityCredited <= 0L) continue;
+                total = checked(total + entry.VitalityCredited);
+            }
+            return total;
+        }
+
         private void NoteCredit(ProcessedRecordEntry entry)
         {
             if (entry.EligibleSteps <= 0L) return;
