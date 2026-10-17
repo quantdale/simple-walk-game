@@ -271,6 +271,8 @@ Recommended baseline:
 
 The exact correction policy should prioritize state integrity and player trust over punitive clawbacks.
 
+**Repeated revisions cannot mint credit (D-178).** A clawback the unspent balance cannot cover is clamped, so the record keeps more Vitality than its new steps justify. A later up-correction must not credit that excess again. The correction path clamps the provider pool to 0..99 (as the deletion path does), so one record never holds more than floor((99 + its largest revision's steps) / 100) Vitality, however often its source revises it down and up or deletes and re-adds it.
+
 ---
 
 ## 12. Clock and time-zone anomalies
