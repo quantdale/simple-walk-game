@@ -1259,6 +1259,7 @@ namespace WalkGame.Application
             string? activeId = game.Queue.ActiveProjectId;
             string? activeTitle = null;
             long invested = 0L, cost = 0L;
+            int buildStages = 1;
             if (activeId != null)
             {
                 var def = _content.FindProject(activeId);
@@ -1268,6 +1269,7 @@ namespace WalkGame.Application
                     activeTitle = ContentTitle(def.Id.Value, def.TitleKey);
                     invested = runtime.VitalityInvested;
                     cost = def.VitalityCost;
+                    buildStages = def.VisibleBuildStages;
                 }
             }
 
@@ -1368,7 +1370,8 @@ namespace WalkGame.Application
                 game.Region.RegionCompletedAtUtc,
                 game.Region.PostCompletionCyclesCompleted,
                 game.Region.PostCompletionInvestedVitality,
-                careProgram?.VitalityCostPerCycle ?? 0L);
+                careProgram?.VitalityCostPerCycle ?? 0L,
+                buildStages);
         }
 
         /// <summary>

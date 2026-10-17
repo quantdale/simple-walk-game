@@ -2748,6 +2748,14 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Save compatibility.** None.
 
+## D-145 — First-session payoff: display-time percent and distance to the next visible change (2026-10-17)
+**Decision.** Very short sessions must pay off. The first project costs 300 Vitality (30,000 steps), so a 300–2,000-step first walk funded 1–7% and the summary only said "Vitality credited: N." Home and the return summary now show "{title}: {n}% restored. About {steps} more steps to finish it." (or "... to its next visible stage." for D-071 build-stage projects), derived at display time by `ProjectPayoff` from invested Vitality, authored cost and authored build stages. Percent is at least 1 once anything is invested and at most 99 before completion. OpenSpec: `openspec/changes/add-first-session-payoff/`.
+
+**Rejected.** An onboarding-only cheaper first project: it changes authored content (content version/hash, pacing evidence, cadence gate) to fix a perception problem that display-time progress fixes without touching canonical state. Revisit only if device playtests say the copy is not enough.
+
+**Tests.** `FirstSessionPayoffTests` (14, headless-tested), `FirstSessionPayoffShellTests` (1, Unity-editor-tested, batch mode). Pacing evidence 7 reproduced / 0 drifted; content compatibility passed. Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None. No save, schema, content version or content hash change.
 ## D-146 — Unsupported provider outranks a prior denial: "source unavailable", not "Open Settings" (2026-10-17)
 **Decision.** Resolves the D-144 observation. When the activity source is `Unsupported` (Health Connect not installed/available), the status is `SourceUnavailable` whatever the permission, including a prior `Denied`/`Revoked`. Before, a prior denial projected `PermissionDenied` + OpenSettings, a dead end because Settings cannot grant access to a provider that is not there. Precedence is now: ProviderUpdateRequired, then Unsupported, then permission (D-068 order otherwise unchanged). An installed provider after a denial still offers OpenSettings.
 

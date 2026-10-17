@@ -11,6 +11,13 @@ namespace WalkGame.Application.ReadModels
     /// </summary>
     public sealed class GlanceReadModel
     {
+        /// <summary>
+        /// D-145: how far the active project is and how far the next visible change is
+        /// ("Clear the old trailhead: 4% restored. About 28,800 more steps to finish it.").
+        /// Null when nothing is funded yet. Display-time only; derived from canonical state.
+        /// </summary>
+        public string? PayoffSentence { get; }
+
         /// <summary>What changed: one lead sentence, never a list of every pending item.</summary>
         public string WhatChangedSentence { get; }
 
@@ -52,8 +59,10 @@ namespace WalkGame.Application.ReadModels
             string attentionSentence,
             string? primaryNextAction,
             string activitySentence,
-            string? onboardingSentence)
+            string? onboardingSentence,
+            string? payoffSentence = null)
         {
+            PayoffSentence = payoffSentence;
             WhatChangedSentence = whatChangedSentence;
             FurtherChangeCount = furtherChangeCount;
             RestoringNowSentence = restoringNowSentence;

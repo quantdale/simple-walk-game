@@ -231,5 +231,9 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - This PR (D-144): `HealthConnectFailureMatrixTests`. 120 permission x availability x outcome x processed rows plus a live walk through every failure state with a reboot. No finding. One UX observation is logged in D-144: Unsupported + Denied still reads as OpenSettings. .NET 1028/1028 (headless-tested). Unity was not run this session (test-only .NET changes); EditMode stays 230 as of D-141.
 - Leases: worktrees `wt-lifecycle-grok1017b` and `wt-hcfail-grok1017b` used `SWG_SESSION_ID=grok-1017b`, released at the end without `--force`. Removed the merged clean `wt-ki023-grok1017` and `wt-migharden-grok1017` with `git worktree remove`. Region 2 is still PROPOSED only. Next: onboarding first-walk payoff (the 30k-step entry project shows only "Vitality credited: N." after a short walk; any stage/summary change touches content/pacing contracts, so it needs a design pass); device lane (KI-002).
 
+## Session note 2026-10-17 (grok1017c)
+- D-145 first-session payoff (OpenSpec `add-first-session-payoff`): display-time percent + steps to the next visible change on Home and the return summary. No save/content change; onboarding cost tuning deliberately rejected (would move content hash and pacing evidence).
+- Next: device playtest of first-session copy when KI-002 unblocks; Region 2 still gated (not approved).
+
 ## Session note 2026-10-17 (grok1017c, D-146)
 - An uninstalled/unsupported Health Connect now reads as SourceUnavailable even after a prior denial/revocation (resolves the D-144 observation).
