@@ -1601,6 +1601,22 @@ namespace WalkGame.Application
         public IReadOnlyList<CharacterDialogueReadModel> GetCharacters() =>
             WorldPresentationProjector.Characters(RequireState(), ContentLocale);
 
+        /// <summary>
+        /// D-167: what each selectable or in-progress restoration goal would change (typed consequences,
+        /// before/after variant keys). Computed with the advancer's own completion rules; read-only.
+        /// </summary>
+        public RestorationChoicesReadModel GetRestorationChoices() =>
+            WorldChangeProjector.Choices(_content, RequireState(), ContentLocale);
+
+        /// <summary>
+        /// D-167: visual changes after <paramref name="sinceUtc"/>, derived from canonical completion
+        /// times (works across restarts and offline returns; nothing new is persisted). Empty when the
+        /// history cannot be reproduced, never invented. Use <see cref="WorldViewDiff.Between"/> for
+        /// in-session construction advances.
+        /// </summary>
+        public IReadOnlyList<VisualChangeEvent> GetVisualChangesSince(DateTimeOffset sinceUtc) =>
+            WorldChangeProjector.ChangesSince(_content, RequireState(), sinceUtc);
+
         public LettersReadModel GetLetters()
         {
             var game = RequireState();

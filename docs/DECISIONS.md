@@ -3081,3 +3081,26 @@ Everything is derived from canonical state at read time, in the Application laye
 **Copy note.** The character lines are first-draft authored copy and can be revised after the art-direction checkpoint (D-164). Portraits and expressions are keys only; no art exists.
 
 **Evidence.** `WorldPresentationContentTests` (4) and `WorldViewReadModelTests` (7): fresh valley, seen/pending, a 120-day run checked against canonical state every day (stages, monotonic unlocks, selectable set equals the Available/Queued set, dialogue only grows), side-effect-free and reload-deterministic reads, never-reading equals reading, locale overlay with English fallback, and construction key equal to the region's build stage. .NET 1137/1137 (Domain 162, Infrastructure 208, Application 767); architecture 15/15; content compatibility pass. Labels: headless-tested. Unity not run (no Unity change).
+
+## D-167 — Restoration-choice previews and the visual-change stream (2026-10-17)
+
+**Status:** Accepted (agent; implements tasks 3–5 of OpenSpec `add-interactive-world-presentation`, D-165)
+
+**Decision.**
+- `GameSession.GetRestorationChoices()` returns a `RestorationChoicesReadModel` covering every Available, Queued or Active project. Each choice carries:
+  - location, cost, progress and affordability;
+  - before/after variant keys for its own place;
+  - a closure-milestone flag;
+  - typed consequences: landmark stage (from/to keys), projects opened, producers unlocked, ecology/settlement steps, a discovery at a location (never named, D-155), a character arriving or moving, new dialogue, and chapters unlocked.
+
+  The rules mirror `OfflineAdvancer.ApplyCompletionEffects` / `UpdateAvailability`. Chapters are predicted by running `StoryProgress.Evaluate` on a small copy of the project statuses. `GameState` is never touched.
+- `GameSession.GetVisualChangesSince(since)` replays completions in (`CompletedAtUtc`, content order) and emits ordered `VisualChangeEvent`s: location unlocked, landmark stage changed, character arrived/moved, dialogue available, ecology/settlement advanced, region completed. Each event has a stable `Sequence`. Legacy completions without a time count as baseline. If the replay does not reproduce the canonical stages and arcs, the stream is empty rather than invented.
+- `WorldViewDiff.Between(before, after)` gives the in-session equivalent and also reports `ConstructionAdvanced` (build stages have no timestamp).
+
+**Not changed.** Save schema v3, content version/fingerprint, pacing evidence (7/7 reproduced), save growth, Domain, Unity. The read-model reflection sweep (`M5H1ContractHardeningTests`) now counts 16 surfaces, with `GetRestorationChoices` added to its required list.
+
+**Evidence.**
+- `RestorationChoicePreviewTests` (3): an 8k-steps/day run to closure checks every one of the 19 projects' previews against what its completion actually changed (stages, opened projects, producers, arcs, discovery count, chapters, characters, dialogue, after-key). Previews are byte-neutral on the save.
+- `VisualChangeStreamTests` (3): every day of the same run, the timestamp stream equals the world-view diff, minus construction. The full history is ordered and ends in RegionCompleted. Reload gives a stable stream, and `since` only filters. A legacy untimed completion becomes baseline; an unexplainable stage gives an empty stream.
+- Mutation check: suppressing Functional stages, or Ida's dialogue, in the projector fails the suites.
+- .NET 1143/1143; architecture 15/15; content compatibility, save growth and pacing evidence pass; simulation smoke and validate selftest pass. Labels: headless-tested. Unity not run (no Unity change).
