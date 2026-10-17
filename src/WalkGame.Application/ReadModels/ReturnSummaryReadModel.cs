@@ -26,6 +26,9 @@ namespace WalkGame.Application.ReadModels
 
         public DateTimeOffset GeneratedAtUtc { get; }
 
+        /// <summary>D-138: <see cref="PrimaryNextAction"/> for display (localized; English when no overlay).</summary>
+        public string? PrimaryNextActionDisplay { get; private set; }
+
         /// <summary>True when at least one item is still CURRENT (see <see cref="ItemRow.IsCurrent"/>).</summary>
         public bool HasCurrentItems
         {
@@ -44,6 +47,7 @@ namespace WalkGame.Application.ReadModels
         {
             Items = items;
             PrimaryNextAction = primaryNextAction;
+            PrimaryNextActionDisplay = primaryNextAction;
             GeneratedAtUtc = generatedAtUtc;
         }
 
@@ -57,7 +61,7 @@ namespace WalkGame.Application.ReadModels
         /// as brand new forever and the attention signal could never expire.
         /// </summary>
         public static ReturnSummaryReadModel FromState(
-            PendingReturnSummaryState state, DateTimeOffset? nowUtc = null)
+            PendingReturnSummaryState state, DateTimeOffset? nowUtc = null, Func<string?, string>? display = null)
         {
             var now = nowUtc ?? state.GeneratedAtUtc;
             var rows = new List<ItemRow>(state.Items.Count);
@@ -69,15 +73,22 @@ namespace WalkGame.Application.ReadModels
                     ? state.GeneratedAtUtc
                     : item.FirstCommittedAtUtc;
                 rows.Add(new ItemRow(item.Kind, item.Text, committedAt,
-                    now - committedAt <= CurrencyThreshold));
+                    now - committedAt <= CurrencyThreshold, display == null ? null : display(item.Text)));
             }
-            return new ReturnSummaryReadModel(rows, state.PrimaryNextAction, state.GeneratedAtUtc);
+            return new ReturnSummaryReadModel(rows, state.PrimaryNextAction, state.GeneratedAtUtc)
+            {
+                PrimaryNextActionDisplay = display == null || state.PrimaryNextAction == null ? state.PrimaryNextAction : display(state.PrimaryNextAction),
+            };
         }
 
         public sealed class ItemRow
         {
             public SummaryItemKind Kind { get; }
+            /// <summary>The stored English line (canonical; shells parse this, never DisplayText).</summary>
             public string Text { get; }
+
+            /// <summary>D-138: the line for display through the content overlay (equals Text in English).</summary>
+            public string DisplayText { get; }
 
             /// <summary>When this item was first committed to the durable summary.</summary>
             public DateTimeOffset FirstCommittedAtUtc { get; }
@@ -87,10 +98,11 @@ namespace WalkGame.Application.ReadModels
             /// attention for a summary whose items are all historical.</summary>
             public bool IsCurrent { get; }
 
-            public ItemRow(SummaryItemKind kind, string text, DateTimeOffset firstCommittedAtUtc, bool isCurrent)
+            public ItemRow(SummaryItemKind kind, string text, DateTimeOffset firstCommittedAtUtc, bool isCurrent, string? displayText = null)
             {
                 Kind = kind;
                 Text = text;
+                DisplayText = string.IsNullOrEmpty(displayText) ? text : displayText!;
                 FirstCommittedAtUtc = firstCommittedAtUtc;
                 IsCurrent = isCurrent;
             }

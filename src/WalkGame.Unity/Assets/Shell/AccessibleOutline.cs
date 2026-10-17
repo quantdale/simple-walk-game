@@ -32,7 +32,7 @@ namespace WalkGame.Shell
             var items = new List<AccessibleItem> { new AccessibleItem(AccessibleRole.Header, model.Title) };
             if (model.Notice != null)
                 items.Add(new AccessibleItem(AccessibleRole.StaticText,
-                    (model.State == ScreenState.Error ? "Problem: " : "Note: ") + model.Notice));
+                    PlayerStrings.F(model.State == ScreenState.Error ? "label.problem" : "label.note", model.Notice)));
             if (model.Scene != null) items.Add(new AccessibleItem(AccessibleRole.Image, model.Scene.AltText));
             foreach (var line in model.Lines)
                 if (!string.IsNullOrWhiteSpace(line)) items.Add(new AccessibleItem(AccessibleRole.StaticText, line));

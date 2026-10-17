@@ -2683,3 +2683,17 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** EditMode 228/228, 0 inconclusive (Unity-editor-tested). .NET 871/871 (headless-tested). The other clean-clone lanes on `86f767a` passed: CI-step reproduction 19 ok, PlayMode 4 + 1 ignored, arm64 APK built. Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-138 — KI-023 remainder: stored summary lines and single-word labels (2026-10-17)
+
+**Context.** D-122 left two English-only surfaces. Return-summary lines are stored in the save as composed English sentences, and the shell had single-word labels and short label templates such as "Home", "Continue", "Earlier: …" and "Step 1 of 5".
+
+**Decision.** Display-only, with no save, schema or content-hash change.
+- `SummaryLineText` matches a stored line against the closed set of composer sentence forms and the D-065 landmark glance form. On a match it re-renders the line from the overlay pattern `summary.<form>#text` (positional `{0}`), mapping a content title back to its stable id and localizing it. An unrecognised line, a missing pattern or an ambiguous title keeps the stored English. A broken pattern uses the English form. English is byte-identical.
+- `ReturnSummaryReadModel.ItemRow.Text` stays the stored English. The shell's moment, celebration and chapter parsers keep reading it. The new `DisplayText` (and `PrimaryNextActionDisplay`) is what gets rendered. `SummaryLines` is display text.
+- 19 `label.*` keys in `PlayerStrings` cover nav and screen titles, Continue, Earlier, Problem/Note, Start, Move up, diagnostics, resources, discoveries count, step, prologue/chapter headings and the story line.
+- Residual: "expedition complete (+N type)" lines and expedition/care descriptions stay English.
+
+**Tests.** .NET `SummaryLineOverlayTests` (9): English identical, every recognised line translated, the save bytes unchanged, fallbacks. EditMode `SummaryAndLabelLocaleTests` (2): a real 7-day return summary renders translated lines and labels, the line count is unchanged, saves are unchanged, and English is restored. .NET 880/880 (headless-tested), EditMode 230/230 (Unity-editor-tested). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None. The content-compatibility gate is unchanged.
