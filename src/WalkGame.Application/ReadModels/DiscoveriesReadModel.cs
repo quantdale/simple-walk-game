@@ -43,6 +43,11 @@ namespace WalkGame.Application.ReadModels
             public DateTimeOffset? DiscoveredAtUtc { get; }
             public bool Reviewed { get; }
 
+            /// <summary>D-155: the project whose completion turns this discovery up
+            /// (<c>DiscoveryDefinition.UnlockedByProjectId</c>). An id, never copy; the shell names
+            /// the project, never the unfound discovery.</summary>
+            public string UnlockedByProjectId { get; }
+
             public DiscoveryRow(
                 string discoveryId,
                 string category,
@@ -52,8 +57,10 @@ namespace WalkGame.Application.ReadModels
                 string? locationKey,
                 bool unlocked,
                 DateTimeOffset? discoveredAtUtc,
-                bool reviewed)
+                bool reviewed,
+                string unlockedByProjectId = "")
             {
+                UnlockedByProjectId = unlockedByProjectId ?? string.Empty;
                 DiscoveryId = discoveryId;
                 Category = category;
                 TitleKey = titleKey;

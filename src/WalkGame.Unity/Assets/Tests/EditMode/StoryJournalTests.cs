@@ -47,7 +47,9 @@ namespace WalkGame.Shell.Tests
             var story = s.GetStory();
             foreach (var locked in story.Chapters.Skip(2))
                 Assert.IsTrue(m.Lines.Any(l => l.EndsWith(locked.TitleKey + " (ahead)")), locked.TitleKey);
-            Assert.AreEqual(story.TotalChapters + 2, m.Lines.Count, "header + prologue body + one line per other chapter");
+            // D-155: plus the "Getting there" lines under the next chapter (derived from its required restorations).
+            int path = ShellController.ChapterPathLines(story.Chapters.First(x => !x.Unlocked), s.GetProjects()).Count;
+            Assert.AreEqual(story.TotalChapters + 2 + path, m.Lines.Count, "header + prologue body + one line per other chapter + next-chapter path");
             Assert.IsTrue(m.Actions.Any(a => a.Id == "nav:Home"));
         }
 

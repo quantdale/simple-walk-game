@@ -667,6 +667,9 @@ namespace WalkGame.Shell
             }
             int hidden = d.TotalDiscoveries - d.UnlockedCount;
             if (hidden > 0) m.Lines.Add(PlayerStrings.F(hidden == 1 ? "shell.discoveries.hidden.one" : "shell.discoveries.hidden.many", hidden));
+            // D-155: name the open projects whose completion turns up an unfound discovery (never the find itself).
+            var ahead = FindsAhead(d, _session.GetProjects());
+            if (ahead.Count > 0) m.Lines.Add(PlayerStrings.F("shell.discoveries.ahead", string.Join(", ", ahead)));
             // D-118: Nell's letters are listed with the discoveries but read in the Story journal.
             var letters = _session.GetLetters();
             if (letters.FoundCount > 0) m.Lines.Add(LettersCountLine(letters) + " " + PlayerStrings.T("letters.inJournal"));
@@ -693,6 +696,51 @@ namespace WalkGame.Shell
             m.Actions.Add(new ShellAction("nav:Region", PlayerStrings.T("shell.theValley")));
             m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
+        }
+
+        /// <summary>
+        /// D-155: titles of open (active, queued or available) projects whose completion turns up a
+        /// still-unfound discovery, mirroring <c>OfflineAdvancer.EvaluateDiscoveries</c>
+        /// (<c>UnlockedByProjectId</c>). Names the project only, so no find is spoiled. Project order.
+        /// </summary>
+        public static List<string> FindsAhead(WalkGame.Application.ReadModels.DiscoveriesReadModel d, ProjectsReadModel p)
+        {
+            var pending = new HashSet<string>(d.Discoveries.Where(x => !x.Unlocked && !string.IsNullOrEmpty(x.UnlockedByProjectId))
+                .Select(x => x.UnlockedByProjectId), StringComparer.Ordinal);
+            return p.Projects.Where(r => pending.Contains(r.ProjectId) && r.Status != ProjectStatus.Locked && r.Status != ProjectStatus.Completed)
+                .Select(r => PlayerCopy.Title(r.TitleKey)).ToList();
+        }
+
+        /// <summary>
+        /// D-155: for the next locked chapter, one line per required restoration that is not yet
+        /// finished (<c>StoryChapterDefinition.RequiredProjectIds</c>, as <c>StoryProgress.Evaluate</c>
+        /// reads them): an open project shows its status and progress; a locked one names its
+        /// unrestored prerequisites, or says it opens as the valley recovers. Care-gated chapters and
+        /// unknown ids add nothing (the authored hint already covers them).
+        /// </summary>
+        public static List<string> ChapterPathLines(WalkGame.Application.ReadModels.StoryReadModel.ChapterRow chapter, ProjectsReadModel p)
+        {
+            var lines = new List<string>();
+            if (chapter == null || chapter.Unlocked) return lines;
+            var byId = p.Projects.ToDictionary(r => r.ProjectId, StringComparer.Ordinal);
+            foreach (var id in chapter.RequiredProjectIds)
+            {
+                if (!byId.TryGetValue(id, out var r) || r.Status == ProjectStatus.Completed) continue;
+                string title = PlayerCopy.Title(r.TitleKey);
+                if (r.Status != ProjectStatus.Locked)
+                {
+                    lines.Add(PlayerStrings.F("shell.story.path.open", title, PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition),
+                        PlayerStrings.F("shell.story.path.amount", r.VitalityInvested, r.VitalityCost)));
+                    continue;
+                }
+                var missing = r.PrerequisiteIds.Where(x => byId.TryGetValue(x, out var q) && q.Status != ProjectStatus.Completed && q.Status != ProjectStatus.Locked)
+                    .Select(x => PlayerCopy.Title(byId[x].TitleKey)).ToList();
+                bool lockedPrereq = r.PrerequisiteIds.Any(x => byId.TryGetValue(x, out var q) && q.Status == ProjectStatus.Locked);
+                lines.Add(missing.Count > 0 && !lockedPrereq
+                    ? PlayerStrings.F(missing.Count == 1 ? "shell.story.path.locked.one" : "shell.story.path.locked.many", title, string.Join(", ", missing))
+                    : PlayerStrings.F("shell.story.path.lockedLater", title));
+            }
+            return lines;
         }
 
         /// <summary>"lm.canopy@Flourishing" → "Canopy flourishing"; unknown ids never leak raw.</summary>
@@ -779,6 +827,8 @@ namespace WalkGame.Shell
                 {
                     hinted = true;
                     m.Lines.Add(heading + " (next). " + c.HintKey);
+                    // D-155: where the restoration that brings this chapter stands right now.
+                    m.Lines.AddRange(ChapterPathLines(c, _session.GetProjects()));
                 }
                 else
                 {

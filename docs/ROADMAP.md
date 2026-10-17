@@ -623,3 +623,4 @@ The project should prefer **fewer, larger, integrated campaigns** over fragmente
 - [x] 2026-10-17 grok1017e: D-152 Home groups the invested line with the payoff line (Unity-editor-tested)
 - [x] 2026-10-17 grok1017e: D-153 text screens re-captured after D-152 (docs/evidence/d153-text-screens/, editor-rendered)
 - [x] 2026-10-17 grok1017e: D-154 Projects names what finishing each project opens (Unity-editor-tested; docs/evidence/d154-project-choices/, editor-rendered)
+- [x] 2026-10-17 grok1017f: D-155 Story and Discoveries name what open restorations lead to (Unity-editor-tested; docs/evidence/d155-leads-to/, editor-rendered)

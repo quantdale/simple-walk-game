@@ -2822,3 +2822,14 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** EditMode `ProjectChoiceFramingTests` (3). EditMode 240/240, PlayMode 4/4 + 1 ignored capture (Unity-editor-tested, batch mode); .NET 1046/1046 unchanged (headless-tested). Capture `docs/evidence/d154-project-choices/` (editor-rendered). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None. Content fingerprint unchanged.
+
+## D-155 — Story and Discoveries say what open restorations lead to (2026-10-17)
+**Decision.** Region 1 choice framing, same shape as D-154, display only.
+- Story: under the "(next)" chapter, one "Getting there:" line per restoration the chapter still needs. An open project shows its status and progress (captured: "Getting there: Drain and replant the east wetland — being restored now (350 of 2200 vitality)."). A locked one names its open, unrestored prerequisites ("… opens once X is restored."), or says it "opens as the valley recovers" when a prerequisite is itself still locked, so a locked project is never named as the next step. Care-gated chapters (the epilogue) add nothing; the authored hint covers them.
+- Discoveries: "Something new turns up when you finish: A, B." names the open (active, queued or available) projects whose completion turns up a still-unfound discovery. It names projects only, never the unfound find, so D-082's no-spoiler rule holds.
+- Both lines come from the canonical rules. `StoryReadModel.ChapterRow` now carries `RequiredProjectIds` and `MinCareCycles` straight from `StoryChapterDefinition` (what `StoryProgress.Evaluate` reads), and `DiscoveryRow` carries `UnlockedByProjectId` (what `OfflineAdvancer.EvaluateDiscoveries` reads). These are ids, never copy, and a locked chapter still has no body. Helpers: `ShellController.ChapterPathLines` and `ShellController.FindsAhead`. New `PlayerStrings` keys are `shell.story.path.*` and `shell.discoveries.ahead`.
+- `ValleyCaptureTests` gains `WG_CAPTURE_SCROLL_TO` (scrolls a line into view), and Discoveries with `WG_CAPTURE_STATE=mid|late` uses the seeded mid/late save. This is capture tooling only.
+
+**Tests.** .NET `LeadsToReadModelTests` (3): read-model ids equal the catalog, and completing a project turns up exactly the discoveries that name it (headless-tested). EditMode `StoryDiscoveryLeadsToTests` (5). `StoryJournalTests` line-count assertion extended by the path lines; no test deleted. .NET 1049/1049, EditMode 245/245, PlayMode 4 passed + 1 opt-in capture ignored (Unity-editor-tested, batch mode). Captures in `docs/evidence/d155-leads-to/` (editor-rendered). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None. Schema v3 unchanged; content fingerprint unchanged; pacing evidence 7/7 reproduced.
