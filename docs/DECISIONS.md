@@ -3147,6 +3147,44 @@ Everything is derived from canonical state at read time, in the Application laye
 - Mutation check: dropping the watermark update fails the replay-once test, and dropping the per-place choice filter fails the mid-game scoping test.
 - EditMode 269/269 (was 256), Unity 6000.3.26f1 batch. .NET 1143/1143. Architecture 15/15. Labels: Unity-editor-tested (EditMode); headless-tested (.NET). Not device-tested (KI-002). No visual output exists to capture.
 
+## D-170 — How AI-assisted art could be used under the licensing rule (2026-10-17)
+
+**Status:** **Proposed. NOT in effect. Needs Michael's approval** (morning queue). Agents may not accept it. Until Michael accepts or amends it, `docs/ASSET_LICENSES.md` stands unchanged: only in-repo-created or CC0 assets may be added, and no AI-generated or AI-derived image may be committed under `src/` or shipped.
+
+**Context.**
+- Nothing in the rule covers AI images. The concept material produced for the D-164 checkpoint is AI-generated and was kept off-repo for that reason (D-168).
+- Two facts make a written policy necessary before any AI-derived pixel could ship. First, the copyright status of material generated without human authorship is unsettled; for example, US Copyright Office guidance treats purely AI-generated material as not protectable, while human-authored contributions can be. Second, each generator has its own terms of use.
+- The policy is style-neutral: it applies to whatever visual direction is approved.
+
+**Proposed rule (if accepted, it becomes a third category in `docs/ASSET_LICENSES.md`: "AI-assisted, human-finished").**
+1. **Approved tools only.** A generator may be used only after Michael names it in this entry's acceptance, with the terms version reviewed. The terms must allow commercial use of output and must not claim ownership of it. Paid tools are out of scope (no paid costs).
+2. **Never ship raw output.** AI output may serve as concept, reference or underpainting. A shipped asset must carry substantial human work done in-repo: repainting, modelling, retopology/re-rendering, or line and colour cleanup. Raw generator output (including lightly cropped or upscaled output) never ships.
+3. **Clean inputs.** Prompts must not name living artists, studios, games or franchises, or trademarked characters, and must not ask for their style. Reference images fed to a generator must be in-repo-created, CC0 or owner-provided. *Consequence:* the existing checkpoint images (whose prompts named commercial games) are ineligible even as underpaintings. They stay concept-only.
+4. **Per-asset ledger.** Every AI-assisted asset gets a row in a ledger (proposed: `docs/ASSET_LEDGER.md`, or a CSV next to the assets) with:
+   - asset path and kind;
+   - tool, version and terms version;
+   - date and prompt summary;
+   - reference inputs and their licence;
+   - SHA-256 of each raw output used (raw files are kept off-repo);
+   - human edits made, who made them and their source file (e.g. `.kra`/`.blend`, committed when practical);
+   - SHA-256 of the final file;
+   - licence and the reviewer's approval.
+5. **Review gate.** Each batch is checked by eye for close resemblance to known works before it is committed. Michael (or a delegate he names) approves the first batch of each asset kind.
+6. **Mechanical check (later task).** A CI script (e.g. `scripts/verify-asset-ledger.sh`) fails when a file under the art folders has no ledger row, or when its hash does not match.
+7. **Reversibility.** The ledger must make every AI-derived asset findable and replaceable if the terms change or a claim arises.
+8. **Disclosure.** Whether store listing or credits say "some art created with AI assistance" is Michael's call. It is recorded here on acceptance.
+
+**Options for Michael.**
+- (a) Accept as written.
+- (b) Accept narrowly: AI for concept and reference only, never pixels in a shipped asset. Finished assets are fully human-made or CC0. The ledger is still kept for concept use.
+- (c) Reject: the status quo stays and AI images remain off-repo concept material.
+- Or amend any rule above.
+
+**Agent recommendation:**
+- (b) for environment assets, where in-repo modelling/painting and CC0 kits can cover production without AI pixels.
+- (a) only for character portraits, where illustration skill is the scarcest. Those portraits get mandatory hand cleanup and a ledger row.
+
+**Not changed by this proposal:** `docs/ASSET_LICENSES.md`, any asset, save, content or code. No CI check is added until accepted.
 ## D-171 — Creative Direction Bible v1 governs art and experience; round 2 concepts are the single art gate (2026-10-17)
 
 **Status:** Accepted (owner direction from Michael, 2026-10-17 4:12 PM Asia/Manila)
