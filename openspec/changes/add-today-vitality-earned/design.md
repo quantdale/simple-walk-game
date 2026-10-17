@@ -21,6 +21,8 @@ Cost is O(retained rows) per Home render. The 45-day retention window bounds the
 ## Today
 `DayOf(clock.UtcNow, deviceOffsetSeconds)`. An offset outside ±18 h makes the read model unknown, and no line is shown. A walk recorded in a zone different from the device's current one counts on the day its provider recorded (travel edge, the same rule as days walked).
 
+**Addendum (D-157).** When the provider records no offset, the adapter supplies the device zone's offset in force at the record's end instant, so such walks count too. A source offset always wins, deletions never take the fallback, and a failing lookup leaves the walk undated. Identity, crediting and schema v3 are unchanged.
+
 ## Rejected: persisted per-day ledger + v3→v4 migration
 See the proposal. It duplicates canonical rows, needs a seeding rule that is either wrong (empty) or a copy (rows), adds bytes and a validator invariant, and adds a second structure that corrections must update atomically.
 

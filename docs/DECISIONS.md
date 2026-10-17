@@ -2868,3 +2868,45 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Save compatibility.** None: schema v3 is unchanged, nothing new is persisted, and the content fingerprint is unchanged.
 
 **Owner acceptance (2026-10-17).** Michael, the owner, accepted the derived no-migration design: per-day earnings stay derived from the processed-record rows, and schema stays v3. The 'confirm D-156' item is removed from the KNOWN_ISSUES morning queue. A persisted pruned ledger stays a possible later change with its own OpenSpec, migration and decision.
+
+**Addendum (D-157).** A walk whose source supplied no zone offset is now dated at ingestion with the device zone's offset at the record's end instant (adapter level, schema unchanged). The Today line therefore also shows for offsetless Health Connect records and, once composed, untagged HealthKit samples.
+
+## D-157 — An offsetless walk gets a local day from the device zone at the record's time (2026-10-17)
+
+**Context.** D-156's "Today: N Vitality earned" and D-103's days walked only count walks that carry a local day. A record gets one only from its source's zone offset. A walk without an offset was undated, so the Today line could stay hidden on real data. The question was what the adapters actually receive:
+- **Health Connect.** The bridge reads `android.health.connect.datatypes.StepsRecord` through the framework API (API 34+). There `IntervalRecord.getEndZoneOffset()` and `getStartZoneOffset()` are documented as *never null*. A record written without an offset (Jetpack `startZoneOffset`/`endZoneOffset` are nullable) is given the writer's system default by the framework builder, so the platform still returns one. The bridge's null check and the adapter's empty sixth field are therefore defensive. They are reachable from a future or alternative bridge, never observed. The real-world risk is low but it was not handled.
+- **HealthKit** (unwired, KI-022). A sample's zone comes only from optional `HKMetadataKeyTimeZone` metadata, which the Swift bridge reads when present. Apple sets it mainly for some sample kinds (e.g. sleep). iPhone step samples are commonly untagged, so on iOS an undated walk would be the *normal* case.
+
+**Decision.** At ingestion, in the adapter (Infrastructure), a **credit** record with no source offset gets the **device zone's offset in force at the record's end instant** (`DeviceZoneOffsets.Local` = `TimeZoneInfo.Local.GetUtcOffset(endUtc)`).
+- A source offset always wins, and the fallback is not consulted.
+- Deletions never take it. A correction without an offset already keeps the row's previous day (D-103).
+- The offset is the one at the record's time, not at sync time. A walk before a DST change gets the pre-change offset, and a `DateTimeOffset` instant is unambiguous in the repeated fall-back hour.
+- It fails soft. A throwing zone lookup, a null result, a non-whole-second offset or one outside ±18 h leaves the walk undated, exactly as before. The fetch never fails because of it.
+- It uses the same zone the shell reads "today" in (`ShellController.LocalOffsetSeconds` = `DateTimeOffset.Now.Offset`), so a walk and "today" agree for a player who did not travel.
+- The Domain stays zone-free: `LocalDayCalendar` still takes an integer offset. The zone lookup is an injected `Func<DateTimeOffset, int?>` on the adapter constructor (optional; null keeps the pre-D-157 behaviour). `ShellBootstrap` passes `DeviceZoneOffsets.Local` for Health Connect. `HealthKitActivityAdapter` has the same seam, mirrored, and stays unwired (KI-022).
+
+**What does not change.**
+- Crediting. The offset is outside record identity (`ActivityIdentity`), and the Vitality credited is identical with and without the fallback (tested).
+- Exactly-once. A replay is a dedup no-op. A replay under a different device zone (the player flew) re-credits nothing and does not re-label the stored day (tested).
+- The save schema. It stays v3. `ProcessedRecordEntry.LocalDay` already exists, so no migration and no new field are needed.
+
+**Rejected.**
+- Inferring in the Domain or Application. It would put a zone database into deterministic code (the `openspec/config.yaml` invariant: all time from an injected clock, integer math).
+- The device's *current* offset, as D-102 rejected for seeding. It would mis-date walks across a DST change.
+- Keeping the walk undated. Then Today could never show on iOS.
+- Flagging inferred days so days walked stays "at least N". A best-estimate day can be off only by a midnight shift, so "at least" would not be true either.
+
+**Residual (logged in KI-025).** If the player changes zone between an offsetless walk and its first sync, the walk is dated in the new zone: its day may shift by one, and "Today" or days walked can be off by one. Crediting is never affected. Mono's `TimeZoneInfo.Local` may also be cached until restart after a zone change. Both "today" and records use it, so they stay consistent. Device behaviour for both platforms is UNVERIFIED (KI-002, KI-022).
+
+**Tests.** `DeviceZoneOffsetFallbackTests` (Infrastructure, 10 cases):
+- the offset at the instant across both DST transitions (custom zone rules, independent of the host tz database), non-hour (+5:45) and date-line (+14 / −11) offsets;
+- a missing or empty sixth field takes the fallback, and a present offset wins without consulting it;
+- the record's time, not the sync time, decides the day across a DST change;
+- a throwing, null or out-of-range fallback leaves the walk undated and still fetches;
+- deletions never take it; HealthKit untagged versus tagged samples;
+- end to end through `GameSession`: Today shows 60 only with the fallback, credit is identical, a replay under another zone is a duplicate with the day unchanged, schema v3, and the day survives a reload.
+
+A mutation check (removing the fallback call) fails 4 of them. All are headless-tested.
+- Totals: .NET 1077/1077 (Domain 162, Infrastructure 208, Application 707; headless-tested); EditMode 250/250 and PlayMode 4 passed + 1 opt-in capture ignored (Unity-editor-tested, batch mode, so the `ShellBootstrap` wiring compiles in Unity). Gates: architecture 15/15, content compatibility passed, save growth verified, pacing evidence 7/7 reproduced.
+
+**Save compatibility.** None: schema v3 is unchanged and the content fingerprint is unchanged.

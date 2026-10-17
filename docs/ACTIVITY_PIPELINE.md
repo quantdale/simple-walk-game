@@ -289,6 +289,8 @@ Test:
 - records spanning midnight;
 - long inactivity periods.
 
+**Local day of a record (D-103, D-157).** A record's local day is its end instant under the source's zone offset. When the source supplies none (a defensive case for Health Connect, whose framework API documents a non-null offset; the common case for untagged HealthKit step samples), the adapter uses the device zone's offset in force **at the record's end instant**, so DST transitions are handled. The offset is outside record identity, and the local day is presentation only (days walked, "Today"). It never changes crediting, dedup or the save schema. A failing zone lookup leaves the record undated.
+
 **The device clock is not trusted for eligibility** (D-053). Both window bounds are
 anchored to durable trusted progress as well as the clock, specifically so that:
 

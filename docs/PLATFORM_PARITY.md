@@ -30,7 +30,7 @@ is offered (no dead end), onboarding completes, and no development walking is ex
 | Step reads on boot/resume, 30-day bounded window | automated-verified (D-107 budget tests on the fake bridge); device UNVERIFIED | none |
 | Deletions (change log) | automated-verified at contract level (D-069) | none |
 | Expired change-token recovery | automated-verified, Java headless (D-077) | none |
-| Local date per record (days walked) | `endZoneOffset`, compiled in APK (D-103); device UNVERIFIED | none |
+| Local date per record (days walked, Today) | `endZoneOffset`, compiled in APK (D-103); documented non-null on the framework API; if absent, the device zone's offset at the record's end (D-157, headless-tested); device UNVERIFIED | `HKMetadataKeyTimeZone` when the sample is tagged, else the same device-zone fallback (D-157, adapter seam headless-tested, not composed) |
 | Sub-unit step carry | provider-keyed (D-079), would apply unchanged | would apply unchanged |
 | Background sync | none (KI-016c), by design for battery | none |
 | OS versions | Android 14+ (9–13 report unsupported, KI-016b) | n/a |

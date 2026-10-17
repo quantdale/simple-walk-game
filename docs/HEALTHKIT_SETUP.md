@@ -34,6 +34,8 @@ made that an iOS build works.
 
 ## Device checks (all UNVERIFIED today)
 
+- Local day (D-157). iPhone step samples usually carry no `HKMetadataKeyTimeZone`, so their local day comes from the device zone's offset at the sample's end. When composing, pass `DeviceZoneOffsets.Local` as the third `HealthKitActivityAdapter` argument, as `ShellBootstrap` does for Health Connect. On a device, check that a walk shortly after local midnight counts toward that day's "Today" line.
+
 - The dialog shows only "Steps" under read; no write rows.
 - Deny all, then grant in Settings → Health → Data Access: steps appear after the next resume.
 - Steps from iPhone and Apple Watch: HealthKit returns both as separate samples, and today's pipeline would double count them. D-113 designs the fix (`HealthKitSourceDedup`: Watch > iPhone > other, the lower-priority sample keeps only its steps outside time already covered, prorated and floored) and D-114 wires it: the bridge sends a sixth field `watch|phone|other` (from `HKDevice.model` + `HKSource.bundleIdentifier`) and the adapter credits each sample's deduplicated share. Residuals (late-arriving Watch samples, deleted covering samples) are in D-114. Check on a device with both before release.

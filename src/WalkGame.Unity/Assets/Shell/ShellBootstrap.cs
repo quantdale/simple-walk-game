@@ -44,7 +44,8 @@ namespace WalkGame.Shell
             if (AndroidHealthConnectBridge.IsAndroidPlayer)
             {
                 // D-068: Android players read real steps through Health Connect.
-                var health = new HealthConnectActivityAdapter(new AndroidHealthConnectBridge(), () => DateTimeOffset.UtcNow);
+                var health = new HealthConnectActivityAdapter(new AndroidHealthConnectBridge(), () => DateTimeOffset.UtcNow,
+                    WalkGame.Infrastructure.Platform.DeviceZoneOffsets.Local); // D-157: local day when a record has no offset
                 _controller = new ShellController(CreateSession(SaveDirectory, health),
                     () => (ulong)DateTime.UtcNow.Ticks, Debug.isDebugBuild, health, AndroidHealthConnectBridge.RequestPermission);
             }
