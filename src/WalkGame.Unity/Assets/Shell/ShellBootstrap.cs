@@ -59,6 +59,7 @@ namespace WalkGame.Shell
             // D-119: optional gentle reminder (Android only); set before the first resume sync.
             if (AndroidReminderScheduler.IsAvailable) { _controller.Reminders = new AndroidReminderScheduler(); _controller.SyncReminder(); }
             _controller.TextScaleSource = () => UnityEngine.Accessibility.AccessibilitySettings.fontScale;
+            _controller.OsMotion = MotionPreference.ForCurrentPlatform(); // D-186; native reads UNVERIFIED on device
             Debug.Log("WG_BOOT status=" + _controller.LastStartStatus + " screen=" + _controller.Current + " dir=" + SaveDirectory); // l10n-ignore: developer log
 
             _document = gameObject.AddComponent<UIDocument>();

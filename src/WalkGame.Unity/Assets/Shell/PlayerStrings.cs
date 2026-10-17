@@ -25,6 +25,7 @@ namespace WalkGame.Shell
             // Settings status lines (D-097)
             ["settings.motion.on"] = "Reduced motion is on. Your choice is saved on this device.",
             ["settings.motion.off"] = "Reduced motion is off. You can turn it on at any time.",
+            ["settings.motion.os"] = "Reduced motion is on because your phone is set to show less motion.",
             ["settings.sound.on"] = "Sound is on. You can turn it off at any time.",
             ["settings.sound.off"] = "Sound is off. The game stays quiet.",
             ["settings.diagnostics.on"] = "Support details are shown. They are only for looking into a step-count question.",

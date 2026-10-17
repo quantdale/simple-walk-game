@@ -288,7 +288,10 @@ namespace WalkGame.Shell.Presentation
             OpenDialogue = null;
         }
 
-        private bool ReducedMotion() => _session.GetSettings().ReducedMotion;
+        /// <summary>D-186: the phone's reduce-motion setting, OR-ed with the in-game setting; null adapter by default.</summary>
+        public IOsMotionPreference OsMotion { get; set; } = NullOsMotionPreference.Instance;
+
+        private bool ReducedMotion() => MotionPreference.Effective(_session.GetSettings().ReducedMotion, OsMotion);
 
         private void HideInspectOnly()
         {
