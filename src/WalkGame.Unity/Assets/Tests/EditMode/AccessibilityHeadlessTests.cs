@@ -67,7 +67,8 @@ namespace WalkGame.Shell.Tests
                 c.Invoke("nav:" + screen);
                 var root = new VisualElement();
                 ShellView.Render(root, c.Render(), _ => { }, 2f);
-                Assert.AreEqual(ShellView.TitleSize * 2f, root.Q<Label>("title").style.fontSize.value.value, 0.01f, screen);
+                Assert.AreEqual(ShellView.TitleSizeFor(2f), root.Q<Label>("title").style.fontSize.value.value, 0.01f, screen); // D-136: title grows at half rate
+                Assert.That(root.Q<Label>("title").style.fontSize.value.value, Is.GreaterThan(ShellView.BodySize * 2f), screen + ": title stays larger than body");
                 foreach (var l in root.Query<Label>().ToList())
                 {
                     Assert.That(l.style.fontSize.value.value, Is.GreaterThanOrEqualTo(ShellView.BodySize * 2f - 0.01f), screen + ": " + l.text);
@@ -79,6 +80,19 @@ namespace WalkGame.Shell.Tests
                     Assert.AreEqual(WhiteSpace.Normal, b.style.whiteSpace.value, b.text);
                     Assert.IsFalse(b.style.width.keyword == StyleKeyword.Undefined && b.style.width.value.value > 0, "no fixed button widths");
                 }
+            }
+        }
+
+        [Test] public void D136_title_size_grows_at_half_rate_and_stays_above_body()
+        {
+            Assert.AreEqual(ShellView.TitleSize, ShellView.TitleSizeFor(1f), 0.01f);
+            Assert.AreEqual(42f, ShellView.TitleSizeFor(2f), 0.01f);
+            Assert.AreEqual(42f, ShellView.TitleSizeFor(9f), 0.01f);
+            Assert.AreEqual(ShellView.TitleSize, ShellView.TitleSizeFor(float.NaN), 0.01f);
+            for (float k = 1f; k <= 2f; k += 0.05f)
+            {
+                Assert.That(ShellView.TitleSizeFor(k), Is.GreaterThan(ShellView.BodySize * k), "k=" + k);
+                Assert.That(ShellView.TitleSizeFor(k + 0.05f), Is.GreaterThanOrEqualTo(ShellView.TitleSizeFor(k)), "monotonic");
             }
         }
 

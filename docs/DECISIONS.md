@@ -2663,3 +2663,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `LongPlayInvariantPropertyTests` (.NET, 12). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-136 — Region 1 polish: Guide and Settings at 200% text (2026-10-17)
+
+**Context.** A 2x text-size review of the Guide and Settings screens with editor-rendered PNGs (`docs/evidence/d136-guide-settings-2x/`). At 200% the title scaled to 56 px and wrapped one word per line, pushing the Guide's only action below the fold.
+
+**Decision.** `ShellView.TitleSizeFor(k)` grows titles at half the body rate (28 px at 100%, 42 px at 200%) and keeps them at least 10% larger than body text. Body text and touch targets still scale fully (D-073), so the 200% resize requirement holds. Settings scrolls at 2x, and every action stays reachable. No other findings.
+
+**Tests.** EditMode `D136_title_size_grows_at_half_rate_and_stays_above_body`. The large-text test now expects `TitleSizeFor(2f)` and still asserts the title is larger than body (intended behaviour change, not a removed test). EditMode 227/227 + 1 ignored (Unity-editor-tested). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None (presentation only).
