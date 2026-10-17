@@ -89,6 +89,12 @@ namespace WalkGame.Application.Summaries
                 }
             }
 
+            // D-140 authored progression sentences: whole-sentence overlay entries.
+            for (int i = 0; i < ReturnSummaryComposer.EcologyLines.Count; i++)
+                if (line == ReturnSummaryComposer.EcologyLines[i]) return _text.Resolve(PatternId("ecology." + (i + 1)), Field, line);
+            for (int i = 0; i < ReturnSummaryComposer.SettlementLines.Count; i++)
+                if (line == ReturnSummaryComposer.SettlementLines[i]) return _text.Resolve(PatternId("settlement." + (i + 1)), Field, line);
+
             foreach (var (name, re, english) in Forms)
             {
                 var m = re.Match(line);

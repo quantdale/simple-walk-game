@@ -197,8 +197,7 @@ namespace WalkGame.Application.Summaries
 
                     case RegionProgressionAdvanced progression:
                         AddDeduped(merged, SummaryItemKind.Transformation,
-                            (progression.Axis == RegionProgressionAxis.Ecology ? "The valley's ecology" : "The settlement")
-                            + $" has reached stage {progression.Stage}.");
+                            ProgressionLine(progression.Axis == RegionProgressionAxis.Ecology, progression.Stage));
                         break;
 
                     case RegionCompleted:
@@ -366,6 +365,35 @@ namespace WalkGame.Application.Summaries
                     return;
             target.Add(new PendingSummaryItemState { Kind = kind, Text = text });
         }
+        /// <summary>
+        /// D-140 (Region 1 narrative polish): authored sentences for the ecology and settlement arcs,
+        /// replacing "has reached stage N" (a mechanical number the glance had to hide as an opaque
+        /// change). Newly composed lines only; already-stored lines keep their form (D-065 precedent).
+        /// A stage outside the authored table keeps the old numbered form.
+        /// </summary>
+        public static readonly IReadOnlyList<string> EcologyLines = new[]
+        {
+            "The valley's ecology is stirring: the woods are open to the light again.",
+            "The valley's ecology is recovering: clear water is held in the reservoir.",
+            "The valley's ecology is taking root: native sedges line the water's edge.",
+            "The valley's ecology is thriving: birds are nesting on the new islets.",
+        };
+
+        public static readonly IReadOnlyList<string> SettlementLines = new[]
+        {
+            "The settlement is waking: there is work at the bench again.",
+            "The settlement is growing: clean water runs to every house.",
+            "The settlement is gathering: the market hall is open again.",
+            "The settlement is lit: the square glows after dark.",
+        };
+
+        public static string ProgressionLine(bool ecology, int stage)
+        {
+            var table = ecology ? EcologyLines : SettlementLines;
+            if (stage >= 1 && stage <= table.Count) return table[stage - 1];
+            return (ecology ? "The valley's ecology" : "The settlement") + $" has reached stage {stage}.";
+        }
+
         private static string? FindChapterTitle(RegionDefinition content, string chapterId)
         {
             foreach (var c in content.Chapters)
