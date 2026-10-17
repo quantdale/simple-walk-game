@@ -237,3 +237,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-17 (grok1017c, D-146)
 - An uninstalled/unsupported Health Connect now reads as SourceUnavailable even after a prior denial/revocation (resolves the D-144 observation).
+
+## Session note 2026-10-17 (grok1017d, D-147)
+- D-147: five accessibility invariants now iterate every `ShellScreen`; fixed missing button min-width. EditMode 236/236 (Unity-editor-tested). Device screen readers still UNVERIFIED (KI-002).

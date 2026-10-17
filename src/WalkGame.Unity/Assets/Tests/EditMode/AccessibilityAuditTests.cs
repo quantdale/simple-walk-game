@@ -205,5 +205,126 @@ namespace WalkGame.Shell.Tests
                 }
             }
         }
+
+        // ---- D-147: Region 1 accessibility invariants across EVERY ShellScreen -------------------
+
+        private static readonly float[] Scales = { 1f, 1.3f, 2f };
+
+        [Test] public void D147_every_screen_survives_2x_text()
+        {
+            foreach (var kv in EveryScreen())
+            {
+                var root = new VisualElement();
+                ShellView.Render(root, kv.Value, _ => { }, 2f);
+                var title = root.Q<Label>("title");
+                Assert.IsNotNull(title, kv.Key + ": no title label");
+                Assert.That(title.style.fontSize.value.value, Is.GreaterThan(ShellView.BodySize * 2f), kv.Key + ": title must stay larger than 2x body");
+                foreach (var l in root.Query<Label>().ToList())
+                {
+                    if (l.parent is Button) continue;
+                    Assert.That(l.style.fontSize.value.value, Is.GreaterThanOrEqualTo(ShellView.BodySize * 2f - 0.01f), kv.Key + ": text did not scale: " + l.text);
+                    Assert.AreEqual(WhiteSpace.Normal, l.style.whiteSpace.value, kv.Key + ": text must wrap, never clip: " + l.text);
+                    Assert.IsFalse(l.style.height.keyword == StyleKeyword.Undefined && l.style.height.value.value > 0, kv.Key + ": fixed-height text clips at 2x: " + l.text);
+                }
+                foreach (var b in root.Query<Button>().ToList())
+                {
+                    Assert.That(b.style.fontSize.value.value, Is.GreaterThanOrEqualTo(ShellView.BodySize * 2f - 0.01f), kv.Key + ": " + b.text);
+                    Assert.AreEqual(WhiteSpace.Normal, b.style.whiteSpace.value, kv.Key + ": button text must wrap: " + b.text);
+                    Assert.IsFalse(b.style.height.keyword == StyleKeyword.Undefined && b.style.height.value.value > 0, kv.Key + ": fixed button height clips at 2x: " + b.text);
+                    Assert.IsFalse(b.style.width.keyword == StyleKeyword.Undefined && b.style.width.value.value > 0, kv.Key + ": fixed button width: " + b.text);
+                }
+            }
+        }
+
+        [Test] public void D147_every_touch_target_is_at_least_48dp_in_both_dimensions_at_every_scale()
+        {
+            foreach (var kv in EveryScreen())
+                foreach (var k in Scales)
+                {
+                    var root = new VisualElement();
+                    ShellView.Render(root, kv.Value, _ => { }, k);
+                    foreach (var b in root.Query<Button>().ToList())
+                    {
+                        Assert.That(b.style.minHeight.value.value, Is.GreaterThanOrEqualTo(AndroidMinTouchDp), kv.Key + " x" + k + ": height " + b.text);
+                        Assert.That(b.style.minWidth.value.value, Is.GreaterThanOrEqualTo(AndroidMinTouchDp), kv.Key + " x" + k + ": width " + b.text);
+                        Assert.That(b.style.minHeight.value.value, Is.GreaterThanOrEqualTo(ShellView.ButtonHeight * k - 0.01f), kv.Key + " x" + k + ": target does not grow with text " + b.text);
+                    }
+                }
+        }
+
+        [Test] public void D147_every_interactive_element_has_a_semantic_name_and_a_screen_reader_label()
+        {
+            foreach (var kv in EveryScreen())
+            {
+                var root = new VisualElement();
+                ShellView.Render(root, kv.Value, _ => { });
+                var outline = AccessibleOutline.Build(kv.Value);
+                var readerButtons = outline.Where(i => i.Role == AccessibleRole.Button).ToList();
+                var buttons = root.Query<Button>().ToList();
+                Assert.AreEqual(buttons.Count, readerButtons.Count, kv.Key + ": a control the screen reader cannot reach (or vice versa)");
+                for (int i = 0; i < buttons.Count; i++)
+                {
+                    var b = buttons[i];
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(b.name), kv.Key + ": unnamed control " + b.text);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(b.text), kv.Key + ": control " + b.name + " has no visible label");
+                    Assert.AreEqual(b.text, b.tooltip, kv.Key + ": accessible name != visible label for " + b.name);
+                    Assert.AreEqual(b.name, readerButtons[i].ActionId, kv.Key + ": reader stop does not map to the control");
+                    Assert.AreEqual(b.text, readerButtons[i].Label, kv.Key + ": reader announces something other than the label");
+                }
+                Assert.AreEqual(kv.Value.Title, outline[0].Label, kv.Key + ": the reader must start at the title");
+                Assert.AreEqual(AccessibleRole.Header, outline[0].Role, kv.Key.ToString());
+                // Nothing focusable except the controls: decoration never steals a focus stop.
+                foreach (var e in root.Query<VisualElement>().ToList())
+                    if (e.focusable && !(e is Button) && !(e is ScrollView) && !(e is Scroller) && e.GetFirstAncestorOfType<Scroller>() == null)
+                        Assert.Fail(kv.Key + ": non-control element is focusable: " + e.GetType().Name + " " + e.name);
+                var valley = root.Q<ValleyElement>("valley");
+                if (kv.Value.Scene != null)
+                {
+                    Assert.IsNotNull(valley, kv.Key.ToString());
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(valley.tooltip), kv.Key + ": picture without a text alternative");
+                    Assert.IsTrue(outline.Any(i => i.Role == AccessibleRole.Image && i.Label == kv.Value.Scene.AltText), kv.Key + ": picture skipped by the reader");
+                }
+            }
+        }
+
+        [Test] public void D147_every_rendered_colour_pair_meets_contrast_on_every_screen()
+        {
+            foreach (var kv in EveryScreen())
+            {
+                var root = new VisualElement();
+                ShellView.Render(root, kv.Value, _ => { });
+                Assert.AreEqual(ShellView.Background, root.style.backgroundColor.value, kv.Key + ": page colour drifted from the audited theme");
+                foreach (var l in root.Query<Label>().ToList())
+                {
+                    if (l.parent is Button) continue;
+                    Assert.That(Contrast(l.style.color.value, ShellView.Background), Is.GreaterThanOrEqualTo(7.0), kv.Key + ": body text contrast " + l.text);
+                    if (l.style.borderLeftWidth.value > 0)
+                        Assert.That(Contrast(l.style.borderLeftColor.value, ShellView.Background), Is.GreaterThanOrEqualTo(3.0), kv.Key + ": indicator bar " + l.name);
+                }
+                foreach (var b in root.Query<Button>().ToList())
+                {
+                    Assert.That(Contrast(b.style.color.value, b.style.backgroundColor.value), Is.GreaterThanOrEqualTo(7.0), kv.Key + ": button text " + b.text);
+                    var edge = b.style.borderLeftColor.value;
+                    Assert.That(Math.Max(Contrast(edge, ShellView.Background), Contrast(b.style.backgroundColor.value, ShellView.Background)), Is.GreaterThanOrEqualTo(3.0), kv.Key + ": button boundary invisible " + b.text);
+                }
+            }
+        }
+
+        [Test] public void D147_no_element_on_any_screen_has_a_transition_or_animation()
+        {
+            foreach (var kv in EveryScreen())
+                foreach (var k in Scales)
+                {
+                    var root = new VisualElement();
+                    ShellView.Render(root, kv.Value, _ => { }, k);
+                    foreach (var e in root.Query<VisualElement>().ToList())
+                    {
+                        var d = e.style.transitionDuration;
+                        Assert.IsTrue(d.keyword != StyleKeyword.Undefined || d.value == null || d.value.Count == 0, kv.Key + ": " + e.name + " has a transition duration");
+                        var p = e.style.transitionProperty;
+                        Assert.IsTrue(p.keyword != StyleKeyword.Undefined || p.value == null || p.value.Count == 0, kv.Key + ": " + e.name + " has a transition property");
+                    }
+                }
+        }
     }
 }

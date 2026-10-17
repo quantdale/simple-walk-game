@@ -2762,3 +2762,12 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `ActivityStatusProjectionTests.Unsupported_provider_never_asks_the_player_to_connect` rows for Denied/Revoked updated to the new contract (supersedes the D-068 denial row); `HealthConnectFailureMatrixTests` asserts every Unsupported row is SourceUnavailable with no action, plus 4 explicit D-146 cases. .NET 1032/1032 on main alone, 1046/1046 combined with D-145 (headless-tested). EditMode 231/231 on the combined tree (Unity-editor-tested, batch mode). Real Health Connect UI UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-147 — Region 1 accessibility invariants enforced on every shell screen (2026-10-17)
+**Decision.** The D-095 audit sampled some checks on a subset of screens (2x text on 6 screens, reduced motion on 9). Five EditMode invariants now run over EVERY `ShellScreen` value (reached the way a player reaches it): (1) 2x text survives — every label and button scales to 2x body, wraps, and has no fixed height/width; (2) touch targets are at least 48 dp in BOTH dimensions at 1x/1.3x/2x and grow with the text; (3) every control has a semantic name (its action id), a visible label equal to its accessible name, and a matching screen-reader stop in the same order, the reader starts at the title header, nothing decorative is focusable, and the valley picture has alt text that the reader announces; (4) every rendered colour pair meets contrast against the theme (body text 7:1 on the page, indicator bars 3:1, button text 7:1 on its fill, button boundary 3:1); (5) no element on any screen at any scale carries a transition, so reduced motion holds by construction.
+
+**Finding fixed.** Buttons had a minimum height but no minimum width, so a very short label could shrink a target below 48 dp wide. `ShellView` now sets `minWidth = ButtonHeight * k`.
+
+**Tests.** `AccessibilityAuditTests.D147_*` (5). EditMode 236/236 (Unity-editor-tested, batch mode). Device screen readers UNVERIFIED (KI-002).
+
+**Save compatibility.** None.

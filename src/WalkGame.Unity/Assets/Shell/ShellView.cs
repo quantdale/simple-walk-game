@@ -155,6 +155,7 @@ namespace WalkGame.Shell
                 b.ActionId = a.Id;
                 b.text = a.Label; b.name = a.Id; b.tooltip = a.Label;
                 b.style.minHeight = ButtonHeight * k;
+                b.style.minWidth = ButtonHeight * k;   // D-147: a short label never shrinks the target below 48 dp wide
                 b.style.fontSize = BodySize * k;
                 // Primary action is distinguished by fill AND position (first), not colour alone.
                 b.style.backgroundColor = first ? Accent : Color.white;
