@@ -14,7 +14,7 @@ namespace WalkGame.Infrastructure.Persistence
     ///
     /// Load policy: absent → NotFound; empty/malformed JSON, schemaVersion &lt; 1 or a bad timestamp →
     /// Malformed; schemaVersion &gt; 1 → FutureVersion (payload never interpreted); line ids are
-    /// normalized (unique, bounded). Write: durable temp file, then delete+move replace; leftover
+    /// normalized (unique, bounded). Write: durable temp file, then an atomic File.Replace (D-179; Move for the first write); leftover
     /// temporaries are ignored by reads and replaced by the next write.
     /// </summary>
     public sealed class LocalPresentationMemoryStore : IPresentationMemoryStore, WalkGame.Application.Persistence.ILocalDataEraser
@@ -92,8 +92,10 @@ namespace WalkGame.Infrastructure.Persistence
                 stream.Write(bytes, 0, bytes.Length);
                 stream.Flush(flushToDisk: true);
             }
-            if (File.Exists(_path)) File.Delete(_path); // netstandard2.1 lacks File.Move(overwrite)
-            File.Move(_tempPath, _path);
+            // D-179: one atomic rename over the existing file (no moment without a committed file);
+            // the very first write has nothing to replace.
+            if (File.Exists(_path)) File.Replace(_tempPath, _path, destinationBackupFileName: null);
+            else File.Move(_tempPath, _path);
         }
 
         internal sealed class MemoryDto

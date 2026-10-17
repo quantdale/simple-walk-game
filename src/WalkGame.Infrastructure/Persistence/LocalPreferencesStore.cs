@@ -21,9 +21,9 @@ namespace WalkGame.Infrastructure.Persistence
     ///   present v1 fields      → merged over defaults, so hand-trimmed payloads keep
     ///                            explicit default semantics for missing keys.
     ///
-    /// Write sequence mirrors the save store's atomic pattern: durable temp write, then
-    /// delete+move replace. A crash leaves either the old or the new file intact; leftover
-    /// temporaries are ignored by reads and cleaned before the next write.
+    /// Write sequence: durable temp write, then an atomic File.Replace over the existing file
+    /// (D-179; Move for the very first write). A crash leaves either the old or the new file
+    /// intact; leftover temporaries are ignored by reads and replaced by the next write.
     /// </summary>
     public sealed class LocalPreferencesStore : IUxPreferencesStore, WalkGame.Application.Persistence.ILocalDataEraser
     {
@@ -109,12 +109,19 @@ namespace WalkGame.Infrastructure.Persistence
             ReplaceFile(_tempPath, _path);
         }
 
+        /// <summary>
+        /// D-179: File.Replace is a single atomic rename over the existing file (rename(2) on POSIX),
+        /// so there is no moment without a committed preferences file. The previous delete+move left
+        /// a window in which a crash lost the player's settings (reduced motion, notifications,
+        /// onboarding stage): the file was gone and the new copy was only a temporary, which reads
+        /// never trust. The very first write has nothing to replace and still uses Move.
+        /// </summary>
         private static void ReplaceFile(string sourcePath, string destinationPath)
         {
-            // netstandard2.1 lacks File.Move(overwrite); same contract as the save store.
             if (File.Exists(destinationPath))
-                File.Delete(destinationPath);
-            File.Move(sourcePath, destinationPath);
+                File.Replace(sourcePath, destinationPath, destinationBackupFileName: null);
+            else
+                File.Move(sourcePath, destinationPath);
         }
 
         private static void WriteDurable(string path, byte[] bytes)

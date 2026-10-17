@@ -3385,3 +3385,21 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 - Mutation check: without the clamp, 4 of the 6 fail (the two exact-path tests pass both ways).
 - `scripts/verify-pacing-evidence.sh`: 7 reproduced, 0 drifted. .NET 1184/1184 (was 1178). EditMode 289/289 (Unity 6000.3.26f1 batch, `EVIDENCE_DIR` outside the repo). Labels: headless-tested (.NET); Unity-editor-tested (EditMode). Device UNVERIFIED (KI-002).
 
+## D-179 — Side files are replaced atomically: no crash window loses the player's settings (2026-10-17)
+
+**Status:** Accepted (agent; durability fix inside the D-042 and D-175 store contracts; no format, schema or save change)
+
+**Bug.** `LocalPreferencesStore` and `LocalPresentationMemoryStore` replaced their file by flushing a temporary, **deleting** the file, then moving the temporary into place (netstandard2.1 has no `File.Move(overwrite)`). Between the delete and the move there was no committed file, and a temporary on its own is never trusted (M5-H1 contract `InterruptedPreferenceWrite_TempOnlyNeverBecomesState`, kept). A crash in that window reset the player's preferences to defaults on the next boot: reduced motion (accessibility), notifications and reminder settings, and the onboarding stage. For presentation memory it meant one missed replay. The store docs claimed "a crash leaves either the old or the new file intact", which was not true. A concurrent reader saw the file missing in about a third of its reads during rewrites.
+
+**Decision.**
+- When the file exists, both stores now commit with `File.Replace(temp, file, null)`. That is one atomic rename over the existing file (rename(2) on POSIX), so a committed file is always present. The very first write has nothing to replace and still uses `Move`.
+- An earlier draft recovered a lone temporary on load instead. It was dropped because it would have reversed the M5-H1 contract and the save-recovery OpenSpec stance that a temporary is never promoted as data.
+- The canonical save store (`AtomicFileSaveStore`) is unchanged. Its delete+move window is already covered by backup recovery (OpenSpec `recover-save-from-backup-when-primary-is-missing`).
+
+**Not changed.** File names, JSON formats, schema versions, load policies, erase behaviour, the save store.
+
+**Evidence.**
+- `SideFileReplaceAtomicityTests` (4, .NET): while 2,000 rewrites run, a concurrent reader never sees the preferences or memory file missing, and never sees reduced motion lost; rewrites leave no temporary or backup file behind and the last write wins; a first write next to a stale temporary still commits. Mutation check: with delete+move restored, both reader tests fail (preferences missing in 18,612 of 56,557 reads).
+- Existing M5-H1, D-042 and D-175 store tests pass unchanged, including the temp-only contract.
+- .NET 1188/1188 (1184 + 4). EditMode 289/289 (Unity 6000.3.26f1 batch under Mono, so `File.Replace` ran in the editor runtime). Labels: headless-tested (.NET); Unity-editor-tested (EditMode). `File.Replace` on an Android or iOS device under IL2CPP is UNVERIFIED (KI-002).
+
