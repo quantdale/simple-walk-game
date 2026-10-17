@@ -8,7 +8,7 @@ Michael has three open decisions:
 2. **D-170, AI-assisted art licensing** (Proposed, not in effect): accept, accept narrowly, amend or reject.
 3. **Who paints the final layered art.** The package states that our tools cannot produce layered, consistent, animatable final art (each `FEASIBILITY.md` §8).
 
-The Unity 2D packages that concept A would need (2D Animation, PSD Importer) are a dependent question that follows the pick.
+The Unity 2D packages that concept A would need (2D Sprite, 2D Animation, PSD Importer; no URP) are deferred until the pick by D-177.
 
 This file is a text-only record. The images are **not** in the repository. They are AI-generated concept art, not production assets, and fit neither allowed category in `docs/ASSET_LICENSES.md`. Do not commit them.
 
@@ -39,4 +39,4 @@ Recommended borrowings that keep A's style: B's production discipline (separable
 
 ## What may happen before the pick
 
-Only style-neutral work: domain, persistence, ingestion, read models and seam hardening, plus tests. Not allowed: asset production, a style guide, an art-style UI rebuild, committing any AI image, adding style-dependent art packages, or Region 2 (D-011).
+Only style-neutral work: domain, persistence, ingestion, read models and seam hardening, plus tests. Not allowed: asset production, a style guide, an art-style UI rebuild, committing any AI image, adding style-dependent art packages (D-177), or Region 2 (D-011).
