@@ -53,6 +53,10 @@ namespace WalkGame.Application.Content
             public const string Description = "description";
             /// <summary>D-162: a project's display-time completion sentence (Region1SummaryCopy).</summary>
             public const string Completed = "completed";
+            /// <summary>D-165: a character's dialogue line (Region1Characters).</summary>
+            public const string Line = "line";
+            /// <summary>D-165: a character's display name.</summary>
+            public const string Name = "name";
         }
     }
 }
