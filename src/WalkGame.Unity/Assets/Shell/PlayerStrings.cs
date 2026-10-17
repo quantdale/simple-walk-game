@@ -166,7 +166,7 @@ namespace WalkGame.Shell
             ["shell.everythingThisGameKnows"] = "Everything this game knows stays on this phone, in the game's own private storage. Your phone's encryption protects it.",
             ["shell.itKeepsYourValley"] = "It keeps your valley: projects, restored places, story chapters and discoveries.",
             ["shell.itKeepsYourWalks"] = "It keeps your walks: step counts, when each walk started and ended, the day it was, and the record number your walking app gave it, so no walk is counted twice.",
-            ["shell.itKeepsYourSettings"] = "It keeps your settings, such as sound and reduced motion, and how far you are through the guide.",
+            ["shell.itKeepsYourSettings"] = "It keeps your settings, such as sound and reduced motion, how far you are through the guide, and which valley changes and conversations you have already seen.",
             ["shell.itNeverAsksFor"] = "It never asks for your name, email or location. There are no accounts, ads or analytics, and nothing is sent anywhere.",
             ["shell.youCanShareA"] = "You can share a copy of your save. Your phone's share menu opens and you choose where it goes. The copy includes your walks.",
             ["shell.shareACopyOf"] = "Share a copy of your save",

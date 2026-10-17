@@ -3298,3 +3298,28 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 - `WorldViewFocusTests` (3, .NET): fresh valley, trailhead focus moves to the bridge, and a 140-day invariant (focus is a project of that place, prefers the active one, reading changes nothing).
 - Mutation checks: dropping the locked-project check in `TapProp` fails 2 tests; dropping the offered-action check in `ChooseDialogueAction` fails 1.
 - EditMode 281/281 (was 269), Unity 6000.3.26f1 batch. .NET 1147/1147 (was 1144). Architecture 15/15. Labels: Unity-editor-tested (EditMode); headless-tested (.NET). Not device-tested (KI-002). No visual output exists to capture.
+
+## D-175 — Presentation memory persists in its own file outside the save (KI-027 c) (2026-10-17)
+
+**Status:** Accepted (agent; style-neutral Phase D prerequisite under D-171, requested by Michael on 2026-10-17; closes the D-169 follow-up)
+
+**Decision.**
+- **Where:** what the world presentation has already shown (the changes-shown watermark and the seen dialogue line ids) is kept in its **own small versioned file**, `presentation-memory.json`, next to the save in the app-private directory. It is **not** in the canonical save and **not** in the UX preferences file. Reasons:
+  - It is display memory, not progress. Putting it in the save would need a schema migration (v3 → v4) for data no rule reads, and a save write on every dialogue line.
+  - A separate file keeps the D-042 preferences schema unchanged and gives it its own corruption domain.
+  - No save-schema change, migration, content-version or fingerprint change is needed, so none is made.
+- **Shape (schema 1):** `schemaVersion`, `gameCreatedAtUtc` (binds it to one game; memory of a replaced game is ignored, never applied), `changesShownThroughUtc`, `seenLineIds` (unique, sorted, at most 512 ids of at most 128 chars).
+- **Persistence (Infrastructure `LocalPresentationMemoryStore`, same pattern as `LocalPreferencesStore`):** atomic write (durable temp file, then replace), no backup generation. Missing → NotFound. Empty, malformed, wrong types, schema < 1 or over 64 KB → Malformed. Schema > 1 → FutureVersion, never interpreted. Read failure → IoFailure. **Every non-success outcome reads as "nothing shown yet"**, so the next open is a baseline that replays nothing (never an invented or repeated replay), and the next write replaces the damaged file.
+- **Application:** port `IPresentationMemoryStore`; `GameSession.GetPresentationMemory()` (a copy, empty without a loaded game or for another game) and `SavePresentationMemory(watermark, seen)` returning `Saved` / `SessionOnly` / `Failed` / `NoGame`. It never writes the save, never marks the game dirty, never changes canonical state, and a failed write is reported, never thrown. An optional seventh constructor parameter wires it; existing constructors are unchanged.
+- **Erase:** `DeleteAllLocalData` erases the file and its temporary after the saves and preferences. It fails closed (`NotSupported`, nothing touched) if a wired memory store cannot erase. The session's memory is reset.
+- **Privacy export: explicitly excluded**, like preferences (D-111: preferences are not exported). The file holds no walking data, only line ids and one timestamp that is already derivable from completion times in the save. The Privacy screen's "what is stored" line now says it keeps "which valley changes and conversations you have already seen". `PRIVACY_REVIEW.md` §3 and §4a say so.
+- **Unity:** `SessionPresentationMemory : IPresentationMemory` reads and writes through the session, writes only on a real change, and follows the loaded game. `ShellBootstrap.CreateSession` wires `LocalPresentationMemoryStore` (the only place that builds Infrastructure). `InMemoryPresentationMemory` stays for tests and headless use.
+
+**Not changed.** Save schema v3 and migrations, content version and fingerprint, pacing evidence, preference schema 1, Domain, text shell screens other than one Privacy line, scenes.
+
+**Evidence.**
+- `LocalPresentationMemoryStoreTests` (15, .NET): round trip across store instances with normalization; eight kinds of damage → Malformed without throwing; oversized → Malformed; newer schema → FutureVersion; leftover temporary ignored and replaced; id bound; erase idempotent.
+- `PresentationMemoryPersistenceTests` (11, .NET): survives a cold restart; never writes the save or adds a save generation; damaged files → nothing shown, the save untouched, and the next write recovers; another game's memory ignored; no game → nothing remembered; erase removes the file and temporary; erase fails closed; a failed write is reported and kept for the session; the privacy export contains no memory.
+- `PresentationMemoryRestartTests` (5, EditMode, shipped `ShellBootstrap` composition): changes earned while the app was closed are shown once after a cold restart and not on the next; seen lines stay seen; after a cold restart the world view (variant, construction and focus keys, NPC placement) is identical and the save bytes are untouched by presentation; a damaged file → no replay, canonical progress intact; erase removes the file.
+- Mutation check: not wiring the store in `ShellBootstrap` fails 4 of the 5 restart tests.
+- .NET 1173/1173 (was 1147). EditMode 286/286 (was 281), PlayMode 4 passed + 1 ignored (unchanged), Unity 6000.3.26f1 batch. Architecture 15/15. Labels: headless-tested (.NET); Unity-editor-tested (EditMode/PlayMode). Not device-tested (KI-002): the app-private path on a phone is UNVERIFIED as before (PRIVACY_REVIEW §4).

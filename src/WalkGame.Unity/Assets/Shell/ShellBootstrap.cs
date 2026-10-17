@@ -35,7 +35,8 @@ namespace WalkGame.Shell
                 clock,
                 Region1Catalog.Create(),
                 new LocalPreferencesStore(directory),
-                port);
+                port,
+                new LocalPresentationMemoryStore(directory)); // D-175: own file, erased with all local data
         }
 
         private void Start()

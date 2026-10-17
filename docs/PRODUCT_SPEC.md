@@ -247,7 +247,7 @@ These are product requirements. `docs/PRIVACY_REVIEW.md` records how each is ver
 4. **At-rest protection.** Delegated to OS device encryption as a system requirement. Primary, temp and backup save generations stay in app-private storage (D-067, §12).
 5. **Least permission.** Request only the read permission for the activity types actually used (walking steps), only when the player opts in, with a plain-language purpose. Denial or revocation never blocks the game (§7, ACTIVITY_PIPELINE).
 6. **Privacy-safe diagnostics.** Support diagnostics show classified enums, bounded counters and timestamps only. No activity records, payloads or raw exception text, and no upload path (D-044/D-063).
-7. **Player control.** The player must be able to delete all local game data (primary and backup generations) from Settings. Implemented headless: `GameSession.DeleteAllLocalData()` erases every save generation and the preferences file, deleting the primary last so boot recovery cannot resurrect it. It fails closed on stores without erase capability (`LocalDataEraseTests`). The Settings UI is M5 runtime work.
+7. **Player control.** The player must be able to delete all local game data (primary and backup generations) from Settings. Implemented headless: `GameSession.DeleteAllLocalData()` erases every save generation, the preferences file and the presentation-memory file (D-175), deleting the primary last so boot recovery cannot resurrect it. It fails closed on stores without erase capability (`LocalDataEraseTests`). The Settings UI is M5 runtime work.
 8. **Third-party code.** Any new runtime dependency (including Unity packages) is reviewed for network/analytics behavior before it ships (PRIVACY_REVIEW §2).
 
 ## 8. Notification requirements
