@@ -67,15 +67,24 @@ namespace WalkGame.Application.Activity
         /// </summary>
         public ActivityPermissionState? LastKnownPermission { get; }
 
+        /// <summary>
+        /// D-196: true when the platform never reports a refused read (HealthKit: a read turned off in
+        /// iOS Settings returns no samples, not an error). Lets the shell add a gentle hint after a long
+        /// quiet spell. Ephemeral, never persisted; Health Connect reports false.
+        /// </summary>
+        public bool ReadDenialHidden { get; }
+
         public ActivityConnectionSnapshot(
             ActivityPermissionState permission,
             ActivitySourceAvailability availability,
             DateTimeOffset? lastSuccessfulRefreshUtc = null,
             DateTimeOffset? lastAttemptUtc = null,
             string? technicalDetail = null,
-            ActivityPermissionState? lastKnownPermission = null)
+            ActivityPermissionState? lastKnownPermission = null,
+            bool readDenialHidden = false)
         {
             LastKnownPermission = lastKnownPermission;
+            ReadDenialHidden = readDenialHidden;
             Permission = permission;
             Availability = availability;
             LastSuccessfulRefreshUtc = lastSuccessfulRefreshUtc;

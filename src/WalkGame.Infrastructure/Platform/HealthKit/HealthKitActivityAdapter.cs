@@ -205,7 +205,9 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
         private void MarkSuccess() { _lastSuccessUtc = _lastAttemptUtc; _lastFailure = null; }
         private Exception Fail(string category, Exception ex) { _lastFailure = category; return ex; }
         private ActivityConnectionSnapshot Snap(ActivityPermissionState p, ActivitySourceAvailability a, string detail, ActivityPermissionState? lastKnown = null)
-            => new ActivityConnectionSnapshot(p, a, _lastSuccessUtc, _lastAttemptUtc, detail, lastKnown);
+            => new ActivityConnectionSnapshot(p, a, _lastSuccessUtc, _lastAttemptUtc, detail, lastKnown,
+                readDenialHidden: true); // D-196: iOS never reports a refused read
+
 
         /// <summary>Maps the request status; a recognised answer becomes the last known permission (D-192).</summary>
         private ActivityPermissionState ReadRequestStatus()
