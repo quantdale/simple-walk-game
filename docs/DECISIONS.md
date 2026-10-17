@@ -3022,3 +3022,22 @@ Counts of zero are omitted. Each count has a one/many key in `PlayerStrings` (`s
 **OpenSpec.** `openspec/changes/rank-same-batch-summary-retention` modifies the `rotate-durable-return-summary` rotation requirement.
 
 **Evidence.** `SummaryPriorityTests` (16 headless tests): the crowded D-159 closure day keeps both completions, both chapters and the region; older batches still rotate first; other kinds rotate as before; rank table; display pruning. `Region1PlaythroughTests` now requires 0 rotated-out completion lines in all 9 playthroughs (was ≤2). An expedition line may yield to chapter and project lines only on a saturated day; Discoveries and the recap still count it. EditMode `RegionCelebrationTests.Celebration_keeps_the_final_completion_line_and_skips_repeats`. Pacing evidence 7/7 reproduced, content compatibility and save growth pass. .NET 1126/1126, EditMode 256/256. Labels: headless-tested, Unity-editor-tested; device UNVERIFIED (KI-002).
+
+## D-164 — Redesign direction of 2026-10-17 governs; current art and text-stack Home are placeholders (2026-10-17)
+
+**Status:** Accepted (owner direction from Michael, 2026-10-17 3:21 PM Asia/Manila)
+
+**Decision.**
+- `docs/direction/REDESIGN_2026-10-17.md` (Michael's brief, copied verbatim) is the **governing direction** for all presentation and player-experience work. It supersedes the earlier presentation priorities: text-shell copy polish, status-line Home tuning, text-screen re-captures and procedural valley refinement (D-145 to D-163 era). Those decisions stay valid for the behaviour they pin, but they are no longer the priority, and no new work should polish them further.
+- The current procedural/geometric valley art (`RegionScene`, `ValleyElement`, see `docs/ASSET_LICENSES.md`) and the vertical text-stack Home are **placeholders, not final**. They must never be presented as production art or the final UI.
+- **Human-authorization gate (one-time art-direction checkpoint).** Before mass asset production or a UI rebuild, an agent prepares a visual-design package (brief §8: 2–3 substantially different art-direction concepts, a representative gameplay screen per concept, a sample NPC + dialogue interaction, a ruined-versus-restored comparison, an asset-production and animation approach) and **Michael approves one direction**. Agents may not approve it themselves. Logged in `docs/KNOWN_ISSUES.md` "Needs Michael (morning queue)". After approval, work in that direction continues autonomously.
+- **Preserved, not rewritten:** domain logic, offline progression, activity ingestion and trust pipeline, save persistence and schema, restoration systems, content (Millbrook Valley, Region 1), and all tests. The new presentation is built on top of them.
+- **Allowed before the checkpoint:** style-neutral groundwork that does not lock in an art style. Examples are Application-layer read models for a world view, an NPC/dialogue content model, restoration-choice preview data and a visual-change event stream, specified through OpenSpec first and tested headless. No Unity UI, art or prefabs are built before approval.
+
+**Rationale.** Michael rejected the current build as reading like a storyboard or visual novel rather than a game (brief §1–§3). Further text polish optimizes the wrong thing. The engineering foundation is sound, so it should stay (brief §9).
+
+**Consequences.**
+- The halted, unverified D-164-numbered onboarding-capture WIP is preserved on branch `agent/simple-walk-game/onboard-grok1017i` (commit `91cef89`) and is **not merged**. It was never on main, so this entry takes the number D-164. If that WIP is ever revived it must be renumbered.
+- Asset licensing is unchanged: only in-repo-created or CC0 assets without a separate decision (`docs/ASSET_LICENSES.md`), with provenance recorded. If polished assets cannot be produced with the available tools, that is reported as a blocker, never papered over with placeholders.
+- Region 2 stays gated (D-011); this direction does not approve it.
+- Dialogue must stay short, skippable, revisitable and never gate walking-driven progression (brief §4). The low-attention design (D-001) still holds.

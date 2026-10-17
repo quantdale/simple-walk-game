@@ -270,3 +270,10 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017i` (no `--force`). Region 2 still not approved.
 - D-162: copy-quality sweep. `SummaryLineText.Display` gives the player-facing form of stored summary lines in every locale, including English. Per-project completion sentences live in `Region1SummaryCopy` (overlay `<id>#completed`). Stored lines are unchanged. `SummaryCopyQualityTests.Problems` is the shared checker; reuse it for any new template that takes a title.
 - D-163: KI-026 closed. `ReturnSummaryComposer.RetentionRank` decides what a full Transformation bucket drops within the oldest batch. `SummaryDisplayFilter` prunes repeated landmark lines and stale "ready" lines on the summary screen. The playthrough sim now requires 0 dropped completion lines.
+
+## Session note 2026-10-17 (grok1523r): NEW GOVERNING DIRECTION (D-164)
+- **Read first:** `docs/direction/REDESIGN_2026-10-17.md` (Michael's brief, verbatim) and D-164. It supersedes text-shell / status-line polish as the priority. The procedural valley art and text-stack Home are placeholders, not final. Do not keep refining them.
+- **Human gate:** the art-direction checkpoint (2–3 concepts, brief §8) must be approved by Michael before any mass asset production or Unity UI rebuild (KNOWN_ISSUES morning queue). Before that, only style-neutral groundwork is allowed: OpenSpec `add-interactive-world-presentation` and Application read models, headless.
+- Preserve domain, saves (schema v3), ingestion, restoration systems and tests.
+- **Halted WIP:** the onboarding-step capture work (unverified; it claimed "D-164" but was never merged) is preserved on branch `agent/simple-walk-game/onboard-grok1017i` at `91cef89`, pushed with no PR. It is superseded by this direction. Do not merge it; renumber it if it is ever revived. `ProjectSettings.asset` was reverted and is not in it. Worktree `wt-a11y-grok1017d` is detached at origin/main `05db46c` with its lease released.
+- Region 2 still not approved.
