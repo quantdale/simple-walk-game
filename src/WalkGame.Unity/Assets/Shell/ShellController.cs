@@ -474,6 +474,9 @@ namespace WalkGame.Shell
             if (!firstRun) m.Lines.Add(glance.WhatChangedSentence);
             // D-106: the empty-state line below already says nothing is being restored; skip the duplicate.
             if (!empty) m.Lines.Add(glance.RestoringNowSentence);
+            // D-145: first-session payoff. Any funded project shows its percent and the distance to
+            // the next visible change, so even a 300-step walk visibly moves something.
+            if (glance.PayoffSentence != null) m.Lines.Add(glance.PayoffSentence);
             // The empty-state line also says "Choose a project to begin", so the glance's
             // "Choose the first thing to restore." would say it twice.
             if (glance.AttentionSentence != null && !(empty && home.AttentionReason == HomeAttentionReason.NoProjectStartedYet))
@@ -523,6 +526,13 @@ namespace WalkGame.Shell
                     if (!item.IsCurrent) continue;
                     var detail = WalkGame.Application.Summaries.ProjectCompletionMoments.Describe(content, item.Text, unlocked);
                     if (detail != null) m.Lines.Add(detail);
+                }
+                // D-145: after any credit, say what it bought ("4% restored, about N steps to ...")
+                // instead of leaving the player with only "Vitality credited: N".
+                if (s.HasCurrentItems)
+                {
+                    var payoff = _session.GetGlance().PayoffSentence;
+                    if (payoff != null) m.Lines.Add(payoff);
                 }
             }
             bool celebrating = s != null && Celebrate(m, s.Items.Where(i => i.IsCurrent).Select(i => i.Text));
