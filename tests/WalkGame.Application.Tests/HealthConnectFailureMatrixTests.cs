@@ -15,6 +15,8 @@ namespace WalkGame.Application.Tests;
 /// invariants: never "connected" without a grant and a working source, no dead end (every
 /// fixable state offers an action), update-required dominates, and no failure state touches
 /// earned progress. Automated verified (headless); real Health Connect UI UNVERIFIED (KI-002).
+/// D-192 (amends D-144) adds the last-known-permission dimension: an unreadable status after a
+/// known grant is the ONE ungranted state allowed to read as a temporary refresh failure.
 /// </summary>
 public sealed class HealthConnectFailureMatrixTests : IDisposable
 {
@@ -27,18 +29,28 @@ public sealed class HealthConnectFailureMatrixTests : IDisposable
         foreach (var a in Enum.GetValues<ActivitySourceAvailability>())
         foreach (var o in Enum.GetValues<IngestionOutcomeKind>())
         foreach (var processed in new[] { false, true })
-            yield return new object[] { p, a, o, processed };
+        foreach (var lastKnown in LastKnownValues())
+            yield return new object[] { p, a, o, processed, lastKnown! };
     }
 
     private static bool Granted(ActivityPermissionState p) =>
         p == ActivityPermissionState.Granted || p == ActivityPermissionState.PartiallyGranted;
 
+    private static bool Granted(ActivityPermissionState? p) => p.HasValue && Granted(p.Value);
+
+    /// <summary>D-192: "nothing read yet" (null) plus every permission the adapter could have read.</summary>
+    private static IEnumerable<ActivityPermissionState?> LastKnownValues()
+    {
+        yield return null;
+        foreach (var p in Enum.GetValues<ActivityPermissionState>()) yield return p;
+    }
+
     [Theory]
     [MemberData(nameof(Matrix))]
     public void EveryCombination_ProjectsCalmly_WithTheContractedActionAndNoFalseConnectedClaim(
-        ActivityPermissionState p, ActivitySourceAvailability a, IngestionOutcomeKind o, bool processed)
+        ActivityPermissionState p, ActivitySourceAvailability a, IngestionOutcomeKind o, bool processed, ActivityPermissionState? lastKnown)
     {
-        var snap = new ActivityConnectionSnapshot(p, a, null, null, "raw provider detail");
+        var snap = new ActivityConnectionSnapshot(p, a, null, null, "raw provider detail", lastKnown);
         var m = ActivityStatusProjector.Project(snap, processed, o, 0L, null);
 
         Assert.True(Enum.IsDefined(m.Status));
@@ -62,11 +74,21 @@ public sealed class HealthConnectFailureMatrixTests : IDisposable
             Assert.NotEqual(IngestionOutcomeKind.SourceFetchFailed, o);
         }
         if (!Granted(p))
+        {
             Assert.DoesNotContain(m.Status, new[]
             {
                 ActivityPlayerStatus.ConnectedCurrent, ActivityPlayerStatus.WaitingForFirstData,
-                ActivityPlayerStatus.RefreshTemporarilyFailed,
             });
+            // D-192 (amends D-144): an ungranted state shows as a refresh failure ONLY when the status
+            // is unreadable and the last permission the adapter read was a grant; never for a player
+            // who was never granted, or who was refused or revoked.
+            bool unreadableAfterGrant = p == ActivityPermissionState.NotRequested
+                && a == ActivitySourceAvailability.TemporarilyUnavailable && Granted(lastKnown);
+            Assert.Equal(unreadableAfterGrant, m.Status == ActivityPlayerStatus.RefreshTemporarilyFailed);
+            if (p == ActivityPermissionState.NotRequested && a == ActivitySourceAvailability.TemporarilyUnavailable
+                && (lastKnown == ActivityPermissionState.Denied || lastKnown == ActivityPermissionState.Revoked))
+                Assert.Equal(ActivityPlayerStatus.PermissionDenied, m.Status);
+        }
 
         // No dead end: a fixable state always offers exactly its action; the rest offer none.
         var expected = m.Status switch

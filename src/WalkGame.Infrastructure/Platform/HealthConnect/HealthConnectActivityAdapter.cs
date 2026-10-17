@@ -48,6 +48,7 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
         private DateTimeOffset? _lastAttemptUtc;
         private DateTimeOffset? _lastSuccessUtc;
         private string? _lastFailure;
+        private ActivityPermissionState? _lastKnownPermission; // D-192: last permission READ, this process only
 
         /// <param name="deviceOffsetAt">
         /// D-157 fallback for a step record that arrives without a zone offset: the device zone's offset
@@ -72,9 +73,9 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
             if (sdk == "update_required")
                 return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.ProviderUpdateRequired, "health connect provider update required");
             if (sdk != "available")
-                return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.TemporarilyUnavailable, "health connect status unreadable: " + Clip(sdk));
+                return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.TemporarilyUnavailable, "health connect status unreadable: " + Clip(sdk), _lastKnownPermission);
 
-            var permission = MapPermission(Safe(_bridge.GetPermissionStatus));
+            var permission = ReadPermission();
             var availability = _lastFailure != null && _lastFailure != "permission"
                 ? ActivitySourceAvailability.TemporarilyUnavailable
                 : ActivitySourceAvailability.Available;
@@ -88,7 +89,7 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
 
             string sdk = Safe(_bridge.GetSdkStatus);
             if (sdk != "available") throw Fail("unavailable", new InvalidOperationException("Health Connect is not available (" + Clip(sdk) + ")."));
-            if (MapPermission(Safe(_bridge.GetPermissionStatus)) != ActivityPermissionState.Granted)
+            if (ReadPermission() != ActivityPermissionState.Granted)
                 throw Fail("permission", new UnauthorizedAccessException("Step read permission is not granted."));
 
             long startMs = windowStartUtc.ToUnixTimeMilliseconds();
@@ -225,8 +226,18 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
 
         private Exception Fail(string category, Exception ex) { _lastFailure = category; return ex; }
 
-        private ActivityConnectionSnapshot Snap(ActivityPermissionState p, ActivitySourceAvailability a, string detail)
-            => new ActivityConnectionSnapshot(p, a, _lastSuccessUtc, _lastAttemptUtc, detail);
+        private ActivityConnectionSnapshot Snap(ActivityPermissionState p, ActivitySourceAvailability a, string detail, ActivityPermissionState? lastKnown = null)
+            => new ActivityConnectionSnapshot(p, a, _lastSuccessUtc, _lastAttemptUtc, detail, lastKnown);
+
+        /// <summary>Maps the bridge's permission status; a recognised answer becomes the last known permission (D-192).</summary>
+        private ActivityPermissionState ReadPermission()
+        {
+            string raw = Safe(_bridge.GetPermissionStatus);
+            var permission = MapPermission(raw);
+            if (raw == "granted" || raw == "denied" || raw == "revoked" || raw == "not_requested")
+                _lastKnownPermission = permission;
+            return permission;
+        }
 
         private static string Safe(Func<string> call)
         {

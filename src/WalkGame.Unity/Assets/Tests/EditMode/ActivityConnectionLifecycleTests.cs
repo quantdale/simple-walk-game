@@ -207,18 +207,50 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual(earned, Credited(), "and nothing is credited twice");
         }
 
-        [Test] public void An_unreadable_provider_status_mid_session_never_reads_or_loses_progress()
+        [Test] public void An_unreadable_provider_status_mid_session_is_a_calm_retry_for_a_connected_player()
         {
-            // The projected status for this case is an open question (KI-030); only the safety half is pinned.
+            // D-192 (KI-030): the last permission read was a grant, so this is a passing failure.
             var c = Connected();
             long earned = Credited();
             int reads = _bridge.Reads;
             _bridge.Sdk = "status-garbled";
             Assert.DoesNotThrow(() => c.Resume());
-            Assert.AreEqual(reads, _bridge.Reads);
+            Assert.AreEqual(reads, _bridge.Reads, "the unseen grant is never claimed, so nothing reads");
             Assert.AreEqual(earned, Credited());
-            ActivityScreen(c);
+            Assert.AreEqual(ActivityPlayerStatus.RefreshTemporarilyFailed, _session.GetActivityStatus().Status);
+            var m = ActivityScreen(c);
+            Assert.Contains(PlayerStrings.T("activity.refreshFailed"), m.Lines);
+            Assert.Contains(PlayerStrings.T("activity.action.retryLater"), m.Lines);
+            Assert.IsFalse(m.Lines.Contains(PlayerStrings.T("activity.permissionNeeded")), "a connected player is not told to connect");
+            Assert.IsFalse(m.Actions.Any(a => a.Id == "activity:connect"));
             AssertPlayable(c);
+
+            _bridge.Sdk = "available";
+            c.Resume();
+            Assert.AreEqual(reads + 1, _bridge.Reads, "reads resume once the status is readable");
+            Assert.AreEqual(ActivityPlayerStatus.ConnectedCurrent, _session.GetActivityStatus().Status);
+        }
+
+        [Test] public void Revoked_then_unreadable_still_points_to_settings()
+        {
+            var c = Connected();
+            _bridge.Permission = "revoked"; c.Resume();
+            _bridge.Sdk = "status-garbled"; c.Resume();
+            Assert.AreEqual(ActivityPlayerStatus.PermissionDenied, _session.GetActivityStatus().Status);
+            var m = ActivityScreen(c);
+            Assert.Contains(PlayerStrings.T("activity.permissionDenied"), m.Lines);
+            Assert.IsFalse(m.Lines.Contains(PlayerStrings.T("activity.refreshFailed")), "a revoked grant never reads as a refresh failure");
+        }
+
+        [Test] public void A_new_process_with_an_unreadable_status_knows_no_grant_and_says_not_connected()
+        {
+            // The last known permission is ephemeral (never saved), so a fresh process cannot vouch
+            // for a grant it never read and stays conservative.
+            Connected();
+            _bridge.Sdk = "status-garbled";
+            var c2 = Launch(); c2.Boot();
+            Assert.AreEqual(ActivityPlayerStatus.PermissionNeeded, _session.GetActivityStatus().Status);
+            Assert.Contains(PlayerStrings.T("activity.permissionNeeded"), ActivityScreen(c2).Lines);
         }
 
         [Test] public void A_revocation_survives_a_restart_and_the_new_process_does_not_read()
