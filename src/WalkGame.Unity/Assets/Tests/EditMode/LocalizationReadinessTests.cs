@@ -67,6 +67,15 @@ namespace WalkGame.Shell.Tests
             }
         }
 
+        /// <summary>D-195: the world-presentation seam (Shell/Presentation) is scanned too; it has no player copy of its own.</summary>
+        [Test] public void Presentation_seam_files_have_no_hard_coded_player_strings()
+        {
+            var files = Directory.GetFiles(Path.Combine(ShellDir, "Presentation"), "*.cs");
+            Assert.IsNotEmpty(files);
+            foreach (var path in files)
+                Assert.AreEqual(0, CountPlayerLiterals(File.ReadAllLines(path)), Path.GetFileName(path) + ": route player copy through PlayerStrings (D-120)");
+        }
+
         [Test] public void Every_table_entry_is_non_empty_and_its_template_formats()
         {
             Assert.IsNotEmpty(PlayerStrings.Keys.ToList());

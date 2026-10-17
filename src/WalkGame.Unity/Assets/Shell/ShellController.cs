@@ -1170,7 +1170,8 @@ namespace WalkGame.Shell
         /// queue button must not prefix another verb ("Restore Restore the river intake").</summary>
         public static string QueueLabel(string title) => PlayerStrings.F("label.start", title);
 
-        public static readonly string[] PrivacyLines =
+        /// <summary>D-195: read on every render (was captured once at type load, so a later locale never applied).</summary>
+        public static string[] PrivacyLines => new[]
         {
             PlayerStrings.T("shell.everythingThisGameKnows"),
             PlayerStrings.T("shell.itKeepsYourValley"),
