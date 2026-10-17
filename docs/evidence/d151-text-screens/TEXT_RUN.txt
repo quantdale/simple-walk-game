@@ -1,0 +1,5 @@
+home-payoff screen=Home state=payoff scale=1 rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+returnsummary-payoff screen=ReturnSummary state=payoff scale=1 rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+settings screen=Settings state=payoff scale=1 rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+home-payoff-2x screen=Home state=payoff scale=2 rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+TEXT CAPTURE DONE

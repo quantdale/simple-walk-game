@@ -2794,3 +2794,10 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** Guard suite scenario 15 (stale invoking copy re-execs the fetched copy; worktree based on fetched main). Guard suite 51/51 (shell-tested on box).
 
 **Save compatibility.** None (tooling only).
+
+## D-151 — Home says where walked Vitality went and labels the balance unspent (2026-10-17)
+**Decision.** Right after a walk Home showed "Vitality 0 · Materials 0 · Knowledge 0", which read as "nothing earned" because Vitality auto-invests into the active project. Home now shows "Your Vitality goes straight into {project}: {invested} invested so far." whenever the active project has any investment (not after region completion), and the balance line reads "Unspent: Vitality n · Materials n · Knowledge n" (`label.vitalityInvested`, `label.resourcesUnspent`). "Earned today" was rejected because the read model has no per-day earnings and adding one would go beyond display-only. Display only: no save, schema, content version or hash change.
+
+**Tests.** `FirstSessionPayoffShellTests` extended (no invested line before funding; after a 2,000-step walk the unspent label and the invested line show and the bare "Vitality 0 ·" line is gone). EditMode 237/237 (Unity-editor-tested, batch mode). Captures in `docs/evidence/d151-text-screens/` (editor-rendered). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None.

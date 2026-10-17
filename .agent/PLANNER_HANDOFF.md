@@ -242,3 +242,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - D-147: five accessibility invariants now iterate every `ShellScreen`; fixed missing button min-width. EditMode 236/236 (Unity-editor-tested). Device screen readers still UNVERIFIED (KI-002).
 - D-148: `tools/unity/capture-text-screens.sh` + `WG_CAPTURE_STATE=payoff`; PNGs in docs/evidence/d148-text-screens/ (editor-rendered).
 - D-149: Home drops the duplicate restoring-now line once the payoff line shows (OpenSpec add-first-session-payoff updated). Next candidates: "Vitality 0" in the Home resource line right after a walk reads as nothing earned (spent into the project) — consider wording; device a11y still KI-002.
+
+## Session note 2026-10-17 (grok1017e)
+- D-150 (#149): root cause of the stale-base worktree was a stale checkout running its OWN pre-#61 copy of `new-agent-worktree.sh`. The script now re-execs origin/main's copy and self-checks the base SHA; guard scenario 15; guard suite 51/51.
+- D-151: Home says "Your Vitality goes straight into {project}: N invested so far." and labels the balance "Unspent: …". Captures: docs/evidence/d151-text-screens/ (editor-rendered).
+- Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017e`. Region 2 is still not approved.
