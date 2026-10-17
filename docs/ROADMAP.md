@@ -618,3 +618,6 @@ The project should prefer **fewer, larger, integrated campaigns** over fragmente
 - [x] 2026-10-17 grok1017d: D-147 Region 1 accessibility invariants on every shell screen (2x text, 48 dp both dimensions, semantic names/reader labels, contrast, no motion); button min-width fix. EditMode 236 (Unity-editor-tested)
 - [x] 2026-10-17 grok1017d: D-148 batch-mode PNG captures of Home (D-145 payoff, 1x/2x), return summary and Settings under docs/evidence/d148-text-screens/ (editor-rendered)
 - [x] 2026-10-17 grok1017d: D-149 Home drops the duplicate "underway (x of y)" line once the payoff line shows (Unity-editor-tested)
+- [x] 2026-10-17 grok1017e: D-150 new-agent-worktree.sh re-execs origin/main's copy and self-checks its base (guard scenario 15, shell-tested)
+- [x] 2026-10-17 grok1017e: D-151 Home names where walked Vitality went and labels the balance "Unspent" (Unity-editor-tested; captures docs/evidence/d151-text-screens/, editor-rendered)
+- [x] 2026-10-17 grok1017e: D-152 Home groups the invested line with the payoff line (Unity-editor-tested)

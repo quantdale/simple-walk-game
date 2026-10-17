@@ -43,6 +43,10 @@ namespace WalkGame.Shell.Tests
             Assert.IsFalse(home.Lines.Any(l => l.StartsWith("Vitality 0 ·")), "bare zero balance no longer shown");
             Assert.IsTrue(home.Lines.Contains("Your Vitality goes straight into " + after.ActiveProjectTitleKey + ": " + after.ActiveProjectInvested + " invested so far."), string.Join("|", home.Lines));
 
+            // D-152: the invested line follows the payoff line directly.
+            int pi = home.Lines.FindIndex(l => IsPayoff(l));
+            Assert.That(home.Lines[pi + 1], Does.StartWith("Your Vitality goes straight into"), string.Join("|", home.Lines));
+
             c.Invoke("nav:ReturnSummary");
             var summary = c.Render();
             Assert.AreEqual(1, summary.Lines.Count(IsPayoff), string.Join("|", summary.Lines));

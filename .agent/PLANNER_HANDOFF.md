@@ -247,3 +247,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - D-150 (#149): root cause of the stale-base worktree was a stale checkout running its OWN pre-#61 copy of `new-agent-worktree.sh`. The script now re-execs origin/main's copy and self-checks the base SHA; guard scenario 15; guard suite 51/51.
 - D-151: Home says "Your Vitality goes straight into {project}: N invested so far." and labels the balance "Unspent: …". Captures: docs/evidence/d151-text-screens/ (editor-rendered).
 - Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017e`. Region 2 is still not approved.
+- D-152: invested line moved directly under the payoff line on Home. Next: device playtest (KI-002); Region 2 gated.

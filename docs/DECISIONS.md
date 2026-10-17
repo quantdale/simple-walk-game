@@ -2801,3 +2801,10 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `FirstSessionPayoffShellTests` extended (no invested line before funding; after a 2,000-step walk the unspent label and the invested line show and the bare "Vitality 0 ·" line is gone). EditMode 237/237 (Unity-editor-tested, batch mode). Captures in `docs/evidence/d151-text-screens/` (editor-rendered). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-152 — Home groups the active project's facts together (2026-10-17)
+**Decision.** Region 1 polish after D-151: the "Your Vitality goes straight into {project}: N invested so far." line now sits directly after the D-145 payoff line (percent + steps to go) instead of after the activity and story lines, so everything about the project being restored reads as one group; the unspent balance stays last. Display order only.
+
+**Tests.** `FirstSessionPayoffShellTests` asserts the invested line immediately follows the payoff line. EditMode 237/237 (Unity-editor-tested, batch mode). Device UNVERIFIED (KI-002). The d151 captures predate this reorder (same lines, different order).
+
+**Save compatibility.** None.
