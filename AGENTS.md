@@ -111,6 +111,10 @@ scripts/new-agent-worktree.sh <campaign> <session-id>
 # worktree: ../simple-walk-game-wt-<campaign>-<session-id> (lease acquired automatically)
 ```
 
+From a checkout that may be stale and predates D-150 (its copy lacks the self-update), run the
+fetched copy instead: `git fetch origin && git show origin/main:scripts/new-agent-worktree.sh | sh -s -- <campaign> <session-id>`.
+Copies from D-150 onward re-exec origin/main's copy automatically and self-check the base SHA.
+
 Record the starting SHA the helper prints. Never write into another session's worktree.
 
 ## Commit / push safety

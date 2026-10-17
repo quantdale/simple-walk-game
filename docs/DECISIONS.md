@@ -2787,3 +2787,10 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `FirstSessionPayoffShellTests` extended (unfunded keeps restoring-now; funded drops it). EditMode 237/237 (Unity-editor-tested, batch mode). Captures editor-rendered. Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None (display only; no save, schema, content version or hash change).
+
+## D-150 — new-agent-worktree.sh always runs origin/main's copy and self-checks its base (2026-10-17)
+**Decision.** Root cause of a worktree cut from the shared checkout's stale HEAD e44b282 after #61: the session invoked `/workspace/simple-walk-game/scripts/new-agent-worktree.sh` from that stale checkout, and the shell executed *that checkout's* copy of the script, which predates the fetch-and-base fix (it ran `git worktree add -b <branch> <path>` with no start point, i.e. local HEAD). The fixed script on main was never executed. Fix: after fetching `<remote>/main`, the script compares its own blob to `<remote>/main:scripts/new-agent-worktree.sh` and, if different, re-execs the fetched copy (guarded by `SWG_WORKTREE_REEXEC`); after `worktree add` it verifies the new HEAD equals the fetched base or fails. Copies older than D-150 cannot self-update, so AGENTS.md documents running `git show origin/main:scripts/new-agent-worktree.sh | sh -s -- <campaign> <session>` from a possibly stale checkout.
+
+**Tests.** Guard suite scenario 15 (stale invoking copy re-execs the fetched copy; worktree based on fetched main). Guard suite 51/51 (shell-tested on box).
+
+**Save compatibility.** None (tooling only).
