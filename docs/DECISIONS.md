@@ -2866,3 +2866,5 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 - Capture: `docs/evidence/d156-today-earned/` (editor-rendered). Device UNVERIFIED (KI-002). On a device, the Health Connect `endZoneOffset` read is still unverified (KI-002), and without it walks are undated and the line does not appear.
 
 **Save compatibility.** None: schema v3 is unchanged, nothing new is persisted, and the content fingerprint is unchanged.
+
+**Owner acceptance (2026-10-17).** Michael, the owner, accepted the derived no-migration design: per-day earnings stay derived from the processed-record rows, and schema stays v3. The 'confirm D-156' item is removed from the KNOWN_ISSUES morning queue. A persisted pruned ledger stays a possible later change with its own OpenSpec, migration and decision.
