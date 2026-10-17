@@ -2334,7 +2334,7 @@ One gap was fixed: record ids were persisted unbounded. A 100,000-character id o
 
 **Context.** PERFORMANCE_BUDGETS §12–§14 ask for no polling loops, no wake-heavy timers and bounded activity queries, and the release checklist (L) asks about battery drain from background reads. Nothing checked the shell's actual query frequency.
 
-**Decision (review result).** The current design meets the budget and is now pinned by tests. Walking data is read only on boot and on return to the foreground (`OnApplicationPause(false)` → `Resume`), once each, over a window of `SyncWindowDays` = 30 days. There is no background sync (KI-016c), no timer, and no per-frame `Update`. Navigation and rendering only make cheap status queries (SDK and permission state), never data reads. The only `WaitForSeconds` is the development-only emulator autodrive. No code change was needed.
+**Decision (review result).** The current design meets the budget and is now pinned by tests. Walking data is read only on boot and on return to the foreground (`OnApplicationPause(false)` → `Resume`), once each *(read frequency amended 2026-10-17 by D-185: a resume within 30 s of the last successful read skips it)*, over a window of `SyncWindowDays` = 30 days. There is no background sync (KI-016c), no timer, and no per-frame `Update`. Navigation and rendering only make cheap status queries (SDK and permission state), never data reads. The only `WaitForSeconds` is the development-only emulator autodrive. No code change was needed.
 
 **Tests:** EditMode `BackgroundSyncBudgetTests` (5): 100 navigations make zero data reads; each resume reads exactly once; every read window is ≤ 30 days; status calls per render stay within a cap of 8 (measured 0.89 in the editor); a source scan bans `Update`/`InvokeRepeating`/timers/`while(true)` in the shell.
 
@@ -3498,4 +3498,29 @@ It follows Unity's import rules: dot-names, `~` names, and the contents of `*.an
   - The checker's program was fed on stdin, so the real check silently checked nothing and "passed".
   - The androidlib folder's own `.meta` was misreported as an orphan.
 - The real tree passes with 94 metas. Label: headless-tested (CI script). No Unity run is needed.
+
+## D-185 — A resume within 30 s of a successful read skips the provider read (amends D-107) (2026-10-17)
+
+**Status:** Accepted (engineering authority, 2026-10-17 ~7:02 PM Asia/Manila; battery-conscious invariant).
+
+**Why.** Under D-107 every foreground resume re-read the provider's whole `SyncWindowDays` (30-day) window. Each read is a JNI read, a full ingest and a save write. Resumes cluster: the share sheet, OS settings, permission dialogs and app switching each pause and resume the app. So a burst of resumes repeated that work every time.
+
+**Decision.**
+- **Skip rule:** `ShellController.SyncLiveSource` skips the provider read when the last *successful* read finished less than `MinLiveSyncInterval` (30 s) ago and the connection state is unchanged. The reload (`Continue`), offline catch-up and UI still run on every resume.
+- **What counts as successful:** no exception, the ingestion outcome is `Succeeded`, the permission is not partially granted, and the state is saved.
+- **Always read on:**
+  - a cold start (a new controller has no record);
+  - a fresh grant: any resume without permission clears the record;
+  - any change of the connection state since that read (player status, granted, partially granted, which covers revocation and availability);
+  - a failed or partial last read (nothing is recorded);
+  - a clock that moved backward.
+- **Freshness cost** is at most 30 s. No data is lost, because the next read covers the same window and crediting is exactly-once.
+- **Testability:** `UtcNow` and `MinLiveSyncInterval` are injectable for tests.
+
+**Tests.**
+- `BackgroundSyncBudgetTests.Each_return_to_the_foreground_reads_exactly_once` was **rewritten on purpose** to the new contract as `Returns_to_the_foreground_read_at_most_once_per_window_and_never_loop` (real Health Connect adapter over a counting bridge): 5 resumes in 25 s give 1 read, and the first resume after the window gives 1 more. The other 4 D-107 tests are unchanged.
+- New `LiveSyncThrottleTests` (9): a burst of 20 resumes gives 1 read; the read happens again at exactly 30 s; cold start; fresh grant; granted ↔ partially granted change; partial reads never open the window; a failed read is retried on the next resume, after which the window applies; a backward clock; a zero interval.
+- `SyncReentrancyTests` sets the interval to zero, because it pins re-entrancy (one coalesced re-run), not frequency.
+- The burst test was first written in the earlier attempt (reverted 2026-10-17). It failed on the old behavior (21 reads instead of 1), and the D-107 assertion failed under the throttle; this PR changes both on purpose.
+- EditMode 301/301 (292 + 9). Labels: Unity-editor-tested; device battery and thermal UNVERIFIED (KI-002).
 

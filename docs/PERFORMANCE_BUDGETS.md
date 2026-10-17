@@ -236,6 +236,8 @@ A device becoming hot during lightweight Home/Projects usage is a defect.
 
 **Headless review (D-107, 2026-10-16):** the shell reads walking data only on boot and resume, once each, over at most 30 days; navigation makes no data reads; no polling, timers or per-frame `Update` in the shell. Pinned by EditMode `BackgroundSyncBudgetTests`. Device battery numbers remain UNVERIFIED (KI-002).
 
+**Amended (D-185, 2026-10-17):** a foreground resume within 30 s of the last *successful* provider read skips the read (the reload and UI still run), so a burst of resumes costs one read. Cold start, a fresh grant, any connection change, a failed or partial last read and a backward clock always read. Freshness cost: at most 30 s. Pinned by `BackgroundSyncBudgetTests` (rewritten to this contract) and `LiveSyncThrottleTests`.
+
 ---
 
 ## 14. Activity-query budgets

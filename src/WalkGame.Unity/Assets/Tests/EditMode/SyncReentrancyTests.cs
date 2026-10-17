@@ -53,7 +53,9 @@ namespace WalkGame.Shell.Tests
             try { System.Diagnostics.Process.Start("chmod", mode + " \"" + _dir + "\"")?.WaitForExit(); } catch (Exception) { }
         }
 
-        private ShellController Launch() => new ShellController(ShellBootstrap.CreateSession(_dir, new GrantedPort()), () => 42UL, devTools: true, _source);
+        // D-185: this suite pins re-entrancy (one coalesced re-run, never nested), not read
+        // frequency, so the 30 s skip window is off here; LiveSyncThrottleTests covers it.
+        private ShellController Launch() => new ShellController(ShellBootstrap.CreateSession(_dir, new GrantedPort()), () => 42UL, devTools: true, _source) { MinLiveSyncInterval = TimeSpan.Zero };
 
         /// <summary>A loaded world: Home, or the return summary a boot can lead to.</summary>
         private static void AssertOpen(ShellController c) =>

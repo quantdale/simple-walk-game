@@ -61,13 +61,21 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual(readsAfterBoot, b.Reads, "100 navigations must not query the provider");
         }
 
-        [Test] public void Each_return_to_the_foreground_reads_exactly_once()
+        // D-185 amends the D-107 budget: "one read per resume" became "at most one read per
+        // 30 s of successful reads". Rewritten deliberately to the new contract, not removed; the
+        // always-read cases are covered by LiveSyncThrottleTests.
+        [Test] public void Returns_to_the_foreground_read_at_most_once_per_window_and_never_loop()
         {
             var b = new CountingBridge();
-            var c = Booted(() => Controller(b));
+            var now = DateTimeOffset.UtcNow;
+            var c = Booted(() => { var x = Controller(b); x.UtcNow = () => now; return x; });
             int before = b.Reads;
-            for (int i = 0; i < 5; i++) c.Resume();
-            Assert.AreEqual(before + 5, b.Reads, "one bounded read per resume, no retries or loops");
+            now = now.AddMinutes(1);
+            for (int i = 0; i < 5; i++) { c.Resume(); now = now.AddSeconds(5); }
+            Assert.AreEqual(before + 1, b.Reads, "a burst of resumes inside 30 s makes one bounded read, no retries or loops");
+            now = now.AddSeconds(ShellController.MinLiveSyncIntervalDefault.TotalSeconds);
+            c.Resume();
+            Assert.AreEqual(before + 2, b.Reads, "the first resume after the window reads once");
         }
 
         [Test] public void Every_read_window_is_bounded_to_the_sync_window()
