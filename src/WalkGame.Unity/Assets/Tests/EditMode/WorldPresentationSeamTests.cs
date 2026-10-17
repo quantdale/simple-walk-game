@@ -262,6 +262,40 @@ namespace WalkGame.Shell.Tests
             Assert.IsTrue(r.LastReducedMotion);
         }
 
+        private sealed class OsReduce : IOsMotionPreference { public bool ReduceMotionRequested => true; }
+        private sealed class OsThrows : IOsMotionPreference { public bool ReduceMotionRequested => throw new InvalidOperationException(); }
+
+        [Test] public void Resume_passes_the_phones_reduced_motion_when_the_setting_is_off()
+        {
+            var clock = new ManualClock(T0);
+            var s = Started(NewDir(), clock);
+            var r = new Recorder();
+            var c = Controller(s, r);
+            c.OsMotion = new OsReduce(); // D-186
+            c.Resume();
+            Assert.IsTrue(s.EnqueueProject("proj.clear-trailhead").IsSuccess);
+            Assume.That(s.GetSettings().ReducedMotion, Is.False);
+            clock.Advance(TimeSpan.FromDays(5));
+            s.IngestFromSource(new SyntheticWalkingSource(12000), T0, clock.UtcNow);
+            Assume.That(c.Resume(), Is.GreaterThan(0));
+            Assert.IsTrue(r.LastReducedMotion);
+        }
+
+        [Test] public void A_failing_os_adapter_leaves_full_motion_when_the_setting_is_off()
+        {
+            var clock = new ManualClock(T0);
+            var s = Started(NewDir(), clock);
+            var r = new Recorder();
+            var c = Controller(s, r);
+            c.OsMotion = new OsThrows();
+            c.Resume();
+            Assert.IsTrue(s.EnqueueProject("proj.clear-trailhead").IsSuccess);
+            clock.Advance(TimeSpan.FromDays(5));
+            s.IngestFromSource(new SyntheticWalkingSource(12000), T0, clock.UtcNow);
+            Assume.That(c.Resume(), Is.GreaterThan(0));
+            Assert.IsFalse(r.LastReducedMotion);
+        }
+
         [Test] public void Null_presentation_runs_the_whole_loop_headless()
         {
             var clock = new ManualClock(T0);

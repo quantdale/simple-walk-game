@@ -3524,3 +3524,29 @@ It follows Unity's import rules: dot-names, `~` names, and the contents of `*.an
 - The burst test was first written in the earlier attempt (reverted 2026-10-17). It failed on the old behavior (21 reads instead of 1), and the D-107 assertion failed under the throttle; this PR changes both on purpose.
 - EditMode 301/301 (292 + 9). Labels: Unity-editor-tested; device battery and thermal UNVERIFIED (KI-002).
 
+
+## D-186 — Effective reduced motion is the in-game setting OR the phone's setting (2026-10-17)
+
+**Status:** Accepted (engineering authority, 2026-10-17 ~7:02 PM Asia/Manila). Style-neutral code and tests only; no art, UI layout or package changes.
+
+**Why.** Before this, only the in-game toggle reduced motion. A player who already asked their phone for less motion still saw full motion until they found the in-game toggle.
+
+**Decision.**
+- **Seam:** a new `IOsMotionPreference` (`Shell/OsMotionPreference.cs`) reports whether the phone asks for reduced motion. `MotionPreference.Effective(setting, os)` returns the setting OR the OS value.
+  - The OS side can only turn reduced motion **on**, never off.
+  - A missing adapter, or one that throws, falls back to the in-game setting alone.
+  - The OS is not queried when the setting is already on.
+  - The value is read live on every use, not latched, so a change in the phone's settings applies at the next presentation.
+- **Adapters:**
+  - `NullOsMotionPreference` (editor, tests, other platforms) always returns false.
+  - `AndroidOsMotionPreference` reads `Settings.Global.getFloat(resolver, "animator_duration_scale", 1f)` over JNI. A scale of 0 or below means "Remove animations"; NaN is treated as not off.
+  - `IosOsMotionPreference` calls `wg_reduce_motion_enabled` (new `Plugins/iOS/WalkGameAccessibilityBridge.swift`), which returns `UIAccessibility.isReduceMotionEnabled`.
+  - The native paths compile only for their players (`#if UNITY_ANDROID/UNITY_IOS && !UNITY_EDITOR`).
+- **Wiring:** `ShellBootstrap` sets `ShellController.OsMotion = MotionPreference.ForCurrentPlatform()`.
+  - `ShellController.EffectiveReducedMotion` exposes the effective flag.
+  - `WorldPresentationController.OsMotion` is OR-ed into the `reducedMotion` argument passed to `IVisualChangePlayer.Play`.
+- **Settings copy:** when the phone turns reduced motion on and the in-game setting is off, the line reads "Reduced motion is on because your phone is set to show less motion." The in-game toggle stays available and is saved separately; the save is unchanged (no schema change).
+
+**Evidence.** New `OsReducedMotionTests` (20 cases): the OR truth table, the null default, a throwing adapter, no OS query when the setting is on, editor adapters, Android scale mapping, the live read, persistence of the in-game choice, and Settings copy. Two new `WorldPresentationSeamTests` check the OS flag reaches the visual-change player and that a failing adapter leaves full motion. EditMode 323/323.
+
+**Labels:** OR logic, wiring and copy are Unity-editor-tested. The Android JNI read and the iOS Swift bridge are implemented but UNVERIFIED on device (KI-002).

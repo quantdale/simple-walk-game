@@ -51,6 +51,12 @@ namespace WalkGame.Shell
         /// <summary>Effective OS font scale source (D-073); the bootstrap wires AccessibilitySettings.fontScale. Tests inject values.</summary>
         public Func<float> TextScaleSource { get; set; } = () => 1f;
 
+        /// <summary>D-186: the phone's reduce-motion setting; the null adapter (never requested) by default.</summary>
+        public IOsMotionPreference OsMotion { get; set; } = NullOsMotionPreference.Instance;
+
+        /// <summary>D-186: in-game reduced-motion setting OR the phone's setting.</summary>
+        public bool EffectiveReducedMotion => MotionPreference.Effective(_session.GetSettings().ReducedMotion, OsMotion);
+
         /// <summary>D-185 (amends D-107): default window after a SUCCESSFUL provider read in which a resume skips the read.</summary>
         public static readonly TimeSpan MinLiveSyncIntervalDefault = TimeSpan.FromSeconds(30);
 
@@ -1028,7 +1034,9 @@ namespace WalkGame.Shell
         {
             var s = _session.GetSettings();
             var m = With(ShellScreen.Settings, PlayerStrings.T("label.settings"));
-            m.Lines.Add(ReducedMotionLine(s.ReducedMotion));
+            m.Lines.Add(!s.ReducedMotion && MotionPreference.Effective(false, OsMotion)
+                ? PlayerStrings.T("settings.motion.os")
+                : ReducedMotionLine(s.ReducedMotion));
             m.Lines.Add(SoundLine(s.SoundEnabled));
             m.Lines.Add(DiagnosticsLine(s.DiagnosticsVisible));
             bool reminderOn = ReminderWanted(s);
