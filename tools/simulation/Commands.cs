@@ -242,6 +242,11 @@ internal static class Cli
         int day = 0;
         bool completed = false;
         bool cadence = a.Has("--cadence");
+        // D-190: --noise re-delivers yesterday, duplicates and re-revises today and adds an unseen
+        // deletion every day. A correct pipeline credits exactly the clean run, so the report must
+        // be byte-identical to the clean one (scripts/verify-pacing-evidence.sh --noise).
+        bool noise = a.Has("--noise");
+        long nReceived = 0, nDuplicates = 0, nStale = 0, nCorrections = 0, nDelIgnored = 0, nDelApplied = 0, nRejected = 0;
         var tracker = new VisibleChangeTracker();
         var initial = CreateSession(new ManualClock(clockBase), a.SaveDir);
         if (Boot(initial, allowFreshStart: false, freshSeed: 0).ExitCode == 0)
@@ -261,7 +266,18 @@ internal static class Cli
             if (dailyBoot.ExitCode != 0)
                 return dailyBoot.ExitCode;
 
-            if (steps > 0L)
+            if (noise)
+            {
+                long yesterdaySteps = day > 1 ? pacing.StepsForDay(day - 1, windowStart.AddDays(-1)) : 0L;
+                var ingest = dailySession.IngestFromSource(new NoisyReplaySource(steps, yesterdaySteps), windowStart.AddDays(-1), windowEnd);
+                if (steps > 0L) totalSteps += steps; else silentDays++;
+                nReceived += ingest.TotalReceived; nDuplicates += ingest.DuplicatesIgnored; nStale += ingest.StaleRevisionsIgnored;
+                nCorrections += ingest.CorrectionsApplied; nDelIgnored += ingest.DeletionsIgnored; nDelApplied += ingest.DeletionsApplied;
+                nRejected += ingest.Rejected;
+                eligibleStepsTotal += ingest.EligibleSteps;
+                vitalityCredited += Math.Max(0L, ingest.VitalityCredited);
+            }
+            else if (steps > 0L)
             {
                 var ingest = dailySession.IngestFromSource(new SyntheticWalkingSource(steps), windowStart, windowEnd);
                 totalSteps += steps;
@@ -317,6 +333,9 @@ internal static class Cli
         string closureId = content.ClosureCriterion?.MilestoneProjectId ?? content.CompletionMilestoneProjectId ?? string.Empty;
         bool criterionMet = finalState != null && content.MeetsClosureCriterion(finalState.Region);
         int chainsComplete = finalState != null ? content.ChainsComplete(finalState.Region) : 0;
+        if (noise)
+            Console.WriteLine($"NOISE-COUNTS received={nReceived} duplicatesIgnored={nDuplicates} staleRevisionsIgnored={nStale} " +
+                $"correctionsApplied={nCorrections} deletionsIgnored={nDelIgnored} deletionsApplied={nDelApplied} rejected={nRejected}");
         Console.WriteLine($"--- profile report: {profileName} ---");
         if (pacing.PositionalPattern != null)
             Console.WriteLine($"pattern steps/day: {string.Join(",", pacing.PositionalPattern)}");
@@ -784,7 +803,7 @@ internal static class Cli
                    M3 ACCEPTANCE PATH: normalized synthetic records through the real
                    IngestActivityBatch pipeline; session recreated from disk every window;
                    --replay repeats the same window (--at required) and must credit nothing
-               profile   --save <dir> --profile low|moderate|high|irregular|weekend-heavy|inactivity|pathological [--days N] [--seed N] [--at ISO8601] [--cadence]
+               profile   --save <dir> --profile low|moderate|high|irregular|weekend-heavy|inactivity|pathological [--days N] [--seed N] [--at ISO8601] [--cadence] [--noise]
                    M4 PACING REPORT: deterministic Region 1 playthrough of the real
                    pipeline with a representative activity profile; prints completion
                    day, decisions, queue-empty days, producer caps, discovery/expedition
