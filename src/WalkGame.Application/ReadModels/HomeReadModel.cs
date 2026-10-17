@@ -49,6 +49,15 @@ namespace WalkGame.Application.ReadModels
         public long ActiveProjectInvested { get; }
         public long ActiveProjectCost { get; }
 
+        /// <summary>D-145: authored visible build stages of the active project (1 when it authors none).</summary>
+        public int ActiveProjectVisibleBuildStages { get; }
+
+        /// <summary>D-145: display-time payoff for the active project; null when nothing is funded yet.</summary>
+        public WalkGame.Application.Pacing.ProjectPayoff? ActiveProjectPayoff =>
+            ActiveProjectId == null || RegionComplete
+                ? (WalkGame.Application.Pacing.ProjectPayoff?)null
+                : WalkGame.Application.Pacing.ProjectPayoff.For(ActiveProjectInvested, ActiveProjectCost, ActiveProjectVisibleBuildStages);
+
         public IReadOnlyList<QueuedRow> Queued { get; }
 
         public int CompletedProjects { get; }
@@ -104,8 +113,10 @@ namespace WalkGame.Application.ReadModels
             DateTimeOffset? regionCompletedAtUtc = null,
             long postCompletionCareCycles = 0L,
             long postCompletionCareInvested = 0L,
-            long postCompletionCareCostPerCycle = 0L)
+            long postCompletionCareCostPerCycle = 0L,
+            int activeProjectVisibleBuildStages = 1)
         {
+            ActiveProjectVisibleBuildStages = activeProjectVisibleBuildStages < 1 ? 1 : activeProjectVisibleBuildStages;
             RegionTitleKey = regionTitleKey;
             Vitality = vitality;
             Materials = materials;

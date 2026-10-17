@@ -163,7 +163,27 @@ namespace WalkGame.Application.ReadModels
                 attentionSentence,
                 primaryAction,
                 ActivitySentenceFor(activityStatus, text),
-                OnboardingSentenceFor(onboarding, home, text));
+                OnboardingSentenceFor(onboarding, home, text),
+                ProjectPayoffSentence(home, content, text));
+        }
+
+        // ------------------------------------------------------------------ payoff (D-145)
+
+        /// <summary>
+        /// "{title}: {n}% restored. About {steps} more steps to ..." for a funded, incomplete
+        /// active project; null otherwise. The percent is at least 1 once anything is invested
+        /// so a short first walk never reads as zero.
+        /// </summary>
+        private static string? ProjectPayoffSentence(HomeReadModel home, RegionDefinition content, ContentText? text)
+        {
+            var payoff = home.ActiveProjectPayoff;
+            if (payoff == null || home.ActiveProjectId == null) return null;
+            string title = DisplayTitle(LocalTitle(text, home.ActiveProjectId, content.FindProject(home.ActiveProjectId)?.TitleKey), home.ActiveProjectTitleKey, text);
+            string percent = payoff.Value.Percent.ToString(CultureInfo.InvariantCulture);
+            string steps = payoff.Value.StepsToNext.ToString("N0", CultureInfo.InvariantCulture);
+            return payoff.Value.NextIsBuildStage
+                ? GlancePhrases.Format(text, "payoff-next-stage", "{0}: {1}% restored. About {2} more steps to its next visible stage.", title, percent, steps)
+                : GlancePhrases.Format(text, "payoff-finish", "{0}: {1}% restored. About {2} more steps to finish it.", title, percent, steps);
         }
 
         // ------------------------------------------------------------------ what changed

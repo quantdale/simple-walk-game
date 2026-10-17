@@ -612,4 +612,5 @@ The project should prefer **fewer, larger, integrated campaigns** over fragmente
 - [x] 2026-10-17 grok1017: D-142 save-migration hardening (atomic runner result, 13 adverse old-save tests; no save change). .NET 902 (headless-tested)
 - [x] 2026-10-17 grok1017b: D-143 adverse lifecycle in one live process (time-zone travel, clock jumps, revocation between syncs; 5 tests, no finding). .NET 907 (headless-tested)
 - [x] 2026-10-17 grok1017b: D-144 Health Connect failure-state matrix (120 combinations + live progress-safety walk; no finding). .NET 1028 (headless-tested)
+- [x] 2026-10-17 grok1017c: D-145 first-session payoff (display-time "% restored, about N steps to the next visible change" on Home and the return summary; no save/content change). .NET 1042 (headless-tested), EditMode 231 (Unity-editor-tested)
 - [~] L10n readiness (D-120, #103): `PlayerStrings` table plus a ratchet test; the rest of the migration is KI-023
