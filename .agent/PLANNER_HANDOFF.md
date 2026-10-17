@@ -256,4 +256,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 ## Session note 2026-10-17 (grok1017g)
 - #156: D-156's derived no-migration design is owner-accepted; the morning-queue item is removed.
 - D-157: Health Connect's framework `StepsRecord` offsets are documented non-null, so the empty sixth field is defensive. Untagged HealthKit samples are the common offsetless case. The adapters now date an offsetless credit with the device zone's offset at the record's end (`DeviceZoneOffsets`, injected; ShellBootstrap wires it for Health Connect). `DeviceZoneOffsetFallbackTests` (10). Residual KI-025 (travel between walk and first sync). Schema v3 unchanged.
+- D-158: `LocalDayViewsConsistencyPropertyTests` (10 seeds × 400 steps) pins that days walked (maintained) and per-day earnings/Today (derived) agree through day-moving corrections, deletions, retirement and reloads. No finding; a mutation check (dropping `MaybeForgetDay`) fails it.
+- Next candidates: device lane (KI-002) to verify `endZoneOffset` and the Today line on a phone; iOS composition (KI-022) would wire `DeviceZoneOffsets.Local` for HealthKit. Region 2 still needs Michael's gate.
 - Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017g` (no `--force`). Removed the merged clean `wt-dailyearn-grok1017f`. Region 2 is still not approved.
