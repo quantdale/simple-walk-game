@@ -214,3 +214,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-17 (grok0739)
 - D-134: closes the D-131 resume gap. While saves keep failing, a resume runs offline catch-up in memory via `GameSession.CatchUpWithoutReload()` (exactly once through monotonic checkpoints) and still shows the return summary. `ResumeCatchUpGapTests` (6) + EditMode `D134_…`. .NET 859/859, EditMode 226/226 + 1 ignored (Unity-editor-tested). Device UNVERIFIED (KI-002). No Dependabot PRs. Region 2 still PROPOSED only.
+- D-136: Guide/Settings 2x-text review (`docs/evidence/d136-guide-settings-2x/`, editor-rendered). Titles now grow at half rate so the Guide's Continue stays above the fold. EditMode 227/227 + 1 ignored.

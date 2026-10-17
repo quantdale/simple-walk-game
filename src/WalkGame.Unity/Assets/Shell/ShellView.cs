@@ -27,6 +27,18 @@ namespace WalkGame.Shell
         public const float MinTextScale = 1f, MaxTextScale = 2f;
         public static float ClampTextScale(float s) => float.IsNaN(s) ? 1f : Mathf.Clamp(s, MinTextScale, MaxTextScale);
 
+        /// <summary>
+        /// D-136: the title grows half as fast as body text (28 -> 42 at 200%), and always stays
+        /// at least 10% larger than body. At 2x the old 56 px title wrapped one word per line and
+        /// pushed the Guide's Continue button below the fold on a phone-sized screen. Body text
+        /// and touch targets still scale fully (D-073), so the 200% resize requirement holds.
+        /// </summary>
+        public static float TitleSizeFor(float textScale)
+        {
+            float k = ClampTextScale(textScale);
+            return Mathf.Max(TitleSize * (1f + (k - 1f) * 0.5f), BodySize * k * 1.1f);
+        }
+
         public static void Render(VisualElement root, ScreenModel model, System.Action<string> onAction, float textScale)
         {
             float k = ClampTextScale(textScale);
@@ -50,7 +62,7 @@ namespace WalkGame.Shell
             root.style.flexGrow = 1;
             root.style.backgroundColor = Background;
 
-            var title = Text(model.Title, TitleSize * k, Ink);
+            var title = Text(model.Title, TitleSizeFor(k), Ink);
             title.name = "title";
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
             title.style.marginBottom = 16;
