@@ -49,6 +49,8 @@ namespace WalkGame.Application.Content
             public const string Title = "title";
             public const string Hint = "hint";
             public const string Provenance = "provenance";
+            /// <summary>D-141: expedition and post-completion care descriptions.</summary>
+            public const string Description = "description";
         }
     }
 }

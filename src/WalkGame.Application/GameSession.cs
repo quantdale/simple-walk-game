@@ -1476,7 +1476,7 @@ namespace WalkGame.Application
                     care = new RegionReadModel.PostCompletionCareRow(
                         program.Id,
                         ContentTitle(program.Id, program.TitleKey),
-                        program.DescriptionKey,
+                        ContentLocale.Resolve(program.Id, WalkGame.Application.Content.ContentText.Fields.Description, program.DescriptionKey),
                         game.Region.PostCompletionCyclesCompleted,
                         game.Region.PostCompletionInvestedVitality,
                         program.VitalityCostPerCycle);
@@ -1672,7 +1672,7 @@ namespace WalkGame.Application
                 rows.Add(new ExpeditionsReadModel.ExpeditionRow(
                     definition.Id.Value,
                     ContentTitle(definition.Id.Value, definition.TitleKey),
-                    definition.DescriptionKey,
+                    ContentLocale.Resolve(definition.Id.Value, WalkGame.Application.Content.ContentText.Fields.Description, definition.DescriptionKey),
                     status,
                     requiredProjects,
                     requiredStages,

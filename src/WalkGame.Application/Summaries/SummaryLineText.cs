@@ -49,6 +49,14 @@ namespace WalkGame.Application.Summaries
             ("next-action-queue", R(@"^Queue the next restoration project\.$"), "Queue the next restoration project."),
         };
 
+        public const string ExpeditionRewardName = "expedition-complete-reward";
+        private const string ExpeditionRewardEnglish = "{0} expedition complete (+{1} {2}).";
+        private static readonly Regex ExpeditionReward =
+            R(@"^(?<t>.+) expedition complete \(\+(?<n>[\d,]+) (?<r>[A-Za-z]+)\)\.$");
+
+        /// <summary>D-141: overlay id for a resource name shown in a summary line ("resource.Materials#title").</summary>
+        public static string ResourceId(string resourceType) => "resource." + resourceType;
+
         private static Regex R(string p) => new Regex(p, RegexOptions.CultureInvariant);
 
         public SummaryLineText(ContentText text, RegionDefinition content)
@@ -94,6 +102,19 @@ namespace WalkGame.Application.Summaries
                 if (line == ReturnSummaryComposer.EcologyLines[i]) return _text.Resolve(PatternId("ecology." + (i + 1)), Field, line);
             for (int i = 0; i < ReturnSummaryComposer.SettlementLines.Count; i++)
                 if (line == ReturnSummaryComposer.SettlementLines[i]) return _text.Resolve(PatternId("settlement." + (i + 1)), Field, line);
+
+            // D-141: the reward-suffixed expedition line carries three arguments (title, units, resource).
+            var em = ExpeditionReward.Match(line);
+            if (em.Success)
+            {
+                string rawTitle = em.Groups["t"].Value, units = em.Groups["n"].Value, rawRes = em.Groups["r"].Value;
+                string title = LocalTitle(rawTitle);
+                string res = _text.Resolve(ResourceId(rawRes), ContentText.Fields.Title, rawRes);
+                string pattern = _text.Resolve(PatternId(ExpeditionRewardName), Field, ExpeditionRewardEnglish);
+                if (ReferenceEquals(pattern, ExpeditionRewardEnglish) && title == rawTitle && res == rawRes) return line;
+                try { return string.Format(CultureInfo.InvariantCulture, pattern, title, units, res); }
+                catch (FormatException) { return string.Format(CultureInfo.InvariantCulture, ExpeditionRewardEnglish, title, units, res); }
+            }
 
             foreach (var (name, re, english) in Forms)
             {
