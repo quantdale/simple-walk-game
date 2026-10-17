@@ -3739,3 +3739,22 @@ The new `--selftest-rule6` fixture failed on the old extraction: it found 1 of 4
   - the new export differs from the old one.
 
 Three tests failed before the fix (reminder still active). **Evidence:** EditMode 351/351 (+5). Labels: Unity-editor-tested; Android `AlarmManager` cancel on a device UNVERIFIED (KI-002).
+
+## D-195 — Runtime pseudo-locale sweep; Privacy lines follow a later locale (2026-10-17)
+
+**Status:** Accepted (engineering authority; localization readiness, real bug fixed failing-first, 2026-10-17 ~9:05 PM Asia/Manila). No copy, art, UI or save change.
+
+**Bug.** `ShellController.PrivacyLines` was a `static readonly` array, so its six lines were resolved once, when the type loaded. A locale chosen afterwards (D-126 `PlayerStrings.Locale`) translated every other screen, but the Privacy screen stayed in English.
+
+**Decision.**
+- `PrivacyLines` is now a property, resolved on every render.
+- New EditMode `LocaleSweepTests` (3 tests):
+  - A pseudo-locale (upper-cased English in `[[ ]]`, placeholders kept) is set over every shell key after start-up, the way a language switch would arrive.
+  - The sweep visits 10 screens: Home, Projects, Settings, Activity, Region, Story, Discoveries, Progress, Privacy and Delete confirm.
+  - It asserts each screen is reached, shows translated shell copy, and contains no English shell fragment of 3+ words.
+  - A targeted test pins the Privacy case.
+- `LocalizationReadinessTests` now also scans `Shell/Presentation` (0 player literals).
+
+Content copy (titles, letters) has its own overlay (D-122) and is outside this sweep. Before the fix, the sweep and the targeted test failed only on the six Privacy lines.
+
+**Evidence.** EditMode 355/355 (+4). Label: Unity-editor-tested. No translation exists yet (KI-023 scope: readiness only).
