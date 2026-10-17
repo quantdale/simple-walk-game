@@ -130,6 +130,8 @@ All of this is post-gate work, done in the approved direction. The rule througho
 
 Adding packages changes `Packages/packages-lock.json` and must be checked against the IL2CPP arm64 APK build and stripping (`link.xml`). The render pipeline is Built-in (`GraphicsSettings` has no custom RP), which is adequate for sprites. URP 2D lights are optional and not needed for the slice.
 
+**Disposition (D-177, 2026-10-17):** deferred until Michael picks a round 2 direction. The set is style-dependent; concept A (recommended) needs 2D Sprite, 2D Animation and PSD Importer plus the Animation and Particle System modules, and no URP.
+
 ## 6. Bible §33 minimum vertical-slice asset list (Old Trailhead + damaged bridge)
 
 Keys follow the D-166 and D-169 conventions so `PresentationAssetResolver` can report what is missing. All assets are original; licensing per `docs/ASSET_LICENSES.md` and the D-170 outcome. Nothing is produced before the round 2 approval.

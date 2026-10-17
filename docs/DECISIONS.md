@@ -3349,3 +3349,21 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 - `BridgePresentationTests` (3, EditMode, shipped `ShellBootstrap` composition): the trailhead landmark props and the inspect card follow the bridge forward from ruined to done; a bridge finished while the app was closed replays once and first after a cold restart, Mira acknowledges it, and the next open replays nothing; with no art the bridge keys are on the resolver's to-make list and fall back to the bridge subject.
 - Mutation check: removing the stream's ProjectCompleted emission fails 3 .NET tests.
 - .NET 1178/1178 (was 1173). EditMode 289/289 (was 286), Unity 6000.3.26f1 batch. Architecture 15/15. Labels: headless-tested (.NET, gates); Unity-editor-tested (EditMode). Not device-tested (KI-002).
+
+## D-177 — Unity 2D art packages are deferred until Michael picks a round 2 direction (KI-027 e) (2026-10-17)
+
+**Status:** Accepted (agent; records a deferral, adds nothing; within D-171's art gate). The package choice itself is Michael's art decision and is made after his pick.
+
+**Decision.**
+- **No Unity package is added now.** `src/WalkGame.Unity/Packages/manifest.json` and `packages-lock.json` stay as they are.
+- The packages the slice needs depend on the style Michael picks, so they are chosen with the pick:
+  - **Concept A (Painted Storybook Valley, recommended)** needs 2D Sprite (`com.unity.2d.sprite`), 2D Animation (`com.unity.2d.animation`, Sprite Skin rig of about 24 painted parts for Mira), PSD Importer (`com.unity.2d.psdimporter`, layered Krita/PSD sources), and the Animation and Particle System modules. **A does not need URP:** its light is painted, so it stays on the current Built-in pipeline. URP 2D lights remain optional.
+  - **B (paper-craft)** could use a rigid cut-out rig without skeletal 2D Animation. **C (diorama)** would want URP 2D lights and normal maps. So adding A's set now would commit the pipeline to one style before the gate opens.
+- **When Michael picks:** a single PR adds the chosen set (a pipeline change, reviewed), updates `packages-lock.json`, and proves an IL2CPP arm64 debug APK still builds with stripping (`link.xml`), plus a green EditMode run (PHASE_A_AUDIT §5). It must not commit `ProjectSettings.asset` changes or engine binaries.
+- KI-027 (e) is **dispositioned (deferred to the art pick)**. It is not closed: the Phase D slice still cannot draw sprites until the packages are added.
+
+**Not changed.** Packages, ProjectSettings, scenes, code, art. The art gate stays closed (D-171).
+
+**Rationale.** Michael's round 2 package (`docs/direction/ART_CHECKPOINT_R2_2026-10-17.md`) lists the package question as one of his open decisions, and the three concepts need different pipelines. Adding packages is cheap to do later and costly to undo after assets depend on them.
+
+**Evidence.** Records only. `manifest.json` checked: it has only the accessibility, androidjni, audio, imgui, jsonserialize, ui and uielements modules plus the test framework. Labels: documentation.
