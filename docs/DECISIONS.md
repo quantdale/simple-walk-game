@@ -2724,3 +2724,10 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Save compatibility.** None. Saves, schema, content versions and content hash are unchanged; stored lines stay English.
 
+## D-142 — Save-migration hardening: atomic runner result and adverse old-save tests (2026-10-17)
+**Decision.** `MigrationRunner.TryMigrate` now migrates into a local and replaces the caller's payload only when the whole chain succeeds. Before, a failure at step 2+ left the ref payload holding the step-1 output, contradicting the runner's "a failure preserves the original recoverable data" contract (the codec discarded it, so no live data loss, but the contract was false). A step that returns null is now a migration failure instead of a "successful" null payload.
+
+**Tests.** `SaveMigrationAdverseTests` (13): hostile v1/old payloads (array or string root, text/object carry, junk producer rows, schema 0, negative, newer than the build, empty object) all decode without throwing and either fail closed with no state or pass as a full current-schema state; newer schema is never downgraded; checksum mismatch on an old save is rejected before any migration; mid-chain failure and null-returning step leave the caller payload untouched (both fail on the old runner). .NET 902/902 (headless-tested). EditMode 230/230, PlayMode 4 passed + 1 opt-in capture ignored (Unity-editor-tested, batch mode). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None. No schema, codec format or migration output change; valid saves migrate exactly as before.
+
