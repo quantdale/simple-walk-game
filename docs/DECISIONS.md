@@ -3019,4 +3019,6 @@ Counts of zero are omitted. Each count has a one/many key in `PlayerStrings` (`s
 
 **Why not display-only for everything.** A line the composer retired is not stored, so no display rule can bring it back. The retention order is the smallest change that keeps it. It is deterministic, adds no save field and no schema change, and existing saves load unchanged. Only newly composed summaries differ.
 
+**OpenSpec.** `openspec/changes/rank-same-batch-summary-retention` modifies the `rotate-durable-return-summary` rotation requirement.
+
 **Evidence.** `SummaryPriorityTests` (16 headless tests): the crowded D-159 closure day keeps both completions, both chapters and the region; older batches still rotate first; other kinds rotate as before; rank table; display pruning. `Region1PlaythroughTests` now requires 0 rotated-out completion lines in all 9 playthroughs (was ≤2). An expedition line may yield to chapter and project lines only on a saturated day; Discoveries and the recap still count it. EditMode `RegionCelebrationTests.Celebration_keeps_the_final_completion_line_and_skips_repeats`. Pacing evidence 7/7 reproduced, content compatibility and save growth pass. .NET 1126/1126, EditMode 256/256. Labels: headless-tested, Unity-editor-tested; device UNVERIFIED (KI-002).
