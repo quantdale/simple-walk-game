@@ -98,10 +98,18 @@ namespace WalkGame.Shell.Tests
 
         [Test] public void Double_tapped_start_on_a_project_is_a_no_op_not_an_error()
         {
-            var c = Started();
-            c.Invoke("nav:Projects");
-            var q = c.Render().Actions.FirstOrDefault(a => a.Id.StartsWith("queue:"));
-            Assume.That(q, Is.Not.Null);
+            // D-137: the Guide queues the only open project, so after Started() Projects has no
+            // "queue:" action and the old Assume made this test Inconclusive (Unity then exits 2,
+            // failing the clean-clone EditMode lane). Double-tap the Guide's own Start instead.
+            var c = Launch(); c.Boot(); c.Invoke("start");
+            ShellAction? q = null;
+            for (int i = 0; i < 10 && q == null; i++)
+            {
+                var m = c.Render();
+                q = m.Actions.FirstOrDefault(a => a.Id.StartsWith("queue:"));
+                if (q == null) c.Invoke(m.Actions.First(a => a.Id == "guide:next").Id);
+            }
+            Assert.IsNotNull(q, "the Guide offers a project to start");
             c.Invoke(q!.Id);
             Assert.AreNotEqual(ScreenState.Error, c.Render().State);
             c.Invoke(q.Id);
