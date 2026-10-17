@@ -3041,3 +3041,19 @@ Counts of zero are omitted. Each count has a one/many key in `PlayerStrings` (`s
 - Asset licensing is unchanged: only in-repo-created or CC0 assets without a separate decision (`docs/ASSET_LICENSES.md`), with provenance recorded. If polished assets cannot be produced with the available tools, that is reported as a blocker, never papered over with placeholders.
 - Region 2 stays gated (D-011); this direction does not approve it.
 - Dialogue must stay short, skippable, revisitable and never gate walking-driven progression (brief §4). The low-attention design (D-001) still holds.
+
+## D-165 — Interactive world presentation contract (style-neutral groundwork) (2026-10-17)
+
+**Status:** Accepted (agent, within the groundwork D-164 allows before the art-direction checkpoint)
+
+**Decision.** OpenSpec change `openspec/changes/add-interactive-world-presentation` defines the engine-agnostic presentation contract the post-checkpoint world UI will bind to:
+- a per-location **world view** with style-neutral variant keys (`<locationId>@<stage>`), locked/unlocked, interactable, selectable goals, construction key, characters present and pending dialogue;
+- a **character/dialogue** content model: lines of at most 140 characters keyed by restoration milestones, revisitable, localizable via `ContentText`, never gating;
+- **restoration-choice previews**: before/after variant keys and typed consequences that must equal the real completion effects;
+- a **visual-change event stream**, derived from `ProjectState.CompletedAtUtc` across restarts and from world-view diffs in-session.
+
+Everything is derived from canonical state at read time, in the Application layer, headless.
+
+**Explicitly not done.** No save-schema change (v3 stays). "Seen dialogue" is held by presentation, not the save; a schema v4 for display-only state was rejected in design.md. No content-version or fingerprint change: the location binding and characters are presentation content like `Region1Letters`. No Unity UI, art or prefabs, and no art-style choice (D-164 gate). Region 2 untouched.
+
+**Evidence.** `openspec validate add-interactive-world-presentation --strict`: valid (`@fission-ai/openspec`, run via npx). Spec only; implementation follows in tasks 1–5 of the change.

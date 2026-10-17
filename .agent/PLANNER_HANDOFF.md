@@ -277,3 +277,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Preserve domain, saves (schema v3), ingestion, restoration systems and tests.
 - **Halted WIP:** the onboarding-step capture work (unverified; it claimed "D-164" but was never merged) is preserved on branch `agent/simple-walk-game/onboard-grok1017i` at `91cef89`, pushed with no PR. It is superseded by this direction. Do not merge it; renumber it if it is ever revived. `ProjectSettings.asset` was reverted and is not in it. Worktree `wt-a11y-grok1017d` is detached at origin/main `05db46c` with its lease released.
 - Region 2 still not approved.
+- D-165: OpenSpec `add-interactive-world-presentation` (spec only) defines the world view, dialogue, choice previews and visual-change stream. Implementation follows in the Application layer, headless, with no save change.

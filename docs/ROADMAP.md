@@ -16,7 +16,7 @@ Do not skip foundational milestones to make the repository look visually advance
 
 Michael's redesign brief [`docs/direction/REDESIGN_2026-10-17.md`](direction/REDESIGN_2026-10-17.md) is the **governing direction** for presentation and player experience. It supersedes text-shell polish as the priority. The procedural valley art and text-stack Home are **placeholders, not final**. Domain, saves, ingestion, restoration systems and tests are preserved. Priorities in order:
 
-1. **Style-neutral groundwork (allowed now):** OpenSpec change `add-interactive-world-presentation`, plus Application-layer read models (world view per location, NPC/dialogue content, restoration-choice previews, visual-change events), headless-tested, with no save-schema change.
+1. **Style-neutral groundwork (allowed now):** OpenSpec change `add-interactive-world-presentation` (spec D-165), plus Application-layer read models (world view per location, NPC/dialogue content, restoration-choice previews, visual-change events), headless-tested, with no save-schema change.
 2. **Art-direction checkpoint (human gate, D-164):** 2–3 concepts with a gameplay screen, an NPC/dialogue sample, a ruined-vs-restored comparison and a production/animation approach. **Michael approves before step 3.**
 3. **After approval:** asset pipeline (licensed/original with provenance), interactive world-first Home, character-focused dialogue presentation, illustrated restoration choices and visible transformations.
 
