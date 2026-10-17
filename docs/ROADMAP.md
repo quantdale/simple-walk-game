@@ -12,12 +12,23 @@ Do not skip foundational milestones to make the repository look visually advance
 
 ---
 
-## Governing direction (D-164, 2026-10-17)
+## Governing direction (D-171 over D-164, 2026-10-17)
 
-Michael's redesign brief [`docs/direction/REDESIGN_2026-10-17.md`](direction/REDESIGN_2026-10-17.md) is the **governing direction** for presentation and player experience. It supersedes text-shell polish as the priority. The procedural valley art and text-stack Home are **placeholders, not final**. Domain, saves, ingestion, restoration systems and tests are preserved. Priorities in order:
+**Art and experience direction (D-171):** Michael's Creative Direction Bible v1 [`docs/direction/CREATIVE_BIBLE_v1_2026-10-17.md`](direction/CREATIVE_BIBLE_v1_2026-10-17.md) governs. It is Cozy Grove–inspired but original: a hand-painted, illustrated 2.5D world that regains color as it is restored, an expressive small cast, short dialogue over a visible world, and a game-first UI. It supersedes the D-164 concept round below (round 1 A/B/C, D-168, not chosen). Phases, in order:
+
+- **A. Audit (bible §39):** replace / reuse / extend for each presentation component; no UI rebuild or art.
+- **B. Round 2 concepts, the single human art gate (§40, §45):** A Painted Storybook Valley (preferred starting point), B Layered Paper-Craft Wonderland, C Painterly Miniature Diorama, produced off-repo. **Michael approves one before C–E start.**
+- **C. Visual style guide (§41)** after approval, plus an asset-production template.
+- **D. Playable vertical slice (§42):** the Old Trailhead and its damaged bridge in Unity, through the real progression system, surviving restarts. Acceptance gate §46; evidence gate §47.
+- **E. Region expansion (§43)** across Millbrook only after the slice passes. No second region until Region 1's presentation is coherent.
+- **F. Verification (§44)** and the final evaluation questions (§48).
+
+Candidate cast (D-172): Mira, Tavi, Rowan and Eli on screen; Nell stays the off-screen letter writer.
+
+**Earlier direction (D-164), still in force where the bible does not change it:** Michael's redesign brief [`docs/direction/REDESIGN_2026-10-17.md`](direction/REDESIGN_2026-10-17.md) is the **governing direction** for presentation and player experience. It supersedes text-shell polish as the priority. The procedural valley art and text-stack Home are **placeholders, not final**. Domain, saves, ingestion, restoration systems and tests are preserved. Priorities in order:
 
 1. **Style-neutral groundwork (allowed now):** OpenSpec change `add-interactive-world-presentation` (spec D-165; world view + dialogue read models D-166; choice previews + visual-change stream D-167; groundwork complete headless; Unity presenter seam with null presenter and asset-key catalog, no art, D-169), plus Application-layer read models (world view per location, NPC/dialogue content, restoration-choice previews, visual-change events), headless-tested, with no save-schema change.
-2. **Art-direction checkpoint (human gate, D-164):** 2–3 concepts with a gameplay screen, an NPC/dialogue sample, a ruined-vs-restored comparison and a production/animation approach. **Michael approves before step 3.** **Package delivered 2026-10-17 3:30 PM Asia/Manila (D-168): A painted 2D, B cozy isometric diorama (recommended), C low-poly 3D; summary in [`docs/direction/ART_CHECKPOINT_2026-10-17.md`](direction/ART_CHECKPOINT_2026-10-17.md). Awaiting Michael's choice.**
+2. **Art-direction checkpoint (human gate, D-164):** 2–3 concepts with a gameplay screen, an NPC/dialogue sample, a ruined-vs-restored comparison and a production/animation approach. **Michael approves before step 3.** Round 1 package delivered 2026-10-17 3:30 PM Asia/Manila (D-168: A painted 2D, B cozy isometric diorama, C low-poly 3D; [`docs/direction/ART_CHECKPOINT_2026-10-17.md`](direction/ART_CHECKPOINT_2026-10-17.md)). **Superseded by D-171: not chosen; the gate is now Phase B round 2 above.**
 3. **After approval:** asset pipeline (licensed/original with provenance), interactive world-first Home, character-focused dialogue presentation, illustrated restoration choices and visible transformations.
 
 Not changed: Region 2 stays gated (D-011); release qualification stays blocked on KI-002.

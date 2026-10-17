@@ -12,6 +12,8 @@ authoritative execution detail. Do not implement from this document alone.
 
 > **2026-10-17 (D-164): governing direction changed.** Michael's redesign brief [`docs/direction/REDESIGN_2026-10-17.md`](direction/REDESIGN_2026-10-17.md) now sets presentation priorities. It replaces text-shell polish with an illustrated, interactive world-restoration presentation, gated by a one-time art-direction approval (KNOWN_ISSUES morning queue). The engineering hardening recorded in this plan stays valid and must be preserved. See `docs/ROADMAP.md` "Governing direction".
 
+> **2026-10-17 (D-171): art and experience direction.** Michael's Creative Direction Bible v1 [`docs/direction/CREATIVE_BIBLE_v1_2026-10-17.md`](direction/CREATIVE_BIBLE_v1_2026-10-17.md) governs art and player experience. It is Cozy Grove–inspired but original. It supersedes D-164's concept round: round 1 (D-168) was not chosen. The single human art gate is now Phase B round 2 (A Painted Storybook Valley, preferred; B Layered Paper-Craft Wonderland; C Painterly Miniature Diorama). Phases C–F and gates §45–§48 are adopted. Every invariant and hardening item in this plan is preserved (bible §50): presentation reads canonical state and never owns it.
+
 ## 0. Application status (updated 2026-10-09)
 
 > **2026-10-16 phase-1 re-assessment** (fresh clone at `97db0c6`): build clean, 505/505 tests, guard suite 25/25, simulation smoke green. `compact-activity-and-reward-ledgers` (F-07) is still the only unapplied change and is proposed as the next campaign — see `.agent/ROADMAP_PROPOSAL_2026-10-16.md` (PROPOSED, not active).
