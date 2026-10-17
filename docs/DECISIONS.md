@@ -2663,6 +2663,7 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `LongPlayInvariantPropertyTests` (.NET, 12). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
 ## D-136 — Region 1 polish: Guide and Settings at 200% text (2026-10-17)
 
 **Context.** A 2x text-size review of the Guide and Settings screens with editor-rendered PNGs (`docs/evidence/d136-guide-settings-2x/`). At 200% the title scaled to 56 px and wrapped one word per line, pushing the Guide's only action below the fold.
