@@ -13,6 +13,7 @@
 #   scripts/verify-pacing-evidence.sh              # verify all profiles
 #   scripts/verify-pacing-evidence.sh irregular    # verify one profile
 #   scripts/verify-pacing-evidence.sh --self-test  # seeded drift must fail (D-187)
+#   scripts/verify-pacing-evidence.sh --noise      # same reports under provider noise (D-190)
 #
 # Exit codes:
 #   0  every requested profile reproduced its committed report byte-for-byte
@@ -31,6 +32,20 @@ DAYS=400
 compare_report() { # committed actual
     [ -f "$1" ] || return 3
     cmp -s "$2" "$1"
+}
+
+# D-190: a --noise run must show the noise reached the pipeline (duplicates ignored, no-op
+# corrections applied, unseen deletions tombstoned) and that none of it was rejected or
+# deleted real credit. Prints the counts line; 0 = plausible, 1 = noise missing or harmful.
+check_noise_counts() { # actual
+    local line
+    line="$(grep '^NOISE-COUNTS ' "$1" || true)"
+    [ -n "$line" ] || { echo "no NOISE-COUNTS line"; return 1; }
+    echo "$line"
+    count() { printf '%s\n' "$line" | sed -n "s/.* $1=\([0-9]*\).*/\1/p"; }
+    [ "$(count duplicatesIgnored)" -gt 0 ] && [ "$(count correctionsApplied)" -gt 0 ] \
+        && [ "$(count deletionsIgnored)" -gt 0 ] && [ "$(count deletionsApplied)" -eq 0 ] \
+        && [ "$(count rejected)" -eq 0 ]
 }
 
 if [ "${1:-}" = "--self-test" ]; then
@@ -59,10 +74,23 @@ PY
     check 1 "a one-byte drift is rejected" "$src" "$t/flipped.txt"
     check 1 "a trailing-newline drift is rejected" "$src" "$t/extra-newline.txt"
     check 3 "a missing committed report is rejected" "$t/absent.txt" "$t/same.txt"
+    noise() { # want label line
+        printf '%s\n' "$3" > "$t/noise.txt"; local got=0
+        check_noise_counts "$t/noise.txt" >/dev/null || got=1
+        if [ "$got" = "$1" ]; then echo "  PASS: $2"; else echo "  FAIL: $2 (got $got, want $1)" >&2; rc=1; fi
+    }
+    ok_line="NOISE-COUNTS received=9 duplicatesIgnored=3 staleRevisionsIgnored=0 correctionsApplied=2 deletionsIgnored=2 deletionsApplied=0 rejected=0"
+    noise 0 "noise that reached the pipeline harmlessly passes" "$ok_line"
+    noise 1 "a run with no noise line fails" "--- profile report: low ---"
+    noise 1 "noise that produced no duplicates fails" "${ok_line/duplicatesIgnored=3/duplicatesIgnored=0}"
+    noise 1 "noise that deleted real credit fails" "${ok_line/deletionsApplied=0/deletionsApplied=1}"
+    noise 1 "noise the pipeline rejected fails" "${ok_line/rejected=0/rejected=4}"
     [ "$rc" -eq 0 ] && echo "PACING EVIDENCE SELF-TEST: PASS" || echo "PACING EVIDENCE SELF-TEST: FAIL" >&2
     exit "$rc"
 fi
 
+NOISE=0
+if [ "${1:-}" = "--noise" ]; then NOISE=1; shift; fi
 PROFILES="${*:-$ALL_PROFILES}"
 
 # The CLI is built once; every profile then reuses the same binary so a compile
@@ -93,8 +121,9 @@ for profile in $PROFILES; do
     actual="$WORK/${profile}.actual"
     mkdir -p "$save_dir"
 
+    noise_flag=""; [ "$NOISE" -eq 1 ] && noise_flag="--noise"
     if ! dotnet run --project tools/simulation --no-build -- \
-        profile --save "$save_dir" --profile "$profile" --days "$DAYS" \
+        profile --save "$save_dir" --profile "$profile" --days "$DAYS" $noise_flag \
         >"$actual" 2>&1; then
         echo "  FAIL: ${profile}: simulation exited non-zero" >&2
         sed 's/^/      | /' "$actual" >&2
@@ -102,8 +131,19 @@ for profile in $PROFILES; do
         continue
     fi
 
+    if [ "$NOISE" -eq 1 ]; then
+        if ! counts="$(check_noise_counts "$actual")"; then
+            echo "  FAIL: ${profile}: provider noise did not reach the pipeline harmlessly: ${counts}" >&2
+            FAIL=$((FAIL + 1))
+            continue
+        fi
+        echo "    ${profile} ${counts}"
+        grep -v '^NOISE-COUNTS ' "$actual" > "$actual.report"
+        actual="$actual.report"
+    fi
+
     if compare_report "$committed" "$actual"; then
-        echo "  PASS: ${profile} reproduces docs/evidence/m4/pacing-${profile}.txt"
+        echo "  PASS: ${profile} reproduces docs/evidence/m4/pacing-${profile}.txt$([ "$NOISE" -eq 1 ] && echo ' under provider noise')"
         PASS=$((PASS + 1))
     else
         echo "  FAIL: ${profile} drifted from its committed report" >&2

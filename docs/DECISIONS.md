@@ -3620,3 +3620,30 @@ Each said "UNVERIFIED on device", but the Final Device and Release Qualification
 - **TESTING_AND_RELEASE §12** gains a "Device-only checks added 2026-10-17" table mapping each check to its row.
 
 **Not changed.** No code, tests or gates. Older evidence packages under `docs/evidence/` are snapshots and keep their H–Q wording.
+
+## D-190 — Balance re-check: every persona's pacing is unchanged under provider noise (2026-10-17)
+
+**Status:** Accepted (engineering authority; style-neutral hardening, 2026-10-17 ~8:05 PM Asia/Manila). Simulation tooling and a CI gate only; no product code, content, tuning or save change.
+
+**Why.** D-178 (correction clamp), D-181 (revision order) and D-183 (deletion tombstones) changed how corrections and deletions are credited. The pacing evidence (D-046/D-062) feeds the trust pipeline only clean, first-time records. It could therefore not show whether low, irregular or high activity still paces the same once a real provider re-delivers, revises and deletes.
+
+**Decision.**
+- **New `profile --noise`** (`tools/simulation/NoisyReplaySource.cs`). Each simulated day ingests the window [yesterday, today end) in a scrambled order:
+  - a deletion for a never-seen record (revision 3);
+  - today's record, then an equal-quantity revision 2;
+  - yesterday's record re-delivered;
+  - today's revision 1 again.
+- A correct pipeline must credit exactly the clean run.
+- **Gate:** `verify-pacing-evidence.sh --noise` (now in CI) requires all 7 reports to stay byte-identical to the committed clean reports, ignoring only the extra `NOISE-COUNTS` line. That line must show:
+  - duplicates ignored > 0;
+  - corrections applied > 0;
+  - unseen deletions ignored (tombstoned) > 0;
+  - deletions applied = 0 and rejected = 0.
+- **Self-test:** 5 more cases (now 9 in total) prove the count check fails when the noise is missing, produced no duplicates, deleted real credit or was rejected.
+
+**Result (re-check).** All 7 personas (low, moderate, high, irregular, weekend-heavy, inactivity, pathological) reproduce their committed reports byte-for-byte under noise. Their completion days, chains, discoveries, expeditions and credited Vitality are therefore unchanged since D-178/D-183.
+- **Low persona, 400 days:** 1,999 records received; 799 duplicates ignored, 400 no-op corrections, 400 tombstones; 0 rejected.
+- **Not exercised:** stale revisions. An older revision re-delivered with identical content is classed as a duplicate, which credits the same.
+- **Mutation check:** making revision 2 carry +500 steps changes the low report (4/6 → 5/6 chains), so the noise does reach the pipeline.
+
+**Evidence.** verify-pacing-evidence: clean 7/7, noise 7/7, self-test PASS. Labels: headless-tested.

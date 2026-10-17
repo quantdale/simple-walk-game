@@ -673,3 +673,4 @@ The project should prefer **fewer, larger, integrated campaigns** over fragmente
 - [x] 2026-10-17 grok1927: D-187 CI wiring gate (every verify-* gate and its self-test runs in CI); self-tests for pacing/save-growth/coverage/dependency gates; dependency-health no longer ignores non-System packages.
 - [x] 2026-10-17 grok1927: D-188 revocation / provider-loss / update-required / bridge-crash pinned end to end through the shell (9 EditMode tests); KI-030 (status during an unreadable provider) logged for a decision.
 - [x] 2026-10-17 grok1927: D-189 release checklist rows R–U (IL2CPP File.Replace, Android Remove animations JNI, iOS Reduce Motion bridge, resume-throttle battery) plus M/N updates and the TESTING_AND_RELEASE §12 device-only table.
+- [x] 2026-10-17 grok1927: D-190 balance re-check: all 7 personas pace byte-identically under provider noise (re-delivery, no-op revisions, unseen deletions); `profile --noise` + CI gate.
