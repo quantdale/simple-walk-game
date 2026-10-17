@@ -1,5 +1,7 @@
 # Master Plan
 
+> **Direction (D-171, 2026-10-17):** the Creative Direction Bible v1 (`docs/direction/CREATIVE_BIBLE_v1_2026-10-17.md`) chooses an illustrated 2D/2.5D world as the primary experience. Where this plan says "3D Visit World" or "3D world presentation", read "the illustrated world". M6 is delivered through bible Phases D–E after the Phase B round 2 art approval. Pillars, constraints and engineering objectives are unchanged.
+
 ## 1. Mission
 
 Build a production-quality ambient fitness game in which **real-world activity is the primary gameplay** and the mobile app is a lightweight progression, restoration, and discovery layer.

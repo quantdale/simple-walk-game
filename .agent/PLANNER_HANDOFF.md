@@ -289,3 +289,9 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - **Adopted phases:** A audit → B round 2 gate → C style guide → D Old Trailhead + damaged bridge vertical slice (§42) → E Millbrook expansion → F verification. Gates §45–§48 are the acceptance criteria. Concept art, editor captures and device results are always labelled separately.
 - D-169 (Unity seam) is merged. D-170 (AI-art licensing proposal) is reserved for the grok1557 worker; this session took D-171 and up.
 - D-172 (grok1615): cast reconciliation. Nell stays the off-screen letter writer (letters unchanged). The on-screen cast is Mira (trailhead and bridges), Tavi (intake and waterworks, then the workshop; Arlo's apprentice), Rowan (grove, then the wetland while it heals, then the grove) and Eli (observatory). They replace Wren, Arlo and Ida in `Region1Characters`. Presentation only: no save, content-version or fingerprint change. This is a candidate cast and can change after the round 2 art approval.
+- D-173 (grok1615): the Phase A audit is `docs/direction/PHASE_A_AUDIT.md`. UX_DESIGN, WORLD_AND_CONTENT, PRODUCT_SPEC, MASTER_PLAN, PERFORMANCE_BUDGETS and ASSET_LICENSES were revised where they contradicted the bible (no separate 3D world; world-first Home; the placeholder shell is marked). **Phase D prerequisites (post-gate):**
+  - per-project visual keys and a `ProjectCompleted` event (OpenSpec delta);
+  - bridge build stages (content decision, D-071 process);
+  - persisted, erase-covered presentation memory (decision);
+  - `ICharacterView`, character/prop taps and dialogue actions in the D-169 seam;
+  - 2D Sprite, animation and particle packages.

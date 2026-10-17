@@ -3208,3 +3208,32 @@ Everything is derived from canonical state at read time, in the Application laye
 Mutation check: moving Tavi's first appearance to after the intake fails `Cast_FollowsTheD172Reconciliation` and the trailhead preview test.
 
 .NET 1144/1144 (Domain 162, Infrastructure 208, Application 774); architecture 15/15; content compatibility pass; pacing 7/7; Unity EditMode 269/269 (6000.3.26f1 batch, unchanged suite run against the new cast; `ProjectSettings.asset` reverted). Labels: headless-tested (.NET), Unity-editor-tested (EditMode). Not device-tested (KI-002).
+
+## D-173 — Phase A audit recorded; contradicting docs revised to the bible (2026-10-17)
+
+**Status:** Accepted (agent; bible §39, within D-171. Review and documentation only)
+
+**Decision.**
+- `docs/direction/PHASE_A_AUDIT.md` is the Phase A audit. It gives a replace / reuse / extend verdict, with paths, for every presentation component:
+  - **Replace:** the text-stack Home/Region/Projects/return renderers, `RegionScene`/`ValleyElement`, `ShellTheme.tss` and the synthesised cue samples.
+  - **Reuse:** `ShellController` commands, boot and sync, `ScreenModel` as the text/accessible layer, `PlayerStrings`/`ContentText`, `AccessibleOutline`, `BootRouter`, the platform bridges, and the D-165–D-167 read models and content.
+  - **Extend:** the D-169 seam, `Boot.unity`, the packages manifest, the asset register and the capture tooling.
+- It also covers what the Phase D Old Trailhead + bridge slice (bible §42) needs from code, and the bible §33 minimum asset list with resolver keys.
+- **Docs revised where they clearly contradicted the bible:**
+  - `UX_DESIGN.md` §3 is now a world-first Home. §9/§10/§16 drop the separate 3D world. §14 says reduced motion is "met by construction" only in the placeholder shell. §19 gains the bible §22 return sequence.
+  - `WORLD_AND_CONTENT.md` §12 uses a sprite-variant binding example. §15 points to the palette and stages. §16 is now 2.5D scope. §17 has no required avatar.
+  - `PRODUCT_SPEC.md` §6 (Home and Visit World), plus direction banners in `MASTER_PLAN.md` and `PERFORMANCE_BUDGETS.md`.
+  - `ASSET_LICENSES.md` marks the procedural valley as a placeholder.
+- **Findings carried forward as post-gate work.** None is started before the Phase B round 2 approval.
+  - (a) The world view has no per-project visual key and no `ProjectCompleted` visual-change event. The bridge (`proj.rebuild-trail-bridges`) changes no landmark stage, so its repair and transition are unbound. This needs an Application-only OpenSpec delta to `add-interactive-world-presentation`, with no save change.
+  - (b) The bridge has no visible build stages, so there is no intermediate state. The recommendation is to author them through the D-071 content process, under its own decision.
+  - (c) D-169 presentation memory is in-memory only. A cold start shows no changes earned while away, and seen lines are lost. This needs an erase-covered, non-save store, under its own decision.
+  - (d) The seam lacks `ICharacterView`, character and prop taps, and dialogue actions.
+  - (e) The Unity manifest lacks 2D Sprite, animation and particle packages.
+  - (f) `lm.trailhead` stages 2–3 are triggered by other chains (workshop, lookout), and the art must reflect that.
+
+  Items (a)–(e) are logged as KI-027 (Medium, post-gate, to be closed before the §46 slice acceptance).
+
+**Not changed.** Code, Unity, save schema v3, content, content version and fingerprint, pacing, tests. Region 2 stays gated.
+
+**Evidence.** Reading of code, docs and the committed editor-rendered captures (`docs/evidence/screen-tour/home-editor-rendered.png`, `region-editor-rendered.png`). Claims about read-model fields, stage triggers, `VisibleBuildStages` defaults, the erase path and `manifest.json` were checked against source. Labels: documentation. Nothing is device-tested (KI-002).

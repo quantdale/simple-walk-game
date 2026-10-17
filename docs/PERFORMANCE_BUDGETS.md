@@ -1,5 +1,7 @@
 # Performance Budgets
 
+> **Direction (D-171, 2026-10-17):** under the Creative Direction Bible v1 the illustrated 2.5D world *is* the Home and lightweight mode; there is no separate 3D mode. Lightweight-mode goals (minimal idle CPU/GPU, fast launch, low memory) therefore apply to an animated world view. That means a throttled frame rate, ambient motion paused when idle or backgrounded, and atlased sprites. "Visit World" budgets apply to optional deeper exploration. Numbers are unchanged until measured (editor now; device blocked by KI-002).
+
 ## 1. Principle
 
 Performance is part of the product contract. A game intended to sit alongside a person’s daily activity cannot feel like an always-running battery tax.
