@@ -676,3 +676,4 @@ The project should prefer **fewer, larger, integrated campaigns** over fragmente
 - [x] 2026-10-17 grok1927: D-190 balance re-check: all 7 personas pace byte-identically under provider noise (re-delivery, no-op revisions, unseen deletions); `profile --noise` + CI gate.
 - [x] 2026-10-17 grok1927: D-191 architecture rule 6 sees block-form CI steps (14 scripts checked, was 3–5); `--selftest-rule6` in CI.
 - [x] 2026-10-17 grok2012: D-192 (KI-030, amends D-144) unreadable provider status after a known grant reads as retry; never-granted stays "not connected", revoked stays Settings.
+- [x] 2026-10-17 grok2012: D-193 HealthKit lifecycle parity suite through the shell (12 EditMode cases); KI-031 (iOS denial invisible) logged.

@@ -3699,3 +3699,20 @@ The new `--selftest-rule6` fixture failed on the old extraction: it found 1 of 4
 - EditMode `ActivityConnectionLifecycleTests`: the unreadable test is rewritten to pin the retry state, and 2 tests are added (revoked then unreadable → Settings; a new process + unreadable → not connected).
 - .NET 1835/1835 test cases (162 + 244 + 1429; the Application count grew mainly from the expanded matrix). EditMode 334/334.
 - **Labels:** headless-tested + Unity-editor-tested; device UNVERIFIED (KI-002).
+
+## D-193 — HealthKit lifecycle parity with the Health Connect shell suite (2026-10-17)
+
+**Status:** Accepted (engineering authority; style-neutral hardening, 2026-10-17 ~8:35 PM Asia/Manila). Tests only; no product code or copy change.
+
+**Decision.** New EditMode suite `HealthKitConnectionLifecycleTests` (9 tests, 12 cases). It mirrors D-188 with the real `HealthKitActivityAdapter` over a fake Swift bridge behind a `ShellController`:
+- **Not yet asked:** offers Connect and never reads.
+- **Exactly once:** connected samples are credited once across resumes and a restart.
+- **Permission error (`error:permission`):** a calm refresh failure with "try again on its own", retried on the next resume, no double credit.
+- **Other bridge errors (`error:timeout` / `io` / `unavailable` / a garbage response) and a crashing bridge:** contained, progress kept, Home and Settings still render.
+- **HealthKit unsupported mid-session:** no read, unavailable text, no Connect dead end.
+- **Unreadable availability after a grant:** retry state (D-192), no Connect. A new process then says "not connected".
+- **Watch and phone overlap:** a fully overlapping watch + phone sample pair credits once through the shell (D-114).
+
+**Platform limit pinned (KI-031).** HealthKit cannot report read denial. A read turned off in iOS Settings returns no samples, not an error, so the screen keeps saying "connected" once any walk was processed. The suite pins that progress is never lost and that re-allowed samples count exactly once. The copy question is logged as KI-031 for before the iOS composition ships.
+
+**Evidence.** EditMode 346/346 (+12). Labels: Unity-editor-tested; the Swift bridge and iOS composition are UNVERIFIED (KI-022, KI-002).
