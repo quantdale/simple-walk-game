@@ -60,6 +60,13 @@ namespace WalkGame.Shell.Presentation
         void MarkSeen(string lineId);
         /// <summary>Latest canonical change time already shown; null before the first open.</summary>
         DateTimeOffset? ChangesShownThroughUtc { get; set; }
+        /// <summary>
+        /// D-180 (KI-028): completions (<see cref="VisualChangeEvent.CompletionId"/>) whose changes were shown.
+        /// Null = not recorded: replay falls back to <see cref="ChangesShownThroughUtc"/> alone.
+        /// </summary>
+        IReadOnlyCollection<string>? ShownCompletionIds { get; }
+        /// <summary>D-180: records <paramref name="shown"/> (their completions) as shown, and the shown-through instant.</summary>
+        void MarkChangesShown(IReadOnlyList<VisualChangeEvent> shown, DateTimeOffset shownThroughUtc);
     }
 
     /// <summary>In-memory <see cref="IPresentationMemory"/>, lost on restart. Tests and headless use; the app uses <see cref="SessionPresentationMemory"/> (D-175).</summary>
@@ -69,6 +76,14 @@ namespace WalkGame.Shell.Presentation
         public IReadOnlyCollection<string> SeenLineIds => _seen;
         public void MarkSeen(string lineId) { if (!string.IsNullOrEmpty(lineId)) _seen.Add(lineId); }
         public DateTimeOffset? ChangesShownThroughUtc { get; set; }
+        private HashSet<string>? _shown;
+        public IReadOnlyCollection<string>? ShownCompletionIds => _shown;
+        public void MarkChangesShown(IReadOnlyList<VisualChangeEvent> shown, DateTimeOffset shownThroughUtc)
+        {
+            _shown ??= new HashSet<string>(StringComparer.Ordinal);
+            foreach (var id in WalkGame.Application.Presentation.PresentationReplay.CompletionIdsOf(shown)) _shown.Add(id);
+            if (ChangesShownThroughUtc == null || shownThroughUtc > ChangesShownThroughUtc.Value) ChangesShownThroughUtc = shownThroughUtc;
+        }
     }
 
     /// <summary>What a landmark view needs to draw itself. Keys come straight from the D-166 read model.</summary>

@@ -11,7 +11,10 @@ namespace WalkGame.Application.Presentation
     /// </summary>
     public sealed class PresentationMemoryState
     {
-        public const int CurrentVersion = 1;
+        /// <summary>v2 (D-180) adds <see cref="ShownCompletionIds"/>; v1 files still load (the field is then derived).</summary>
+        public const int CurrentVersion = 2;
+        /// <summary>Bound on remembered completion ids (Region 1 has 19 projects plus the region).</summary>
+        public const int MaxShownCompletionIds = 512;
         /// <summary>Bound on remembered line ids (Region 1 authors a few dozen); extra ids are dropped on save and load.</summary>
         public const int MaxSeenLineIds = 512;
         /// <summary>Longest accepted line id; longer (damaged or hand-edited) ids are dropped.</summary>
@@ -31,6 +34,14 @@ namespace WalkGame.Application.Presentation
         /// <summary>Dialogue line ids already marked seen, ordinal-sorted and unique.</summary>
         public List<string> SeenLineIds { get; set; } = new List<string>();
 
+        /// <summary>
+        /// D-180 (KI-028): completions whose visual changes were already shown, by
+        /// <see cref="ReadModels.VisualChangeEvent.CompletionId"/> (ordinal-sorted, unique, bounded). Null = not
+        /// recorded (a v1 file): <see cref="GameSession.GetPresentationMemory"/> then derives it from
+        /// <see cref="ChangesShownThroughUtc"/> (every completion at or before that instant counts as shown).
+        /// </summary>
+        public List<string>? ShownCompletionIds { get; set; }
+
         public static PresentationMemoryState Empty(DateTimeOffset? gameCreatedAtUtc) =>
             new PresentationMemoryState { GameCreatedAtUtc = gameCreatedAtUtc };
 
@@ -40,17 +51,24 @@ namespace WalkGame.Application.Presentation
             GameCreatedAtUtc = GameCreatedAtUtc,
             ChangesShownThroughUtc = ChangesShownThroughUtc,
             SeenLineIds = new List<string>(SeenLineIds),
+            ShownCompletionIds = ShownCompletionIds == null ? null : new List<string>(ShownCompletionIds),
         };
 
+        /// <summary>Unique, non-empty, length-bounded, ordinal-sorted and count-bounded completion ids; null stays null.</summary>
+        public static List<string>? NormalizeCompletionIds(IEnumerable<string>? ids) =>
+            ids == null ? null : Normalize(ids, MaxShownCompletionIds);
+
         /// <summary>Unique, non-empty, length-bounded, ordinal-sorted and count-bounded ids.</summary>
-        public static List<string> NormalizeLineIds(IEnumerable<string>? ids)
+        public static List<string> NormalizeLineIds(IEnumerable<string>? ids) => Normalize(ids, MaxSeenLineIds);
+
+        private static List<string> Normalize(IEnumerable<string>? ids, int max)
         {
             var set = new SortedSet<string>(StringComparer.Ordinal);
             if (ids != null)
                 foreach (var id in ids)
                     if (!string.IsNullOrWhiteSpace(id) && id.Length <= MaxLineIdLength) set.Add(id);
-            var list = new List<string>(Math.Min(set.Count, MaxSeenLineIds));
-            foreach (var id in set) { if (list.Count == MaxSeenLineIds) break; list.Add(id); }
+            var list = new List<string>(Math.Min(set.Count, max));
+            foreach (var id in set) { if (list.Count == max) break; list.Add(id); }
             return list;
         }
     }

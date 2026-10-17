@@ -314,3 +314,5 @@ For `/goal continue`: read repository instructions, this file, the execution pro
   - KI-028 (open, Low): a backward clock correction can hide a completion from the replay of changes since the last open. Two fix options are recorded. Decide before wiring the Phase D world presenter.
 - Unity batch runs (even EditMode only) rewrite the tracked `ProjectSettings.asset` (KI-015 addendum). Restore it after every run.
 
+## Session note 2026-10-17 (grok1757)
+- D-180 (KI-028, Michael chose option b): `presentation-memory.json` is v2 with `shownCompletionIds`; replay uses `PresentationReplay.Unshown` (by completion id, not timestamp). When the world presenter is wired, use `SessionPresentationMemory` and `WorldPresentationController.Resume` as they are.

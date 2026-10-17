@@ -73,6 +73,38 @@ namespace WalkGame.Shell.Tests
             Assert.IsEmpty(p3.Played);
         }
 
+        [Test] public void A_completion_stamped_before_the_last_open_by_a_corrected_back_clock_is_still_shown_once()
+        {
+            // D-180 (KI-028): the trailhead is shown at day 2, then the device clock is corrected back to day 1
+            // and the bridge is rebuilt while the app is closed. Its stamp is older than the last shown instant.
+            var clock = new ManualClock(T0.AddDays(2));
+            var s = Boot(clock, fresh: true);
+            Assert.AreEqual(0, Controller(s, new Player()).Resume(), "baseline");
+            Assert.IsTrue(s.EnqueueProject("proj.clear-trailhead").IsSuccess);
+            s.CreditActivity(Guid.NewGuid(), clock.UtcNow, 100000, "test");
+            var p1 = new Player();
+            Assert.Greater(Controller(s, p1).Resume(), 0, "the trailhead is shown");
+
+            clock.Set(T0.AddDays(1));
+            var closed = Boot(clock);
+            Assert.IsTrue(closed.EnqueueProject("proj.rebuild-trail-bridges").IsSuccess);
+            closed.CreditActivity(Guid.NewGuid(), clock.UtcNow, 100000, "test");
+
+            var p2 = new Player();
+            int played = Controller(Boot(clock), p2).Resume();
+            Assert.Greater(played, 0, "the rebuilt bridge is replayed although its stamp is older");
+            var batch = p2.Played.Single();
+            Assert.AreEqual(VisualChangeKind.ProjectCompleted, batch[0].Kind);
+            Assert.AreEqual("proj.rebuild-trail-bridges", batch[0].SubjectId);
+            Assert.IsTrue(batch.All(e => e.CompletionId == "proj.rebuild-trail-bridges"), "only the bridge, the trailhead is not repeated");
+
+            var p3 = new Player();
+            Assert.AreEqual(0, Controller(Boot(clock), p3).Resume(), "and never again");
+            Assert.IsEmpty(p3.Played);
+            int total = p1.Played.Sum(b => b.Count) + played;
+            Assert.AreEqual(Boot(clock).GetVisualChangesSince(DateTimeOffset.MinValue).Count, total, "every change of the stream was shown exactly once");
+        }
+
         [Test] public void Seen_lines_stay_seen_after_a_cold_restart()
         {
             var clock = new ManualClock(T0);

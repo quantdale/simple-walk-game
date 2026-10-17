@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using WalkGame.Application;
+using WalkGame.Application.Presentation;
 using WalkGame.Application.ReadModels;
 using WalkGame.Domain.Common;
 using WalkGame.Domain.Projects;
@@ -258,13 +259,15 @@ namespace WalkGame.Shell.Presentation
             if (since == null) MarkChangesShownThroughLatest();
             else
             {
-                var events = _session.GetVisualChangesSince(since.Value);
+                // D-180 (KI-028): every completion not yet shown, whatever its timestamp, so a completion
+                // stamped before the last shown instant (clock corrected backward) is still replayed once.
+                var events = PresentationReplay.Unshown(_session.GetVisualChangesSince(DateTimeOffset.MinValue), _memory.ShownCompletionIds, since);
                 if (events.Count > 0)
                 {
                     _changes.Play(events, ReducedMotion());
                     Acknowledge(events);
                     played = events.Count;
-                    _memory.ChangesShownThroughUtc = Latest(events, since.Value);
+                    _memory.MarkChangesShown(events, PresentationReplay.Latest(events, since.Value));
                 }
             }
             Refresh();
@@ -360,15 +363,10 @@ namespace WalkGame.Shell.Presentation
         private void MarkChangesShownThroughLatest()
         {
             var floor = _memory.ChangesShownThroughUtc ?? DateTimeOffset.MinValue;
-            _memory.ChangesShownThroughUtc = Latest(_session.GetVisualChangesSince(floor), floor);
+            var all = _session.GetVisualChangesSince(DateTimeOffset.MinValue);
+            _memory.MarkChangesShown(all, PresentationReplay.Latest(all, floor));
         }
 
-        private static DateTimeOffset Latest(IReadOnlyList<VisualChangeEvent> events, DateTimeOffset floor)
-        {
-            var latest = floor;
-            foreach (var e in events) if (e.AtUtc.HasValue && e.AtUtc.Value > latest) latest = e.AtUtc.Value;
-            return latest;
-        }
 
         private IReadOnlyList<RestorationChoicesReadModel.Choice> ChoicesAt(string locationId)
         {

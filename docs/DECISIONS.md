@@ -3403,3 +3403,22 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 - Existing M5-H1, D-042 and D-175 store tests pass unchanged, including the temp-only contract.
 - .NET 1188/1188 (1184 + 4). EditMode 289/289 (Unity 6000.3.26f1 batch under Mono, so `File.Replace` ran in the editor runtime). Labels: headless-tested (.NET); Unity-editor-tested (EditMode). `File.Replace` on an Android or iOS device under IL2CPP is UNVERIFIED (KI-002).
 
+## D-180 — Presentation memory records shown completions by id; a corrected-back clock can no longer hide a change (KI-028) (2026-10-17)
+
+**Status:** Accepted (Michael, engineering authority, 2026-10-17 ~6 PM Asia/Manila: option (b) of KI-028). Implements OpenSpec `replay-unshown-completions`.
+
+**Decision.**
+- **Stable completion id on every change event.** `VisualChangeEvent.CompletionId` is the completed project's id, or `region` for the region completion; every event of one completion's batch shares it. In-session diffs carry none.
+- **Presentation-memory file v2** (`presentation-memory.json`, still outside the save): adds `shownCompletionIds`, normalized (unique, non-empty, ≤128 chars, sorted) and bounded (512). On every write the ids are pruned to completions the loaded game actually has, so in practice the list is bounded by the content (19 projects plus the region). A **v1 file loads** unchanged. Its missing field is derived **once per session** from the old mark (completions at or before `changesShownThroughUtc` count as shown), and the next write upgrades the file to v2. Schema > 2 is FutureVersion. "Delete all local data" still erases the file, and the privacy export still excludes it.
+- **Replay rule** (`PresentationReplay.Unshown`, shared by `GameSession.GetUnshownVisualChanges` and the Unity `WorldPresentationController.Resume`): every event whose completion is not recorded as shown, in stream order, whatever its timestamp. When no ids are recorded (an in-memory fake), the old timestamp rule is the fallback. Never opened = baseline, nothing replayed. Shown events are recorded with `MarkVisualChangesShown` / `IPresentationMemory.MarkChangesShown`.
+- **Causal order:** `WorldChangeProjector.ChangesSince` keeps the time order but never places a project before a completed prerequisite. With honest clocks nothing moves (all existing stream and diff tests pass unchanged).
+
+**Not changed.** The canonical save, schema v3, completion timestamps, content, crediting, story, letters, epilogue.
+
+**Evidence.**
+- `ClockRollbackReplayTests` (7, .NET): with the clock corrected backward, the trailhead (day 2) and then the bridge (stamped day 1) each replay once. Every event of the stream is played exactly once: 9 events. The KI-028 probe saw 8 because the wrong order collapsed Mira's 1→2→3 line advance; the old timestamp rule replays 0 of the bridge's events. Nothing is replayed again, also after restarts. Prerequisite order holds with regressed stamps. Ids are pruned and bounded. A v1 file loads, derives its ids, still replays a later back-stamped completion and is rewritten as v2. Erase removes the memory, and the next game starts from a baseline. Replay never writes the save.
+- `LocalPresentationMemoryStoreV2Tests` (6, .NET): v1 loads with ids not recorded, and a stray v1 field is ignored. v2 round-trips, normalizes and bounds. A damaged v2 field is Malformed. A v2 file without the field reads as not recorded. Two version-pinned D-175 assertions were updated for v2 (written version 2; future = 3).
+- `PresentationMemoryRestartTests.A_completion_stamped_before_the_last_open_by_a_corrected_back_clock_is_still_shown_once` (EditMode, shipped `ShellBootstrap` composition, cold restarts).
+- Mutation check: forcing the timestamp rule fails 3 of 7 .NET rollback tests and the EditMode test.
+- .NET 1201/1201 (was 1188). EditMode 290/290. Labels: headless-tested (.NET); Unity-editor-tested (EditMode). Device UNVERIFIED (KI-002).
+
