@@ -3323,3 +3323,29 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 - `PresentationMemoryRestartTests` (5, EditMode, shipped `ShellBootstrap` composition): changes earned while the app was closed are shown once after a cold restart and not on the next; seen lines stay seen; after a cold restart the world view (variant, construction and focus keys, NPC placement) is identical and the save bytes are untouched by presentation; a damaged file → no replay, canonical progress intact; erase removes the file.
 - Mutation check: not wiring the store in `ShellBootstrap` fails 4 of the 5 restart tests.
 - .NET 1173/1173 (was 1147). EditMode 286/286 (was 281), PlayMode 4 passed + 1 ignored (unchanged), Unity 6000.3.26f1 batch. Architecture 15/15. Labels: headless-tested (.NET); Unity-editor-tested (EditMode/PlayMode). Not device-tested (KI-002): the app-private path on a phone is UNVERIFIED as before (PRIVACY_REVIEW §4).
+
+## D-176 — The trailhead footbridge is rebuilt in three visible stages, and every project has a visual key (KI-027 a, b) (2026-10-17)
+
+**Status:** Accepted (agent; style-neutral Phase D prerequisite under D-171, requested by Michael on 2026-10-17; content change under the D-071 rule)
+
+**Decision.**
+- **Content v5 → v6:** `proj.rebuild-trail-bridges` (Old Trailhead footbridge, cost 300) gets `visibleBuildStages: 3`, so it reads ruined → in progress (1/3, 2/3) → rebuilt (bible §42.8). The D-071 rule applies unchanged (`BuildStageFor` = floor(invested × N / cost), clamped below N until completion). No id, cost, prerequisite, stage trigger, state field or save-schema change, so no migration: older saves load as `CompatibleOlder` and show the stage their invested Vitality has already earned.
+- **Project visuals (Application read model):** each `LocationRow` lists `ProjectVisuals` (every project at that location, content order) with status, build stage, stage count and **one visual key**: `<project>@ruined` (not started), `<project>@build-kofN` (active), `<project>@done` (completed). `WorldViewReadModel.ProjectVisualKeyFor`, `ProjectDoneKeyFor`, `FindProject`. Restoration choices carry `ProjectVisualKey` and `DoneVisualKey` (what it looks like now, and once restored).
+- **Completion event:** new `VisualChangeKind.ProjectCompleted` (= 9, appended) with `FromKey = null`, `ToKey = <project>@done`. The persisted change stream (`GetVisualChangesSince`) emits it **first** in each completion batch, once per completion. `WorldViewDiff` emits the same shape in session, so the D-167 stream = diff contract still holds (ConstructionAdvanced stays diff-only).
+- **Seam (Unity):** `LandmarkPresentation.Props` (the row's project visuals), `InspectCard.PropKey` / `DonePropKey`. `TapProp` now refreshes before opening the card so the prop key is current. Art resolves through the existing fallback chain (`<project>@build-2of3` → `<project>` → `fallback.missing`).
+- **Placeholder valley:** RegionScene already draws D-071 build-site posts; the bridge now shows them and the alt text names its stage. This is existing behavior on new data, not a UI change.
+
+**Content-version process (followed).**
+- `scripts/verify-content-compatibility.sh` and `--self-test`: pass; generated saves are `contentVersion=6/6 EXACT-MATCH`.
+- Old saves: six v5 saves generated with the pre-change build (c403153: low 6 and 12 days, moderate 40, high 80, irregular 60, weekend-heavy 50) all validate under the new build as `schema=v3 violations=0 contentVersion=5/6 COMPATIBLE-OLDER`. `BridgeBuildStageTests` also loads a v5 save with the bridge half-built and shows its stage.
+- `scripts/verify-pacing-evidence.sh`: 7 reproduced, 0 drifted. Pacing is unchanged: build stages do not change cost, rate or order, so the committed `docs/evidence/m4/pacing-*.txt` files are not regenerated.
+- `scripts/verify-save-growth.sh`: verified (no new state).
+- Cadence (`tools/simulation profile --days 30 --cadence`, before → after): low 2 → 4 visible changes (days 10, 20 → 10, 14, 17, 20; the 10-day longest gap is unchanged, because it comes before day 10); moderate 5 → 7; weekend-heavy 6 → 7. First change days are unchanged. D-071 measured cadence this way.
+
+**Not changed.** Save schema v3, migrations, Domain, costs, pacing evidence files, presentation memory (D-175), scenes, art.
+
+**Evidence.**
+- `BridgeBuildStageTests` (5, .NET): content check; walking gives ruined → build-0of3 → 1of3 → 2of3 → done with two ConstructionAdvanced events and one ProjectCompleted, which matches the diff and comes first in its batch; every project has a visual and each completion is streamed once; choice keys; a v5 save with a half-built bridge loads as CompatibleOlder and shows its stage. `VisibleBuildStageTests` expects content v6.
+- `BridgePresentationTests` (3, EditMode, shipped `ShellBootstrap` composition): the trailhead landmark props and the inspect card follow the bridge forward from ruined to done; a bridge finished while the app was closed replays once and first after a cold restart, Mira acknowledges it, and the next open replays nothing; with no art the bridge keys are on the resolver's to-make list and fall back to the bridge subject.
+- Mutation check: removing the stream's ProjectCompleted emission fails 3 .NET tests.
+- .NET 1178/1178 (was 1173). EditMode 289/289 (was 286), Unity 6000.3.26f1 batch. Architecture 15/15. Labels: headless-tested (.NET, gates); Unity-editor-tested (EditMode). Not device-tested (KI-002).

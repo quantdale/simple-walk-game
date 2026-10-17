@@ -93,6 +93,7 @@ namespace WalkGame.Application.ReadModels
                 var stage = region.LandmarkStages.TryGetValue(id, out var s) ? s : RestorationStage.Ruined;
 
                 var projects = new List<string>();
+                var visuals = new List<WorldViewReadModel.ProjectVisual>();
                 var selectable = new List<string>();
                 bool anyOpen = false;
                 string? active = null, construction = null, lastCompleted = null;
@@ -104,6 +105,8 @@ namespace WalkGame.Application.ReadModels
                     projects.Add(pid);
                     var st = region.FindProject(pid);
                     if (st == null) continue;
+                    visuals.Add(new WorldViewReadModel.ProjectVisual(pid, id, st.Status,
+                        st.Status == ProjectStatus.Active ? def.BuildStageFor(st.VitalityInvested) : 0, def.VisibleBuildStages));
                     if (st.Status != ProjectStatus.Locked) anyOpen = true;
                     if (st.Status == ProjectStatus.Completed) lastCompleted = pid;
                     if (st.Status == ProjectStatus.Available || st.Status == ProjectStatus.Queued) selectable.Add(pid);
@@ -143,7 +146,7 @@ namespace WalkGame.Application.ReadModels
                 rows.Add(new WorldViewReadModel.LocationRow(id,
                     text.Resolve(id, ContentText.Fields.Title, landmark.TitleKey), stage, unlocked, interactable,
                     projects, selectable, active, construction, found, present, pending, currentLines, buildStage, buildStages,
-                    active ?? (selectable.Count > 0 ? selectable[0] : lastCompleted)));
+                    active ?? (selectable.Count > 0 ? selectable[0] : lastCompleted), visuals));
             }
 
             return new WorldViewReadModel(rows, region.EcologyStage, region.SettlementStage, region.IsCompleted, game.Queue.ActiveProjectId);

@@ -87,8 +87,9 @@ namespace WalkGame.Shell.Presentation
     {
         public InspectCard(string locationId, string locationTitle, string landmarkVariantKey, string? projectId,
             string? projectTitle, ProjectStatus? projectStatus, long vitalityInvested, long vitalityCost,
-            int constructionStage, int constructionStages, RestorationChoicesReadModel.Choice? choice)
+            int constructionStage, int constructionStages, RestorationChoicesReadModel.Choice? choice, string? propKey = null)
         {
+            PropKey = propKey;
             LocationId = locationId; LocationTitle = locationTitle; LandmarkVariantKey = landmarkVariantKey;
             ProjectId = projectId; ProjectTitle = projectTitle; ProjectStatus = projectStatus;
             VitalityInvested = vitalityInvested; VitalityCost = vitalityCost;
@@ -109,6 +110,10 @@ namespace WalkGame.Shell.Presentation
         public int ConstructionStages { get; }
         /// <summary>The project's restoration choice (previews, consequences) while it can be picked or is underway; else null.</summary>
         public RestorationChoicesReadModel.Choice? Choice { get; }
+        /// <summary>D-176: the project's own visual now (<c>@ruined</c>, <c>@build-k-of-n</c> or <c>@done</c>), or null for a place card.</summary>
+        public string? PropKey { get; }
+        /// <summary>D-176: the restored visual (<c>@done</c>) to preview, or null for a place card.</summary>
+        public string? DonePropKey => ProjectId == null ? null : WorldViewReadModel.ProjectDoneKeyFor(ProjectId);
     }
 
     public enum DialogueActionKind

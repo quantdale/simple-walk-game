@@ -29,8 +29,10 @@ namespace WalkGame.Application.ReadModels
         {
             public Choice(string projectId, string title, string? locationId, ProjectStatus status, long vitalityCost,
                 long vitalityInvested, IReadOnlyDictionary<ResourceType, long> resourceCosts, bool canAfford,
-                string? beforeVariantKey, string? afterVariantKey, bool isClosureMilestone, IReadOnlyList<Consequence> consequences)
+                string? beforeVariantKey, string? afterVariantKey, bool isClosureMilestone, IReadOnlyList<Consequence> consequences,
+                string? projectVisualKey = null)
             {
+                ProjectVisualKey = projectVisualKey ?? projectId + "@ruined";
                 ProjectId = projectId; Title = title; LocationId = locationId; Status = status; VitalityCost = vitalityCost;
                 VitalityInvested = vitalityInvested; ResourceCosts = resourceCosts; CanAfford = canAfford;
                 BeforeVariantKey = beforeVariantKey; AfterVariantKey = afterVariantKey; IsClosureMilestone = isClosureMilestone;
@@ -52,6 +54,10 @@ namespace WalkGame.Application.ReadModels
             /// <summary>The region's completion milestone. Closure still needs the chain minimum (D-159).</summary>
             public bool IsClosureMilestone { get; }
             public IReadOnlyList<Consequence> Consequences { get; }
+            /// <summary>D-176: the project's own visual now (<c>@ruined</c> or <c>@build-k-of-n</c>), the before image of a prop such as the bridge.</summary>
+            public string ProjectVisualKey { get; }
+            /// <summary>D-176: the project's restored visual (<c>@done</c>), the after preview of a prop.</summary>
+            public string DoneVisualKey => WorldViewReadModel.ProjectDoneKeyFor(ProjectId);
         }
     }
 
