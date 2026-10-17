@@ -51,6 +51,19 @@ namespace WalkGame.Shell
         /// <summary>Effective OS font scale source (D-073); the bootstrap wires AccessibilitySettings.fontScale. Tests inject values.</summary>
         public Func<float> TextScaleSource { get; set; } = () => 1f;
 
+        /// <summary>D-185 (amends D-107): default window after a SUCCESSFUL provider read in which a resume skips the read.</summary>
+        public static readonly TimeSpan MinLiveSyncIntervalDefault = TimeSpan.FromSeconds(30);
+
+        /// <summary>D-185: skip window after a successful live read. Zero reads on every resume.</summary>
+        public TimeSpan MinLiveSyncInterval { get; set; } = MinLiveSyncIntervalDefault;
+
+        /// <summary>D-185: wall clock for the live read window and its skip window. Tests inject a fixed clock.</summary>
+        public Func<DateTimeOffset> UtcNow { get; set; } = () => DateTimeOffset.UtcNow;
+
+        // D-185: when the last fully successful live read finished, and the connection state it saw.
+        private DateTimeOffset? _lastGoodReadUtc;
+        private (ActivityPlayerStatus Status, bool Granted, bool Partial) _lastGoodReadConnection;
+
         /// <summary>
         /// D-111: hands text to the OS share sheet; returns false if it could not. Null means this
         /// device has no share sheet. The bootstrap wires <see cref="AndroidShareSheet"/>; tests inject fakes.
@@ -381,9 +394,32 @@ namespace WalkGame.Shell
         /// </summary>
         private void SyncLiveSource()
         {
-            if (_liveSource == null || !_session.GetActivityStatus().PermissionGranted) return;
-            var now = DateTimeOffset.UtcNow;
-            try { _session.IngestFromSource(_liveSource, now.AddDays(-SyncWindowDays), now); }
+            if (_liveSource == null) return;
+            var status = _session.GetActivityStatus();
+            if (!status.PermissionGranted) { _lastGoodReadUtc = null; return; } // D-185: a later grant is always fresh
+            var now = UtcNow();
+            // D-185 (amends D-107): a resume within MinLiveSyncInterval of the last SUCCESSFUL read
+            // skips the provider read; the reload and the UI still run. Always read on: a cold start
+            // (new controller, nothing recorded), any change in connection state since that read
+            // (fresh grant, revoke/re-grant, partial grant, provider availability), a last read that
+            // failed or was partial (nothing recorded), and a clock that moved backward. Freshness
+            // cost is at most the interval; nothing is lost because the next read covers the same
+            // window, exactly once by construction.
+            var connection = (status.Status, status.PermissionGranted, status.PartiallyGranted);
+            if (_lastGoodReadUtc is DateTimeOffset last && connection == _lastGoodReadConnection
+                && now >= last && now - last < MinLiveSyncInterval)
+                return;
+            _lastGoodReadUtc = null;
+            try
+            {
+                _session.IngestFromSource(_liveSource, now.AddDays(-SyncWindowDays), now);
+                var after = _session.GetActivityStatus();
+                if (after.LastOutcome == WalkGame.Domain.Activity.IngestionOutcomeKind.Succeeded && !after.PartiallyGranted && !_session.HasUnsavedChanges)
+                {
+                    _lastGoodReadUtc = now;
+                    _lastGoodReadConnection = (after.Status, after.PermissionGranted, after.PartiallyGranted);
+                }
+            }
             catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException || ex is InvalidOperationException) { }
             // D-128: any other bridge exception (a JNI AndroidJavaException, a malformed record
             // surfacing as ArgumentException) must not abort the boot either; the game opens on
