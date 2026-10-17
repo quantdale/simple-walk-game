@@ -485,7 +485,11 @@ namespace WalkGame.Shell
                 m.Lines.Add(glance.AttentionSentence);
             m.Lines.Add(glance.ActivitySentence);
             m.Lines.Add(HomeStoryLine(_session.GetStory()));
-            m.Lines.Add(PlayerStrings.F("label.resources", home.Vitality, home.Materials, home.Knowledge));
+            // D-151: Vitality auto-invests into the active project, so a bare "Vitality 0" right after a
+            // walk read as "nothing earned". Say where it went, and label the balance as unspent.
+            if (home.ActiveProjectId != null && home.ActiveProjectInvested > 0 && !home.RegionComplete)
+                m.Lines.Add(PlayerStrings.F("label.vitalityInvested", PlayerCopy.Title(home.ActiveProjectTitleKey ?? string.Empty), home.ActiveProjectInvested));
+            m.Lines.Add(PlayerStrings.F("label.resourcesUnspent", home.Vitality, home.Materials, home.Knowledge));
             if (empty) m.Lines.Add(PlayerStrings.T("shell.nothingIsBeingRestored"));
             if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", PlayerStrings.T("shell.whileYouWereAway")));
             m.Actions.Add(new ShellAction("nav:Projects", PlayerStrings.T("label.projects")));

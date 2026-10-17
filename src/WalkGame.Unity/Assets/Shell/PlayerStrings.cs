@@ -219,6 +219,8 @@ namespace WalkGame.Shell
             ["label.diagnostics.show"] = "Show diagnostics",
             ["label.diagnostics.hide"] = "Hide diagnostics",
             ["label.resources"] = "Vitality {0} · Materials {1} · Knowledge {2}",
+            ["label.resourcesUnspent"] = "Unspent: Vitality {0} · Materials {1} · Knowledge {2}",
+            ["label.vitalityInvested"] = "Your Vitality goes straight into {0}: {1} invested so far.",
             ["label.discoveriesFound"] = "Discoveries: {0} of {1} found.",
             ["label.step"] = "Step {0} of {1}",
             ["label.prologue"] = "Prologue · {0}",
