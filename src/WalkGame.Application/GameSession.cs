@@ -972,8 +972,19 @@ namespace WalkGame.Application
 
             // D-079: undo the old contribution to the provider pool (its steps less what it
             // credited), then add the corrected steps. The row is re-attributed from that pool.
-            long poolBefore = game.ProcessedRecords.GetCarry(record.ProviderNamespace)
-                - (existing.EligibleSteps - existing.VitalityCredited * StepConversionRuleV1.StepsPerVitality);
+            //
+            // D-178: the pool is clamped to 0..MaxCarry, like the deletion path. The row stores net
+            // APPLIED Vitality, so after a clawback the balance could not cover (clamped, counted
+            // as UnappliedReversalVitality) it holds more Vitality than its steps justify, and the
+            // unclamped formula read that excess as up to hundreds of carried steps. Each later
+            // up-correction then credited it again: a record oscillating 150 -> 50 -> 150 steps
+            // while the player had no unspent Vitality minted +1 per cycle, without bound. With
+            // the clamp a row can never hold more than floor((MaxCarry + steps) / 100), so the
+            // excess is bounded (at most one Vitality per record) and repeated cycles mint
+            // nothing. The cost is under one Vitality of carry in rare legitimate re-attributions.
+            long poolBefore = Math.Max(0L, Math.Min(StepConversionRuleV1.MaxCarry,
+                game.ProcessedRecords.GetCarry(record.ProviderNamespace)
+                - (existing.EligibleSteps - existing.VitalityCredited * StepConversionRuleV1.StepsPerVitality)));
             long targetVitality = StepConversionRuleV1.ConvertWithCarry(poolBefore, eligibleSteps, out long carryAfter);
             game.ProcessedRecords.SetCarry(record.ProviderNamespace, carryAfter);
             long delta = targetVitality - existing.VitalityCredited;

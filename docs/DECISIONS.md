@@ -3367,3 +3367,21 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 **Rationale.** Michael's round 2 package (`docs/direction/ART_CHECKPOINT_R2_2026-10-17.md`) lists the package question as one of his open decisions, and the three concepts need different pipelines. Adding packages is cheap to do later and costly to undo after assets depend on them.
 
 **Evidence.** Records only. `manifest.json` checked: it has only the accessibility, androidjni, audio, imgui, jsonserialize, ui and uielements modules plus the test framework. Labels: documentation.
+
+## D-178 — Down/up revisions of one record cannot mint Vitality: the correction pool is clamped (2026-10-17)
+
+**Status:** Accepted (agent; a bug fix inside the existing exactly-once and correction contracts, ACTIVITY_PIPELINE §8, §11; no save, schema, content or rule-version change)
+
+**Bug.** `ApplyCorrectionDelta` rebuilt the provider's step pool before a correction as `carry - (row steps - row credited x 100)`. A row stores net *applied* Vitality. When a down-correction or deletion arrives while the player has no unspent Vitality, the clawback is clamped (counted in `UnappliedReversalVitality`), so the row keeps more Vitality than its steps. The formula read that excess as up to hundreds of carried steps, and the next up-correction credited it again. A record revised 150 → 50 → 150 steps while everything was spent gained +1 Vitality on every cycle, without bound (probe: 5 revisions gave lifetime credit 1 → 1 → 2 → 2 → 3 for a 150-step walk). Delete-then-re-add and large records (10,000 steps) behaved the same way. With unspent balance the cycle was exact, which is why existing tests missed it.
+
+**Decision.**
+- The pool before a correction is clamped to `0..MaxCarry` (99), the same bound the deletion path already applies (D-079). A row can then never hold more than floor((99 + steps) / 100) Vitality. Repeated cycles mint nothing more.
+- Accepted residual: the conservative clawback policy (the player keeps value the balance could not return) still leaves a record at most what its **largest** revision justified, which is the policy's intended trade-off. Legitimate re-attributions where the pool would exceed 99 lose under one Vitality of carry, like deletions under D-079.
+
+**Not changed.** Save schema v3, identity, reward-transaction ids, `StepConversionRuleV1`, first-time crediting, deletion path, diagnostics fields, pacing evidence.
+
+**Evidence.**
+- `CorrectionOscillationTests` (6, .NET): down/up cycles and delete/re-add cycles with a spent balance stay within 1–2 Vitality for a 150-step record; a 10,000-step record stays within 100–101; with unspent balance the cycles are exact (1 Vitality, carry 50, no unapplied reversal); replaying the whole history is a no-op; a property over 150 seeded random revision histories (1–4 records, 30 revisions, deletions, everything spent) never credits more than floor((99 + max steps) / 100) per record, and every save validates.
+- Mutation check: without the clamp, 4 of the 6 fail (the two exact-path tests pass both ways).
+- `scripts/verify-pacing-evidence.sh`: 7 reproduced, 0 drifted. .NET 1184/1184 (was 1178). EditMode 289/289 (Unity 6000.3.26f1 batch, `EVIDENCE_DIR` outside the repo). Labels: headless-tested (.NET); Unity-editor-tested (EditMode). Device UNVERIFIED (KI-002).
+
