@@ -479,16 +479,17 @@ namespace WalkGame.Shell
             // D-145: first-session payoff. Any funded project shows its percent and the distance to
             // the next visible change, so even a 300-step walk visibly moves something.
             if (glance.PayoffSentence != null) m.Lines.Add(glance.PayoffSentence);
+            // D-151: Vitality auto-invests into the active project, so a bare "Vitality 0" right after a
+            // walk read as "nothing earned". Say where it went, and label the balance as unspent.
+            // D-152: placed right after the payoff line so the project's facts read as one group.
+            if (home.ActiveProjectId != null && home.ActiveProjectInvested > 0 && !home.RegionComplete)
+                m.Lines.Add(PlayerStrings.F("label.vitalityInvested", PlayerCopy.Title(home.ActiveProjectTitleKey ?? string.Empty), home.ActiveProjectInvested));
             // The empty-state line also says "Choose a project to begin", so the glance's
             // "Choose the first thing to restore." would say it twice.
             if (glance.AttentionSentence != null && !(empty && home.AttentionReason == HomeAttentionReason.NoProjectStartedYet))
                 m.Lines.Add(glance.AttentionSentence);
             m.Lines.Add(glance.ActivitySentence);
             m.Lines.Add(HomeStoryLine(_session.GetStory()));
-            // D-151: Vitality auto-invests into the active project, so a bare "Vitality 0" right after a
-            // walk read as "nothing earned". Say where it went, and label the balance as unspent.
-            if (home.ActiveProjectId != null && home.ActiveProjectInvested > 0 && !home.RegionComplete)
-                m.Lines.Add(PlayerStrings.F("label.vitalityInvested", PlayerCopy.Title(home.ActiveProjectTitleKey ?? string.Empty), home.ActiveProjectInvested));
             m.Lines.Add(PlayerStrings.F("label.resourcesUnspent", home.Vitality, home.Materials, home.Knowledge));
             if (empty) m.Lines.Add(PlayerStrings.T("shell.nothingIsBeingRestored"));
             if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", PlayerStrings.T("shell.whileYouWereAway")));
