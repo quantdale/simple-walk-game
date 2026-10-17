@@ -29,14 +29,21 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
 
         private readonly IHealthKitBridge _bridge;
         private readonly Func<DateTimeOffset> _clock;
+        private readonly Func<DateTimeOffset, int?>? _deviceOffsetAt;
         private DateTimeOffset? _lastAttemptUtc;
         private DateTimeOffset? _lastSuccessUtc;
         private string? _lastFailure;
 
-        public HealthKitActivityAdapter(IHealthKitBridge bridge, Func<DateTimeOffset> utcClock)
+        /// <param name="deviceOffsetAt">
+        /// D-157 fallback, same rule as Health Connect: a sample without <c>HKMetadataKeyTimeZone</c> (the
+        /// common case for iPhone step samples) gets the device zone's offset at its end instant. Null keeps
+        /// it undated. Unwired until the iOS composition exists (KI-022).
+        /// </param>
+        public HealthKitActivityAdapter(IHealthKitBridge bridge, Func<DateTimeOffset> utcClock, Func<DateTimeOffset, int?>? deviceOffsetAt = null)
         {
             _bridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
             _clock = utcClock ?? throw new ArgumentNullException(nameof(utcClock));
+            _deviceOffsetAt = deviceOffsetAt;
         }
 
         public string ProviderNamespace => Namespace;
@@ -100,7 +107,7 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
                     throw Fail("protocol", new InvalidOperationException("Duplicate sample on line " + i + "."));
                 if (record.StartUtc < windowStartUtc || record.EndUtc > windowEndUtc) continue;
                 if (!record.IsDeletion) kinds[record.SourceRecordId!] = kind;
-                records.Add(record);
+                records.Add(Platform.DeviceZoneOffsets.WithFallbackOffset(record, _deviceOffsetAt));
             }
             records = ApplySourceDedup(records, kinds);
             records.Sort((a, b) =>

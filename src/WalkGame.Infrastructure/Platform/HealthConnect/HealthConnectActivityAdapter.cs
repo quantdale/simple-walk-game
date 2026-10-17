@@ -44,14 +44,22 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
 
         private readonly IHealthConnectBridge _bridge;
         private readonly Func<DateTimeOffset> _clock;
+        private readonly Func<DateTimeOffset, int?>? _deviceOffsetAt;
         private DateTimeOffset? _lastAttemptUtc;
         private DateTimeOffset? _lastSuccessUtc;
         private string? _lastFailure;
 
-        public HealthConnectActivityAdapter(IHealthConnectBridge bridge, Func<DateTimeOffset> utcClock)
+        /// <param name="deviceOffsetAt">
+        /// D-157 fallback for a step record that arrives without a zone offset: the device zone's offset
+        /// at the record's end instant (<see cref="Platform.DeviceZoneOffsets.Local"/> in the shell).
+        /// Null keeps such records undated (pre-D-157 behaviour). Never consulted when Health Connect
+        /// supplied an offset, and never for deletions.
+        /// </param>
+        public HealthConnectActivityAdapter(IHealthConnectBridge bridge, Func<DateTimeOffset> utcClock, Func<DateTimeOffset, int?>? deviceOffsetAt = null)
         {
             _bridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
             _clock = utcClock ?? throw new ArgumentNullException(nameof(utcClock));
+            _deviceOffsetAt = deviceOffsetAt;
         }
 
         public string ProviderNamespace => Namespace;
@@ -109,7 +117,7 @@ namespace WalkGame.Infrastructure.Platform.HealthConnect
                 if (record == null) throw Fail("protocol", new InvalidOperationException("Malformed step record on line " + i + "."));
                 // Contract: only records lying entirely inside [start, end).
                 if (record.StartUtc < windowStartUtc || record.EndUtc > windowEndUtc) continue;
-                records.Add(record);
+                records.Add(Platform.DeviceZoneOffsets.WithFallbackOffset(record, _deviceOffsetAt));
             }
             records.Sort((a, b) =>
             {
