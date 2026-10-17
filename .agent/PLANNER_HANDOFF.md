@@ -241,3 +241,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 ## Session note 2026-10-17 (grok1017d, D-147)
 - D-147: five accessibility invariants now iterate every `ShellScreen`; fixed missing button min-width. EditMode 236/236 (Unity-editor-tested). Device screen readers still UNVERIFIED (KI-002).
 - D-148: `tools/unity/capture-text-screens.sh` + `WG_CAPTURE_STATE=payoff`; PNGs in docs/evidence/d148-text-screens/ (editor-rendered).
+- D-149: Home drops the duplicate restoring-now line once the payoff line shows (OpenSpec add-first-session-payoff updated). Next candidates: "Vitality 0" in the Home resource line right after a walk reads as nothing earned (spent into the project) — consider wording; device a11y still KI-002.

@@ -473,7 +473,9 @@ namespace WalkGame.Shell
                 && home.AttentionReason == HomeAttentionReason.NoProjectStartedYet;
             if (!firstRun) m.Lines.Add(glance.WhatChangedSentence);
             // D-106: the empty-state line below already says nothing is being restored; skip the duplicate.
-            if (!empty) m.Lines.Add(glance.RestoringNowSentence);
+            // D-149: once the active project is funded, the D-145 payoff line names it with its percent
+            // and steps to go, so "X is underway (n of m)" would say the same thing a third time.
+            if (!empty && glance.PayoffSentence == null) m.Lines.Add(glance.RestoringNowSentence);
             // D-145: first-session payoff. Any funded project shows its percent and the distance to
             // the next visible change, so even a 300-step walk visibly moves something.
             if (glance.PayoffSentence != null) m.Lines.Add(glance.PayoffSentence);

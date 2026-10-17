@@ -25,6 +25,7 @@ namespace WalkGame.Shell.Tests
             s.EnqueueProject(first.ProjectId);
             c.Invoke("nav:Home");
             Assert.IsFalse(c.Render().Lines.Any(IsPayoff), "nothing funded yet");
+            Assert.IsTrue(c.Render().Lines.Contains(s.GetGlance().RestoringNowSentence), "unfunded: the restoring-now line still says what is next");
 
             var now = DateTimeOffset.UtcNow;
             s.IngestFromSource(new SyntheticWalkingSource(2000), now.AddDays(-1), now);
@@ -34,6 +35,7 @@ namespace WalkGame.Shell.Tests
             c.Invoke("nav:Home");
             var home = c.Render();
             Assert.AreEqual(1, home.Lines.Count(IsPayoff), string.Join("|", home.Lines));
+            Assert.IsFalse(home.Lines.Contains(s.GetGlance().RestoringNowSentence), "D-149: funded project is not repeated as 'underway (n of m)': " + string.Join("|", home.Lines));
 
             c.Invoke("nav:ReturnSummary");
             var summary = c.Render();

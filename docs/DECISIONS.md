@@ -2780,3 +2780,10 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Verification.** Captures editor-rendered (llvmpipe). EditMode 237/237 (Unity-editor-tested, batch mode). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None (test/tooling only).
+
+## D-149 — Home no longer repeats a funded project three ways (2026-10-17)
+**Decision.** Resolves the D-148 observation. Once the D-145 payoff line shows ("{title}: n% restored. About N more steps ..."), Home omits the restoring-now line "{title} is underway (x of y)." for the same project; before anything is invested the restoring-now line still shows. The return summary is unchanged. OpenSpec `add-first-session-payoff` spec gains a requirement + scenario and task 2.2. Home payoff captures in `docs/evidence/d148-text-screens/` re-rendered after the change.
+
+**Tests.** `FirstSessionPayoffShellTests` extended (unfunded keeps restoring-now; funded drops it). EditMode 237/237 (Unity-editor-tested, batch mode). Captures editor-rendered. Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None (display only; no save, schema, content version or hash change).
