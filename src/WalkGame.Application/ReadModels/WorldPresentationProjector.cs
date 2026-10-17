@@ -95,7 +95,7 @@ namespace WalkGame.Application.ReadModels
                 var projects = new List<string>();
                 var selectable = new List<string>();
                 bool anyOpen = false;
-                string? active = null, construction = null;
+                string? active = null, construction = null, lastCompleted = null;
                 int buildStage = 0, buildStages = 1;
                 foreach (var def in content.Projects)
                 {
@@ -105,6 +105,7 @@ namespace WalkGame.Application.ReadModels
                     var st = region.FindProject(pid);
                     if (st == null) continue;
                     if (st.Status != ProjectStatus.Locked) anyOpen = true;
+                    if (st.Status == ProjectStatus.Completed) lastCompleted = pid;
                     if (st.Status == ProjectStatus.Available || st.Status == ProjectStatus.Queued) selectable.Add(pid);
                     if (st.Status == ProjectStatus.Active)
                     {
@@ -141,7 +142,8 @@ namespace WalkGame.Application.ReadModels
                 bool interactable = unlocked && (selectable.Count > 0 || active != null || present.Count > 0 || found > 0);
                 rows.Add(new WorldViewReadModel.LocationRow(id,
                     text.Resolve(id, ContentText.Fields.Title, landmark.TitleKey), stage, unlocked, interactable,
-                    projects, selectable, active, construction, found, present, pending, currentLines, buildStage, buildStages));
+                    projects, selectable, active, construction, found, present, pending, currentLines, buildStage, buildStages,
+                    active ?? (selectable.Count > 0 ? selectable[0] : lastCompleted)));
             }
 
             return new WorldViewReadModel(rows, region.EcologyStage, region.SettlementStage, region.IsCompleted, game.Queue.ActiveProjectId);

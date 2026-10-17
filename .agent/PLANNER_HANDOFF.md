@@ -296,3 +296,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
   - persisted, erase-covered presentation memory (decision);
   - `ICharacterView`, character/prop taps and dialogue actions in the D-169 seam;
   - 2D Sprite, animation and particle packages.
+
+## Session note 2026-10-17 (grok1639): KI-027 style-neutral groundwork
+- Scope from Michael: close the KI-027 groundwork that holds for any round 2 concept (all hand-painted 2.5D), no art and no UI rebuild. Worktrees `wt-ki027*-grok1639`, one PR per slice, `SWG_SESSION_ID=ki027<slice>-grok1639`, leases released without `--force`.
+- D-174 (KI-027 d): `PresentationInteractions.cs` adds character views (`npc.<id>@<expression>` mood keys, `portrait.npc.<id>@<expression>`), `TapCharacter`, `TapProp`, `DialogueAction` (Inspect / Help restore / Maybe later; Help restore opens the goal card, whose start is `EnqueueProject`), `WorldTapRouter`, and `LocationRow.FocusProjectId` (Application). EditMode 281, .NET 1147. Still not wired into `Boot.unity`.
+

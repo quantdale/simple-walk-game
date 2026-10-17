@@ -52,9 +52,10 @@ namespace WalkGame.Application.ReadModels
                 IReadOnlyList<string> projectIds, IReadOnlyList<string> selectableProjectIds, string? activeProjectId,
                 string? constructionKey, int discoveriesFound, IReadOnlyList<string> characterIds,
                 IReadOnlyList<PendingLine> pendingDialogue, IReadOnlyList<PendingLine>? currentLines = null,
-                int constructionStage = 0, int constructionStages = 1)
+                int constructionStage = 0, int constructionStages = 1, string? focusProjectId = null)
             {
                 CurrentLines = currentLines ?? Array.Empty<PendingLine>();
+                FocusProjectId = focusProjectId;
                 ConstructionStage = constructionStage; ConstructionStages = constructionStages;
                 LocationId = locationId; Title = title; Stage = stage; IsUnlocked = isUnlocked; IsInteractable = isInteractable;
                 ProjectIds = projectIds; SelectableProjectIds = selectableProjectIds; ActiveProjectId = activeProjectId;
@@ -90,6 +91,12 @@ namespace WalkGame.Application.ReadModels
             public bool HasPendingDialogue => PendingDialogue.Count > 0;
             /// <summary>Every present character's current line, seen or not (for diffs and revisiting).</summary>
             public IReadOnlyList<PendingLine> CurrentLines { get; }
+            /// <summary>
+            /// KI-027(d): the project this place is "about" right now, for Inspect / Help restore
+            /// (bible §15–§16): the active project here, else the first selectable goal here, else
+            /// the last project restored here (content order), else null. Derived; never saved.
+            /// </summary>
+            public string? FocusProjectId { get; }
         }
 
         public sealed class PendingLine

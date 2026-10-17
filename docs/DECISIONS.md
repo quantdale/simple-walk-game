@@ -3275,3 +3275,26 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 **Not changed.** Code, Unity, save schema v3, content, content version and fingerprint, pacing, tests. Region 2 stays gated.
 
 **Evidence.** Reading of code, docs and the committed editor-rendered captures (`docs/evidence/screen-tour/home-editor-rendered.png`, `region-editor-rendered.png`). Claims about read-model fields, stage triggers, `VisibleBuildStages` defaults, the erase path and `manifest.json` were checked against source. Labels: documentation. Nothing is device-tested (KI-002).
+
+## D-174 — Seam completion: character views, character and prop taps, dialogue actions (KI-027 d) (2026-10-17)
+
+**Status:** Accepted (agent; style-neutral Phase D prerequisite under D-171, requested by Michael on 2026-10-17; implements OpenSpec `extend-unity-presentation-seam`; holds for any round 2 concept)
+
+**Decision.**
+- **Read model (Application):** `WorldViewReadModel.LocationRow.FocusProjectId` is the project a place is about right now: the active project here, else the first selectable goal here, else the last project restored here (content order), else none. It is what Inspect and Help restore point at (bible §16: at the trailhead it moves from clearing the trailhead to the bridge). Derived at read time, never saved.
+- **Seam (Unity, `Assets/Shell/Presentation/PresentationInteractions.cs`):**
+  - `ICharacterPresenter`/`ICharacterView` receive a `CharacterPresentation` for every character on each refresh: location (or absent), current line, mood = the current line's expression (`neutral` when none), a pending flag, and keys `npc.<id>`, `npc.<id>@<expression>` and `portrait.npc.<id>@<expression>`. The keys fall back to the character through the D-169 resolver. Anchor points stay presentation data.
+  - `CharacterReaction.Tapped` on a character tap; `CharacterReaction.Acknowledge` once when a replayed or in-session change gives a character a new line or brings them in.
+  - `TapCharacter(id)`: reaction, then that character's line only, with the place's actions. No goal list is forced open (the world stays visible, §15). Unknown, absent or locked-place characters are ignored.
+  - `TapProp(projectId)`: a read-only `InspectCard` (place, variant key, project, status, progress, build stage, choice preview) once the project is not locked; otherwise ignored.
+  - `DialogueSequence.Actions`: Inspect (focus project or the place), Help restore (only when the focus goal can be picked or is underway), Maybe later. `ChooseDialogueAction` ends the talk (lines count as seen, still revisitable). Inspect opens the card. Help restore opens that goal's card, whose start is `ChooseRestorationGoal` → `GameSession.EnqueueProject` (D-169). Maybe later closes everything. An action the open dialogue does not offer is refused. Labels are `PlayerStrings` `dialogue.action.*`.
+  - `WorldTapRouter`: physics-free hit areas resolved front to back, each grown to a minimum touch target (56 dp rule), routing to landmark, character or prop taps. Decoration is never registered, so it never captures a tap (§10). No `physics2d` package is needed.
+- New constructor parameters are optional (a world presenter that also implements `ICharacterPresenter`, or choices that implement `IInspectPresenter`, are picked up), so D-169 callers are unchanged. `NullPresentation` implements both.
+
+**Not changed.** Save schema v3, content, content version, fingerprint, pacing evidence, preference file, Domain, text shell, scenes, `docs/ASSET_LICENSES.md`. Still not wired into `ShellBootstrap`/`Boot.unity` (that is the Phase D slice after the round 2 pick).
+
+**Evidence.**
+- `WorldPresentationInteractionTests` (12, EditMode): who is where with mood and portrait keys following progress; key fallback; character tap (reaction, only their line, actions, no forced goal list); absent/unknown ignored; Help restore opens the one goal card with the save unchanged, and its start equals `EnqueueProject`; Inspect is read-only and Maybe later closes everything; an action not offered is refused while the talk stays open; every action has a label; the bridge prop is ignored while locked, opens once open and shows progress while active; talking, inspecting and declining never block walking and leave the save byte-identical; acknowledgement once; router front-to-back, minimum target and routing.
+- `WorldViewFocusTests` (3, .NET): fresh valley, trailhead focus moves to the bridge, and a 140-day invariant (focus is a project of that place, prefers the active one, reading changes nothing).
+- Mutation checks: dropping the locked-project check in `TapProp` fails 2 tests; dropping the offered-action check in `ChooseDialogueAction` fails 1.
+- EditMode 281/281 (was 269), Unity 6000.3.26f1 batch. .NET 1147/1147 (was 1144). Architecture 15/15. Labels: Unity-editor-tested (EditMode); headless-tested (.NET). Not device-tested (KI-002). No visual output exists to capture.
