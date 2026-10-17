@@ -54,8 +54,9 @@ provider record identifiers** — health-adjacent by nature even though nothing
 directly identifying is kept. `LocalPreferencesStore` holds UX
 preferences/onboarding state only (D-042). `LocalPresentationMemoryStore`
 (`presentation-memory.json`, D-175) holds only which dialogue line ids the
-player has seen and one timestamp up to which world changes were shown; no
-walking data. It is erased by "Delete all local data".
+player has seen, one timestamp up to which world changes were shown, and
+(v2, D-180) which content completion ids (project ids / `region`) were shown;
+no walking data. It is erased by "Delete all local data".
 
 **At-rest confidentiality: none at the application layer.** The atomic store
 writes plaintext JSON (base64 payload, SHA-256 for *integrity only*) with a

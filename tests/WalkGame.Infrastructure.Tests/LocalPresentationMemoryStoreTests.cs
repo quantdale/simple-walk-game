@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Linq;
@@ -40,7 +41,7 @@ public sealed class LocalPresentationMemoryStoreTests : IDisposable
         Assert.Equal(Created.AddDays(3).AddMinutes(7), r.State.ChangesShownThroughUtc);
         Assert.Equal(new[] { "line.a", "line.b" }, r.State.SeenLineIds);
         Assert.False(File.Exists(FilePath + ".tmp"), "the temporary is moved into place");
-        Assert.Contains("\"schemaVersion\":1", File.ReadAllText(FilePath));
+        Assert.Contains("\"schemaVersion\":2", File.ReadAllText(FilePath)); // D-180: v2 format
     }
 
     [Theory]
@@ -70,7 +71,7 @@ public sealed class LocalPresentationMemoryStoreTests : IDisposable
     [Fact]
     public void Newer_schema_is_FutureVersion_and_not_interpreted()
     {
-        File.WriteAllText(FilePath, "{\"schemaVersion\":2,\"changesShownThroughUtc\":\"2026-03-04T00:00:00+00:00\"}");
+        File.WriteAllText(FilePath, "{\"schemaVersion\":3,\"changesShownThroughUtc\":\"2026-03-04T00:00:00+00:00\"}"); // D-180: v2 is current
         var r = NewStore().Load();
         Assert.Equal(PresentationMemoryLoadOutcome.FutureVersion, r.Outcome);
         Assert.Null(r.State);
@@ -102,5 +103,63 @@ public sealed class LocalPresentationMemoryStoreTests : IDisposable
         var s = NewStore();
         s.EraseAll(); s.EraseAll();
         Assert.Empty(Directory.GetFiles(_temp.Path));
+    }
+}
+
+/// <summary>D-180: the v2 memory format adds shown completions; v1 files still load.</summary>
+public sealed class LocalPresentationMemoryStoreV2Tests : IDisposable
+{
+    private static readonly DateTimeOffset Created = new(2026, 3, 1, 8, 0, 0, TimeSpan.Zero);
+    private readonly TempDirectory _temp = new();
+    public void Dispose() => _temp.Dispose();
+    private string FilePath => _temp.FilePath(LocalPresentationMemoryStore.DefaultFileName);
+
+    [Fact]
+    public void V1_file_loads_with_shown_completions_not_recorded()
+    {
+        File.WriteAllText(FilePath, "{\"schemaVersion\":1,\"gameCreatedAtUtc\":\"2026-03-01T08:00:00+00:00\",\"changesShownThroughUtc\":\"2026-03-04T00:00:00+00:00\",\"seenLineIds\":[\"a\"]}");
+        var r = new LocalPresentationMemoryStore(_temp.Path).Load();
+        Assert.Equal(PresentationMemoryLoadOutcome.Success, r.Outcome);
+        Assert.Null(r.State!.ShownCompletionIds);
+        Assert.Equal(new[] { "a" }, r.State.SeenLineIds);
+    }
+
+    [Fact]
+    public void V1_file_with_a_stray_field_never_reads_it()
+    {
+        File.WriteAllText(FilePath, "{\"schemaVersion\":1,\"shownCompletionIds\":[\"proj.x\"]}");
+        Assert.Null(new LocalPresentationMemoryStore(_temp.Path).Load().State!.ShownCompletionIds);
+    }
+
+    [Fact]
+    public void V2_round_trips_and_normalizes_shown_completions()
+    {
+        new LocalPresentationMemoryStore(_temp.Path).Save(new PresentationMemoryState
+        {
+            GameCreatedAtUtc = Created,
+            ChangesShownThroughUtc = Created.AddDays(1),
+            ShownCompletionIds = new List<string> { "proj.b", "proj.a", "proj.b", "", new string('x', 200) },
+        });
+        var r = new LocalPresentationMemoryStore(_temp.Path).Load();
+        Assert.Equal(new[] { "proj.a", "proj.b" }, r.State!.ShownCompletionIds);
+        var many = Enumerable.Range(0, PresentationMemoryState.MaxShownCompletionIds + 10).Select(i => "proj." + i.ToString("D4")).ToList();
+        new LocalPresentationMemoryStore(_temp.Path).Save(new PresentationMemoryState { ShownCompletionIds = many });
+        Assert.Equal(PresentationMemoryState.MaxShownCompletionIds, new LocalPresentationMemoryStore(_temp.Path).Load().State!.ShownCompletionIds!.Count);
+    }
+
+    [Theory]
+    [InlineData("{\"schemaVersion\":2,\"shownCompletionIds\":\"proj.a\"}")]
+    [InlineData("{\"schemaVersion\":2,\"shownCompletionIds\":[1,2]}")]
+    public void Damaged_v2_field_is_Malformed(string content)
+    {
+        File.WriteAllText(FilePath, content);
+        Assert.Equal(PresentationMemoryLoadOutcome.Malformed, new LocalPresentationMemoryStore(_temp.Path).Load().Outcome);
+    }
+
+    [Fact]
+    public void V2_without_the_field_is_treated_as_not_recorded()
+    {
+        File.WriteAllText(FilePath, "{\"schemaVersion\":2}");
+        Assert.Null(new LocalPresentationMemoryStore(_temp.Path).Load().State!.ShownCompletionIds);
     }
 }

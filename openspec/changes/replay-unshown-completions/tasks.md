@@ -1,0 +1,5 @@
+- [x] `VisualChangeEvent.CompletionId`; causal order in `WorldChangeProjector.ChangesSince`
+- [x] Memory file v2 (`shownCompletionIds`), v1 read-compatible, derived once from the mark
+- [x] `PresentationReplay.Unshown`; `GameSession.GetUnshownVisualChanges` / `MarkVisualChangesShown` / `MarkAllVisualChangesShown`
+- [x] Seam: `IPresentationMemory.ShownCompletionIds` / `MarkChangesShown`; `Resume` uses them
+- [x] .NET tests (`ClockRollbackReplayTests`, `LocalPresentationMemoryStoreV2Tests`) and EditMode test (`PresentationMemoryRestartTests`)

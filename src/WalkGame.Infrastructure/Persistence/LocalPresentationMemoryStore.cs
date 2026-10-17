@@ -13,7 +13,7 @@ namespace WalkGame.Infrastructure.Persistence
     /// world treats the next open as a baseline and replays nothing, never a gameplay loss.
     ///
     /// Load policy: absent → NotFound; empty/malformed JSON, schemaVersion &lt; 1 or a bad timestamp →
-    /// Malformed; schemaVersion &gt; 1 → FutureVersion (payload never interpreted); line ids are
+    /// Malformed; schemaVersion &gt; 2 → FutureVersion (v1 and v2 load; D-180) (payload never interpreted); line ids are
     /// normalized (unique, bounded). Write: durable temp file, then an atomic File.Replace (D-179; Move for the first write); leftover
     /// temporaries are ignored by reads and replaced by the next write.
     /// </summary>
@@ -73,6 +73,8 @@ namespace WalkGame.Infrastructure.Persistence
                 GameCreatedAtUtc = dto.GameCreatedAtUtc,
                 ChangesShownThroughUtc = dto.ChangesShownThroughUtc,
                 SeenLineIds = PresentationMemoryState.NormalizeLineIds(dto.SeenLineIds),
+                // D-180: a v1 file has no such field; null means "derive from the timestamp mark".
+                ShownCompletionIds = dto.SchemaVersion >= 2 ? PresentationMemoryState.NormalizeCompletionIds(dto.ShownCompletionIds) : null,
             });
         }
 
@@ -85,6 +87,7 @@ namespace WalkGame.Infrastructure.Persistence
                 GameCreatedAtUtc = state.GameCreatedAtUtc,
                 ChangesShownThroughUtc = state.ChangesShownThroughUtc,
                 SeenLineIds = PresentationMemoryState.NormalizeLineIds(state.SeenLineIds),
+                ShownCompletionIds = PresentationMemoryState.NormalizeCompletionIds(state.ShownCompletionIds),
             };
             byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(dto, SaveJson.Options);
             using (var stream = new FileStream(_tempPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
@@ -104,6 +107,8 @@ namespace WalkGame.Infrastructure.Persistence
             public DateTimeOffset? GameCreatedAtUtc { get; set; }
             public DateTimeOffset? ChangesShownThroughUtc { get; set; }
             public List<string>? SeenLineIds { get; set; }
+            /// <summary>v2 (D-180). Absent in v1 files.</summary>
+            public List<string>? ShownCompletionIds { get; set; }
         }
     }
 }

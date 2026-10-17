@@ -29,9 +29,20 @@ namespace WalkGame.Application.ReadModels
     /// </summary>
     public sealed class VisualChangeEvent
     {
+        /// <summary>D-180: <see cref="CompletionId"/> of the region-completion event.</summary>
+        public const string RegionCompletionId = "region";
+
         public VisualChangeEvent(int sequence, VisualChangeKind kind, DateTimeOffset? atUtc, string? locationId,
-            string? subjectId, string? fromKey, string? toKey)
-        { Sequence = sequence; Kind = kind; AtUtc = atUtc; LocationId = locationId; SubjectId = subjectId; FromKey = fromKey; ToKey = toKey; }
+            string? subjectId, string? fromKey, string? toKey, string? completionId = null)
+        { Sequence = sequence; Kind = kind; AtUtc = atUtc; LocationId = locationId; SubjectId = subjectId; FromKey = fromKey; ToKey = toKey; CompletionId = completionId; }
+
+        /// <summary>
+        /// D-180 (KI-028): the completion that caused this change, a stable id: the completed project's id, or
+        /// <see cref="RegionCompletionId"/>. Every event of one completion's batch shares it. Presentation memory
+        /// records which completions were shown by this id, so a completion stamped earlier than the last shown
+        /// instant (a device clock corrected backward) is still replayed exactly once. Null for in-session diffs.
+        /// </summary>
+        public string? CompletionId { get; }
 
         /// <summary>Position in the stream. Stable for the timestamp-derived stream regardless of the "since" filter.</summary>
         public int Sequence { get; }

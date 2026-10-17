@@ -146,6 +146,7 @@ namespace WalkGame.Application.ReadModels
                 int c = a.at == null ? 0 : a.at.Value.CompareTo(b.at!.Value);
                 return c != 0 ? c : a.index.CompareTo(b.index);
             });
+            order = CausalOrder(content, order);
 
             var done = new HashSet<string>(StringComparer.Ordinal);
             var stages = new Dictionary<string, RestorationStage>(StringComparer.Ordinal);
@@ -160,7 +161,7 @@ namespace WalkGame.Application.ReadModels
             {
                 if (!regionEmitted && region.RegionCompletedAtUtc != null && at != null && at.Value > region.RegionCompletedAtUtc.Value)
                 {
-                    Emit(events, ref seq, sinceUtc, region.RegionCompletedAtUtc, VisualChangeKind.RegionCompleted, null, null, null, null);
+                    Emit(events, ref seq, sinceUtc, region.RegionCompletedAtUtc, VisualChangeKind.RegionCompleted, null, null, null, null, VisualChangeEvent.RegionCompletionId);
                     regionEmitted = true;
                 }
                 var beforeDone = new HashSet<string>(done, StringComparer.Ordinal);
@@ -205,10 +206,10 @@ namespace WalkGame.Application.ReadModels
                 if (s2 > set) { batch.Add((VisualChangeKind.SettlementAdvanced, null, x, set.ToString(), s2.ToString())); set = s2; }
 
                 foreach (var b in batch)
-                    if (at != null) Emit(events, ref seq, sinceUtc, at, b.kind, b.loc, b.subject, b.from, b.to);
+                    if (at != null) Emit(events, ref seq, sinceUtc, at, b.kind, b.loc, b.subject, b.from, b.to, x);
             }
             if (!regionEmitted && region.IsCompleted && region.RegionCompletedAtUtc != null)
-                Emit(events, ref seq, sinceUtc, region.RegionCompletedAtUtc, VisualChangeKind.RegionCompleted, null, null, null, null);
+                Emit(events, ref seq, sinceUtc, region.RegionCompletedAtUtc, VisualChangeKind.RegionCompleted, null, null, null, null, VisualChangeEvent.RegionCompletionId);
 
             // Replay must reproduce canonical state, or nothing is reported.
             foreach (var lm in content.Landmarks)
@@ -218,10 +219,41 @@ namespace WalkGame.Application.ReadModels
         }
 
         private static void Emit(List<VisualChangeEvent> into, ref int seq, DateTimeOffset since, DateTimeOffset? at,
-            VisualChangeKind kind, string? loc, string? subject, string? from, string? to)
+            VisualChangeKind kind, string? loc, string? subject, string? from, string? to, string completionId)
         {
             int n = seq++;
-            if (at != null && at.Value > since) into.Add(new VisualChangeEvent(n, kind, at, loc, subject, from, to));
+            if (at != null && at.Value > since) into.Add(new VisualChangeEvent(n, kind, at, loc, subject, from, to, completionId));
+        }
+
+        /// <summary>
+        /// D-180 (KI-028): completion timestamps come from the device clock, so a clock corrected backward can
+        /// stamp a project earlier than a prerequisite it depends on. Replay keeps the time order but never
+        /// places a project before a completed prerequisite (stable: with honest clocks nothing moves).
+        /// </summary>
+        private static List<(DateTimeOffset? at, int index, string id)> CausalOrder(
+            RegionDefinition content, List<(DateTimeOffset? at, int index, string id)> byTime)
+        {
+            var pending = new List<(DateTimeOffset? at, int index, string id)>(byTime);
+            var inStream = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var o in byTime) inStream.Add(o.id);
+            var placed = new HashSet<string>(StringComparer.Ordinal);
+            var result = new List<(DateTimeOffset? at, int index, string id)>(byTime.Count);
+            while (pending.Count > 0)
+            {
+                int pick = 0; // a cycle cannot occur in validated content; fall back to time order if it did
+                for (int i = 0; i < pending.Count; i++)
+                {
+                    bool ready = true;
+                    foreach (var pre in content.Projects[pending[i].index].Prerequisites)
+                        if (inStream.Contains(pre.Value) && !placed.Contains(pre.Value)) { ready = false; break; }
+                    if (ready) { pick = i; break; }
+                }
+                var next = pending[pick];
+                pending.RemoveAt(pick);
+                placed.Add(next.id);
+                result.Add(next);
+            }
+            return result;
         }
 
         // ------------------------------------------------------------------ helpers

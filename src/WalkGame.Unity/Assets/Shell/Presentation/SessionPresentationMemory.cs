@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using WalkGame.Application;
+using WalkGame.Application.Presentation;
+using WalkGame.Application.ReadModels;
 
 namespace WalkGame.Shell.Presentation
 {
@@ -42,6 +44,20 @@ namespace WalkGame.Shell.Presentation
                 if (m.ChangesShownThroughUtc == value) return;
                 LastSaveStatus = _session.SavePresentationMemory(value, m.SeenLineIds);
             }
+        }
+
+        /// <summary>D-180: derived from the old timestamp mark when the file predates it (never null here).</summary>
+        public IReadOnlyCollection<string>? ShownCompletionIds => _session.GetPresentationMemory().ShownCompletionIds;
+
+        public void MarkChangesShown(IReadOnlyList<VisualChangeEvent> shown, DateTimeOffset shownThroughUtc)
+        {
+            var m = _session.GetPresentationMemory();
+            var ids = new List<string>(m.ShownCompletionIds ?? new List<string>());
+            int before = ids.Count;
+            foreach (var id in PresentationReplay.CompletionIdsOf(shown)) if (!ids.Contains(id)) ids.Add(id);
+            var through = m.ChangesShownThroughUtc == null || shownThroughUtc > m.ChangesShownThroughUtc.Value ? shownThroughUtc : m.ChangesShownThroughUtc.Value;
+            if (ids.Count == before && m.ChangesShownThroughUtc == through) return; // nothing new: no write
+            LastSaveStatus = _session.SavePresentationMemory(through, m.SeenLineIds, ids);
         }
     }
 }
