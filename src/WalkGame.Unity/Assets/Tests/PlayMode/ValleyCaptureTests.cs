@@ -79,7 +79,21 @@ namespace WalkGame.Shell.PlayModeTests
                     // WG_CAPTURE_STATE=fresh: the first minutes after "start" (no walks, nothing queued),
                     // for the empty/early-game review. Default: a mid-game valley.
                     string capState = Environment.GetEnvironmentVariable("WG_CAPTURE_STATE");
-                    if (capState == "payoff")
+                    if (capState == "today")
+                    {
+                        // D-156: one project queued and one dated walk this morning (device offset), so Home
+                        // shows "Today: N Vitality earned from your walks." under the Unspent line.
+                        var first = System.Linq.Enumerable.First(session.GetProjects().Projects, p => p.Status == ProjectStatus.Available);
+                        session.EnqueueProject(first.ProjectId);
+                        var now = DateTimeOffset.UtcNow;
+                        int offset = (int)DateTimeOffset.Now.Offset.TotalSeconds;
+                        c.LocalOffsetSeconds = () => offset;
+                        session.IngestActivityBatch(new[] { new WalkGame.Domain.Activity.NormalizedActivityRecord("capture", "today-1",
+                            WalkGame.Domain.Activity.ActivityCategory.Walking, WalkGame.Domain.Activity.ActivityUnits.Steps, 2000,
+                            now.AddMinutes(-40), now.AddMinutes(-5), EndZoneOffsetSeconds: offset) });
+                        if (session.GetPendingReturnSummary() != null) session.AcknowledgeReturnSummary();
+                    }
+                    else if (capState == "payoff")
                     {
                         // D-148: the D-145 first-session payoff — one project queued, one short (2,000-step) first walk.
                         var first = System.Linq.Enumerable.First(session.GetProjects().Projects, p => p.Status == ProjectStatus.Available);

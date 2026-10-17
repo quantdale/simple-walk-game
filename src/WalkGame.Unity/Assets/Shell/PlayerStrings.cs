@@ -126,6 +126,7 @@ namespace WalkGame.Shell
             ["shell.discoveriesAndExpeditions"] = "Discoveries and expeditions",
             ["shell.projects.locked.one"] = "{0} more project unlocks as the valley recovers.",
             ["shell.projects.opens"] = "Finishing it opens: {0}.",
+            ["home.today.earned"] = "Today: {0} Vitality earned from your walks.",
             ["shell.projects.locked.many"] = "{0} more projects unlock as the valley recovers.",
             ["shell.region.finished"] = "{0} of {1} restorations finished.",
             ["shell.region.expeditions"] = "{0} expedition routes open, {1} completed.",

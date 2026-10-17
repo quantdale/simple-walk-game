@@ -41,6 +41,13 @@ namespace WalkGame.Shell
             _devTools = devTools;
         }
 
+        /// <summary>
+        /// D-156: the device's current UTC offset in seconds, used only to decide which local day is
+        /// "today" for the Home earnings line (records carry their own provider offset, D-103).
+        /// Tests inject a fixed value.
+        /// </summary>
+        public Func<int> LocalOffsetSeconds { get; set; } = () => (int)DateTimeOffset.Now.Offset.TotalSeconds;
+
         /// <summary>Effective OS font scale source (D-073); the bootstrap wires AccessibilitySettings.fontScale. Tests inject values.</summary>
         public Func<float> TextScaleSource { get; set; } = () => 1f;
 
@@ -491,6 +498,9 @@ namespace WalkGame.Shell
             m.Lines.Add(glance.ActivitySentence);
             m.Lines.Add(HomeStoryLine(_session.GetStory()));
             m.Lines.Add(PlayerStrings.F("label.resourcesUnspent", home.Vitality, home.Materials, home.Knowledge));
+            // D-156: what today's walks earned, next to the balance it explains. Only when > 0: no zero-day line.
+            var today = _session.GetTodayEarnings(LocalOffsetSeconds());
+            if (today.IsKnown && today.Vitality > 0) m.Lines.Add(PlayerStrings.F("home.today.earned", today.Vitality));
             if (empty) m.Lines.Add(PlayerStrings.T("shell.nothingIsBeingRestored"));
             if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", PlayerStrings.T("shell.whileYouWereAway")));
             m.Actions.Add(new ShellAction("nav:Projects", PlayerStrings.T("label.projects")));

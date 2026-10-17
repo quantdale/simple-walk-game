@@ -2833,3 +2833,36 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** .NET `LeadsToReadModelTests` (3): read-model ids equal the catalog, and completing a project turns up exactly the discoveries that name it (headless-tested). EditMode `StoryDiscoveryLeadsToTests` (5). `StoryJournalTests` line-count assertion extended by the path lines; no test deleted. .NET 1049/1049, EditMode 245/245, PlayMode 4 passed + 1 opt-in capture ignored (Unity-editor-tested, batch mode). Captures in `docs/evidence/d155-leads-to/` (editor-rendered). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None. Schema v3 unchanged; content fingerprint unchanged; pacing evidence 7/7 reproduced.
+
+## D-156 — Home says what today's walks earned; derived, no save-schema bump (2026-10-17)
+**Approval.** OpenSpec change `openspec/changes/add-today-vitality-earned/` was approved by the executing agent under the design authority Michael granted for this campaign. Region 1 scope.
+
+**Decision.** Home shows "Today: N Vitality earned from your walks." directly under the Unspent line. The line appears only when N > 0; there is no zero-day line, streak or comparison.
+- The value is derived. `ProcessedRecordLedgerState.VitalityOnLocalDay(day)` sums the net applied `VitalityCredited` of the retained processed-record rows whose `LocalDay` (D-103) is that day.
+  - Undated rows (v1/v2 legacy, fixture or dev sources) never count.
+  - A deleted walk (zero eligible steps) counts 0, even when its clawback was clamped.
+  - A downward correction reduces its day by what was actually reversed.
+  - A day at or before `RetiredThroughLocalDay` is unknown, and no line is shown.
+- `GameSession.GetTodayEarnings(utcOffsetSeconds)` takes today as the trusted clock's instant under the device offset. `ShellController.LocalOffsetSeconds` defaults to the device's current offset and is injectable in tests.
+
+**Schema bump: none, recorded explicitly.** The save schema is v3 before and v3 after. No migration was added, and `MigrationRunner`'s chain is unchanged.
+- The brief proposed a persisted per-day ledger behind a v3 → v4 migration. The design review found the save already holds that ledger: each credited record's row carries its net applied Vitality and local day, and is committed atomically with the reward.
+- A second copy would add a validator invariant and save bytes. Its migration could only seed it empty (wrong mid-day) or from the same rows.
+- Deriving meets every requirement of the brief:
+  - conservative on old saves (never invents credit);
+  - bounded at 0 added bytes, so the D-098/D-139 save-growth gate is unchanged;
+  - exactly-once, by the existing identity dedup;
+  - corrections and reversals reduce the day;
+  - the same local-day rule as days walked.
+- If per-day history beyond the 45-day retention window is ever needed, a later change can add a pruned persisted ledger through `MigrationRunner`, seeded from this derivation. That would be its own schema bump and its own decision.
+
+**Tests.**
+- .NET, headless-tested:
+  - Domain `DailyEarningsTests` (5).
+  - Application `DailyEarningsSessionTests` (13): local-day boundary (UTC+8 vs UTC−5), replays, correction and deletion, clamped deletion, undated walks, offset out of range, round trip with no new field and reading never writing, v1 and v2 old saves load with today 0 and lifetime totals intact, a hostile v2 save with injected local days fails closed or shows 0, and a tampered negative row is rejected.
+- EditMode `HomeTodayEarnedTests` (5).
+- Totals: .NET 1067/1067; EditMode 250/250; PlayMode 4 passed + 1 opt-in capture ignored (Unity-editor-tested, batch mode).
+- Gates: pacing evidence 7/7 reproduced, content compatibility passed, save growth verified, architecture 15/15.
+- Capture: `docs/evidence/d156-today-earned/` (editor-rendered). Device UNVERIFIED (KI-002). On a device, the Health Connect `endZoneOffset` read is still unverified (KI-002), and without it walks are undated and the line does not appear.
+
+**Save compatibility.** None: schema v3 is unchanged, nothing new is persisted, and the content fingerprint is unchanged.

@@ -1531,6 +1531,20 @@ namespace WalkGame.Application
             return new DaysWalkedReadModel(processed.DaysWalkedCount, processed.DaysWalkedIsLowerBound);
         }
 
+        /// <summary>
+        /// D-156: Vitality today's walks earned. "Today" is the local day of the trusted clock's
+        /// instant under <paramref name="utcOffsetSeconds"/> (the device's current offset), the same
+        /// day rule records use (D-103). Derived, read-only, no clock write.
+        /// </summary>
+        public DailyEarningsReadModel GetTodayEarnings(int utcOffsetSeconds)
+        {
+            var processed = RequireState().ProcessedRecords;
+            int? today = LocalDayCalendar.DayOf(_clock.UtcNow, utcOffsetSeconds);
+            if (today == null) return DailyEarningsReadModel.Unknown;
+            long? v = processed.VitalityOnLocalDay(today.Value);
+            return v == null ? new DailyEarningsReadModel(today, 0L, false) : new DailyEarningsReadModel(today, v.Value, true);
+        }
+
         public StoryReadModel GetStory()
         {
             var game = RequireState();
