@@ -3118,6 +3118,35 @@ Everything is derived from canonical state at read time, in the Application laye
 
 **Evidence:** none in code (records only). Labels: documentation.
 
+## D-169 — Style-neutral Unity presentation seam for the world read models (2026-10-17)
+
+**Status:** Accepted (agent; style-neutral groundwork allowed under D-164, requested by Michael on 2026-10-17; implements OpenSpec `add-unity-presentation-seam`)
+
+**Decision.**
+- New `src/WalkGame.Unity/Assets/Shell/Presentation/` (namespace `WalkGame.Shell.Presentation`, in the existing `WalkGame.Shell` assembly):
+  - Presenter interfaces that name no art style: `IWorldPresenter`, `ILandmarkView` (keyed by D-166 location id, variant key and construction key), `IDialoguePresenter`, `IChoicePreviewPresenter`, `IVisualChangePlayer`, plus `IPresentationMemory` for seen lines and the changes-shown watermark, which is never in the save.
+  - `WorldPresentationController` drives them from `GetWorldView`, `GetCharacters`, `GetRestorationChoices`, `GetVisualChangesSince` and `WorldViewDiff.Between`.
+  - `NullPresentation` draws nothing, and `InMemoryPresentationMemory` holds memory for the session.
+- **Rules the controller guarantees:**
+  - A tap on an unknown or locked place opens nothing. A tap on an unlocked place shows that place's goals at once, plus a skippable dialogue of each present character's current line.
+  - Skipping marks the lines seen, and they stay revisitable (`LineHistory`).
+  - Nothing waits on dialogue or on playback.
+  - Choosing a goal calls `GameSession.EnqueueProject`, the text shell's command, with the same D-128 no-op for a goal already queued or active.
+  - `Resume()` replays canonical changes since the watermark once, then advances it. A change caused by choosing a goal is shown through the in-session diff and counted as shown. The first open sets the baseline and replays nothing. Reduced motion is passed to the player.
+- **Asset resolution:** `PresentationAssetResolver<TAsset>` over a pluggable `IPresentationAssetCatalog<TAsset>` falls back from the exact key, to the subject (text before `@`), to `fallback.missing`, to Missing. It never throws and lists missing keys (the art pipeline's to-make list). Only `DictionaryAssetCatalog` and `EmptyAssetCatalog` exist, and no art ships.
+- The controller is **not wired** into `ShellBootstrap` or `Boot.unity`. The text shell stays the shipped UI, unchanged.
+
+**Not changed.** Save schema v3, content, fingerprint, pacing evidence, preference file, Domain, Application, text shell, scenes, `docs/ASSET_LICENSES.md` (no asset added).
+
+**Follow-ups.**
+- Presentation memory is in-memory only, so a cold start replays nothing. Persisting it needs a store that `DeleteAllLocalData` erases (for example the UX preferences file). That needs its own decision; a separate file next to the save would escape erase.
+- Concrete presenters wait for the approved visual direction (D-164).
+
+**Evidence.**
+- `WorldPresentationSeamTests` (13, EditMode): tap routing per place (fresh and mid-game, with only that place's goals and people); locked/unknown places ignored; landmark views get variant keys and a missing view is skipped; skip/advance/revisit; an open dialogue never blocks choosing or walking, and the save is byte-identical to a player who never opened dialogue; choosing gives the same save as a direct `EnqueueProject`, re-choosing is a no-op and an unknown id fails; resume replays exactly the stream once, also after a reload with the same memory; reduced motion is passed through; the null presenter runs the loop; the asset fallback chain; with no art every key resolves to Missing.
+- Mutation check: dropping the watermark update fails the replay-once test, and dropping the per-place choice filter fails the mid-game scoping test.
+- EditMode 269/269 (was 256), Unity 6000.3.26f1 batch. .NET 1143/1143. Architecture 15/15. Labels: Unity-editor-tested (EditMode); headless-tested (.NET). Not device-tested (KI-002). No visual output exists to capture.
+
 ## D-171 — Creative Direction Bible v1 governs art and experience; round 2 concepts are the single art gate (2026-10-17)
 
 **Status:** Accepted (owner direction from Michael, 2026-10-17 4:12 PM Asia/Manila)
@@ -3131,7 +3160,7 @@ Everything is derived from canonical state at read time, in the Application laye
 
 **Not changed.**
 - D-164's preserved foundation (domain, offline progression, activity ingestion, saves and schema v3, restoration systems, content, tests; bible §50).
-- The D-165–D-167 style-neutral read models remain the binding points. The D-169 Unity presentation seam and the D-170 AI-art licensing proposal are being prepared by another worker; those numbers are reserved for them, so this entry is D-171.
+- The D-165–D-167 style-neutral read models remain the binding points. So does the D-169 Unity presentation seam (merged; style-neutral, no art). D-170 is reserved for the concurrent AI-art licensing proposal, which is why this entry is D-171.
 - Asset licensing rules (`docs/ASSET_LICENSES.md`): no AI-derived asset ships before a licensing decision is accepted.
 - Region 2 stays gated (D-011).
 - No large-scale art production and no art-style Unity UI rebuild before the round 2 approval.
