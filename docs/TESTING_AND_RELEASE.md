@@ -321,6 +321,18 @@ Before MVP release, establish at least:
 
 The actual matrix must be recorded with device/OS/build details.
 
+### Device-only checks added 2026-10-17
+
+These cannot be proved in the editor or headless. Each is a row in the Final Device and Release Qualification Checklist (`docs/RELEASE_CHECKLIST.md`) and stays **UNVERIFIED** until ticked on hardware with device, OS, build SHA and date:
+
+| Check | Why it is device-only | Checklist row |
+|---|---|---|
+| `File.Replace` atomic side-file commit under IL2CPP (D-179) | The editor runs Mono; IL2CPP's `File.Replace` on Android and iOS storage has never run | R |
+| `animator_duration_scale` JNI read for Android "Remove animations" (D-186) | `AndroidJavaClass` calls are compiled out of the editor; only the mapping (scale ≤ 0 → reduced) is tested | S |
+| `UIAccessibility.isReduceMotionEnabled` Swift bridge (D-186) | Compiled on hosted macOS only; never linked into a running app | T |
+| Resume throttle battery and thermal (D-185) | The read count is pinned in the editor; real battery and thermal cost, and Health Connect's own access log, need a phone | U |
+| Mid-session revocation, uninstall and update-required (D-188) | Pinned through the real adapter over a fake bridge; the real Health Connect UI and JNI errors need a phone | M |
+
 ---
 
 ## 13. Upgrade qualification

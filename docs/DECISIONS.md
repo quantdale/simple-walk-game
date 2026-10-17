@@ -3595,3 +3595,28 @@ It follows Unity's import rules: dot-names, `~` names, and the contents of `*.an
 **Found, not fixed (KI-030).** For an unreadable provider status the adapters report `NotRequested` on purpose, so a connected player is told to "connect". The projector fix conflicts with D-144's pinned matrix invariant, so it was reverted and logged for Michael with options and a recommendation.
 
 **Evidence.** EditMode 332/332 (+9); .NET unchanged at 1211/1211. Labels: Unity-editor-tested; real Health Connect UNVERIFIED (KI-002).
+
+## D-189 — Device-only checks for D-179, D-185, D-186 and D-188 are listed in the release checklist (2026-10-17)
+
+**Status:** Accepted (engineering authority; documentation only, 2026-10-17 ~8 PM Asia/Manila).
+
+**Why.** Four recent decisions ship code that the editor and headless suites cannot fully prove:
+- IL2CPP `File.Replace` (D-179);
+- the Android `animator_duration_scale` JNI read and the iOS `UIAccessibility` bridge (D-186);
+- the battery effect of the resume throttle (D-185);
+- the real Health Connect UI for mid-session revocation (D-188).
+
+Each said "UNVERIFIED on device", but the Final Device and Release Qualification Checklist did not list them, so a release could be qualified without them.
+
+**Decision.**
+- **New checklist rows R–U**, each with concrete steps and the editor or headless evidence that exists today:
+  - R: IL2CPP side-file replace;
+  - S: Android Remove animations;
+  - T: iOS Reduce Motion, which depends on N;
+  - U: resume-throttle battery, read count and freshness at most 30 s.
+- **Row M** gains the D-188 mid-session revoke, uninstall and update-required steps.
+- **Row N's evidence** now states what exists (D-112, D-115) instead of "none". The status stays NOT STARTED.
+- **Open range:** the checklist header now says device items H–U are open.
+- **TESTING_AND_RELEASE §12** gains a "Device-only checks added 2026-10-17" table mapping each check to its row.
+
+**Not changed.** No code, tests or gates. Older evidence packages under `docs/evidence/` are snapshots and keep their H–Q wording.
