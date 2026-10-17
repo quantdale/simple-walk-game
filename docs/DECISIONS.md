@@ -2654,6 +2654,15 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Save compatibility.** None (no schema or content change).
 
+## D-135 — Long random play property tests for the core invariants (2026-10-17)
+
+**Context.** Exactly-once credit, durable accomplishments and monotonic progression were each tested in isolation, but never across long mixed sequences.
+
+**Decision.** `LongPlayInvariantPropertyTests` runs 12 seeded sequences of 300 random steps: new batches, replays of delivered records, forward and backward clock jumps with D-134 in-memory catch-up, project queueing, summary acknowledgements, reloads, and ~10% injected commit failures that are then retried. After every step: a replay credits 0, lifetime credited Vitality never decreases, completed projects and unlocked chapters only grow, and nothing stays unsaved once storage is healthy. At the end a reload reproduces the same credit and completions, and replaying the whole history credits 0. Each seed must credit activity and complete at least one project, so the properties are not vacuous. No production change; no finding.
+
+**Tests.** `LongPlayInvariantPropertyTests` (.NET, 12). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None.
 ## D-136 — Region 1 polish: Guide and Settings at 200% text (2026-10-17)
 
 **Context.** A 2x text-size review of the Guide and Settings screens with editor-rendered PNGs (`docs/evidence/d136-guide-settings-2x/`). At 200% the title scaled to 56 px and wrapped one word per line, pushing the Guide's only action below the fold.
