@@ -3441,3 +3441,19 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 
 .NET 1206/1206; architecture 15/15; pacing 7/0. Label: headless-tested. Device UNVERIFIED (KI-002).
 
+## D-182 — A save from a newer game version asks the player to update (2026-10-17)
+
+**Status:** Accepted (agent; shell copy routing only; no save, schema, boot-policy or art change)
+
+**Gap.** When every save generation was written by a newer build (a higher envelope schema), boot correctly failed closed with `SaveUnreadable` and wrote nothing. The shell then told the player "Your save could not be read." That sounds like damage, and the actual fix is to update the game. A newer *content* version already showed "This save was made by a newer version of the game. Update the game to open it; nothing has been changed." (D-059).
+
+**Decision.** `BootRouter.Route(status, lastCodecFailure)`: `SaveUnreadable` whose last boot decode failure was `VersionTooNew` shows the existing `boot.newer` copy. Every other outcome routes exactly as before. `ShellController.BootCore` passes `GetDiagnostics().LastBootCodecFailure`. The screen is still the non-destructive BootError screen, with no new-game action.
+
+**Considered and not changed.** A primary with a newer schema next to an older but healthy backup still recovers from the backup, as `SaveTamperTests` (`schema-version-99`) deliberately pins. The envelope schema field sits outside the payload checksum, so it cannot tell a genuine newer build from a damaged or tampered field. The backup is normally only one commit old, and a newer build rotates it to the newer schema on its second commit, so at most one commit is at stake. An agent probe confirmed the behavior, and the change was dropped because it would reverse that pinned contract. If Michael wants downgrade safety over tamper recovery, it is a one-line boot change plus updating that test case.
+
+**Evidence.** EditMode `ShellControllerTests`:
+- `A_save_from_a_newer_game_version_asks_for_an_update_and_is_never_overwritten`: real session, both generations bumped to schema + 1, retry leaves the bytes unchanged.
+- `Router_says_update_only_for_a_newer_schema`.
+
+The first test failed before the controller was wired: it showed the "could not be read" copy. EditMode 292/292 (290 + 2). Labels: Unity-editor-tested (EditMode); device UNVERIFIED (KI-002).
+

@@ -266,7 +266,7 @@ namespace WalkGame.Shell
             }
             var result = _session.Continue();
             LastStartStatus = result.Status;
-            var (screen, notice) = BootRouter.Route(result.Status);
+            var (screen, notice) = BootRouter.Route(result.Status, _session.GetDiagnostics().LastBootCodecFailure); // D-182
             _booted = screen == ShellScreen.Home;
             _notice = notice;
             _error = null;
