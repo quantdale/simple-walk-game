@@ -79,9 +79,35 @@ public sealed class HealthConnectFailureMatrixTests : IDisposable
         };
         Assert.Equal(expected, m.RecommendedAction);
 
-        // D-068: with no provider and no prior permission, never ask to connect.
-        if (a == ActivitySourceAvailability.Unsupported && p == ActivityPermissionState.NotRequested)
+        // D-068 / D-146: with no provider, never ask to connect or to open settings, even
+        // after a prior denial or revocation; the missing source is the thing to fix.
+        if (a == ActivitySourceAvailability.Unsupported)
+        {
             Assert.Equal(ActivityPlayerStatus.SourceUnavailable, m.Status);
+            Assert.Equal(ActivityRecommendedAction.None, m.RecommendedAction);
+        }
+    }
+
+    [Theory]
+    [InlineData(ActivityPermissionState.Denied)]
+    [InlineData(ActivityPermissionState.Revoked)]
+    public void D146_UninstalledProvider_AfterPriorDenial_ShowsSourceUnavailable_NotOpenSettings(ActivityPermissionState p)
+    {
+        var snap = new ActivityConnectionSnapshot(p, ActivitySourceAvailability.Unsupported, null, null, null);
+        var m = ActivityStatusProjector.Project(snap, true, IngestionOutcomeKind.NeverRun, 0L, null);
+        Assert.Equal(ActivityPlayerStatus.SourceUnavailable, m.Status);
+        Assert.NotEqual(ActivityRecommendedAction.OpenSettings, m.RecommendedAction);
+    }
+
+    [Theory]
+    [InlineData(ActivityPermissionState.Denied)]
+    [InlineData(ActivityPermissionState.Revoked)]
+    public void D146_InstalledProvider_AfterDenial_StillOffersOpenSettings(ActivityPermissionState p)
+    {
+        var snap = new ActivityConnectionSnapshot(p, ActivitySourceAvailability.Available, null, null, null);
+        var m = ActivityStatusProjector.Project(snap, true, IngestionOutcomeKind.NeverRun, 0L, null);
+        Assert.Equal(ActivityPlayerStatus.PermissionDenied, m.Status);
+        Assert.Equal(ActivityRecommendedAction.OpenSettings, m.RecommendedAction);
     }
 
     [Fact]

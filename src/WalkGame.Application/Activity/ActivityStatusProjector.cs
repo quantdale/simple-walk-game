@@ -61,9 +61,9 @@ namespace WalkGame.Application.Activity
     /// Classification precedence (documented contract for adapters and tests):
     ///   0. Availability ProviderUpdateRequired → ProviderUpdateRequired (D-093: waiting or
     ///      connecting cannot fix an outdated provider, so it outranks permission)
-    ///   1. Denied/Revoked            → PermissionDenied
-    ///   2. NotRequested              → PermissionNeeded
-    ///   3. Availability Unsupported  → SourceUnavailable
+    ///   1. Availability Unsupported  → SourceUnavailable, whatever the permission (D-068, D-146)
+    ///   2. Denied/Revoked            → PermissionDenied
+    ///   3. NotRequested              → PermissionNeeded
     ///   4. TemporarilyUnavailable or last fetch failed → RefreshTemporarilyFailed
     ///   5. Connected, zero processed → WaitingForFirstData
     ///   6. otherwise                 → ConnectedCurrent
@@ -112,8 +112,9 @@ namespace WalkGame.Application.Activity
 
             // D-068: with no provider on the device, permission is meaningless; asking the
             // player to "connect" something that cannot exist is a dead end.
-            if (snapshot.Availability == ActivitySourceAvailability.Unsupported
-                && (snapshot.Permission == ActivityPermissionState.NotRequested))
+            // D-146: the same holds after a prior Denied/Revoked: "Open Settings" cannot grant
+            // access to a provider that is not installed, so the missing source wins.
+            if (snapshot.Availability == ActivitySourceAvailability.Unsupported)
                 return ActivityPlayerStatus.SourceUnavailable;
 
             switch (snapshot.Permission)
@@ -124,9 +125,6 @@ namespace WalkGame.Application.Activity
                 case ActivityPermissionState.NotRequested:
                     return ActivityPlayerStatus.PermissionNeeded;
             }
-
-            if (snapshot.Availability == ActivitySourceAvailability.Unsupported)
-                return ActivityPlayerStatus.SourceUnavailable;
 
             if (snapshot.Availability == ActivitySourceAvailability.TemporarilyUnavailable
                 || lastOutcome == IngestionOutcomeKind.SourceFetchFailed)
