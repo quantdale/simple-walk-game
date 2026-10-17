@@ -1,5 +1,7 @@
 # Art-direction checkpoint package (D-164 gate), 2026-10-17
 
+> **Superseded (D-171, 2026-10-17 4:12 PM Asia/Manila).** Michael's Creative Direction Bible v1 (`CREATIVE_BIBLE_v1_2026-10-17.md`) replaced this round. None of A/B/C below was chosen, and recommendation B is withdrawn. The single art gate is now Phase B round 2: A Painted Storybook Valley (preferred), B Layered Paper-Craft Wonderland, C Painterly Miniature Diorama. This file stays as the record of what round 1 delivered.
+
 **Status:** Delivered to Michael on 2026-10-17 at 3:30 PM Asia/Manila. **Awaiting Michael's choice.** The recommendation is **B**. Agents may not approve a direction (D-164). Until Michael picks one (or amends one), no mass asset production and no art-style-specific Unity UI rebuild may start.
 
 This file is a text-only record. The images are **not** in the repository. They are AI-generated concept material and fall under neither allowed category in `docs/ASSET_LICENSES.md` (in-repo-created or CC0). Committing them would need a DECISIONS entry first (see the proposed D-170 licensing entry).

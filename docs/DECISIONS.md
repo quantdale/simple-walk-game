@@ -3146,3 +3146,25 @@ Everything is derived from canonical state at read time, in the Application laye
 - `WorldPresentationSeamTests` (13, EditMode): tap routing per place (fresh and mid-game, with only that place's goals and people); locked/unknown places ignored; landmark views get variant keys and a missing view is skipped; skip/advance/revisit; an open dialogue never blocks choosing or walking, and the save is byte-identical to a player who never opened dialogue; choosing gives the same save as a direct `EnqueueProject`, re-choosing is a no-op and an unknown id fails; resume replays exactly the stream once, also after a reload with the same memory; reduced motion is passed through; the null presenter runs the loop; the asset fallback chain; with no art every key resolves to Missing.
 - Mutation check: dropping the watermark update fails the replay-once test, and dropping the per-place choice filter fails the mid-game scoping test.
 - EditMode 269/269 (was 256), Unity 6000.3.26f1 batch. .NET 1143/1143. Architecture 15/15. Labels: Unity-editor-tested (EditMode); headless-tested (.NET). Not device-tested (KI-002). No visual output exists to capture.
+
+## D-171 — Creative Direction Bible v1 governs art and experience; round 2 concepts are the single art gate (2026-10-17)
+
+**Status:** Accepted (owner direction from Michael, 2026-10-17 4:12 PM Asia/Manila)
+
+**Decision.**
+- `docs/direction/CREATIVE_BIBLE_v1_2026-10-17.md` (Michael's Creative Direction Bible v1.0, copied verbatim; `cmp` against `/workspace/briefs/simple-walk-creative-bible-v1-2026-10-17.md` is identical) is the **governing art and player-experience direction**. Cozy Grove is the primary aesthetic reference; the game stays original (bible §30, §34, §36): no Cozy Grove images, sprites, characters, UI or extracted files, and nothing traced or closely reproduced.
+- It builds on `docs/direction/REDESIGN_2026-10-17.md` (D-164), which stays in force for everything the bible does not change. The bible **supersedes D-164's concept round**: the round 1 concepts (A painted layered 2D, B cozy isometric diorama, C low-poly 3D; D-168, `docs/direction/ART_CHECKPOINT_2026-10-17.md`) were not chosen and are superseded. D-168's recommendation B is withdrawn as a recommendation; the record of what was delivered stays.
+- **Single human art-approval gate: Phase B round 2** (bible §40, §45). Three original concepts: **A Painted Storybook Valley (preferred starting point)**, **B Layered Paper-Craft Wonderland**, **C Painterly Miniature Diorama**. Each comes with a gameplay screen, a damaged-vs-restored comparison, an NPC illustration, a dialogue interaction, a compact UI treatment and a feasibility/asset-effort estimate, plus one recommended direction with rationale. Michael approves one direction; agents may not approve it. The round 2 package is produced off-repo by a separate worker. It is logged in `docs/KNOWN_ISSUES.md` "Needs Michael (morning queue)".
+- **Adopted as the execution plan:** Phase A audit (§39, recorded separately), Phase C visual style guide after approval (§41), Phase D playable vertical slice at the Old Trailhead and its damaged bridge (§42), Phase E region expansion only after the slice passes (§43), Phase F verification (§44). **Quality gates §45–§48 are adopted** as the acceptance criteria: art approval (§45), vertical-slice acceptance (§46), visual evidence (§47, with concept art, editor captures and device-tested results always labelled separately) and the final evaluation questions (§48).
+- The bible's candidate cast (Mira, Rowan, Tavi, Eli; §12) is reconciled with the existing content in a separate decision (D-172).
+
+**Not changed.**
+- D-164's preserved foundation (domain, offline progression, activity ingestion, saves and schema v3, restoration systems, content, tests; bible §50).
+- The D-165–D-167 style-neutral read models remain the binding points. So does the D-169 Unity presentation seam (merged; style-neutral, no art). D-170 is reserved for the concurrent AI-art licensing proposal, which is why this entry is D-171.
+- Asset licensing rules (`docs/ASSET_LICENSES.md`): no AI-derived asset ships before a licensing decision is accepted.
+- Region 2 stays gated (D-011).
+- No large-scale art production and no art-style Unity UI rebuild before the round 2 approval.
+
+**Rationale.** Michael's bible replaces the open-ended "2–3 concepts" ask with three named directions and a full phase and gate plan, so the earlier concept round no longer matches what he will approve.
+
+**Evidence.** `cmp` of the verbatim copy: identical (33,545 bytes). Records only. Labels: documentation.
