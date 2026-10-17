@@ -3117,3 +3117,32 @@ Everything is derived from canonical state at read time, in the Application laye
 **Caveats recorded:** AI concept images are not final art (flat, not pixel-registered between states, not modular or rig-ready); portraits need illustration; A at production quality needs a human illustrator; a licensing decision is required before any AI-derived asset ships.
 
 **Evidence:** none in code (records only). Labels: documentation.
+
+## D-169 — Style-neutral Unity presentation seam for the world read models (2026-10-17)
+
+**Status:** Accepted (agent; style-neutral groundwork allowed under D-164, requested by Michael on 2026-10-17; implements OpenSpec `add-unity-presentation-seam`)
+
+**Decision.**
+- New `src/WalkGame.Unity/Assets/Shell/Presentation/` (namespace `WalkGame.Shell.Presentation`, in the existing `WalkGame.Shell` assembly):
+  - Presenter interfaces that name no art style: `IWorldPresenter`, `ILandmarkView` (keyed by D-166 location id, variant key and construction key), `IDialoguePresenter`, `IChoicePreviewPresenter`, `IVisualChangePlayer`, plus `IPresentationMemory` for seen lines and the changes-shown watermark, which is never in the save.
+  - `WorldPresentationController` drives them from `GetWorldView`, `GetCharacters`, `GetRestorationChoices`, `GetVisualChangesSince` and `WorldViewDiff.Between`.
+  - `NullPresentation` draws nothing, and `InMemoryPresentationMemory` holds memory for the session.
+- **Rules the controller guarantees:**
+  - A tap on an unknown or locked place opens nothing. A tap on an unlocked place shows that place's goals at once, plus a skippable dialogue of each present character's current line.
+  - Skipping marks the lines seen, and they stay revisitable (`LineHistory`).
+  - Nothing waits on dialogue or on playback.
+  - Choosing a goal calls `GameSession.EnqueueProject`, the text shell's command, with the same D-128 no-op for a goal already queued or active.
+  - `Resume()` replays canonical changes since the watermark once, then advances it. A change caused by choosing a goal is shown through the in-session diff and counted as shown. The first open sets the baseline and replays nothing. Reduced motion is passed to the player.
+- **Asset resolution:** `PresentationAssetResolver<TAsset>` over a pluggable `IPresentationAssetCatalog<TAsset>` falls back from the exact key, to the subject (text before `@`), to `fallback.missing`, to Missing. It never throws and lists missing keys (the art pipeline's to-make list). Only `DictionaryAssetCatalog` and `EmptyAssetCatalog` exist, and no art ships.
+- The controller is **not wired** into `ShellBootstrap` or `Boot.unity`. The text shell stays the shipped UI, unchanged.
+
+**Not changed.** Save schema v3, content, fingerprint, pacing evidence, preference file, Domain, Application, text shell, scenes, `docs/ASSET_LICENSES.md` (no asset added).
+
+**Follow-ups.**
+- Presentation memory is in-memory only, so a cold start replays nothing. Persisting it needs a store that `DeleteAllLocalData` erases (for example the UX preferences file). That needs its own decision; a separate file next to the save would escape erase.
+- Concrete presenters wait for the approved visual direction (D-164).
+
+**Evidence.**
+- `WorldPresentationSeamTests` (13, EditMode): tap routing per place (fresh and mid-game, with only that place's goals and people); locked/unknown places ignored; landmark views get variant keys and a missing view is skipped; skip/advance/revisit; an open dialogue never blocks choosing or walking, and the save is byte-identical to a player who never opened dialogue; choosing gives the same save as a direct `EnqueueProject`, re-choosing is a no-op and an unknown id fails; resume replays exactly the stream once, also after a reload with the same memory; reduced motion is passed through; the null presenter runs the loop; the asset fallback chain; with no art every key resolves to Missing.
+- Mutation check: dropping the watermark update fails the replay-once test, and dropping the per-place choice filter fails the mid-game scoping test.
+- EditMode 269/269 (was 256), Unity 6000.3.26f1 batch. .NET 1143/1143. Architecture 15/15. Labels: Unity-editor-tested (EditMode); headless-tested (.NET). Not device-tested (KI-002). No visual output exists to capture.
