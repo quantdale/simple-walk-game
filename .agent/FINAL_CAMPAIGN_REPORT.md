@@ -84,3 +84,35 @@ Evidence labels: **automated verified** (headless .NET), **Unity-editor-tested**
    - KI-007: give fixture repos an identity source.
    - Prune merged agent worktrees and branches.
 5. **iOS:** start the HealthKit adapter behind the same `IActivityConnectionPort` (checklist N). It needs a Mac and Xcode, which are not available on the box.
+
+## 7. Addendum: 2026-10-17 style-neutral hardening (D-180 → D-195)
+
+Written 2026-10-17 ~9:20 PM Asia/Manila. The art gate is closed throughout: no assets, packages, images or UI rebuild. Every PR is small, merged on green CI and self-reviewed, with no Codex review. Leases were released without `--force`, and `ProjectSettings.asset` was restored after every Unity run.
+
+| PR | D | What | Merge SHA |
+|---|---|---|---|
+| #182 | D-180 | KI-028 presentation memory v2 (`shownCompletionIds`) | `fb9ef15` |
+| #183 | D-181 | Batch revision order | `031b07d` |
+| #184 | D-182 | Newer-version save boot message | `b910921` |
+| #185 | D-183 | KI-029 tombstone (no save-format change) | `7e86fcf` |
+| #186 | D-184 | Unity `.meta` CI guard | `27fa3b6` |
+| #187 | D-185 | Resume throttle (amends D-107) | `48bf511` |
+| #188 | D-186 | Reduced motion: in-game OR OS | `c1c5a14` |
+| #189 | D-187 | CI wiring gate + gate self-tests | `30e4fa8` |
+| #190 | D-188 | Health Connect lifecycle suite (shell) | `7e0e610` |
+| #191 | D-189 | Device checklist rows R–U | `e1e01a5` |
+| #192 | D-190 | Pacing under noise | `81c4e47` |
+| #193 | D-191 | Architecture rule 6 covers CI scripts | `1129dca` |
+| #194 | D-192 | KI-030 resolved; amends D-144 (last-known grant) | `3b5292d` |
+| #195 | D-193 | HealthKit lifecycle parity suite; KI-031 logged | `04175b0` |
+| #196 | D-194 | Delete-all withdraws the OS reminder (bug) | `4e15fb4` |
+| #197 | D-195 | Runtime pseudo-locale sweep; Privacy lines locale (bug) | `e81fe46` |
+
+**Tests at `e81fe46`:**
+- .NET: **1835/1835** (automated verified).
+- Unity EditMode: **355/355** (Unity-editor-tested).
+- Device runtime: still UNVERIFIED (KI-002). The device-only checks are in RELEASE_CHECKLIST H–U.
+
+**Open issues added:** KI-031 (Low): iOS read denial is invisible, so the screen keeps the "connected" copy. Decide a copy rule before the iOS composition ships.
+
+**Resolved this addendum:** KI-028, KI-029 and KI-030.

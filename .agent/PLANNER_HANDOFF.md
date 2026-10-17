@@ -316,3 +316,25 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-17 (grok1757)
 - D-180 (KI-028, Michael chose option b): `presentation-memory.json` is v2 with `shownCompletionIds`; replay uses `PresentationReplay.Unshown` (by completion id, not timestamp). When the world presenter is wired, use `SessionPresentationMemory` and `WorldPresentationController.Resume` as they are.
+- Hardening merged after D-180 (each its own small PR, green CI, self-review, no Codex):
+  - D-181 (#183): batch revision order.
+  - D-182 (#184): the newer-version save boot message. The behaviour is kept, as Michael decided.
+  - D-183 (#185): KI-029 tombstone, with no save-format change.
+  - D-184 (#186): Unity `.meta` CI guard.
+  - D-185 (#187): resume throttle, amending D-107. Freshness cost ≤ 30 s.
+  - D-186 (#188): reduced motion = in-game OR the OS setting, with Android/iOS/null adapters.
+
+## Session notes 2026-10-17 (grok2012–grok2015): CI hardening, activity status, privacy, l10n
+- D-187 (#189): `verify-ci-wiring.sh`. Every `scripts/verify-*.sh` and each self-test flag it declares must run in `ci.yml`. The pacing, save-growth, coverage and dependency gates gained `--self-test`, which runs on seeded violations.
+- D-188 (#190): Health Connect lifecycle suite through the shell, with a fake bridge.
+- D-189 (#191): RELEASE_CHECKLIST rows R–U and the TESTING_AND_RELEASE §12 device-only table.
+- D-190 (#192): pacing under noise (`profile --noise`).
+- D-191 (#193): architecture rule 6 covers every script CI runs.
+- **D-192 (#194, KI-030, Michael chose (b)): this amends D-144.** When the permission status is unreadable and the last known grant was granted or partial, the player sees "refresh failed / retry later". After a last-known denial or revocation they see "open Settings". If no grant was ever seen, they see "not connected".
+  - `ActivityConnectionSnapshot.LastKnownPermission` is ephemeral and lives in the adapters' memory only, never in the save.
+  - The six pinned D-144 matrix cases were rewritten to the amended contract; none were deleted.
+- D-193 (#195): HealthKit lifecycle parity suite, with a fake bridge. **KI-031 (Low, open):** iOS cannot report read denial, so the screen keeps the "connected" copy after access is turned off in Settings. A copy rule is needed before the iOS composition ships.
+- D-194 (#196, bug): delete-all now withdraws the OS daily reminder, and a launch with no save cancels any leftover reminder. The export carries no device paths.
+- D-195 (#197, bug): Privacy lines were captured at type load and ignored a later locale. A runtime pseudo-locale sweep now covers 10 screens.
+- Counts at e81fe46: .NET 1835/1835. EditMode 355/355 (Unity-editor-tested). Device items are still UNVERIFIED (KI-002).
+- Next free D-number: **D-196**. Morning queue unchanged (KVM/device, art gate round 2, D-170, Region 2 gate, history purge). KI-031 is not queued; decide it before the iOS composition ships.
