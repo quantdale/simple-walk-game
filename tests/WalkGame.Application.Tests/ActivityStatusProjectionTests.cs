@@ -270,13 +270,14 @@ public sealed class ActivityStatusProjectionTests : IDisposable
 
     [Theory]
     [InlineData(ActivityPermissionState.NotRequested, ActivityPlayerStatus.SourceUnavailable, ActivityRecommendedAction.None)]
-    [InlineData(ActivityPermissionState.Denied, ActivityPlayerStatus.PermissionDenied, ActivityRecommendedAction.OpenSettings)]
-    [InlineData(ActivityPermissionState.Revoked, ActivityPlayerStatus.PermissionDenied, ActivityRecommendedAction.OpenSettings)]
+    [InlineData(ActivityPermissionState.Denied, ActivityPlayerStatus.SourceUnavailable, ActivityRecommendedAction.None)]
+    [InlineData(ActivityPermissionState.Revoked, ActivityPlayerStatus.SourceUnavailable, ActivityRecommendedAction.None)]
     public void Unsupported_provider_never_asks_the_player_to_connect(
         ActivityPermissionState permission, ActivityPlayerStatus status, ActivityRecommendedAction action)
     {
-        // D-068: "connect" is a dead end on a device without a provider; an explicit
-        // denial/revocation is still reported as such.
+        // D-068: "connect" is a dead end on a device without a provider. D-146 (supersedes the
+        // D-068 denial row): "Open Settings" is equally a dead end there, so a prior
+        // denial/revocation also reads as the source being unavailable.
         var m = ActivityStatusProjector.Project(
             new ActivityConnectionSnapshot(permission, ActivitySourceAvailability.Unsupported),
             false, IngestionOutcomeKind.NeverRun, 0L, null);

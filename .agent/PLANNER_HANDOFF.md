@@ -234,3 +234,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 ## Session note 2026-10-17 (grok1017c)
 - D-145 first-session payoff (OpenSpec `add-first-session-payoff`): display-time percent + steps to the next visible change on Home and the return summary. No save/content change; onboarding cost tuning deliberately rejected (would move content hash and pacing evidence).
 - Next: device playtest of first-session copy when KI-002 unblocks; Region 2 still gated (not approved).
+
+## Session note 2026-10-17 (grok1017c, D-146)
+- An uninstalled/unsupported Health Connect now reads as SourceUnavailable even after a prior denial/revocation (resolves the D-144 observation).

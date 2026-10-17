@@ -2756,3 +2756,9 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `FirstSessionPayoffTests` (14, headless-tested), `FirstSessionPayoffShellTests` (1, Unity-editor-tested, batch mode). Pacing evidence 7 reproduced / 0 drifted; content compatibility passed. Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None. No save, schema, content version or content hash change.
+## D-146 — Unsupported provider outranks a prior denial: "source unavailable", not "Open Settings" (2026-10-17)
+**Decision.** Resolves the D-144 observation. When the activity source is `Unsupported` (Health Connect not installed/available), the status is `SourceUnavailable` whatever the permission, including a prior `Denied`/`Revoked`. Before, a prior denial projected `PermissionDenied` + OpenSettings, a dead end because Settings cannot grant access to a provider that is not there. Precedence is now: ProviderUpdateRequired, then Unsupported, then permission (D-068 order otherwise unchanged). An installed provider after a denial still offers OpenSettings.
+
+**Tests.** `ActivityStatusProjectionTests.Unsupported_provider_never_asks_the_player_to_connect` rows for Denied/Revoked updated to the new contract (supersedes the D-068 denial row); `HealthConnectFailureMatrixTests` asserts every Unsupported row is SourceUnavailable with no action, plus 4 explicit D-146 cases. .NET 1032/1032 on main alone, 1046/1046 combined with D-145 (headless-tested). EditMode 231/231 on the combined tree (Unity-editor-tested, batch mode). Real Health Connect UI UNVERIFIED (KI-002).
+
+**Save compatibility.** None.
