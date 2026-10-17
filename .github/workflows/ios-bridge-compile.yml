@@ -42,14 +42,15 @@ jobs:
             -target arm64-apple-ios15.0 \
             src/WalkGame.Unity/Assets/Plugins/iOS/*.swift
 
+      # -wmo: one object file for every bridge file (D-186 added WalkGameAccessibilityBridge.swift).
       - name: Compile bridge to an object file (no link, no signing)
         run: |
-          xcrun --sdk iphoneos swiftc -c -parse-as-library -O \
+          xcrun --sdk iphoneos swiftc -c -parse-as-library -O -wmo \
             -target arm64-apple-ios15.0 -module-name WalkGameHealthKitBridge \
             -o "$RUNNER_TEMP/bridge.o" \
             src/WalkGame.Unity/Assets/Plugins/iOS/*.swift
           nm -gU "$RUNNER_TEMP/bridge.o" | tee "$RUNNER_TEMP/symbols.txt"
-          for s in wg_hk_availability wg_hk_request_status wg_hk_request_authorization wg_hk_read_steps; do
+          for s in wg_hk_availability wg_hk_request_status wg_hk_request_authorization wg_hk_read_steps wg_reduce_motion_enabled; do
             grep -q "_$s\$" "$RUNNER_TEMP/symbols.txt" || { echo "missing C symbol $s"; exit 1; }
           done
           echo "COMPILED ON HOSTED macOS (not device-tested)"
