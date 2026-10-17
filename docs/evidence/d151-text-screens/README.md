@@ -9,3 +9,5 @@ State `payoff`: fresh start, first project queued, one 2,000-step first walk.
 - `TEXT_RUN.txt` — per-capture exit code and renderer.
 
 Label: editor-rendered. Device rendering UNVERIFIED (KI-002).
+
+Superseded for Home by `docs/evidence/d153-text-screens/` (D-153: captured after the D-152 line reorder).

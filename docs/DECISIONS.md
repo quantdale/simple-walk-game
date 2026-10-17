@@ -2808,3 +2808,10 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `FirstSessionPayoffShellTests` asserts the invested line immediately follows the payoff line. EditMode 237/237 (Unity-editor-tested, batch mode). Device UNVERIFIED (KI-002). The d151 captures predate this reorder (same lines, different order).
 
 **Save compatibility.** None.
+
+## D-153 — Text-screen evidence re-captured after D-152 (2026-10-17)
+**Decision.** Re-ran `tools/unity/capture-text-screens.sh` on main `ab6cb8b` so the committed Home evidence matches the shipped D-152 line order. New set: `docs/evidence/d153-text-screens/` (Home 1x/2x, return summary, Settings). The d151 README points to it. Evidence only, no code change.
+
+**Labels.** Editor-rendered (Unity 6000.3.26f1, llvmpipe). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None.
