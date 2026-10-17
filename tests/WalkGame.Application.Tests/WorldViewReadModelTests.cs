@@ -50,7 +50,7 @@ public sealed class WorldViewReadModelTests : IDisposable
     }
 
     [Fact]
-    public void FreshValley_OnlyTheTrailheadIsOpen_WithWrenWaiting()
+    public void FreshValley_OnlyTheTrailheadIsOpen_WithMiraWaiting()
     {
         var view = Fresh().GetWorldView();
         Assert.Equal(6, view.Locations.Count);
@@ -59,8 +59,8 @@ public sealed class WorldViewReadModelTests : IDisposable
         Assert.True(trail.IsUnlocked);
         Assert.True(trail.IsInteractable);
         Assert.Equal(new[] { TestSessions.EntryProjectId }, trail.SelectableProjectIds);
-        Assert.Equal(new[] { "npc.wren" }, trail.CharacterIds);
-        Assert.Equal("line.wren.1", Assert.Single(trail.PendingDialogue).LineId);
+        Assert.Equal(new[] { "npc.mira" }, trail.CharacterIds);
+        Assert.Equal("line.mira.1", Assert.Single(trail.PendingDialogue).LineId);
         Assert.All(view.Locations.Where(l => l.LocationId != "lm.trailhead"), l => { Assert.False(l.IsUnlocked); Assert.False(l.IsInteractable); });
         Assert.Equal("region@eco0-set0", view.AtmosphereKey);
         Assert.False(view.RegionCompleted);
@@ -70,13 +70,13 @@ public sealed class WorldViewReadModelTests : IDisposable
     public void SeenLines_AreNotPending_AndANewMilestoneMakesThemPendingAgain()
     {
         var s = Fresh();
-        Assert.False(s.GetWorldView(new[] { "line.wren.1" }).Find("lm.trailhead")!.HasPendingDialogue);
+        Assert.False(s.GetWorldView(new[] { "line.mira.1" }).Find("lm.trailhead")!.HasPendingDialogue);
         var later = PlayDays(2);
         Assert.Equal(ProjectStatus.Completed, later.GetProjects().Projects.Single(p => p.ProjectId == TestSessions.EntryProjectId).Status);
-        var trail = later.GetWorldView(new[] { "line.wren.1" }).Find("lm.trailhead")!;
-        Assert.Equal("line.wren.2", Assert.Single(trail.PendingDialogue).LineId);
-        var wren = later.GetCharacters().Single(c => c.CharacterId == "npc.wren");
-        Assert.Equal(new[] { "line.wren.1", "line.wren.2" }, wren.ReachedLines.Take(2).Select(l => l.LineId));
+        var trail = later.GetWorldView(new[] { "line.mira.1" }).Find("lm.trailhead")!;
+        Assert.Equal("line.mira.2", Assert.Single(trail.PendingDialogue).LineId);
+        var mira = later.GetCharacters().Single(c => c.CharacterId == "npc.mira");
+        Assert.Equal(new[] { "line.mira.1", "line.mira.2" }, mira.ReachedLines.Take(2).Select(l => l.LineId));
     }
 
     [Fact]
@@ -129,16 +129,16 @@ public sealed class WorldViewReadModelTests : IDisposable
     {
         var s = PlayDays(30);
         var before = s.ExportSaveEnvelope()!;
-        var a = s.GetWorldView(new[] { "line.wren.1" });
+        var a = s.GetWorldView(new[] { "line.mira.1" });
         var chars = s.GetCharacters();
         for (int i = 0; i < 5; i++) { s.GetWorldView(); s.GetCharacters(); }
         Assert.Equal(before, s.ExportSaveEnvelope()!);
-        var b = s.GetWorldView(new[] { "line.wren.1" });
+        var b = s.GetWorldView(new[] { "line.mira.1" });
         Assert.Equal(Describe(a), Describe(b));
         // A fresh session loading the same save sees the same world.
         var reloaded = TestSessions.Create(_temp.Path, new ManualClock(T0.AddDays(30)));
         Assert.Equal(StartStatus.Loaded, reloaded.Continue().Status);
-        Assert.Equal(Describe(a), Describe(reloaded.GetWorldView(new[] { "line.wren.1" })));
+        Assert.Equal(Describe(a), Describe(reloaded.GetWorldView(new[] { "line.mira.1" })));
         Assert.Equal(chars.Select(c => c.CharacterId + ":" + c.ReachedLines.Count), reloaded.GetCharacters().Select(c => c.CharacterId + ":" + c.ReachedLines.Count));
     }
 
@@ -174,18 +174,18 @@ public sealed class WorldViewReadModelTests : IDisposable
         var s = Fresh();
         s.ContentLocale = ContentText.ForLocale("xx", new Dictionary<string, string>
         {
-            [ContentText.Key("npc.wren", ContentText.Fields.Name)] = "Roitelet",
-            [ContentText.Key("line.wren.1", ContentText.Fields.Line)] = "Bonjour, marcheur.",
+            [ContentText.Key("npc.mira", ContentText.Fields.Name)] = "Myrrhe",
+            [ContentText.Key("line.mira.1", ContentText.Fields.Line)] = "Bonjour, marcheur.",
             [ContentText.Key("lm.trailhead", ContentText.Fields.Title)] = "Vieux sentier",
         });
-        var wren = s.GetCharacters().Single(c => c.CharacterId == "npc.wren");
-        Assert.Equal("Roitelet", wren.Name);
-        Assert.Equal("Bonjour, marcheur.", wren.CurrentLine!.Text);
+        var mira = s.GetCharacters().Single(c => c.CharacterId == "npc.mira");
+        Assert.Equal("Myrrhe", mira.Name);
+        Assert.Equal("Bonjour, marcheur.", mira.CurrentLine!.Text);
         Assert.Equal("Vieux sentier", s.GetWorldView().Find("lm.trailhead")!.Title);
-        var arlo = s.GetCharacters().Single(c => c.CharacterId == "npc.arlo");
-        Assert.Equal("Arlo", arlo.Name); // fallback to authored English
-        Assert.False(arlo.IsPresent);
-        Assert.Empty(arlo.ReachedLines);
+        var eli = s.GetCharacters().Single(c => c.CharacterId == "npc.eli");
+        Assert.Equal("Eli", eli.Name); // fallback to authored English
+        Assert.False(eli.IsPresent);
+        Assert.Empty(eli.ReachedLines);
     }
 
     [Fact]

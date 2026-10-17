@@ -23,7 +23,7 @@ Do not skip foundational milestones to make the repository look visually advance
 - **E. Region expansion (§43)** across Millbrook only after the slice passes. No second region until Region 1's presentation is coherent.
 - **F. Verification (§44)** and the final evaluation questions (§48).
 
-Candidate cast (D-172): Mira, Tavi, Rowan and Eli on screen; Nell stays the off-screen letter writer.
+Candidate cast (D-172, implemented in `Region1Characters`): Mira, Tavi, Rowan and Eli on screen; Nell stays the off-screen letter writer; Arlo is a figure from her letters (Tavi was his apprentice). It can change after the art approval.
 
 **Earlier direction (D-164), still in force where the bible does not change it:** Michael's redesign brief [`docs/direction/REDESIGN_2026-10-17.md`](direction/REDESIGN_2026-10-17.md) is the **governing direction** for presentation and player experience. It supersedes text-shell polish as the priority. The procedural valley art and text-stack Home are **placeholders, not final**. Domain, saves, ingestion, restoration systems and tests are preserved. Priorities in order:
 

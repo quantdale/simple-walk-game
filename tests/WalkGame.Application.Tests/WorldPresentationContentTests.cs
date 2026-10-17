@@ -69,6 +69,32 @@ public sealed class WorldPresentationContentTests
     }
 
     [Fact]
+    public void Cast_FollowsTheD172Reconciliation()
+    {
+        // D-172: on-screen cast from the bible's §12 candidate list; Nell stays the off-screen
+        // letter writer and Arlo stays a figure from her letters (neither is an on-screen character).
+        Assert.Equal(new[] { "npc.mira", "npc.tavi", "npc.rowan", "npc.eli" }, Region1Characters.All.Select(c => c.Id));
+        Assert.Equal(new[] { "Mira", "Tavi", "Rowan", "Eli" }, Region1Characters.All.Select(c => c.Name));
+        Assert.DoesNotContain(Region1Characters.All, c => c.Name is "Nell" or "Arlo" or "Wren" or "Ida");
+        Assert.Equal("Nell Hartley", Region1Letters.Writer);
+        Assert.Contains(Region1Letters.All, l => l.Body.Contains("Arlo"));
+
+        string? At(string id, params string[] done) =>
+            WorldPresentationProjector.CharacterLocation(Region1Characters.Find(id)!, done.Contains);
+        Assert.Equal("lm.trailhead", At("npc.mira"));
+        Assert.Null(At("npc.tavi"));
+        Assert.Equal("lm.river-intake", At("npc.tavi", "proj.clear-trailhead"));
+        Assert.Equal("lm.settlement", At("npc.tavi", "proj.clear-trailhead", "proj.build-workshop"));
+        Assert.Equal("lm.canopy", At("npc.rowan", "proj.clear-fallen-timber"));
+        Assert.Equal("lm.wetland", At("npc.rowan", "proj.clear-fallen-timber", "proj.wetland-drainage"));
+        Assert.Equal("lm.canopy", At("npc.rowan", "proj.clear-fallen-timber", "proj.wetland-drainage", "proj.canopy-walkway"));
+        Assert.Null(At("npc.eli", "proj.clear-trailhead"));
+        Assert.Equal("lm.observatory", At("npc.eli", "proj.open-lookout"));
+        // Tavi was Arlo's apprentice: the workshop line ties the letters to the on-screen cast.
+        Assert.Contains("Arlo", Region1Characters.Find("npc.tavi")!.Lines.Single(l => l.MilestoneProjectId == "proj.build-workshop").Text);
+    }
+
+    [Fact]
     public void EveryLine_IsReachable_WhenItsCharacterIsPresent()
     {
         // A line keyed to a milestone that completes before its character arrives is still
