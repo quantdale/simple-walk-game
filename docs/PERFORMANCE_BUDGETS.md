@@ -70,6 +70,8 @@ Targets:
 
 **Measured (editor only, D-074):** on a mature 365-day restored save, every lightweight screen builds and renders in 0.14–0.41 ms (model + view) and warm boot takes 5–7 ms. These are well inside the 100 ms input budget on the box. Device timings are UNVERIFIED (KI-002).
 
+**Re-measured (editor only, D-139, 2026-10-17):** after the D-122/D-138 localization overlays, the screen median is 0.010–0.045 ms and 3,000 enter/exit renders take 157 ms. No regression (`docs/evidence/d139-perf-remeasure/`). Device UNVERIFIED (KI-002).
+
 ---
 
 ## 5. Frame-rate targets

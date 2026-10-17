@@ -219,3 +219,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-17 (grok0739d resumed)
 - D-137: the RC clean clone on `86f767a` failed only because one EditMode test was Inconclusive. Fixed the test (Guide Start double-tap); EditMode 228/228, .NET 871/871.
+- D-139: `PersistentSaveFailureSyncTests` (no finding); performance re-measured (`docs/evidence/d139-perf-remeasure/`, no regression).
