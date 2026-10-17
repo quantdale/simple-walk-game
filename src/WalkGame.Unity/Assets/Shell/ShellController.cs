@@ -537,8 +537,14 @@ namespace WalkGame.Shell
                 // brought and its storyline chapter (derived from authored content; stored text unchanged).
                 var content = WalkGame.Application.Content.Region1Catalog.Create();
                 var unlocked = new HashSet<string>(_session.GetStory().Chapters.Where(c => c.Unlocked).Select(c => c.ChapterId));
-                foreach (var item in s.Items)
+                // D-163 (KI-026): skip lines that repeat a shown completion's detail, or offer a project already restored.
+                var restoredIds = new HashSet<string>(_session.GetProjects().Projects.Where(p => p.Status == ProjectStatus.Completed).Select(p => p.ProjectId));
+                var hidden = WalkGame.Application.Summaries.SummaryDisplayFilter.Redundant(content,
+                    s.Items.Select(i => new WalkGame.Application.Summaries.SummaryDisplayFilter.Item(i.Text, i.IsCurrent)).ToList(), restoredIds);
+                for (int index = 0; index < s.Items.Count; index++)
                 {
+                    var item = s.Items[index];
+                    if (hidden.Contains(index)) continue;
                     m.Lines.Add(item.IsCurrent ? item.DisplayText : PlayerStrings.F("label.earlier", item.DisplayText));
                     if (!item.IsCurrent) continue;
                     var detail = WalkGame.Application.Summaries.ProjectCompletionMoments.Describe(content, item.Text, unlocked);
