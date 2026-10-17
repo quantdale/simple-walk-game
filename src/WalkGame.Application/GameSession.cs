@@ -262,7 +262,7 @@ namespace WalkGame.Application
     /// Persistence policy (M1): every committed mutation saves immediately — a save is a
     /// few kilobytes, and durability before presentation is the architectural contract.
     /// </summary>
-    public sealed class GameSession
+    public sealed partial class GameSession
     {
         /// <summary>
         /// Content validation is deterministic over an immutable graph, so each distinct
@@ -312,7 +312,9 @@ namespace WalkGame.Application
         {
             var saveEraser = _store as ILocalDataEraser;
             var prefsEraser = _preferencesStore as ILocalDataEraser;
-            if (saveEraser == null || (_preferencesStore != null && prefsEraser == null))
+            var memoryEraser = _presentationMemoryStore as ILocalDataEraser;
+            if (saveEraser == null || (_preferencesStore != null && prefsEraser == null)
+                || (_presentationMemoryStore != null && memoryEraser == null))
                 return new LocalDataEraseResult(LocalDataEraseStatus.NotSupported, null);
 
             try
@@ -320,6 +322,7 @@ namespace WalkGame.Application
                 // Saves first: they hold the health-adjacent data. Preferences are UX-only.
                 saveEraser.EraseAll();
                 prefsEraser?.EraseAll();
+                memoryEraser?.EraseAll(); // D-175: presentation memory is local data too
             }
             catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException)
             {
@@ -336,6 +339,7 @@ namespace WalkGame.Application
             _lastBootRecoveryCause = SaveRecoveryCause.None;
             _lastBootCodecFailure = CodecFailureCategory.None;
             _lastBootAppliedMigrations = Array.Empty<string>();
+            ResetPresentationMemoryAfterErase();
             return new LocalDataEraseResult(LocalDataEraseStatus.Erased, null);
         }
 
@@ -352,7 +356,17 @@ namespace WalkGame.Application
 
         public GameSession(ISaveStore store, ISaveCodec codec, IClock clock, RegionDefinition content,
             IUxPreferencesStore? preferencesStore, IActivityConnectionPort? connectionPort)
+            : this(store, codec, clock, content, preferencesStore, connectionPort, presentationMemoryStore: null)
         {
+        }
+
+        /// <param name="presentationMemoryStore">D-175: optional durable presentation memory (what the world has
+        /// already shown). Must also be an <see cref="ILocalDataEraser"/> for "Delete all local data" to work.</param>
+        public GameSession(ISaveStore store, ISaveCodec codec, IClock clock, RegionDefinition content,
+            IUxPreferencesStore? preferencesStore, IActivityConnectionPort? connectionPort,
+            WalkGame.Application.Presentation.IPresentationMemoryStore? presentationMemoryStore)
+        {
+            _presentationMemoryStore = presentationMemoryStore;
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _codec = codec ?? throw new ArgumentNullException(nameof(codec));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));

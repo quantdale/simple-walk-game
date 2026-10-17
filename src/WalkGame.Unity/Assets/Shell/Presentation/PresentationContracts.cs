@@ -62,7 +62,7 @@ namespace WalkGame.Shell.Presentation
         DateTimeOffset? ChangesShownThroughUtc { get; set; }
     }
 
-    /// <summary>In-memory <see cref="IPresentationMemory"/>. Lost on restart (see D-169 follow-ups).</summary>
+    /// <summary>In-memory <see cref="IPresentationMemory"/>, lost on restart. Tests and headless use; the app uses <see cref="SessionPresentationMemory"/> (D-175).</summary>
     public sealed class InMemoryPresentationMemory : IPresentationMemory
     {
         private readonly HashSet<string> _seen = new HashSet<string>(StringComparer.Ordinal);

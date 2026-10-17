@@ -52,7 +52,10 @@ No names, emails, contact data, precise location, or device identifiers are
 stored. The sensitive core is **timestamped walking activity counts and
 provider record identifiers** — health-adjacent by nature even though nothing
 directly identifying is kept. `LocalPreferencesStore` holds UX
-preferences/onboarding state only (D-042).
+preferences/onboarding state only (D-042). `LocalPresentationMemoryStore`
+(`presentation-memory.json`, D-175) holds only which dialogue line ids the
+player has seen and one timestamp up to which world changes were shown; no
+walking data. It is erased by "Delete all local data".
 
 **At-rest confidentiality: none at the application layer.** The atomic store
 writes plaintext JSON (base64 payload, SHA-256 for *integrity only*) with a
@@ -83,7 +86,7 @@ JSON document from the current save (`SaveExport`, payload checksum verified fir
 to the OS share sheet as text (Android `ACTION_SEND`, `text/plain`). The game writes no export file,
 uses no shared storage and makes no network call; the data leaves the app only through the share
 target the player picks, and the screen says the copy includes their walks. Exports over 512 KB are
-refused. Preferences are not exported. Device share sheet: UNVERIFIED (KI-002). No import exists.
+refused. Preferences and presentation memory (D-175) are not exported. Device share sheet: UNVERIFIED (KI-002). No import exists.
 
 ## 5. Diagnostics surface
 
