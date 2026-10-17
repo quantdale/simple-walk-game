@@ -263,4 +263,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 ## Session note 2026-10-17 (grok1017h)
 - D-159: `Region1PlaythroughTests` plays onboarding → closure → care chapter → full epilogue for low/irregular/high × catalog/cheapest/deepest-first choices. Finding fixed: the survey closed the region with the canopy walkway unbuilt (cheapest-first), locking chapters 7–9 behind a project nobody was prompted for. `MeetsClosureCriterion` now enforces the chain minimum on the milestone route; the validator accepts pre-D-159 closures (`ExplainsRecordedCompletion`). OpenSpec `enforce-closure-chain-minimum`. KI-026 (summary rotation drops a completion line on crowded days) logged low/accepted.
 - Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017h` (no `--force`). Region 2 still not approved.
-
+- D-160: the celebration leads with a "What you restored:" recap derived from read models (display only). PNGs in docs/evidence/d160-restored-recap/ (editor-rendered).

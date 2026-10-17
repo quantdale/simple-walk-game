@@ -2967,3 +2967,19 @@ The fix: the chain minimum is enforced on every route, so Region 1 closes on the
 **Verification.** Headless-tested: .NET 1099/1099 (Domain 162, Infrastructure 208, Application 729). Unity-editor-tested: EditMode 250/250. Pacing evidence: 7 reproduced, 0 drifted; content compatibility and architecture gates green.
 
 **Save and content compatibility.** No save-schema change (v3), no content change (fingerprint and content version unchanged). Saves completed under the old rule stay valid by design.
+
+## D-160 — The celebration recaps what the player restored (2026-10-17)
+
+**Context.** The Region 1 celebration (D-080/D-081) shows a headline, a reassurance line and that day's summary items. It never says what the whole restoration added up to. The day's items are also bounded (D-055), and D-159 found the final project's own line can rotate out on the closure day (KI-026).
+
+**Decision.** When the celebration applies, the shell inserts a "What you restored:" recap right after the two celebration lines, before the day's items. It is built by `ShellController.RestoredRecap` from read models at render time:
+- the number of restoration projects finished (`RegionReadModel.CompletedProjects`);
+- "Places brought back:", listing every landmark at Restored or above (localized titles);
+- discoveries recorded, expeditions walked and Nell's letters found (`GetDiscoveries`, `GetExpeditions`, `GetLetters`);
+- the existing D-103 days-walked line, when days are known.
+
+Counts of zero are omitted. Each count has a one/many key in `PlayerStrings` (`shell.recap.*`). The copy states facts only. It never says "N of M", and it uses no remaining/collect/streak wording. Continue stays the primary action. The recap is shown once, because it lives on the celebration summary, which is acknowledged durably.
+
+**Scope.** Display only. No stored summary text, save, content or schema change. It is not shown on any other screen; Progress already carries running totals.
+
+**Evidence.** EditMode `RegionCelebrationTests`: 2 new cases. One completes Region 1 through the real pipeline and checks every recap line against the read models, the calm-copy sweep, that Continue stays primary and that the recap is shown once. The other checks the omissions. EditMode 252/252 (Unity-editor-tested). Captures are editor-rendered (llvmpipe/Xvfb), NOT device: `docs/evidence/d160-restored-recap/celebration-top-editor-rendered.png`, `celebration-recap-editor-rendered.png` and `celebration-recap-2x-editor-rendered.png`. Synthetic walks carry no local day, so the fixture's recap has no days-walked line; with dated walks it shows "You have walked on N days." Device UNVERIFIED (KI-002).

@@ -553,6 +553,15 @@ namespace WalkGame.Shell
                 }
             }
             bool celebrating = s != null && Celebrate(m, s.Items.Where(i => i.IsCurrent).Select(i => i.Text));
+            // D-160: "what you restored" recap, read from canonical state at display time, right
+            // after the celebration's two lines (before the day's own summary items).
+            if (celebrating)
+            {
+                var days = _session.GetDaysWalked();
+                m.Lines.InsertRange(2, RestoredRecap(_session.GetRegion(), _session.GetDiscoveries().UnlockedCount,
+                    _session.GetExpeditions().CompletedCount, _session.GetLetters().FoundCount,
+                    DaysWalkedLine(days.Days, days.IsLowerBound)));
+            }
             if (s != null)
             {
                 bool chapter = s.Items.Any(i => i.IsCurrent && i.Text.StartsWith(ChapterMomentPrefix, StringComparison.Ordinal));
@@ -782,6 +791,30 @@ namespace WalkGame.Shell
             m.Lines.Insert(0, CelebrationHeadline);
             m.Lines.Insert(1, PlayerStrings.T("shell.everyPlaceYouBrought"));
             return true;
+        }
+
+        /// <summary>
+        /// D-160: the celebration's "what you restored" recap. Display-only and derived from read
+        /// models at render time (no stored text, no save or content change), so it is complete even
+        /// when the day's summary rotated a completion line out (KI-026). Counts of zero are omitted;
+        /// nothing here is a target or a count-to-collect ("13 discoveries recorded", never "13 of 13").
+        /// </summary>
+        public static List<string> RestoredRecap(WalkGame.Application.ReadModels.RegionReadModel region,
+            int discoveries, int expeditions, int letters, string daysWalkedLine)
+        {
+            var lines = new List<string>();
+            if (region == null) return lines;
+            lines.Add(PlayerStrings.T("shell.recap.heading"));
+            if (region.CompletedProjects > 0)
+                lines.Add(PlayerStrings.F(region.CompletedProjects == 1 ? "shell.recap.projects.one" : "shell.recap.projects.many", region.CompletedProjects));
+            var places = region.Landmarks.Where(l => l.Stage >= WalkGame.Domain.Regions.RestorationStage.Restored).Select(l => PlayerCopy.Title(l.TitleKey))
+                .Where(t => !string.IsNullOrEmpty(t)).ToList();
+            if (places.Count > 0) lines.Add(PlayerStrings.F("shell.recap.places", string.Join(", ", places)));
+            if (discoveries > 0) lines.Add(PlayerStrings.F(discoveries == 1 ? "shell.recap.discoveries.one" : "shell.recap.discoveries.many", discoveries));
+            if (expeditions > 0) lines.Add(PlayerStrings.F(expeditions == 1 ? "shell.recap.expeditions.one" : "shell.recap.expeditions.many", expeditions));
+            if (letters > 0) lines.Add(PlayerStrings.F(letters == 1 ? "shell.recap.letters.one" : "shell.recap.letters.many", letters));
+            if (!string.IsNullOrEmpty(daysWalkedLine)) lines.Add(daysWalkedLine);
+            return lines;
         }
 
         /// <summary>Home's one-line story pointer once every chapter is unlocked (the epilogue line).</summary>
