@@ -2731,3 +2731,10 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 
 **Save compatibility.** None. No schema, codec format or migration output change; valid saves migrate exactly as before.
 
+
+## D-143 — Adverse lifecycle in one live process: time-zone travel, clock jumps, revocation between syncs (2026-10-17)
+**Decision.** Pin the in-process half of the adverse lifecycle matrix. Earlier suites cover process boundaries (D-072 `M8LifecycleHeadlessTests`) and a backward clock across reloads (`TemporalAnomalyTests`). `TimezoneTravelLifecycleTests` (5) keep one `GameSession` alive while: the player flies west (each walk counts on its own local day; vitality is identical to a no-travel control), crosses the date line east (no day invented or lost, survives reload), a replay re-labels a record's offset after travel (exactly-once no-op), the device clock jumps back two days and forward again mid-session (no double credit, checkpoint never regresses), and permission is revoked between two syncs then re-granted (progress kept, status PermissionDenied, only the gap credited). No finding; no production change.
+
+**Verification.** .NET 907/907 (headless-tested). Device behaviour UNVERIFIED (KI-002).
+
+**Save compatibility.** None.
