@@ -230,7 +230,7 @@ public sealed class GlanceLanguageTests : IDisposable
     {
         var glance = GlanceFor(active: false);
 
-        Assert.Contains("Next up is ", glance.RestoringNowSentence);
+        Assert.Contains("Next up: ", glance.RestoringNowSentence); // D-162 label-first form
         Assert.DoesNotContain("proj.", glance.RestoringNowSentence);
     }
 

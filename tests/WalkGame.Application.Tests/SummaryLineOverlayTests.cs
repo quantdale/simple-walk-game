@@ -75,8 +75,11 @@ public sealed class SummaryLineOverlayTests : IDisposable
         Assert.Contains(local.Items, r => r.DisplayText.StartsWith("[xx", StringComparison.Ordinal));
         Assert.Equal(before, SaveBytes());
 
+        // D-162: English display is the stored line except for the reworded project/expedition forms.
         s.ContentLocale = ContentText.English;
-        Assert.Equal(english.Items.Select(r => r.Text), s.GetPendingReturnSummary()!.Items.Select(r => r.DisplayText));
+        var display = new SummaryLineText(ContentText.English, Region1Catalog.Create());
+        Assert.Equal(english.Items.Select(r => display.Display(r.Text)), s.GetPendingReturnSummary()!.Items.Select(r => r.DisplayText));
+        Assert.Equal(english.Items.Select(r => r.Text), s.GetPendingReturnSummary()!.Items.Select(r => display.Localize(r.Text)));
     }
 
     [Theory]

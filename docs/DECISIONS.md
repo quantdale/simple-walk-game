@@ -2991,3 +2991,20 @@ Counts of zero are omitted. Each count has a one/many key in `PlayerStrings` (`s
 **Decision.** Re-run the RC procedure (D-075) on main `f046934`. First, `scripts/validate-clean-clone.sh --with-unity`: a fresh clone, every CI `run:` step, .NET, EditMode, PlayMode and an arm64 debug APK from a cold Library. Then `scripts/assemble-release-evidence.sh --clean-clone`. Evidence: `docs/evidence/rc-f046934/`.
 
 **Result.** All 11 mechanical claims PASS. CI steps: 19 ok, 2 hosted-only skips. .NET: 1099/1099. EditMode: 252/252. PlayMode: 4 passed + 1 capture-only ignored. The APK built. Hosted CI is green. Labels: automated verified / Unity-editor-tested / build-verified only. Device is UNVERIFIED (KI-002). Not a release.
+
+## D-162 — Copy-quality sweep: generated lines read well with every title (2026-10-17)
+
+**Context.** Every project title is imperative ("Complete the valley survey"), so composer and shell templates that put a title in subject position read badly. The D-160 capture showed "Complete the valley survey is complete." Others: "Source-to-Sound Route route is ready.", "Clear the old trailhead is ready to queue.", glance "Rebuild the trail bridges is underway (…)" and "Next up is Clear the old trailhead.", Story "Getting there: Wire settlement power opens once Restore the market hall is restored.", the button "Move Clear the old trailhead up", and D-100's "A is now x, and B is now y, and C is now z.".
+
+**Decision.** Fix it at display time; stored lines are unchanged.
+- `SummaryLineText.Display(stored)` is the player-facing form of a stored summary line in every locale, English included. `GameSession` now always fills `ItemRow.DisplayText` with it. `ItemRow.Text` stays the stored line, and shells keep parsing that.
+  - Project complete becomes a per-project completion sentence (`Region1SummaryCopy`, keyed by stable id, e.g. "The valley survey is complete."). A locale can override it with `<project id>#completed` (`ContentText.Fields.Completed`). A locale's existing `summary.project-complete` pattern still wins over the English sentence, so stored lines keep translating.
+  - Project ready: "Ready to queue: {0}." Expedition ready: "A new expedition is open: {0}." Expedition complete: "Expedition walked: {0}." / "Expedition walked: {0} (+N Resource)." A locale's own `summary.*` pattern for these forms still wins.
+  - A line is only re-rendered when its title maps to a known project or expedition. Unknown titles and notices stay as stored.
+- The glance lead uses the item's display form when it would otherwise echo the stored line. Glance English: "Now restoring: {0} ({1} of {2})." and "Next up: {0}.".
+- Shell: "Move up: {0}", "Getting there: {0} (opens after: {1}).", "Getting there: {0} (opens as the valley recovers).". D-100 landmark lists join as "A, B, and C".
+- `FormatSummaryLines` (`SummaryLines` on results) and `SummaryLineText.Localize` are unchanged: they still give the stored English line in English.
+
+**Scope.** Display only. No save, schema, content fingerprint or stored-text change. Older saves render with the new forms automatically.
+
+**Evidence.** `SummaryCopyQualityTests` (11 headless tests) render every composer template for every title it can carry through the real composer and `Display`: 19 projects ×2, 3 expeditions ×3, 13 discoveries, every chapter, landmark × stage, producer × 3 and the region. They reject doubled words, an imperative title as a sentence subject (`{title} is/are/opens/continues/was`), doubled punctuation or spacing, raw ids and unfilled placeholders. They also cover the glance phrases and D-100 lines for every project. `Region1PlaythroughTests` now runs the same checker over every summary line the player sees in all 9 playthroughs. EditMode `CopyQualitySweepTests` (3) render the shell templates for every project title (and every pair), and every line and button of Home, Projects, Story, Region, Discoveries, Progress and the summary, mid-game and on the celebration. .NET 1110/1110, EditMode 255/255. Captures (editor-rendered): `docs/evidence/d162-copy-sweep/`. Labels: headless-tested, Unity-editor-tested, editor-rendered; device UNVERIFIED (KI-002).

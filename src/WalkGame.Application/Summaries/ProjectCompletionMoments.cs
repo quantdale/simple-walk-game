@@ -40,7 +40,7 @@ namespace WalkGame.Application.Summaries
                     if (stage.UnlockedByProjectId == id)
                         landmarks.Add(lm.TitleKey + " is now " + stage.Stage.ToString().ToLowerInvariant());
             if (landmarks.Count > 0)
-                parts.Add(string.Join(", and ", landmarks) + ".");
+                parts.Add(JoinList(landmarks) + ".");
 
             foreach (var ch in content.Chapters)
             {
@@ -53,5 +53,14 @@ namespace WalkGame.Application.Summaries
             }
             return parts.Count == 0 ? null : string.Join(" ", parts);
         }
+
+        /// <summary>D-162: "A", "A and B", "A, B, and C" (was "A, and B, and C").</summary>
+        public static string JoinList(IReadOnlyList<string> items) => items.Count switch
+        {
+            0 => string.Empty,
+            1 => items[0],
+            2 => items[0] + " and " + items[1],
+            _ => string.Join(", ", items.Take(items.Count - 1)) + ", and " + items[items.Count - 1],
+        };
     }
 }

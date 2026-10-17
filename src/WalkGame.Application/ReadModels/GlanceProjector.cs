@@ -136,6 +136,11 @@ namespace WalkGame.Application.ReadModels
     /// </summary>
     public static class GlanceProjector
     {
+        /// <summary>D-162: title-first forms read badly with imperative project titles
+        /// ("Clear the old trailhead is underway"), so the title follows a short label.</summary>
+        public const string UnderwayEnglish = "Now restoring: {0} ({1} of {2}).";
+        public const string NextUpEnglish = "Next up: {0}.";
+
         public static GlanceReadModel Project(
             HomeReadModel home,
             ReturnSummaryReadModel? pendingSummary,
@@ -216,7 +221,12 @@ namespace WalkGame.Application.ReadModels
                 if ((int)current[i].Kind < (int)current[leadIndex].Kind)
                     leadIndex = i;
 
-            return (GlancePhrases.PlayerLeadFor(current[leadIndex].Text, text), current.Count - 1);
+            // D-162: a lead shown as stored uses the item's display form (a well-formed sentence for
+            // imperative project titles); legacy and opaque re-renders keep their own forms.
+            var lead = current[leadIndex];
+            string sentence = GlancePhrases.PlayerLeadFor(lead.Text, text);
+            if (sentence == lead.Text && !GlancePhrases.ContainsStageIdentifier(lead.DisplayText)) sentence = lead.DisplayText;
+            return (sentence, current.Count - 1);
         }
 
         // ------------------------------------------------------------------ restoring now
@@ -228,7 +238,7 @@ namespace WalkGame.Application.ReadModels
             if (home.ActiveProjectId != null)
             {
                 string title = DisplayTitle(LocalTitle(text, home.ActiveProjectId, content.FindProject(home.ActiveProjectId)?.TitleKey), home.ActiveProjectTitleKey, text);
-                return GlancePhrases.Format(text, "underway", "{0} is underway ({1} of {2}).", title,
+                return GlancePhrases.Format(text, "underway", UnderwayEnglish, title,
                     home.ActiveProjectInvested.ToString(CultureInfo.InvariantCulture),
                     home.ActiveProjectCost.ToString(CultureInfo.InvariantCulture));
             }
@@ -236,7 +246,7 @@ namespace WalkGame.Application.ReadModels
             if (home.Queued.Count > 0)
             {
                 string next = DisplayTitle(LocalTitle(text, home.Queued[0].ProjectId, content.FindProject(home.Queued[0].ProjectId)?.TitleKey), home.Queued[0].TitleKey, text);
-                return GlancePhrases.Format(text, "next-up", "Next up is {0}.", next);
+                return GlancePhrases.Format(text, "next-up", NextUpEnglish, next);
             }
 
             if (home.RegionComplete && postCompletionProgram != null)

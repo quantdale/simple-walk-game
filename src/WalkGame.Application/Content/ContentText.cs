@@ -51,6 +51,8 @@ namespace WalkGame.Application.Content
             public const string Provenance = "provenance";
             /// <summary>D-141: expedition and post-completion care descriptions.</summary>
             public const string Description = "description";
+            /// <summary>D-162: a project's display-time completion sentence (Region1SummaryCopy).</summary>
+            public const string Completed = "completed";
         }
     }
 }
