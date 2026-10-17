@@ -38,5 +38,19 @@ namespace WalkGame.Shell.Tests
             Assert.IsEmpty(unknown, "screen tour names unknown screens: " + string.Join(", ", unknown));
             Assert.AreEqual(tour.Length, tour.Distinct().Count(), "screen tour lists a screen twice");
         }
+
+        [Test] public void D148_text_capture_covers_home_summary_settings_with_the_payoff_state()
+        {
+            string tools = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", "..", "..", "tools", "unity"));
+            string script = Path.Combine(tools, "capture-text-screens.sh");
+            Assert.IsTrue(File.Exists(script), "text capture script missing: " + script);
+            string text = File.ReadAllText(script);
+            foreach (var spec in new[] { "|Home|payoff|1", "|ReturnSummary|payoff|1", "|Settings|", "|Home|payoff|2" })
+                StringAssert.Contains(spec, text, "text capture does not include " + spec);
+            foreach (var screen in new[] { "Home", "ReturnSummary", "Settings" })
+                Assert.IsTrue(Enum.GetNames(typeof(ShellScreen)).Contains(screen), screen);
+            string capture = File.ReadAllText(Path.Combine(UnityEngine.Application.dataPath, "Tests", "PlayMode", "ValleyCaptureTests.cs"));
+            StringAssert.Contains("capState == \"payoff\"", capture, "ValleyCaptureTests no longer seeds the D-145 payoff state");
+        }
     }
 }

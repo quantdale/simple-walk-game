@@ -2771,3 +2771,12 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `AccessibilityAuditTests.D147_*` (5). EditMode 236/236 (Unity-editor-tested, batch mode). Device screen readers UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-148 — Batch-mode PNG captures of the Region 1 text screens (2026-10-17)
+**Decision.** The editor capture (`ValleyCaptureTests` via `capture-valley.sh`) gains `WG_CAPTURE_STATE=payoff` (first project queued + one 2,000-step walk, the D-145 first-session state), and `tools/unity/capture-text-screens.sh` renders Home (payoff, 1x and 2x), the return summary (payoff) and Settings to PNG in one detached run. Captures committed under `docs/evidence/d148-text-screens/` (small PNGs, ~30–70 KB each; run logs not committed). A guard in `ScreenTourCoverageTests` keeps the script and the payoff seeding in place.
+
+**Observation (not changed here).** Home in the payoff state shows the project three ways ("Vitality credited: 20.", "... is underway (20 of 300).", and the D-145 percent line). Candidate polish: fold the "underway (x of y)" line into the payoff line when both are present.
+
+**Verification.** Captures editor-rendered (llvmpipe). EditMode 237/237 (Unity-editor-tested, batch mode). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None (test/tooling only).

@@ -240,3 +240,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 
 ## Session note 2026-10-17 (grok1017d, D-147)
 - D-147: five accessibility invariants now iterate every `ShellScreen`; fixed missing button min-width. EditMode 236/236 (Unity-editor-tested). Device screen readers still UNVERIFIED (KI-002).
+- D-148: `tools/unity/capture-text-screens.sh` + `WG_CAPTURE_STATE=payoff`; PNGs in docs/evidence/d148-text-screens/ (editor-rendered).
