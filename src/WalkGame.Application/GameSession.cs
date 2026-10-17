@@ -1130,6 +1130,30 @@ namespace WalkGame.Application
             string identityKey = ActivityIdentity.Compute(record);
             if (!game.ProcessedRecords.TryGet(identityKey, out var existing))
             {
+                // D-183 (KI-029, amends D-029): nothing to reverse, so this is still counted as an
+                // ignored deletion, but the deletion is REMEMBERED as a zero-credit tombstone row
+                // (existing row shape: 0 steps, 0 Vitality, the deletion's revision). A lower
+                // revision of the record delivered in a later batch is then a stale no-op instead
+                // of credit for a walk the source deleted, and re-delivering this deletion is
+                // stale instead of reversing that credit: the outcome no longer depends on
+                // delivery order or count (exactly-once, conservative). A higher revision is a
+                // genuine re-add and credits through the correction path. Only source-id
+                // identities get a tombstone (a fingerprint includes the quantity, so a marker's
+                // fingerprint can never match a record). The tombstone does not move the trusted
+                // watermark, credits nothing, counts no day, and retires like any row (D-066).
+                if (!string.IsNullOrWhiteSpace(record.SourceRecordId))
+                {
+                    DateTimeOffset tombEnd = record.EndUtc.ToUniversalTime();
+                    game.ProcessedRecords.Record(new ProcessedRecordEntry(
+                        identityKey,
+                        StepConversionRuleV1.RuleVersion,
+                        EligibleSteps: 0L,
+                        VitalityCredited: 0L,
+                        ProcessedAtUtc: nowUtc,
+                        LastRevision: Math.Max(1, record.Revision),
+                        RecordEndUtc: tombEnd,
+                        LocalDay: LocalDayCalendar.DayOf(tombEnd, record.EndZoneOffsetSeconds)));
+                }
                 deletionsIgnored++;
                 return;
             }
