@@ -2249,17 +2249,26 @@ namespace WalkGame.Application
         private ReturnSummaryReadModel? SnapshotSummary(GameState game) =>
             game.PendingReturnSummary == null
                 ? null
-                : ReturnSummaryReadModel.FromState(game.PendingReturnSummary, _clock.UtcNow);
+                : ReturnSummaryReadModel.FromState(game.PendingReturnSummary, _clock.UtcNow, SummaryLocalizer());
 
-        private static List<string> FormatSummaryLines(PendingReturnSummaryState? summary)
+        /// <summary>D-138: read-time display localizer for stored summary lines (null in English).</summary>
+        private Func<string?, string>? SummaryLocalizer()
+        {
+            if (ReferenceEquals(ContentLocale, WalkGame.Application.Content.ContentText.English)) return null;
+            var t = new WalkGame.Application.Summaries.SummaryLineText(ContentLocale, _content);
+            return t.Localize;
+        }
+
+        private List<string> FormatSummaryLines(PendingReturnSummaryState? summary)
         {
             var lines = new List<string>();
             if (summary == null)
                 return lines;
+            var loc = SummaryLocalizer();
             foreach (var item in summary.Items)
-                lines.Add(item.Text);
+                lines.Add(loc == null ? item.Text : loc(item.Text));
             if (!string.IsNullOrEmpty(summary.PrimaryNextAction))
-                lines.Add("→ " + summary.PrimaryNextAction);
+                lines.Add("→ " + (loc == null ? summary.PrimaryNextAction : loc(summary.PrimaryNextAction)));
             return lines;
         }
 

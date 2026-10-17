@@ -466,7 +466,7 @@ namespace WalkGame.Shell
             var home = _session.GetHome();
             var glance = _session.GetGlance();
             bool empty = home.ActiveProjectId == null && home.Queued.Count == 0;
-            var m = With(ShellScreen.Home, "Home", empty ? ScreenState.Empty : ScreenState.Normal);
+            var m = With(ShellScreen.Home, PlayerStrings.T("label.home"), empty ? ScreenState.Empty : ScreenState.Normal);
             // Region 1 polish (grok0215): a brand-new world has no "last time", so "Nothing has changed
             // since you were last here" reads oddly on first run; skip it until anything has happened.
             bool firstRun = empty && !home.HasPendingSummary && home.CompletedProjects == 0 && home.Vitality == 0
@@ -480,15 +480,15 @@ namespace WalkGame.Shell
                 m.Lines.Add(glance.AttentionSentence);
             m.Lines.Add(glance.ActivitySentence);
             m.Lines.Add(HomeStoryLine(_session.GetStory()));
-            m.Lines.Add("Vitality " + home.Vitality + " · Materials " + home.Materials + " · Knowledge " + home.Knowledge);
+            m.Lines.Add(PlayerStrings.F("label.resources", home.Vitality, home.Materials, home.Knowledge));
             if (empty) m.Lines.Add(PlayerStrings.T("shell.nothingIsBeingRestored"));
             if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", PlayerStrings.T("shell.whileYouWereAway")));
-            m.Actions.Add(new ShellAction("nav:Projects", "Projects"));
+            m.Actions.Add(new ShellAction("nav:Projects", PlayerStrings.T("label.projects")));
             m.Actions.Add(new ShellAction("nav:Region", PlayerStrings.T("shell.theValley")));
-            m.Actions.Add(new ShellAction("nav:Story", "Story"));
+            m.Actions.Add(new ShellAction("nav:Story", PlayerStrings.T("label.story")));
             m.Actions.Add(new ShellAction("nav:Progress", PlayerStrings.T("shell.yourProgress")));
-            m.Actions.Add(new ShellAction("nav:ActivityStatus", "Activity"));
-            m.Actions.Add(new ShellAction("nav:Settings", "Settings"));
+            m.Actions.Add(new ShellAction("nav:ActivityStatus", PlayerStrings.T("label.activity")));
+            m.Actions.Add(new ShellAction("nav:Settings", PlayerStrings.T("label.settings")));
             if (_devTools) m.Actions.Add(new ShellAction("dev:walk", PlayerStrings.T("shell.devSimulateADay")));
             m.Lines.RemoveAll(string.IsNullOrEmpty);
             // D-106: the glance can repeat a sentence (what changed == attention); show each line once.
@@ -519,7 +519,7 @@ namespace WalkGame.Shell
                 var unlocked = new HashSet<string>(_session.GetStory().Chapters.Where(c => c.Unlocked).Select(c => c.ChapterId));
                 foreach (var item in s.Items)
                 {
-                    m.Lines.Add((item.IsCurrent ? "" : "Earlier: ") + item.Text);
+                    m.Lines.Add(item.IsCurrent ? item.DisplayText : PlayerStrings.F("label.earlier", item.DisplayText));
                     if (!item.IsCurrent) continue;
                     var detail = WalkGame.Application.Summaries.ProjectCompletionMoments.Describe(content, item.Text, unlocked);
                     if (detail != null) m.Lines.Add(detail);
@@ -532,12 +532,12 @@ namespace WalkGame.Shell
                 bool restored = s.Items.Any(i => i.IsCurrent && i.Kind == WalkGame.Domain.Summaries.SummaryItemKind.Transformation);
                 m.Cue = SoundCues.ForSummary(_session.GetSettings().SoundEnabled, celebrating, chapter, restored);
             }
-            if (s != null) m.Actions.Add(new ShellAction("ack", "Continue"));
+            if (s != null) m.Actions.Add(new ShellAction("ack", PlayerStrings.T("label.continue")));
             if (celebrating) m.Actions.Add(new ShellAction("nav:Region", PlayerStrings.T("shell.seeTheRestoredValley")));
             // D-076: a chapter moment is a Transformation item; offer the journal after the primary Continue.
             if (s != null && s.Items.Any(i => i.IsCurrent && i.Text.StartsWith(ChapterMomentPrefix, StringComparison.Ordinal)))
                 m.Actions.Add(new ShellAction("nav:Story", PlayerStrings.T("shell.readTheNewChapter")));
-            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
         }
 
@@ -546,7 +546,7 @@ namespace WalkGame.Shell
             var p = _session.GetProjects();
             var open = p.Projects.Where(r => r.Status != ProjectStatus.Locked && r.Status != ProjectStatus.Completed).ToList();
             bool anyQueued = p.Projects.Any(r => r.Status == ProjectStatus.Queued || r.Status == ProjectStatus.Active);
-            var m = With(ShellScreen.Projects, "Projects", open.Count == 0 ? ScreenState.Empty : ScreenState.Normal);
+            var m = With(ShellScreen.Projects, PlayerStrings.T("label.projects"), open.Count == 0 ? ScreenState.Empty : ScreenState.Normal);
             // UX_DESIGN §17: empty states explain the next useful action.
             if (open.Count == 0)
                 m.Lines.Add(p.Projects.All(r => r.Status == ProjectStatus.Completed)
@@ -565,11 +565,11 @@ namespace WalkGame.Shell
                     ? title + " — " + PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition)
                     : title + " — " + PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition) + " (" + r.VitalityInvested + " of " + r.VitalityCost + " vitality)");
                 if (r.Status == ProjectStatus.Available) m.Actions.Add(new ShellAction("queue:" + r.ProjectId, QueueLabel(title)));
-                if (r.Status == ProjectStatus.Queued && r.QueuedPosition > 0) m.Actions.Add(new ShellAction("up:" + r.ProjectId, "Move " + title + " up"));
+                if (r.Status == ProjectStatus.Queued && r.QueuedPosition > 0) m.Actions.Add(new ShellAction("up:" + r.ProjectId, PlayerStrings.F("label.moveUp", title)));
             }
             int locked = p.Projects.Count(r => r.Status == ProjectStatus.Locked);
             if (locked > 0) m.Lines.Add(PlayerStrings.F(locked == 1 ? "shell.projects.locked.one" : "shell.projects.locked.many", locked));
-            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
         }
 
@@ -598,7 +598,7 @@ namespace WalkGame.Shell
                 ? PlayerStrings.T("shell.noExpeditionRoutesAre")
                 : PlayerStrings.F("shell.region.expeditions", r.ExpeditionsAvailable, r.ExpeditionsCompleted));
             m.Actions.Add(new ShellAction("nav:Discoveries", PlayerStrings.T("shell.discoveriesAndExpeditions")));
-            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
         }
 
@@ -614,7 +614,7 @@ namespace WalkGame.Shell
             var e = _session.GetExpeditions();
             bool empty = d.UnlockedCount == 0 && e.AvailableCount == 0 && e.CompletedCount == 0;
             var m = With(ShellScreen.Discoveries, PlayerStrings.T("shell.discoveriesAndExpeditions"), empty ? ScreenState.Empty : ScreenState.Normal);
-            m.Lines.Add("Discoveries: " + d.UnlockedCount + " of " + d.TotalDiscoveries + " found.");
+            m.Lines.Add(PlayerStrings.F("label.discoveriesFound", d.UnlockedCount, d.TotalDiscoveries));
             if (d.UnlockedCount == 0) m.Lines.Add(PlayerStrings.T("shell.nothingFoundYetRestoring"));
             foreach (var row in d.Discoveries.Where(x => x.Unlocked).OrderBy(x => x.DiscoveredAtUtc))
             {
@@ -652,7 +652,7 @@ namespace WalkGame.Shell
                 }
             }
             m.Actions.Add(new ShellAction("nav:Region", PlayerStrings.T("shell.theValley")));
-            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
         }
 
@@ -701,8 +701,8 @@ namespace WalkGame.Shell
             if (story.UnlockedCount >= story.TotalChapters || story.NextHintKey == null) return StoryEpilogueLine;
             var latest = story.Chapters.LastOrDefault(c => c.Unlocked);
             string where = latest == null ? PlayerStrings.T("shell.theStoryBeginsSoon")
-                : (latest.Number == 0 ? "Prologue · " : "Chapter " + latest.Number + " · ") + latest.TitleKey + ".";
-            return "Story: " + where + " Next: " + story.NextHintKey;
+                : (latest.Number == 0 ? PlayerStrings.F("label.prologue", latest.TitleKey) : PlayerStrings.F("label.chapter", latest.Number, latest.TitleKey)) + ".";
+            return PlayerStrings.F("label.storyLine", where, story.NextHintKey);
         }
 
         /// <summary>Prefix the composer uses for chapter moments (ReturnSummaryComposer, D-076).</summary>
@@ -725,12 +725,12 @@ namespace WalkGame.Shell
         private ScreenModel Story()
         {
             var story = _session.GetStory();
-            var m = With(ShellScreen.Story, "Story");
+            var m = With(ShellScreen.Story, PlayerStrings.T("label.story"));
             m.Lines.Add(StoryProgressLine(story.UnlockedCount, story.TotalChapters, _session.GetRegion().RegionCompleted));
             bool hinted = false;
             foreach (var c in story.Chapters)
             {
-                string heading = c.Number == 0 ? "Prologue · " + c.TitleKey : "Chapter " + c.Number + " · " + c.TitleKey;
+                string heading = c.Number == 0 ? PlayerStrings.F("label.prologue", c.TitleKey) : PlayerStrings.F("label.chapter", c.Number, c.TitleKey);
                 if (c.Unlocked)
                 {
                     m.Lines.Add(heading);
@@ -756,7 +756,7 @@ namespace WalkGame.Shell
                     m.Lines.Add(LetterLine(l));
             }
             m.Lines.AddRange(EpilogueLines(_session.GetEpilogue()));
-            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
         }
 
@@ -812,7 +812,7 @@ namespace WalkGame.Shell
             var days = _session.GetDaysWalked();
             string daysLine = DaysWalkedLine(days.Days, days.IsLowerBound);
             if (daysLine != null) m.Lines.Insert(Math.Max(0, m.Lines.Count - 1), daysLine);
-            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
         }
 
@@ -853,7 +853,7 @@ namespace WalkGame.Shell
         private ScreenModel Settings()
         {
             var s = _session.GetSettings();
-            var m = With(ShellScreen.Settings, "Settings");
+            var m = With(ShellScreen.Settings, PlayerStrings.T("label.settings"));
             m.Lines.Add(ReducedMotionLine(s.ReducedMotion));
             m.Lines.Add(SoundLine(s.SoundEnabled));
             m.Lines.Add(DiagnosticsLine(s.DiagnosticsVisible));
@@ -876,10 +876,10 @@ namespace WalkGame.Shell
                     if (later != s.DailyReminderMinutesOfDay) m.Actions.Add(new ShellAction("reminder:later", PlayerStrings.F("reminder.action.later", ReminderTime(later))));
                 }
             }
-            m.Actions.Add(new ShellAction("toggle:diagnostics", (s.DiagnosticsVisible ? "Hide" : "Show") + " diagnostics"));
+            m.Actions.Add(new ShellAction("toggle:diagnostics", PlayerStrings.T(s.DiagnosticsVisible ? "label.diagnostics.hide" : "label.diagnostics.show")));
             m.Actions.Add(new ShellAction("nav:Privacy", PlayerStrings.T("shell.privacyAndYourData")));
             m.Actions.Add(new ShellAction("delete:request", PlayerStrings.T("shell.deleteAllLocalData")));
-            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
         }
 
@@ -895,7 +895,7 @@ namespace WalkGame.Shell
         private ScreenModel Activity()
         {
             var a = _session.GetActivityStatus();
-            var m = With(ShellScreen.ActivityStatus, "Activity", a.HasProcessedAnyRecord ? ScreenState.Normal : ScreenState.Empty);
+            var m = With(ShellScreen.ActivityStatus, PlayerStrings.T("label.activity"), a.HasProcessedAnyRecord ? ScreenState.Normal : ScreenState.Empty);
             // UX_DESIGN §5: player-facing states only; never raw identifiers or exception text.
             m.Lines.Add(PlayerCopy.ActivityStatus(a.Status));
             string next = PlayerCopy.ActivityAction(a.RecommendedAction);
@@ -904,7 +904,7 @@ namespace WalkGame.Shell
                 m.Actions.Add(new ShellAction("activity:connect", PlayerStrings.T("shell.connectWalkingData")));
             if (!a.HasProcessedAnyRecord) m.Lines.Add(PlayerStrings.T("shell.noWalkingDataHas"));
             else m.Lines.Add(PlayerStrings.F("shell.activity.lastBatch", a.LastBatchVitalityCredited));
-            m.Actions.Add(new ShellAction("nav:Home", "Home"));
+            m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
         }
 
@@ -922,7 +922,7 @@ namespace WalkGame.Shell
                     var damaged = _session.GetRegion().Landmarks.FirstOrDefault();
                     if (damaged != null) m.Lines.Add(GlancePhrases.FormatLandmark(PlayerCopy.Title(damaged.TitleKey), damaged.Stage));
                     m.Lines.Add(PlayerStrings.T("shell.theValleyIsQuiet"));
-                    m.Actions.Add(new ShellAction("guide:next", "Continue"));
+                    m.Actions.Add(new ShellAction("guide:next", PlayerStrings.T("label.continue")));
                     break;
                 case OnboardingStage.ActivityConnection:
                     bool needsUpdate = ob.ActivityStep == OnboardingActivityStepState.ProviderUpdateRequired;
@@ -934,14 +934,14 @@ namespace WalkGame.Shell
                     m.Lines.Add(PlayerStrings.T("shell.youCanKeepGoing"));
                     if (!needsUpdate && _session.GetActivityStatus().RecommendedAction == ActivityRecommendedAction.Connect && _requestPermission != null)
                         m.Actions.Add(new ShellAction("activity:connect", PlayerStrings.T("shell.connectWalkingData")));
-                    m.Actions.Add(new ShellAction("guide:next", "Continue"));
+                    m.Actions.Add(new ShellAction("guide:next", PlayerStrings.T("label.continue")));
                     break;
                 case OnboardingStage.FirstProject:
                     m = With(ShellScreen.Guide, PlayerStrings.T("shell.chooseAFirstRestoration"));
                     if (ob.FirstProjectChosen)
                     {
                         m.Lines.Add(PlayerStrings.T("shell.goodChoiceItWill"));
-                        m.Actions.Add(new ShellAction("guide:next", "Continue"));
+                        m.Actions.Add(new ShellAction("guide:next", PlayerStrings.T("label.continue")));
                     }
                     else
                     {
@@ -953,7 +953,7 @@ namespace WalkGame.Shell
                 case OnboardingStage.Simulation:
                     m = With(ShellScreen.Guide, PlayerStrings.T("shell.progressWhileYouRe"));
                     m.Lines.Add(PlayerStrings.T("shell.stepsYouTakeWith"));
-                    m.Actions.Add(new ShellAction("guide:next", "Continue"));
+                    m.Actions.Add(new ShellAction("guide:next", PlayerStrings.T("label.continue")));
                     break;
                 default:
                     m = With(ShellScreen.Guide, PlayerStrings.T("shell.thatSAll"));
@@ -972,12 +972,12 @@ namespace WalkGame.Shell
         public static string GuideProgress(OnboardingStage stage)
         {
             int step = stage <= OnboardingStage.WorldBaseline ? 1 : Math.Min(GuideSteps, (int)stage - 1);
-            return "Step " + step + " of " + GuideSteps;
+            return PlayerStrings.F("label.step", step, GuideSteps);
         }
 
         /// <summary>D-109: project titles are already verb phrases ("Restore the river intake"), so the
         /// queue button must not prefix another verb ("Restore Restore the river intake").</summary>
-        public static string QueueLabel(string title) => "Start: " + title;
+        public static string QueueLabel(string title) => PlayerStrings.F("label.start", title);
 
         public static readonly string[] PrivacyLines =
         {
@@ -994,7 +994,7 @@ namespace WalkGame.Shell
             var m = With(ShellScreen.Privacy, PlayerStrings.T("shell.privacyAndYourData"));
             foreach (var line in PrivacyLines) m.Lines.Add(line);
             m.Actions.Add(new ShellAction("export", PlayerStrings.T("shell.shareACopyOf")));
-            m.Actions.Add(new ShellAction("nav:Settings", "Settings"));
+            m.Actions.Add(new ShellAction("nav:Settings", PlayerStrings.T("label.settings")));
             return m;
         }
 
