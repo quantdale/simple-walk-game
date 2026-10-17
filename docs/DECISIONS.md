@@ -3647,3 +3647,20 @@ Each said "UNVERIFIED on device", but the Final Device and Release Qualification
 - **Mutation check:** making revision 2 carry +500 steps changes the low report (4/6 → 5/6 chains), so the noise does reach the pipeline.
 
 **Evidence.** verify-pacing-evidence: clean 7/7, noise 7/7, self-test PASS. Labels: headless-tested.
+
+## D-191 — Architecture rule 6 checks block-form CI steps too (2026-10-17)
+
+**Status:** Accepted (engineering authority; CI gate fix, 2026-10-17 ~8:15 PM Asia/Manila).
+
+**Bug (found failing-first).** Rule 6 of `verify-architecture.sh` requires every script CI invokes to be committed executable and LF-only. It found those scripts with `sed 's/^ *run: *\(scripts/….sh\)…/'`, so it saw only one-line `run: scripts/x.sh` steps:
+- Every block-form step (`run: |` followed by commands) dropped out silently. Before D-187 that already hid `verify-no-engine-binaries`, `verify-unity-meta` and `verify-project-settings`.
+- D-187 moved five more gates into block form, so rule 6 fell from 15 checks to 10 without failing.
+- `tools/android/test-bridge-logic.sh` was never covered.
+
+The new `--selftest-rule6` fixture failed on the old extraction: it found 1 of 4 expected scripts.
+
+**Decision.**
+- **Extraction:** `ci_invoked_scripts` now reads every live `ci.yml` line except comments and step names. It collects every `scripts/`, `tests/guards/` and `tools/` `*.sh` token, so one-line, block and `&&`-chained invocations all count.
+- **Self-test:** `--selftest-rule6` proves the extraction finds the one-line, block and chained cases and ignores a comment and a step name. CI runs it, and `verify-ci-wiring.sh` (D-187) now requires that.
+
+**Result.** Rule 6 now checks 14 scripts, all executable and LF-only. Architecture checks went from 10 to 21 passed, 0 failed. Labels: headless-tested.

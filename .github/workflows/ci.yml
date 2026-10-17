@@ -57,6 +57,7 @@ jobs:
 
       - name: Architecture fitness checks (layering, engine-free)
         run: |
+          scripts/verify-architecture.sh --selftest-rule6
           scripts/verify-architecture.sh --selftest-rule7
           scripts/verify-architecture.sh
 
