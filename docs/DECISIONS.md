@@ -2929,3 +2929,41 @@ The run asserts it actually reached retirement and a correction that moved a wal
 **Result.** No finding; production code is unchanged. A mutation check passes it only with the fix in place: dropping `MaybeForgetDay` on a day-moving correction fails 4 of 10 seeds with "walked day … has no retained credited row". All of it is headless-tested. .NET 1087/1087 (Domain 162, Infrastructure 208, Application 717).
 
 **Save compatibility.** None (test only).
+
+## D-159 — Whole Region 1 playthrough simulation; the survey no longer closes the region with a chain unbuilt (2026-10-17)
+
+**Context.** The pacing CLI (D-039/D-062) proves closure timing for one fixed queue policy: catalog order. Nothing played Region 1 as a player meets it: from the first onboarding screen, reading every return summary, through closure to the care chapter and the last epilogue note, under different project choices.
+
+**Decision.** Add `Region1PlaythroughTests` (Application, headless). It covers low (3,000/day), irregular (the D-039 weekly pattern) and high (20,000/day) walkers, each under three choice policies: catalog order, cheapest open project first, and deepest (last-listed) first. Each run:
+- drives onboarding through `AdvanceOnboarding` to Complete, making the first choice through `EnqueueProject`;
+- loads a fresh session from disk every day, ingests through the real pipeline, reads and acknowledges the return summary, and chooses only when idle;
+- keeps walking after closure until the care chapter unlocks and the last epilogue note (day +210) is revealed.
+
+It asserts all of the following:
+- closure lands within the `PacingContract` target (high ≤ 120, irregular ≤ 250). Low has no target (D-039). A 730-day reachability tripwire stands in for it; it is not a balance target.
+- all 19 projects were offered, chosen and completed.
+- all 10 chapters are unlocked, and each "New chapter" line was shown. The care chapter is shown only after closure.
+- all 13 discoveries are recorded and announced.
+- all 3 expeditions are announced as ready and as complete.
+- all 6 letters are found, and the full epilogue (journal, 2 closing letters, 8 notes) is shown.
+- both arcs reach 4/4, the state is validator-clean, and the three policies take distinct routes.
+
+**Finding (fixed).** `MeetsClosureCriterion` returned true on the survey milestone alone. That assumed the survey's prerequisite closure restores the whole roster, and it does not: the canopy walkway is no prerequisite of the survey. Under cheapest-first, all three walkers funded the survey before the canopy. The region closed with 18/19 projects and 5/6 chains. The player got the celebration, the epilogue and Evergreen Tending, which absorbs all later Vitality, while chapters 7–9 and the canopy letter stayed locked behind a project the queue never prompted for again.
+
+The fix: the chain minimum is enforced on every route, so Region 1 closes on the survey plus all six chains. `GameStateValidator` now uses `ExplainsRecordedCompletion` (the current rule OR the pre-D-159 milestone-only rule). A save that already closed the old way therefore still loads and stays complete, and it can still fund the canopy and unlock every chapter (`PreD159ClosedSave_…`). OpenSpec `enforce-closure-chain-minimum`.
+
+**Measured** (seed 42; closure day / care chapter day):
+
+| Walker | Catalog | Cheapest | Deepest-first |
+|---|---|---|---|
+| high | 77 / 82 | 77 / 82 | 77 / 82 |
+| irregular | 109 / 117 | 110 / 117 | 109 / 117 |
+| low | 510 / 544 | 512 / 544 | 510 / 544 |
+
+**Observation (accepted, KI-026).** On a day with more than 5 Transformation facts, the D-055 per-kind rotation can retire the project's own "X is complete." line in favour of the same day's later chapter, arc and landmark lines. This happened for the canopy walkway on the closure day (cheapest-first) and for settlement power (deepest-first). The test allows it only on a saturated day, and for at most 2 projects per run.
+
+**Mutation check.** Reverting the `RegionModel` change fails the three cheapest-first playthroughs, the distinct-routes check and the survey-before-canopy regression.
+
+**Verification.** Headless-tested: .NET 1099/1099 (Domain 162, Infrastructure 208, Application 729). Unity-editor-tested: EditMode 250/250. Pacing evidence: 7 reproduced, 0 drifted; content compatibility and architecture gates green.
+
+**Save and content compatibility.** No save-schema change (v3), no content change (fingerprint and content version unchanged). Saves completed under the old rule stay valid by design.

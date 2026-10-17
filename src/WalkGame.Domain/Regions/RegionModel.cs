@@ -353,11 +353,38 @@ namespace WalkGame.Domain.Regions
             if (Chains.Count == 0)
                 return false;
 
+            // D-159: the chain requirement holds on EVERY route. The milestone route used to
+            // return true on the milestone alone, on the assumption that the milestone's
+            // prerequisite closure restores the whole roster. Region 1's does not: the canopy
+            // walkway is no prerequisite of the survey, so a player who funded the survey first
+            // got the ending, the celebration and the epilogue with a chain unbuilt and three
+            // chapters permanently locked behind it.
+            if (ChainsComplete(state) < criterion.MinimumChainsComplete)
+                return false;
+
             var milestone = state.FindProject(criterion.MilestoneProjectId);
             if (milestone != null && milestone.Status == WalkGame.Domain.Projects.ProjectStatus.Completed)
                 return true;
 
-            return HasAlternativeClosureRoute && ChainsComplete(state) >= criterion.MinimumChainsComplete;
+            return HasAlternativeClosureRoute;
+        }
+
+        /// <summary>
+        /// True when a RECORDED completion is explained by a closure rule this build accepts:
+        /// the current criterion, or the pre-D-159 milestone-only rule under which existing
+        /// saves may have completed. Completion is set exactly once and never reset, so a save
+        /// that closed under the old rule must stay loadable (never brick a finished valley).
+        /// Use <see cref="MeetsClosureCriterion"/> to DECIDE closure; use this only to validate it.
+        /// </summary>
+        public bool ExplainsRecordedCompletion(RegionState state)
+        {
+            if (MeetsClosureCriterion(state))
+                return true;
+            var criterion = ClosureCriterion;
+            if (criterion == null)
+                return false;
+            var milestone = state.FindProject(criterion.MilestoneProjectId);
+            return milestone != null && milestone.Status == WalkGame.Domain.Projects.ProjectStatus.Completed;
         }
 
 
