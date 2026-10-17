@@ -208,6 +208,17 @@ namespace WalkGame.Shell
             ["shell.activity.lastBatch"] = "Your last walks added {0} vitality.",
             ["shell.textPreview"] = "Preview: The valley remembers every walk you take.",
             ["shell.celebration.headline"] = "You restored the whole valley.",
+            // D-160: "what you restored" recap on the celebration
+            ["shell.recap.heading"] = "What you restored:",
+            ["shell.recap.projects.one"] = "{0} restoration project finished.",
+            ["shell.recap.projects.many"] = "{0} restoration projects finished.",
+            ["shell.recap.places"] = "Places brought back: {0}.",
+            ["shell.recap.discoveries.one"] = "{0} discovery recorded.",
+            ["shell.recap.discoveries.many"] = "{0} discoveries recorded.",
+            ["shell.recap.expeditions.one"] = "{0} expedition walked.",
+            ["shell.recap.expeditions.many"] = "{0} expeditions walked.",
+            ["shell.recap.letters.one"] = "{0} letter from Nell found.",
+            ["shell.recap.letters.many"] = "{0} letters from Nell found.",
             // Accessibility and share sheet (KI-023 part 2)
             ["a11y.primaryHint"] = "Main action on this screen.",
             ["share.subject"] = "Simple Walk Game save",
