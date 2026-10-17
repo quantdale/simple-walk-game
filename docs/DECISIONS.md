@@ -3168,3 +3168,43 @@ Everything is derived from canonical state at read time, in the Application laye
 **Rationale.** Michael's bible replaces the open-ended "2–3 concepts" ask with three named directions and a full phase and gate plan, so the earlier concept round no longer matches what he will approve.
 
 **Evidence.** `cmp` of the verbatim copy: identical (33,545 bytes). Records only. Labels: documentation.
+
+## D-172 — Cast reconciliation: Nell stays the letter writer; Mira, Tavi, Rowan and Eli are the on-screen cast (2026-10-17)
+
+**Status:** Accepted (agent, within the bible's §12 candidate cast and Michael's reconciliation instruction). **Candidate cast: names, looks and lines can change after the Phase B round 2 art approval (D-171).**
+
+**Context.** The bible (§12) proposes Mira the Trailkeeper, Rowan the Gardener, Tavi the Tinkerer and Eli the Naturalist. Existing content has two layers:
+- Nell Hartley's letters (D-118, `Region1Letters`), already shipped. Nell grew up in Millbrook, left after the floods, and writes to her brother Tom.
+- The D-166 first-draft dialogue characters: Wren (trailhead, later observatory), Arlo (the smith from Nell's letters, at the workshop) and Ida (wetland).
+
+**Decision.**
+- **Nell stays the off-screen letter writer.** Her letters are unchanged: same ids, bodies and places, so there is no content-hash or fingerprint churn. Any future change goes through the normal content-version process.
+- **On-screen cast (`Region1Characters`, presentation only, never saved):**
+
+  | Character | Where | Arrives | Replaces | Lines |
+  |---|---|---|---|---|
+  | `npc.mira` Mira, Trailkeeper | Old Trailhead: paths and bridges | from the start | Wren's trailhead role | 5 (baseline, trailhead, bridges, lookout, boardwalk) |
+  | `npc.tavi` Tavi, Tinkerer | River intake/waterworks, then the settlement workshop | after `proj.clear-trailhead`; moves after `proj.build-workshop` | Arlo's on-screen role | 7 (trailhead, intake, reservoir, water lines, workshop, market hall, power) |
+  | `npc.rowan` Rowan, Gardener | Canopy Grove; East Wetland while it heals; back to the grove | after `proj.clear-fallen-timber`; wetland after `proj.wetland-drainage`; grove after `proj.canopy-walkway` | Ida | 6 (timber, understory, drainage, sedges, islets, walkway) |
+  | `npc.eli` Eli, Naturalist | Ridge Observatory and the survey | after `proj.open-lookout` | Wren's observatory role | 4 (lookout, dome, survey rig, valley survey) |
+
+- **Arlo stays a figure from Nell's letters.** Tavi was his apprentice, and Tavi's workshop line names him, so the letters and the cast connect.
+- Every line is at most 140 characters and written in the character's §12 speaking style:
+  - Mira: hopeful, practical, a little impatient with broken things.
+  - Tavi: energetic and delighted by working machines.
+  - Rowan: gentle and unhurried.
+  - Eli: observant and precise.
+- Mira's bridge lines follow the bible §16 example, with "forest" changed to "high trail". In the content, the bridges reopen the high routes to the lookout and boardwalk, not the woodland, so the literal wording would contradict progression.
+- Three Ida lines are kept, reassigned to Rowan with new ids. Wren's survey line is kept, reassigned to Eli. Names and lines stay localizable via `ContentText` (`<npc id>#name`, `<line id>#line`).
+
+**Not changed.** Save schema v3, content version and fingerprint (presentation content, like the letters; content compatibility passes), pacing (7/7 reproduced), Domain, Unity, letters. Dialogue still gates nothing.
+
+**Evidence.** Tests were updated, none deleted:
+- `WorldViewReadModelTests`: fresh valley with Mira waiting; seen/pending; locale overlay, where Eli is the absent-character fallback case.
+- `RestorationChoicePreviewTests`: clearing the trailhead previews Mira's new line and Tavi's arrival at the intake.
+- New `WorldPresentationContentTests.Cast_FollowsTheD172Reconciliation` pins the cast, locations over time, that Nell and Arlo are off-screen, and the Arlo link.
+- The existing 8k-steps/day preview-vs-actual run, the visual-change stream run and the 120-day world-view run all pass with the new cast.
+
+Mutation check: moving Tavi's first appearance to after the intake fails `Cast_FollowsTheD172Reconciliation` and the trailhead preview test.
+
+.NET 1144/1144 (Domain 162, Infrastructure 208, Application 774); architecture 15/15; content compatibility pass; pacing 7/7; Unity EditMode 269/269 (6000.3.26f1 batch, unchanged suite run against the new cast; `ProjectSettings.asset` reverted). Labels: headless-tested (.NET), Unity-editor-tested (EditMode). Not device-tested (KI-002).

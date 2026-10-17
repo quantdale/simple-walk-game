@@ -47,7 +47,9 @@ public sealed class RestorationChoicePreviewTests : IDisposable
         Assert.Equal("lm.trailhead@stabilized", c.AfterVariantKey);
         Assert.False(c.IsClosureMilestone);
         Assert.Contains(c.Consequences, k => k.Kind == ConsequenceKind.LandmarkStage && k.SubjectId == "lm.trailhead");
-        Assert.Contains(c.Consequences, k => k.Kind == ConsequenceKind.NewDialogue && k.SubjectId == "npc.wren" && k.ToKey == "line.wren.2");
+        Assert.Contains(c.Consequences, k => k.Kind == ConsequenceKind.NewDialogue && k.SubjectId == "npc.mira" && k.ToKey == "line.mira.2");
+        // D-172: clearing the trailhead also brings Tavi to the river intake.
+        Assert.Contains(c.Consequences, k => k.Kind == ConsequenceKind.CharacterArrives && k.SubjectId == "npc.tavi" && k.LocationId == "lm.river-intake");
         // D-155: a discovery consequence never names the find.
         Assert.All(c.Consequences.Where(k => k.Kind == ConsequenceKind.DiscoveryAtLocation), k => { Assert.Null(k.SubjectId); Assert.Equal("lm.trailhead", k.LocationId); });
     }
