@@ -75,7 +75,16 @@ namespace WalkGame.Shell.PlayModeTests
                     c.Boot(); c.Invoke("start");
                     // WG_CAPTURE_STATE=fresh: the first minutes after "start" (no walks, nothing queued),
                     // for the empty/early-game review. Default: a mid-game valley.
-                    if (Environment.GetEnvironmentVariable("WG_CAPTURE_STATE") != "fresh")
+                    string capState = Environment.GetEnvironmentVariable("WG_CAPTURE_STATE");
+                    if (capState == "payoff")
+                    {
+                        // D-148: the D-145 first-session payoff — one project queued, one short (2,000-step) first walk.
+                        var first = System.Linq.Enumerable.First(session.GetProjects().Projects, p => p.Status == ProjectStatus.Available);
+                        session.EnqueueProject(first.ProjectId);
+                        var now = DateTimeOffset.UtcNow;
+                        session.IngestFromSource(new SyntheticWalkingSource(2000), now.AddDays(-1), now);
+                    }
+                    else if (capState != "fresh")
                     {
                         // A mid-game valley: queue what is open and walk a few days so stages differ.
                         foreach (var p in session.GetProjects().Projects)

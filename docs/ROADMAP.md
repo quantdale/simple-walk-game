@@ -616,3 +616,4 @@ The project should prefer **fewer, larger, integrated campaigns** over fragmente
 - [x] 2026-10-17 grok1017c: D-146 unsupported provider reads as source unavailable even after a prior denial (no dead-end Open Settings). (headless-tested)
 - [~] L10n readiness (D-120, #103): `PlayerStrings` table plus a ratchet test; the rest of the migration is KI-023
 - [x] 2026-10-17 grok1017d: D-147 Region 1 accessibility invariants on every shell screen (2x text, 48 dp both dimensions, semantic names/reader labels, contrast, no motion); button min-width fix. EditMode 236 (Unity-editor-tested)
+- [x] 2026-10-17 grok1017d: D-148 batch-mode PNG captures of Home (D-145 payoff, 1x/2x), return summary and Settings under docs/evidence/d148-text-screens/ (editor-rendered)
