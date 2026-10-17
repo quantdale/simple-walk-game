@@ -1,0 +1,6 @@
+- [x] Bridge build stages (content v6) with the content-compat, pacing-evidence and save-growth gates
+- [x] `ProjectVisual` per location row and choice visual keys
+- [x] `ProjectCompleted` in the change stream and in `WorldViewDiff`, same shape
+- [x] Seam: landmark props and inspect-card prop keys
+- [x] .NET tests (`BridgeBuildStageTests`) and EditMode tests (`BridgePresentationTests`)
+- [ ] Phase D: bridge art for the three keys after the round 2 pick (not in this change)

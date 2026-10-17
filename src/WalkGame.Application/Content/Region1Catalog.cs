@@ -33,6 +33,11 @@ namespace WalkGame.Application.Content
     /// Content version 5 (D-076): the restoration storyline, nine chapters that unlock from
     /// restoration milestones only and are derived from completion state (no save change).
     ///
+    /// Content version 6 (D-176): the trail bridges author 3 visible build stages (100 Vitality
+    /// each) so the Old Trailhead slice can show the bridge ruined, partly rebuilt and rebuilt.
+    /// Same D-071 rule: cost, prerequisites, ids and state are unchanged, the stage is derived
+    /// from invested Vitality, and a v5 save loads as CompatibleOlder with no content upgrade.
+    ///
     /// Six interdependent restoration chains, six landmarks, three bounded producers,
     /// thirteen provenance-bearing discoveries, three deterministic expedition routes,
     /// region-level ecology/settlement arcs, the Complete Valley Survey closure criterion,
@@ -43,7 +48,7 @@ namespace WalkGame.Application.Content
     /// </summary>
     public static class Region1Catalog
     {
-        public const int AuthoredContentVersion = 5;
+        public const int AuthoredContentVersion = 6;
 
         /// <summary>
         /// Authored per-resource storage caps for Region 1, in whole units (D-054).
@@ -174,7 +179,8 @@ namespace WalkGame.Application.Content
                     descriptionKey: "Cut back overgrowth and clear debris so the valley can be entered safely."),
                 new ProjectDefinition(new ProjectId(RebuildTrailBridges), "Rebuild the trail bridges", 300L,
                     prerequisites: new[] { new ProjectId(ClearTrailHead) },
-                    descriptionKey: "Replace collapsed crossings so the high routes are passable again."),
+                    descriptionKey: "Replace collapsed crossings so the high routes are passable again.",
+                    visibleBuildStages: 3), // D-176: ruined -> in progress -> rebuilt (Phase D slice, bible §42.8)
                 new ProjectDefinition(new ProjectId(OpenLookout), "Open the ridge lookout", 400L,
                     prerequisites: new[] { new ProjectId(RebuildTrailBridges) },
                     descriptionKey: "Clear and secure the fire lookout above the treeline."),

@@ -14,6 +14,13 @@ namespace WalkGame.Application.ReadModels
         EcologyAdvanced = 6,
         SettlementAdvanced = 7,
         RegionCompleted = 8,
+        /// <summary>
+        /// D-176 (KI-027 a): a project was completed at <see cref="VisualChangeEvent.LocationId"/>; the subject is the
+        /// project and <see cref="VisualChangeEvent.ToKey"/> its <c>@done</c> key (the bridge transition, bible §25).
+        /// <see cref="VisualChangeEvent.FromKey"/> is null: the before-state is whatever the presenter is showing.
+        /// Emitted first in a completion's batch.
+        /// </summary>
+        ProjectCompleted = 9,
     }
 
     /// <summary>

@@ -94,7 +94,9 @@ namespace WalkGame.Application.ReadModels
                 choices.Add(new RestorationChoicesReadModel.Choice(x,
                     text.Resolve(x, ContentText.Fields.Title, def.TitleKey), home, st.Status, def.VitalityCost,
                     st.VitalityInvested, def.ResourceCosts, OfflineAdvancer.CanAffordRequirements(game, def),
-                    before, after, x == content.CompletionMilestoneProjectId, consequences));
+                    before, after, x == content.CompletionMilestoneProjectId, consequences,
+                    WorldViewReadModel.ProjectVisualKeyFor(x, st.Status,
+                        st.Status == ProjectStatus.Active ? def.BuildStageFor(st.VitalityInvested) : 0, def.VisibleBuildStages)));
             }
             return new RestorationChoicesReadModel(choices);
         }
@@ -164,6 +166,8 @@ namespace WalkGame.Application.ReadModels
                 var beforeDone = new HashSet<string>(done, StringComparer.Ordinal);
                 done.Add(x);
                 var batch = new List<(VisualChangeKind kind, string? loc, string? subject, string? from, string? to)>();
+                if (locationOf.TryGetValue(x, out var doneAt))
+                    batch.Add((VisualChangeKind.ProjectCompleted, doneAt, x, null, WorldViewReadModel.ProjectDoneKeyFor(x)));
 
                 var unlockedAfter = UnlockedLocations(content, locationOf, StagesAfter(content, stages, x), done.Contains);
                 foreach (var lm in content.Landmarks)
@@ -304,6 +308,13 @@ namespace WalkGame.Application.ReadModels
             {
                 var b = before.Find(a.LocationId);
                 if (b == null) continue;
+                foreach (var pa in a.ProjectVisuals)
+                {
+                    if (!pa.IsCompleted) continue;
+                    bool wasDone = false;
+                    foreach (var pb in b.ProjectVisuals) if (pb.ProjectId == pa.ProjectId) { wasDone = pb.IsCompleted; break; }
+                    if (!wasDone) Add(VisualChangeKind.ProjectCompleted, a.LocationId, pa.ProjectId, null, pa.VisualKey);
+                }
                 if (!b.IsUnlocked && a.IsUnlocked) Add(VisualChangeKind.LocationUnlocked, a.LocationId, null, null, null);
                 if (a.Stage > b.Stage) Add(VisualChangeKind.LandmarkStageChanged, a.LocationId, null, b.VariantKey, a.VariantKey);
                 if (a.ConstructionKey != null && b.ConstructionKey != null && a.ActiveProjectId == b.ActiveProjectId

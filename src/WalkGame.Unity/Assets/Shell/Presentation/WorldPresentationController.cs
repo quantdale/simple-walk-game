@@ -132,7 +132,7 @@ namespace WalkGame.Shell.Presentation
         /// </summary>
         public TapOutcome TapProp(string projectId)
         {
-            var view = CurrentView ?? RefreshAndGet();
+            var view = RefreshAndGet(); // the card shows the prop as it is now
             var row = PlaceOf(view, projectId);
             if (row == null || !row.IsUnlocked || StatusOf(projectId) is null or ProjectStatus.Locked) return TapOutcome.Ignored;
             CloseDialogueOnly();
@@ -337,7 +337,8 @@ namespace WalkGame.Shell.Presentation
             bool active = projectId != null && row.ActiveProjectId == projectId;
             OpenInspect = new InspectCard(row.LocationId, row.Title, row.VariantKey, projectId, title, status, invested, cost,
                 active ? row.ConstructionStage : 0, active ? row.ConstructionStages : 1,
-                projectId == null ? null : _session.GetRestorationChoices().Find(projectId));
+                projectId == null ? null : _session.GetRestorationChoices().Find(projectId),
+                projectId == null ? null : CurrentView?.FindProject(projectId)?.VisualKey);
             _inspect.ShowInspect(OpenInspect);
         }
 

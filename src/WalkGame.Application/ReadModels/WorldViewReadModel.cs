@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using WalkGame.Domain.Projects;
 using WalkGame.Domain.Regions;
 
 namespace WalkGame.Application.ReadModels
@@ -40,6 +41,27 @@ namespace WalkGame.Application.ReadModels
         public static string ConstructionKeyFor(string projectId, int stage, int stages) =>
             projectId + "@build-" + stage + "of" + stages;
 
+        /// <summary>
+        /// D-176 (KI-027 a): per-project visual key, e.g. <c>proj.rebuild-trail-bridges@ruined</c> (not started),
+        /// <c>@build-1of3</c> (being built: the construction key) or <c>@done</c> (restored).
+        /// </summary>
+        public static string ProjectVisualKeyFor(string projectId, ProjectStatus status, int stage, int stages) =>
+            status == ProjectStatus.Completed ? ProjectDoneKeyFor(projectId)
+            : status == ProjectStatus.Active ? ConstructionKeyFor(projectId, stage, Math.Max(1, stages))
+            : projectId + "@ruined";
+
+        /// <summary>D-176: the restored key of a project, e.g. <c>proj.rebuild-trail-bridges@done</c>.</summary>
+        public static string ProjectDoneKeyFor(string projectId) => projectId + "@done";
+
+        /// <summary>D-176: a project's visual row anywhere in the world, or null.</summary>
+        public ProjectVisual? FindProject(string projectId)
+        {
+            foreach (var l in Locations)
+                foreach (var p in l.ProjectVisuals)
+                    if (string.Equals(p.ProjectId, projectId, StringComparison.Ordinal)) return p;
+            return null;
+        }
+
         public LocationRow? Find(string locationId)
         {
             foreach (var l in Locations) if (string.Equals(l.LocationId, locationId, StringComparison.Ordinal)) return l;
@@ -52,8 +74,10 @@ namespace WalkGame.Application.ReadModels
                 IReadOnlyList<string> projectIds, IReadOnlyList<string> selectableProjectIds, string? activeProjectId,
                 string? constructionKey, int discoveriesFound, IReadOnlyList<string> characterIds,
                 IReadOnlyList<PendingLine> pendingDialogue, IReadOnlyList<PendingLine>? currentLines = null,
-                int constructionStage = 0, int constructionStages = 1, string? focusProjectId = null)
+                int constructionStage = 0, int constructionStages = 1, string? focusProjectId = null,
+                IReadOnlyList<ProjectVisual>? projectVisuals = null)
             {
+                ProjectVisuals = projectVisuals ?? Array.Empty<ProjectVisual>();
                 CurrentLines = currentLines ?? Array.Empty<PendingLine>();
                 FocusProjectId = focusProjectId;
                 ConstructionStage = constructionStage; ConstructionStages = constructionStages;
@@ -97,6 +121,32 @@ namespace WalkGame.Application.ReadModels
             /// the last project restored here (content order), else null. Derived; never saved.
             /// </summary>
             public string? FocusProjectId { get; }
+            /// <summary>
+            /// D-176 (KI-027 a): every project here with its own visual key (props such as the bridge),
+            /// in content order. Lets a place show a repaired prop even when its landmark stage does not change.
+            /// </summary>
+            public IReadOnlyList<ProjectVisual> ProjectVisuals { get; }
+        }
+
+        /// <summary>D-176: one project's visible state at its place. Derived; never saved.</summary>
+        public sealed class ProjectVisual
+        {
+            public ProjectVisual(string projectId, string locationId, ProjectStatus status, int buildStage, int buildStages)
+            {
+                ProjectId = projectId; LocationId = locationId; Status = status;
+                BuildStage = status == ProjectStatus.Active ? buildStage : 0;
+                BuildStages = Math.Max(1, buildStages);
+            }
+
+            public string ProjectId { get; }
+            public string LocationId { get; }
+            public ProjectStatus Status { get; }
+            /// <summary>Visible build stage while active (0 otherwise), of <see cref="BuildStages"/> (the authored D-071 count).</summary>
+            public int BuildStage { get; }
+            public int BuildStages { get; }
+            public bool IsCompleted => Status == ProjectStatus.Completed;
+            /// <summary><c>&lt;id&gt;@ruined</c>, <c>&lt;id&gt;@build-&lt;k&gt;of&lt;n&gt;</c> or <c>&lt;id&gt;@done</c>.</summary>
+            public string VisualKey => ProjectVisualKeyFor(ProjectId, Status, BuildStage, BuildStages);
         }
 
         public sealed class PendingLine

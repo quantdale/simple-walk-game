@@ -75,8 +75,10 @@ namespace WalkGame.Shell.Presentation
     public sealed class LandmarkPresentation
     {
         public LandmarkPresentation(string locationId, string title, string variantKey, string? constructionKey,
-            bool isUnlocked, bool isInteractable, bool hasPendingDialogue, IReadOnlyList<string> characterIds)
+            bool isUnlocked, bool isInteractable, bool hasPendingDialogue, IReadOnlyList<string> characterIds,
+            IReadOnlyList<WorldViewReadModel.ProjectVisual>? props = null)
         {
+            Props = props ?? Array.Empty<WorldViewReadModel.ProjectVisual>();
             LocationId = locationId; Title = title; VariantKey = variantKey; ConstructionKey = constructionKey;
             IsUnlocked = isUnlocked; IsInteractable = isInteractable; HasPendingDialogue = hasPendingDialogue;
             CharacterIds = characterIds;
@@ -92,10 +94,15 @@ namespace WalkGame.Shell.Presentation
         public bool IsInteractable { get; }
         public bool HasPendingDialogue { get; }
         public IReadOnlyList<string> CharacterIds { get; }
+        /// <summary>
+        /// D-176 (KI-027 a): each project here with its own visual key (<c>@ruined</c>, <c>@build-k-of-n</c>, <c>@done</c>),
+        /// so a prop such as the bridge can show its repair even though the landmark stage does not change.
+        /// </summary>
+        public IReadOnlyList<WorldViewReadModel.ProjectVisual> Props { get; }
 
         internal static LandmarkPresentation From(WorldViewReadModel.LocationRow row) =>
             new LandmarkPresentation(row.LocationId, row.Title, row.VariantKey, row.ConstructionKey, row.IsUnlocked,
-                row.IsInteractable, row.HasPendingDialogue, row.CharacterIds);
+                row.IsInteractable, row.HasPendingDialogue, row.CharacterIds, row.ProjectVisuals);
     }
 
     /// <summary>One line said by one character.</summary>
