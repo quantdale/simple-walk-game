@@ -3550,3 +3550,28 @@ It follows Unity's import rules: dot-names, `~` names, and the contents of `*.an
 **Evidence.** New `OsReducedMotionTests` (20 cases): the OR truth table, the null default, a throwing adapter, no OS query when the setting is on, editor adapters, Android scale mapping, the live read, persistence of the in-game choice, and Settings copy. Two new `WorldPresentationSeamTests` check the OS flag reaches the visual-change player and that a failing adapter leaves full motion. EditMode 323/323.
 
 **Labels:** OR logic, wiring and copy are Unity-editor-tested. The Android JNI read and the iOS Swift bridge are implemented but UNVERIFIED on device (KI-002).
+
+## D-187 — Every verify-* gate and its self-test must run in CI; dependency-health counted only System.* packages (2026-10-17)
+
+**Status:** Accepted (engineering authority; release-readiness pass, 2026-10-17 ~7:30 PM Asia/Manila).
+
+**Why.** D-049 says "a gate in a script CI never calls is not a gate", but nothing enforced it. A pass over `scripts/verify-*.sh` found:
+- `verify-architecture.sh --selftest-rule7` existed and was never run by CI.
+- Pacing evidence, save growth, coverage floor and dependency health had no self-test, so nothing showed they could fail.
+- **Bug (found failing-first):** `verify-dependency-health.sh` counted runtime packages with `grep -c '|System\|resolved'`. A shipped non-`System.*` package was never counted. Adding, say, `Newtonsoft.Json` beside `System.Text.Json` still reported "exactly one third-party package". The new self-test failed 3 of 7 cases against the old count (2 packages counted as 1; 1 non-System package counted as 0).
+
+**Decision.**
+- **New gate:** `scripts/verify-ci-wiring.sh` (+ `--self-test`, 6 cases) runs as the third CI step. It requires:
+  - every `scripts/verify-*.sh` except `verify-ci-steps.sh` to appear on a live (uncommented) `ci.yml` line;
+  - every declared self-test flag (`= "--self-test"` comparisons or `--self-test)` case labels) to be run there;
+  - the real gate, not only its self-test, to run.
+- **New `--self-test` for four gates.** Each self-test reuses the gate's own judgement function, extracted unchanged, on seeded fixtures. None runs the simulation or the test suite.
+  - `verify-pacing-evidence.sh`: all 7 committed reports present; identical copy passes; a one-byte flip, a trailing newline and a missing report fail.
+  - `verify-save-growth.sh`: a good series passes; run-to-run drift, no completed region, 18 projects, linear growth and a missing day-365 checkpoint fail.
+    - `completedProjects=19` now matches as a whole token.
+  - `verify-coverage-floor.sh`: above and at the floor pass; below the floor, a line-weighted aggregate below the floor and zero measurable lines fail.
+  - `verify-dependency-health.sh`: package counting and advisory-text checks on seeded inventories.
+- **Fix:** the runtime count is now "every package row except the `(no package references)` placeholder". The real gate still reports 1 (`System.Text.Json`), as documented in PRIVACY_REVIEW §2.
+- **CI:** runs `--selftest-rule7` and the four new self-tests before their real gates.
+
+**Evidence.** Every self-test passes. `verify-ci-wiring.sh` reports 10 wired, 0 not wired. `scripts/verify-ci-steps.sh` replays the CI wiring, Architecture, Pacing, Save-growth, Coverage and Dependency steps locally, all ok. Labels: headless-tested. Shell tooling only: no product code or save format change.

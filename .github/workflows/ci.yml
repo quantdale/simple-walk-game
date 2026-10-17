@@ -24,6 +24,11 @@ jobs:
           scripts/verify-no-engine-binaries.sh
           scripts/verify-no-engine-binaries.sh --history
 
+      - name: CI wiring (every verify-* gate and its self-test runs here, D-187)
+        run: |
+          scripts/verify-ci-wiring.sh --self-test
+          scripts/verify-ci-wiring.sh
+
       - name: Unity .meta integrity (missing / orphan / duplicate GUID, D-184)
         run: |
           scripts/verify-unity-meta.sh --self-test
@@ -51,7 +56,9 @@ jobs:
         run: dotnet test SimpleWalkGame.sln --no-build
 
       - name: Architecture fitness checks (layering, engine-free)
-        run: scripts/verify-architecture.sh
+        run: |
+          scripts/verify-architecture.sh --selftest-rule7
+          scripts/verify-architecture.sh
 
       - name: Build smoke (Release publish produces a runnable artifact)
         run: |
@@ -107,10 +114,14 @@ jobs:
         run: tests/guards/run-guard-tests.sh
 
       - name: Pacing evidence reproducibility (seven profiles)
-        run: scripts/verify-pacing-evidence.sh
+        run: |
+          scripts/verify-pacing-evidence.sh --self-test
+          scripts/verify-pacing-evidence.sh
 
       - name: Save-growth / scenario determinism
-        run: scripts/verify-save-growth.sh
+        run: |
+          scripts/verify-save-growth.sh --self-test
+          scripts/verify-save-growth.sh
 
       - name: Content-drift gate (shipped content still resolves saves)
         run: scripts/verify-content-compatibility.sh
@@ -119,7 +130,11 @@ jobs:
         run: scripts/verify-content-compatibility.sh --self-test
 
       - name: Coverage floor (loss detector, not a quality target)
-        run: scripts/verify-coverage-floor.sh 55
+        run: |
+          scripts/verify-coverage-floor.sh --self-test
+          scripts/verify-coverage-floor.sh 55
 
       - name: Dependency health (known advisories + runtime-surface claim)
-        run: scripts/verify-dependency-health.sh
+        run: |
+          scripts/verify-dependency-health.sh --self-test
+          scripts/verify-dependency-health.sh

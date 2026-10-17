@@ -20,6 +20,7 @@
 #
 # Usage:
 #   scripts/verify-coverage-floor.sh [floor]     # floor as a percentage, default 55
+#   scripts/verify-coverage-floor.sh --self-test # seeded low coverage must fail (D-187)
 #
 # Exit codes:
 #   0  aggregate line coverage is at or above the floor
@@ -29,27 +30,9 @@ set -eu
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
-FLOOR="${1:-55}"
-WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"' EXIT
-
-echo "== collecting coverage (XPlat Code Coverage) =="
-if ! dotnet test SimpleWalkGame.sln --no-build \
-        --collect:"XPlat Code Coverage" \
-        --results-directory "$WORK/coverage" >"$WORK/test.log" 2>&1; then
-    echo "ERROR: the test suite failed while collecting coverage" >&2
-    sed 's/^/      | /' "$WORK/test.log" >&2
-    exit 1
-fi
-
-# coverlet writes one cobertura report per test project.
-REPORTS="$(find "$WORK/coverage" -name 'coverage.cobertura.xml' | sort)"
-if [ -z "$REPORTS" ]; then
-    echo "ERROR: coverage was collected but no cobertura report was produced" >&2
-    exit 1
-fi
-
-python3 - "$FLOOR" $REPORTS <<'PY'
+# Aggregates cobertura reports and fails below the floor; shared with --self-test.
+evaluate_reports() { # floor report...
+    python3 - "$@" <<'PY'
 import sys
 import xml.etree.ElementTree as ET
 
@@ -79,6 +62,49 @@ if aggregate + 1e-9 < floor:
 
 print("  PASS: coverage is at or above the floor")
 PY
+}
+
+if [ "${1:-}" = "--self-test" ]; then
+    # D-187: prove the gate fails on seeded low coverage without running the suite.
+    t="$(mktemp -d)"; trap 'rm -rf "$t"' EXIT
+    rc=0
+    report() { mkdir -p "$t/$1"; printf '<?xml version="1.0"?><coverage lines-covered="%s" lines-valid="%s"/>' "$2" "$3" > "$t/$1/coverage.cobertura.xml"; }
+    expect() { # want label floor reports...
+        local want="$1" label="$2"; shift 2
+        if evaluate_reports "$@" >/dev/null 2>&1; then got=0; else got=1; fi
+        if [ "$got" = "$want" ]; then echo "  PASS: $label"; else echo "  FAIL: $label (got $got, want $want)" >&2; rc=1; fi
+    }
+    report high 80 100; report low 40 100; report edge 55 100; report empty 0 0
+    expect 0 "80% passes a 55% floor" 55 "$t/high/coverage.cobertura.xml"
+    expect 0 "exactly at the floor passes" 55 "$t/edge/coverage.cobertura.xml"
+    expect 1 "40% fails a 55% floor" 55 "$t/low/coverage.cobertura.xml"
+    expect 1 "aggregate is line-weighted: 80/100 + 40/100 = 60% fails a 61% floor" 61 "$t/high/coverage.cobertura.xml" "$t/low/coverage.cobertura.xml"
+    expect 1 "no measurable lines fails" 55 "$t/empty/coverage.cobertura.xml"
+    [ "$rc" -eq 0 ] && echo "COVERAGE FLOOR SELF-TEST: PASS" || echo "COVERAGE FLOOR SELF-TEST: FAIL" >&2
+    exit "$rc"
+fi
+
+FLOOR="${1:-55}"
+WORK="$(mktemp -d)"
+trap 'rm -rf "$WORK"' EXIT
+
+echo "== collecting coverage (XPlat Code Coverage) =="
+if ! dotnet test SimpleWalkGame.sln --no-build \
+        --collect:"XPlat Code Coverage" \
+        --results-directory "$WORK/coverage" >"$WORK/test.log" 2>&1; then
+    echo "ERROR: the test suite failed while collecting coverage" >&2
+    sed 's/^/      | /' "$WORK/test.log" >&2
+    exit 1
+fi
+
+# coverlet writes one cobertura report per test project.
+REPORTS="$(find "$WORK/coverage" -name 'coverage.cobertura.xml' | sort)"
+if [ -z "$REPORTS" ]; then
+    echo "ERROR: coverage was collected but no cobertura report was produced" >&2
+    exit 1
+fi
+
+evaluate_reports "$FLOOR" $REPORTS
 
 echo ""
 echo "======================================"
