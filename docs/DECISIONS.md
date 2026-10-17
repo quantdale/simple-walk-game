@@ -2910,3 +2910,22 @@ A mutation check (removing the fallback call) fails 4 of them. All are headless-
 - Totals: .NET 1077/1077 (Domain 162, Infrastructure 208, Application 707; headless-tested); EditMode 250/250 and PlayMode 4 passed + 1 opt-in capture ignored (Unity-editor-tested, batch mode, so the `ShellBootstrap` wiring compiles in Unity). Gates: architecture 15/15, content compatibility passed, save growth verified, pacing evidence 7/7 reproduced.
 
 **Save compatibility.** None: schema v3 is unchanged and the content fingerprint is unchanged.
+
+## D-158 — Days walked and "Today" must agree: seeded consistency property (2026-10-17)
+
+**Context.** One local day per record now feeds two separately computed views. Days walked (D-103) is a *maintained* sorted set, `WalkedLocalDays`, updated on credit, correction, deletion and retirement. Per-day earnings and "Today" (D-156) are *derived* from the retained rows at read time. D-157 makes more records dated. Nothing tested that the two views agree when a correction moves a walk to another local day, when walks are deleted, or when rows retire past the 45-day horizon.
+
+**Decision.** Add `LocalDayViewsConsistencyPropertyTests` (Application). There are 10 seeds × 400 random steps. The steps are new walks with mixed source offsets (none, −5/−4 h, 0, +5:30, +5:45, +8, +14, −11 h; some sub-unit walks), corrections that change quantity *and* offset, deletions, replays, clock advances (about 100 days per run, so retirement happens) and reloads every 50 steps. After every step, on the decoded save:
+- every retained credited row's day is a walked day (unless it is at or before the retired horizon);
+- every walked day is backed by a retained credited row, or is at or before the horizon;
+- a day with Vitality earned is a walked day, and per-day earnings are never negative;
+- dated per-day earnings equal the dated retained credited row Vitality, and all retained row Vitality is at most lifetime credited;
+- "Today" equals the derivation for the clock's local day under five device offsets (−11 h to +14 h), including unknown at or before the horizon;
+- a full replay credits 0 and moves no view;
+- a reload reproduces every view.
+
+The run asserts it actually reached retirement and a correction that moved a walk's day. Otherwise the property would prove little.
+
+**Result.** No finding; production code is unchanged. A mutation check passes it only with the fix in place: dropping `MaybeForgetDay` on a day-moving correction fails 4 of 10 seeds with "walked day … has no retained credited row". All of it is headless-tested. .NET 1087/1087 (Domain 162, Infrastructure 208, Application 717).
+
+**Save compatibility.** None (test only).
