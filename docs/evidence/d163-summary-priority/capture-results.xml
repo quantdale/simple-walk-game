@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-17 05:57:26Z" end-time="2026-10-17 05:57:27Z" duration="1.5491511">
+  <test-suite type="TestSuite" id="1016" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-17 05:57:26Z" end-time="2026-10-17 05:57:27Z" duration="1.549151" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1012" name="WalkGame.Shell.PlayModeTests.dll" fullname="/workspace/simple-walk-game-wt-a11y-grok1017d/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.PlayModeTests.dll" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-17 05:57:26Z" end-time="2026-10-17 05:57:27Z" duration="1.541459" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="152355" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1013" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-17 05:57:26Z" end-time="2026-10-17 05:57:27Z" duration="1.540925" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1014" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-17 05:57:26Z" end-time="2026-10-17 05:57:27Z" duration="1.540646" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1015" name="PlayModeTests" fullname="WalkGame.Shell.PlayModeTests" runstate="Runnable" testcasecount="5" result="Passed" start-time="2026-10-17 05:57:26Z" end-time="2026-10-17 05:57:27Z" duration="1.540411" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1008" name="ValleyCaptureTests" fullname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests" classname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-17 05:57:26Z" end-time="2026-10-17 05:57:27Z" duration="1.539281" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1009" name="Capture_region_screen_png" fullname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests.Capture_region_screen_png" methodname="Capture_region_screen_png" classname="WalkGame.Shell.PlayModeTests.ValleyCaptureTests" runstate="Runnable" seed="290556415" result="Passed" start-time="2026-10-17 05:57:26Z" end-time="2026-10-17 05:57:27Z" duration="1.529986" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_CAPTURE_SCROLL_TO offset=695.3333 max=1023.333
+WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=62 path=/workspace/simple-walk-game-wt-a11y-grok1017d/docs/evidence/d163-summary-priority/celebration-items-editor-rendered.png
+Saving results to: /workspace/simple-walk-game-wt-a11y-grok1017d/docs/evidence/d163-summary-priority/capture-results.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

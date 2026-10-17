@@ -110,14 +110,17 @@ public sealed class Region1PlaythroughTests : IDisposable
         _output.WriteLine($"PLAYTHROUGH {profile}/{policy}: closed day {run.CompletionDay}, "
             + $"care chapter day {run.FirstSeenDay.GetValueOrDefault("New chapter: The Long Watch.")}, "
             + $"completion lines rotated out: {(run.RotatedOutCompletions.Count == 0 ? "none" : string.Join(",", run.RotatedOutCompletions))}");
-        Assert.True(run.RotatedOutCompletions.Count <= 2,
-            $"{profile}/{policy}: too many completions rotated out: {string.Join(",", run.RotatedOutCompletions)}");
+        // D-163 (KI-026): a crowded day now retires the landmark line, never the project's own line.
+        Assert.True(run.RotatedOutCompletions.Count == 0,
+            $"{profile}/{policy}: completion lines rotated out: {string.Join(",", run.RotatedOutCompletions)}");
 
         // ---- Every chapter unlocked and announced; the care chapter only after closure. ----
         var story = run.FinalStory;
         Assert.Equal(story.TotalChapters, story.UnlockedCount);
         foreach (var chapter in story.Chapters.Where(c => c.Number > 0))
-            Assert.Contains("New chapter: " + chapter.TitleKey + ".", run.SummaryLines);
+            Assert.True(run.SummaryLines.Contains("New chapter: " + chapter.TitleKey + "."),
+                $"{profile}/{policy}: chapter '{chapter.TitleKey}' never announced; closure day {run.CompletionDay}: "
+                + string.Join(" | ", run.LinesOnDay.GetValueOrDefault(run.CompletionDay) ?? new List<string>()));
         var care = story.Chapters.Single(c => c.MinCareCycles > 0);
         Assert.True(run.FirstSeenDay["New chapter: " + care.TitleKey + "."] > run.CompletionDay,
             "the care chapter must follow the region's completion");
@@ -132,7 +135,11 @@ public sealed class Region1PlaythroughTests : IDisposable
         foreach (var e in content.Expeditions)
         {
             Assert.Contains(Title(e.TitleKey) + " route is ready.", run.SummaryLines);
-            Assert.Contains(run.SummaryLines, l => l.StartsWith(Title(e.TitleKey) + " expedition complete", StringComparison.Ordinal));
+            // D-163: on a saturated day an expedition line ranks below project, chapter and region
+            // lines; Discoveries and the celebration recap still count it.
+            Assert.True(run.SummaryLines.Any(l => l.StartsWith(Title(e.TitleKey) + " expedition complete", StringComparison.Ordinal))
+                || run.TransformationsOnDay[run.ExpeditionDoneDay[e.Id.Value]] == TransformationBound,
+                $"{profile}/{policy}: expedition '{e.TitleKey}' never announced and its day was not saturated");
         }
 
         // ---- Every letter found; the full epilogue revealed. ----
@@ -274,6 +281,8 @@ public sealed class Region1PlaythroughTests : IDisposable
         public readonly Dictionary<string, int> FirstSeenDay = new(StringComparer.Ordinal);
         public readonly Dictionary<string, int> CompletedDay = new(StringComparer.Ordinal);
         public readonly Dictionary<int, int> TransformationsOnDay = new();
+        public readonly Dictionary<int, List<string>> LinesOnDay = new();
+        public readonly Dictionary<string, int> ExpeditionDoneDay = new(StringComparer.Ordinal);
         public readonly List<string> RotatedOutCompletions = new();
         public StoryReadModel FinalStory = null!;
         public DiscoveriesReadModel FinalDiscoveries = null!;
@@ -364,8 +373,12 @@ public sealed class Region1PlaythroughTests : IDisposable
                 run.CompletedDay[row.ProjectId] = day;
         }
 
+        foreach (var e in session.GetExpeditions().Expeditions)
+            if (e.Status == ExpeditionsReadModel.ExpeditionStatus.Completed) run.ExpeditionDoneDay.TryAdd(e.ExpeditionId, day);
+
         var summary = session.GetPendingReturnSummary();
         run.TransformationsOnDay[day] = summary?.Items.Count(i => i.Kind == WalkGame.Domain.Summaries.SummaryItemKind.Transformation) ?? 0;
+        run.LinesOnDay[day] = summary?.Items.Select(i => i.Kind + ": " + i.Text).ToList() ?? new List<string>();
         if (summary == null) return;
         foreach (var item in summary.Items)
         {

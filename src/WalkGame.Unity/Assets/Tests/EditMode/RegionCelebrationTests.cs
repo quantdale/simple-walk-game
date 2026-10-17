@@ -89,6 +89,28 @@ namespace WalkGame.Shell.Tests
             return c;
         }
 
+        [Test] public void Celebration_keeps_the_final_completion_line_and_skips_repeats()
+        {
+            // D-163 (KI-026): the closing project's own line survives the crowded closure day; the
+            // landmark line its detail repeats and "ready" lines for restored projects are not rendered.
+            var dir = Path.Combine(Path.GetTempPath(), "wg-prio-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(dir);
+            try
+            {
+                var c = CompletedRegion(dir, out var session);
+                c.Invoke("nav:ReturnSummary");
+                var m = c.Render();
+                string all = string.Join("\n", m.Lines);
+                Assert.Contains("The valley survey is complete.", m.Lines, all);
+                int at = m.Lines.IndexOf("The valley survey is complete.");
+                StringAssert.StartsWith("Ridge Observatory is now restored.", m.Lines[at + 1], all);
+                CollectionAssert.DoesNotContain(m.Lines, "Ridge Observatory is restored.", all);
+                foreach (var p in session.GetProjects().Projects)
+                    Assert.IsFalse(m.Lines.Any(l => l.EndsWith("Ready to queue: " + p.TitleKey + ".")), all);
+            }
+            finally { Directory.Delete(dir, true); }
+        }
+
         [Test] public void Celebration_recaps_what_was_restored_from_canonical_state()
         {
             var dir = Path.Combine(Path.GetTempPath(), "wg-recap-" + Guid.NewGuid().ToString("N"));

@@ -269,3 +269,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 ## Session note 2026-10-17 (grok1017i)
 - Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017i` (no `--force`). Region 2 still not approved.
 - D-162: copy-quality sweep. `SummaryLineText.Display` gives the player-facing form of stored summary lines in every locale, including English. Per-project completion sentences live in `Region1SummaryCopy` (overlay `<id>#completed`). Stored lines are unchanged. `SummaryCopyQualityTests.Problems` is the shared checker; reuse it for any new template that takes a title.
+- D-163: KI-026 closed. `ReturnSummaryComposer.RetentionRank` decides what a full Transformation bucket drops within the oldest batch. `SummaryDisplayFilter` prunes repeated landmark lines and stale "ready" lines on the summary screen. The playthrough sim now requires 0 dropped completion lines.

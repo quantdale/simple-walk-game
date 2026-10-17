@@ -295,21 +295,25 @@ namespace WalkGame.Application.Summaries
                 // Per-kind bound: retire this kind's oldest retained item to make room.
                 int bound = BoundFor(item.Kind);
                 perKindCount.TryGetValue(item.Kind, out int held);
-                if (held >= bound)
-                {
-                    int index = state.Items.FindIndex(i => i.Kind == item.Kind);
-                    if (index >= 0)
-                        state.Items.RemoveAt(index); // oldest of THIS kind only
-                    else
-                        continue;
-                    held--;
-                }
-
                 // An item with no currency (a pre-D-055 save) is treated as current: it
                 // genuinely is the most recent thing that happened to the player.
                 var committedAt = item.FirstCommittedAtUtc == default
                     ? generatedAtUtc
                     : item.FirstCommittedAtUtc;
+
+                if (held >= bound)
+                {
+                    // D-163 (KI-026): the oldest batch still rotates out first (D-055), but within
+                    // that batch the lowest-value line goes first, so a crowded day keeps the
+                    // project's own completion line and drops the landmark line that repeats it.
+                    int index = PickRetired(state.Items, item.Kind, committedAt, item.Text);
+                    if (index == IncomingRetired)
+                        continue;
+                    if (index < 0)
+                        continue;
+                    state.Items.RemoveAt(index);
+                    held--;
+                }
 
                 state.Items.Add(new PendingSummaryItemState
                 {
@@ -338,6 +342,65 @@ namespace WalkGame.Application.Summaries
 
             state.PrimaryNextAction = DerivePrimaryNextAction(state.Items, regionCompleted);
             return state;
+        }
+
+        private const int IncomingRetired = int.MaxValue;
+
+        /// <summary>
+        /// D-163 (KI-026): which item a full kind bucket retires. Oldest first-commit time first
+        /// (D-055 rotation, unchanged across batches); within that oldest batch the lowest-value line
+        /// (<see cref="RetentionRank"/>); then the oldest held item. The incoming item competes too:
+        /// it is retired (not added) when it is in the oldest batch and worth less than every held
+        /// item there. Returns <see cref="IncomingRetired"/> for the incoming item, or -1 when the
+        /// kind holds nothing.
+        /// </summary>
+        private static int PickRetired(List<PendingSummaryItemState> held, SummaryItemKind kind, DateTimeOffset incomingAt, string incomingText)
+        {
+            int best = -1;
+            DateTimeOffset bestAt = default;
+            int bestRank = 0;
+            for (int i = 0; i < held.Count; i++)
+            {
+                if (held[i].Kind != kind) continue;
+                var at = held[i].FirstCommittedAtUtc;
+                int rank = Rank(kind, held[i].Text);
+                if (best < 0 || at < bestAt || (at == bestAt && rank > bestRank))
+                {
+                    best = i; bestAt = at; bestRank = rank;
+                }
+            }
+            if (best < 0) return -1;
+            if (incomingAt == bestAt && Rank(kind, incomingText) > bestRank) return IncomingRetired;
+            return best;
+        }
+
+        private static int Rank(SummaryItemKind kind, string? text) =>
+            kind == SummaryItemKind.Transformation ? RetentionRank(text) : 3;
+
+        /// <summary>
+        /// D-163: how much a Transformation line is worth keeping when its bucket is full (0 keeps
+        /// longest): region complete, a project's own completion line, a new chapter (it carries the
+        /// "read the new chapter" action), an expedition (also counted on Discoveries and in the
+        /// celebration recap), the "N projects are complete" count, the ecology/settlement arc lines,
+        /// and last the landmark stage line, which the summary screen already repeats under the
+        /// project's completion line (D-100). Other kinds all share one rank, so their rotation is
+        /// exactly D-055's.
+        /// </summary>
+        public static int RetentionRank(string? text)
+        {
+            if (string.IsNullOrEmpty(text)) return 3;
+            string t = text!;
+            if (t.EndsWith("'s restoration is complete.", StringComparison.Ordinal)) return 0;
+            if (t.EndsWith(" restoration projects are complete.", StringComparison.Ordinal)) return 4;
+            if (t.EndsWith(" is complete.", StringComparison.Ordinal)) return 1;
+            if (t.StartsWith("New chapter: ", StringComparison.Ordinal)) return 2;
+            if (t.Contains(" expedition complete")) return 3;
+            foreach (var line in EcologyLines) if (t == line) return 5;
+            foreach (var line in SettlementLines) if (t == line) return 5;
+            if (t.EndsWith(" has reached stage", StringComparison.Ordinal) || t.Contains(" has reached stage ")) return 5;
+            foreach (RestorationStage stage in Enum.GetValues(typeof(RestorationStage)))
+                if (t.EndsWith(" " + GlancePhrases.PhraseFor(stage) + ".", StringComparison.Ordinal)) return 6;
+            return 3;
         }
 
         /// <summary>
