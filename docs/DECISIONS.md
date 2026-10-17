@@ -2706,3 +2706,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** .NET +3 (headless-tested). Performance is editor-measured (Unity-editor-tested). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-140 — Region 1 narrative polish: ecology and settlement progress as story (2026-10-17)
+
+**Context.** Region progression summary lines read "The valley's ecology has reached stage 2." That is a mechanical number. The glance had to hide it behind the opaque "The valley changed." because it echoes a stage identifier.
+
+**Decision.** `ReturnSummaryComposer.ProgressionLine` uses authored Region 1 sentences for the four ecology stages (timber cleared, reservoir, sedges, nesting islets) and the four settlement stages (workshop, water lines, market hall, power). These are the arcs' actual milestone projects. Example: "The settlement is lit: the square glows after dark." A stage outside the table keeps the numbered form. Only newly composed lines change. Already-stored lines are not migrated (D-065 precedent) and still localize through `summary.ecology-stage` and `summary.settlement-stage`. The new sentences take whole-sentence overlay entries (`summary.ecology.N`, `summary.settlement.N`). Region 1 scope only; nothing from `add-region2-storyline`.
+
+**Tests.** `ProgressionNarrativeTests` (3): one sentence per authored stage, no digits or "stage", glance-safe lead, fallback, overlay. .NET 886/886 (headless-tested). EditMode 230/230 (Unity-editor-tested). Pacing evidence 7/7 reproduced, content compatibility passed. Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None (the stored text field is unchanged in shape, with no schema, content-hash or migration change).
