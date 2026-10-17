@@ -513,7 +513,7 @@ decisions, which is exactly the documentation-drift failure R-020 describes.)*
 
 **Status:** Accepted
 
-**Decision:** Higher-revision redeliveries of an already-trusted logical record are corrections. Positive deltas credit the difference; negative deltas (and deletions) claw back only what the unspent Vitality balance allows, durably counting any unclawed remainder in ProcessedRecordLedgerState.UnappliedReversalVitality. Processed-record rows store **net applied** vitality (what the ledger actually saw), never the theoretical target, so dedup state can never outrun reward state. Deletions for unknown records and stale revisions are counted diagnostics, not state changes. Corrections require durable source record IDs; fingerprint-identity sources treat changed content as a new logical record by construction.
+**Decision:** Higher-revision redeliveries of an already-trusted logical record are corrections. Positive deltas credit the difference; negative deltas (and deletions) claw back only what the unspent Vitality balance allows, durably counting any unclawed remainder in ProcessedRecordLedgerState.UnappliedReversalVitality. Processed-record rows store **net applied** vitality (what the ledger actually saw), never the theoretical target, so dedup state can never outrun reward state. Deletions for unknown records and stale revisions are counted diagnostics, not state changes. *(Amended 2026-10-17 by D-183: a valid source-id deletion for an unknown record is still counted as ignored, but is remembered as a zero-credit tombstone row.)* Corrections require durable source record IDs; fingerprint-identity sources treat changed content as a new logical record by construction.
 
 **Rationale:** ACTIVITY_PIPELINE §11 prioritizes state integrity and player trust over punitive clawbacks; completed world content must never be destroyed because a source corrected or deleted a small amount. Net-applied rows keep the validator invariant (processedTotal <= ledgerTotal) true without special cases.
 
@@ -3449,11 +3449,33 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 
 **Decision.** `BootRouter.Route(status, lastCodecFailure)`: `SaveUnreadable` whose last boot decode failure was `VersionTooNew` shows the existing `boot.newer` copy. Every other outcome routes exactly as before. `ShellController.BootCore` passes `GetDiagnostics().LastBootCodecFailure`. The screen is still the non-destructive BootError screen, with no new-game action.
 
-**Considered and not changed.** A primary with a newer schema next to an older but healthy backup still recovers from the backup, as `SaveTamperTests` (`schema-version-99`) deliberately pins. The envelope schema field sits outside the payload checksum, so it cannot tell a genuine newer build from a damaged or tampered field. The backup is normally only one commit old, and a newer build rotates it to the newer schema on its second commit, so at most one commit is at stake. An agent probe confirmed the behavior, and the change was dropped because it would reverse that pinned contract. If Michael wants downgrade safety over tamper recovery, it is a one-line boot change plus updating that test case.
+**Accepted decision (engineering authority, 2026-10-17 ~6:37 PM Asia/Manila): keep the current behaviour.** A primary with a newer schema next to an older but healthy backup still recovers from the backup, as `SaveTamperTests` (`schema-version-99`) deliberately pins. The envelope schema field sits outside the payload checksum, so it cannot tell a genuine newer build from a damaged or tampered field. The backup is normally only one commit old, and a newer build rotates it to the newer schema on its second commit, so at most one commit is at stake. An agent probe confirmed the behavior, and the change was dropped because it would reverse that pinned contract. Tamper/damage recovery is preferred over downgrade protection; revisiting it would be a one-line boot change plus updating that test case.
 
 **Evidence.** EditMode `ShellControllerTests`:
 - `A_save_from_a_newer_game_version_asks_for_an_update_and_is_never_overwritten`: real session, both generations bumped to schema + 1, retry leaves the bytes unchanged.
 - `Router_says_update_only_for_a_newer_schema`.
 
 The first test failed before the controller was wired: it showed the "could not be read" copy. EditMode 292/292 (290 + 2). Labels: Unity-editor-tested (EditMode); device UNVERIFIED (KI-002).
+
+## D-183 — A deletion for an unseen record leaves a zero-credit tombstone (KI-029; amends D-029) (2026-10-17)
+
+**Status:** Accepted (engineering authority, 2026-10-17 ~6:37 PM Asia/Manila, KI-029 option b). It applies the product invariants that rewards are exactly-once and corrections are conservative: an activity record's effect must not depend on how often or in what order the source delivers it, and the pipeline never credits a walk that the source has deleted. No save-format change.
+
+**Bug.** Under D-029, a valid deletion for a record never seen was a counted diagnostic and changed no state. So when it arrived in an **earlier batch** than the record (lower revision), the record was credited later: +5 Vitality and a walked day for a deleted walk. Re-delivering the deletion then reversed it (−5). D-181 had fixed only the same-batch case.
+
+**Decision.** In `ProcessDeletion`, a deletion that passed eligibility, has a source record id, and matches no row now records a **tombstone**: an ordinary `ProcessedRecordEntry` with 0 eligible steps, 0 Vitality, `LastRevision` = the deletion's revision, the marker's end, and its local day.
+- **Same row shape**, so the save schema (v3), codec and validator are unchanged.
+- **Still counted as `DeletionsIgnored`**, so batch diagnostics read the same.
+- **A lower or equal revision later** is a duplicate no-op (also outside the window, through the existing already-trusted carve-out). **A higher revision** is a genuine re-add and credits once through the correction path.
+- **Not tombstoned:** fingerprint-identity markers (a fingerprint includes the quantity, so it could never match) and markers that fail eligibility.
+- **A tombstone** never moves the trusted watermark, counts no walked day, adds 0 to the lifetime total, and retires like any row (D-066).
+
+**Evidence.** `DeletionTombstoneTests` (5, .NET). Written to fail first: the first two failed before the fix, with +5 credited.
+- A deletion batch, then the record batch: 0 credit, a duplicate, no walked day, and a valid saved state.
+- 30 random sequences of 2–8 deliveries (deletion only, record only, or both, with random cold restarts): lifetime credit stays 0 after every delivery, with no walked day.
+- A higher revision after a tombstone credits once, and replays stay at 0.
+- A tombstone never moves the watermark.
+- Fingerprint and out-of-window markers leave no row.
+
+Existing D-029, D-053 and D-181 tests pass unchanged. .NET 1211/1211; architecture 15/15; pacing 7/0. Label: headless-tested. Device UNVERIFIED (KI-002).
 
