@@ -2697,3 +2697,12 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** .NET `SummaryLineOverlayTests` (9): English identical, every recognised line translated, the save bytes unchanged, fallbacks. EditMode `SummaryAndLabelLocaleTests` (2): a real 7-day return summary renders translated lines and labels, the line count is unchanged, saves are unchanged, and English is restored. .NET 880/880 (headless-tested), EditMode 230/230 (Unity-editor-tested). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None. The content-compatibility gate is unchanged.
+## D-139 — Hardening: sync under persistent save failure; performance re-measured (2026-10-17)
+
+**Context.** D-131/D-134 cover a resume while saves fail. They did not cover a long run of ordinary syncs (redelivered and overlapping batches plus catch-up) while every write fails, followed by recovery. The last performance measurement (D-074) predates the localization overlays.
+
+**Decision.** No production change was needed. `PersistentSaveFailureSyncTests` (3 seeds x 40 sync cycles) fails every write, redelivers random earlier records, and occasionally retries and catches up. The in-memory world must equal a healthy twin's reboot, credit must never go backwards, and the first successful `RetryPendingSave` must boot to the same world. A full redelivery after recovery must credit nothing. No finding. Performance was re-measured in the editor and headless (`docs/evidence/d139-perf-remeasure/`) with no regression; numbers are in PERFORMANCE_BUDGETS.
+
+**Tests.** .NET +3 (headless-tested). Performance is editor-measured (Unity-editor-tested). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None.

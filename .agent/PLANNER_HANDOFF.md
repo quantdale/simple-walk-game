@@ -220,3 +220,4 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 ## Session note 2026-10-17 (grok0739d resumed)
 - D-137: the RC clean clone on `86f767a` failed only because one EditMode test was Inconclusive. Fixed the test (Guide Start double-tap); EditMode 228/228, .NET 871/871.
 - D-138: KI-023 remainder. Stored summary lines are display-localized (`SummaryLineText`; `ItemRow.DisplayText`) and the single-word labels are in `PlayerStrings` (`label.*`). .NET 880, EditMode 230.
+- D-139: `PersistentSaveFailureSyncTests` (no finding); performance re-measured (`docs/evidence/d139-perf-remeasure/`, no regression).

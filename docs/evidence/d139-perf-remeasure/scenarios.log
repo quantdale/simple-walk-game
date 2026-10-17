@@ -1,0 +1,12 @@
+SCENARIO-RESULT id=cold-boot-mature-save days=200 bootMs=47.50 status=Loaded saveBytes=43996
+SCENARIO-RESULT id=return-7-days-large-batch ingestMs=5.18 credited=560 accepted=7 duplicates=0 expectedSteps=56000
+SCENARIO-RESULT id=landmark-stage-transition enqueueMs=1.63 enqueueOk=True advancedLandmarks=1 note=canonical-only;frame-cost-unmeasured
+SCENARIO-RESULT id=background-resume-surrogate cycles=20 totalMs=57.70 perCycleMs=2.89 saveBytes=21304 note=surrogate-not-real-backgrounding
+SCENARIO-SIZES day=7 saveBytes=12608 processedLedger=7 ledgerRecords=7 ledgerVitality=560 materials=0 knowledge=0 completedProjects=1 regionCompleted=False
+SCENARIO-SIZES day=30 saveBytes=27882 processedLedger=30 ledgerRecords=30 ledgerVitality=2400 materials=40 knowledge=0 completedProjects=5 regionCompleted=False
+SCENARIO-SIZES day=90 saveBytes=41349 processedLedger=46 ledgerRecords=46 ledgerVitality=7200 materials=90 knowledge=0 completedProjects=9 regionCompleted=False
+SCENARIO-SIZES day=180 saveBytes=48270 processedLedger=46 ledgerRecords=46 ledgerVitality=14400 materials=400 knowledge=7 completedProjects=17 regionCompleted=False
+SCENARIO-SIZES day=365 saveBytes=59817 processedLedger=46 ledgerRecords=46 ledgerVitality=29200 materials=400 knowledge=229 completedProjects=19 regionCompleted=True
+SCENARIO-SIZES day=730 saveBytes=81716 processedLedger=46 ledgerRecords=46 ledgerVitality=58400 materials=400 knowledge=300 completedProjects=19 regionCompleted=True
+SCENARIO-RESULT id=mature-region-max-content bootMs=2.74 status=Loaded activeProject=none queued=0 requiresAttention=False validatorViolations=0
+SCENARIO-RESULT id=summary measurable=5 surrogate=1 deviceOnly=4 maturityDays=200 stepsPerDay=8000 seed=42 note=device-only-scenarios(3,4,5,7)-NOT-simulated;timings-not-gated
