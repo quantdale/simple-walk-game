@@ -248,3 +248,5 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - D-151: Home says "Your Vitality goes straight into {project}: N invested so far." and labels the balance "Unspent: …". Captures: docs/evidence/d151-text-screens/ (editor-rendered).
 - Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017e`. Region 2 is still not approved.
 - D-152: invested line moved directly under the payoff line on Home. Next: device playtest (KI-002); Region 2 gated.
+- D-153 (#152): text screens re-captured after D-152 at docs/evidence/d153-text-screens/ (editor-rendered); d151 README marked superseded for Home.
+- D-154: Projects rows add "Finishing it opens: …" (prerequisite-exact). EditMode 240/240, PlayMode 4 + 1 ignored, .NET 1046. Considered but not done: per-day earnings save migration (needs a save-schema version bump; deferred as not conservative enough for an unattended slice); battery cadence already pinned by D-107 `BackgroundSyncBudgetTests`. Next: Story/Discoveries choice framing similar to D-154; device lane (KI-002). Region 2 still not approved.
