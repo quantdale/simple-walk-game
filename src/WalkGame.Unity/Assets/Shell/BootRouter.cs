@@ -10,6 +10,18 @@ namespace WalkGame.Shell
     /// </summary>
     public static class BootRouter
     {
+        /// <summary>
+        /// D-182: like <see cref="Route(StartStatus)"/>, but an unreadable save whose last decode
+        /// failure was a NEWER schema says "update the game" instead of "could not be read".
+        /// Both fail closed and write nothing; only the advice differs.
+        /// </summary>
+        public static (ShellScreen Screen, string? Notice) Route(StartStatus status, CodecFailureCategory lastCodecFailure)
+        {
+            if (status == StartStatus.SaveUnreadable && lastCodecFailure == CodecFailureCategory.VersionTooNew)
+                return (ShellScreen.BootError, PlayerStrings.T("boot.newer"));
+            return Route(status);
+        }
+
         public static (ShellScreen Screen, string? Notice) Route(StartStatus status)
         {
             switch (status)

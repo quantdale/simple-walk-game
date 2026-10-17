@@ -41,6 +41,39 @@ namespace WalkGame.Shell.Tests
             Assert.AreNotEqual(ScreenState.Error, c.Render().State);
         }
 
+        [Test] public void A_save_from_a_newer_game_version_asks_for_an_update_and_is_never_overwritten()
+        {
+            // D-182: both generations were written by a newer build (schema + 1). The player is
+            // told to update the game, not that the save is unreadable, and nothing is written.
+            var c = NewController(); c.Boot(); c.Invoke("start");
+            foreach (var f in Directory.GetFiles(_dir).Where(f => Path.GetFileName(f).StartsWith("save") && f.EndsWith(".json")))
+            {
+                string text = File.ReadAllText(f);
+                string bumped = System.Text.RegularExpressions.Regex.Replace(text, "\"schemaVersion\":(\\d+)",
+                    m => "\"schemaVersion\":" + (int.Parse(m.Groups[1].Value) + 1));
+                Assert.AreNotEqual(text, bumped, Path.GetFileName(f));
+                File.WriteAllText(f, bumped);
+            }
+            var before = File.ReadAllText(Path.Combine(_dir, "save.json"));
+
+            var c2 = NewController(); c2.Boot();
+            Assert.AreEqual(StartStatus.SaveUnreadable, c2.LastStartStatus);
+            Assert.AreEqual(ShellScreen.BootError, c2.Current);
+            var model = c2.Render();
+            Assert.AreEqual(PlayerStrings.T("boot.newer"), model.Notice);
+            Assert.IsFalse(model.Actions.Any(a => a.Id == "start"), "error screen must not offer a new game");
+            c2.Invoke("retry");
+            Assert.AreEqual(before, File.ReadAllText(Path.Combine(_dir, "save.json")));
+        }
+
+        [Test] public void Router_says_update_only_for_a_newer_schema()
+        {
+            Assert.AreEqual(PlayerStrings.T("boot.newer"), BootRouter.Route(StartStatus.SaveUnreadable, CodecFailureCategory.VersionTooNew).Notice);
+            Assert.AreEqual(PlayerStrings.T("boot.unreadable"), BootRouter.Route(StartStatus.SaveUnreadable, CodecFailureCategory.ChecksumMismatch).Notice);
+            Assert.AreEqual(PlayerStrings.T("boot.unreadable"), BootRouter.Route(StartStatus.SaveUnreadable).Notice);
+            Assert.AreEqual(ShellScreen.Home, BootRouter.Route(StartStatus.Loaded, CodecFailureCategory.VersionTooNew).Screen);
+        }
+
         [Test] public void Garbage_save_shows_error_and_is_never_overwritten()
         {
             var c = NewController(); c.Boot(); c.Invoke("start");
