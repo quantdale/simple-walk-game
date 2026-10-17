@@ -3422,3 +3422,22 @@ Mutation check: moving Tavi's first appearance to after the intake fails `Cast_F
 - Mutation check: forcing the timestamp rule fails 3 of 7 .NET rollback tests and the EditMode test.
 - .NET 1201/1201 (was 1188). EditMode 290/290. Labels: headless-tested (.NET); Unity-editor-tested (EditMode). Device UNVERIFIED (KI-002).
 
+## D-181 — Revisions of one record are applied in revision order within a batch (2026-10-17)
+
+**Status:** Accepted (agent; trust-pipeline correctness fix inside D-029 and D-053; no save, schema, content or adapter change)
+
+**Bug.** `IngestActivityBatch` processed records in the order the source listed them. When a deletion (revision 2) was listed before the record it deletes (revision 1) in the same batch, the deletion was ignored as being for an unknown record (D-029), and the record was then credited. The walk the source says never happened earned Vitality and a walked day (probe: +5 Vitality, 1 day). **Replaying that identical batch then applied the deletion (−5)**, so the batch was neither order-independent nor exactly-once. The shipped Health Connect and HealthKit adapters already list deletions after credits, so on device the bug was reachable only through another `IActivityRecordSource` (the fixture reader, a future adapter) or a direct caller. The trust pipeline no longer depends on that adapter detail.
+
+**Decision.** Before the per-record loop, revisions that share a logical identity (same provider and source record id) are re-sequenced into ascending effective revision (`max(1, revision)`). Each identity keeps its own slots in the batch, so records of different identities keep their listed order and carry pooling (D-079) is unchanged. Equal revisions keep their listed order. Fingerprint identities are not regrouped: they include the quantity, so two revisions can never share one. When no identity repeats, there is no allocation and no behavior change.
+
+**Not changed.** Validation (still first, per record), D-029 policy for a deletion whose record has never been seen in **any** batch (still a counted diagnostic; the cross-batch case is KI-029, queued for Michael), the correction policy, the D-178 clamp, the adapters, the save and schema.
+
+**Evidence.** `BatchOrderIndependenceTests` (5, .NET; failing first: 3 failed before the fix, with +5 credited for a deleted walk, a deleted row left at 450 steps, and a −5 reversal on replay):
+- a deletion listed first still deletes;
+- a correction listed first is not undone by the original;
+- all 6 orders of {r1 300, delete r2, r3 650} give the same lifetime credit, row, revision and days;
+- 40 shuffles of a mixed 5-record, 11-revision batch settle every record on its highest revision, and the saved state stays valid;
+- replaying an out-of-order batch is a no-op.
+
+.NET 1206/1206; architecture 15/15; pacing 7/0. Label: headless-tested. Device UNVERIFIED (KI-002).
+

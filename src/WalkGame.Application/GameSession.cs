@@ -713,7 +713,7 @@ namespace WalkGame.Application
                 latestTrustedEndUtc: game.IngestionCheckpointUtc,
                 reconciliationWatermarkUtc: game.IngestionCheckpointUtc);
 
-            foreach (var record in records)
+            foreach (var record in InRevisionOrderPerRecord(records))
             {
                 // 1. Eligibility, for EVERY record. A record that fails here changes no
                 //    durable state: it does not reverse value, does not touch the
@@ -884,6 +884,58 @@ namespace WalkGame.Application
                 saved, rejectionCounts,
                 FormatSummaryLines(game.PendingReturnSummary), SnapshotSummary(game),
                 eligibleStepsTotal);
+        }
+
+        /// <summary>
+        /// D-181: within one batch, revisions of the same logical record are processed in
+        /// ascending revision order, whatever order the source listed them in. Each record
+        /// keeps its own slots in the batch, so records of different logical identities keep
+        /// their relative order (carry pooling is unchanged). Before this, a deletion listed
+        /// before its record was ignored as unknown and the record was then credited, and
+        /// replaying that same batch reversed it: neither order-independent nor exactly-once.
+        /// Only records with a source record id are regrouped; fingerprint identities include
+        /// the quantity, so their revisions can never share an identity. Equal revisions keep
+        /// their listed order. No allocation when no identity repeats.
+        /// </summary>
+        private static IReadOnlyList<NormalizedActivityRecord> InRevisionOrderPerRecord(
+            IReadOnlyList<NormalizedActivityRecord> records)
+        {
+            Dictionary<string, List<int>>? slots = null;
+            bool anyRepeat = false;
+            for (int i = 0; i < records.Count; i++)
+            {
+                var r = records[i];
+                if (r == null || string.IsNullOrWhiteSpace(r.ProviderNamespace)
+                    || string.IsNullOrWhiteSpace(r.SourceRecordId))
+                    continue;
+                slots ??= new Dictionary<string, List<int>>(StringComparer.Ordinal);
+                string key = ActivityIdentity.Compute(r);
+                if (!slots.TryGetValue(key, out var list))
+                    slots[key] = list = new List<int>(1);
+                else
+                    anyRepeat = true;
+                list.Add(i);
+            }
+            if (!anyRepeat) return records;
+
+            var ordered = new NormalizedActivityRecord[records.Count];
+            for (int i = 0; i < records.Count; i++) ordered[i] = records[i];
+            foreach (var list in slots!.Values)
+            {
+                if (list.Count < 2) continue;
+                var group = new List<NormalizedActivityRecord>(list.Count);
+                foreach (int i in list)
+                {
+                    // Stable insertion by effective revision (the pipeline treats < 1 as 1).
+                    var r = records[i];
+                    int rev = Math.Max(1, r.Revision);
+                    int at = group.Count;
+                    while (at > 0 && Math.Max(1, group[at - 1].Revision) > rev) at--;
+                    group.Insert(at, r);
+                }
+                for (int k = 0; k < list.Count; k++) ordered[list[k]] = group[k];
+            }
+            return ordered;
         }
 
         /// <summary>
