@@ -118,7 +118,7 @@ platform data-residency rules.
 | P-2 | PRODUCT_SPEC contains no explicit privacy requirements section; the guarantees above live only in this review and implicit spec theses | Medium | **Closed (2026-10-16)**: PRODUCT_SPEC §7a "Privacy requirements" states the guarantees as product requirements |
 | P-3 | No network/analytics/accounts in headless code | — | Verified clean (§1) |
 | P-4 | Diagnostics are privacy-safe by construction, test-enforced (D-063 extends the sweep to every read-model surface by reflection, so a new surface cannot escape it) | — | Verified clean (§5) |
-| P-6 | Player can delete all local data (PRODUCT_SPEC §7a req. 7) | — | Implemented headless: `GameSession.DeleteAllLocalData` (`LocalDataEraseTests`); Settings UI UNVERIFIED (M5 runtime) |
+| P-6 | Player can delete all local data (PRODUCT_SPEC §7a req. 7) | — | Implemented headless: `GameSession.DeleteAllLocalData` (`LocalDataEraseTests`). Settings → Delete confirm is Unity-editor-tested (`ShellControllerTests`, `DeleteAllDataPrivacyTests`). D-194: delete-all also withdraws the OS daily reminder, and a launch with no save cancels any leftover one. Export → delete → new world leaves no trace, and the export carries no device paths. Android notification cancel on a device UNVERIFIED (KI-002) |
 | P-5 | Runtime/device permission surfaces | — | UNVERIFIED (do not claim; §4/§6) |
 
 **Conclusion:** the headless lane is honest to its "offline, on-device, no
