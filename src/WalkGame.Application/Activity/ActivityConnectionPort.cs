@@ -59,13 +59,23 @@ namespace WalkGame.Application.Activity
         /// <summary>Adapter-owned technical detail for diagnostics only. Never player copy.</summary>
         public string? TechnicalDetail { get; }
 
+        /// <summary>
+        /// D-192: the permission the adapter last READ successfully in this process, or null if it
+        /// has not read one. Set when the current status is unreadable, so the projector can tell a
+        /// connected player's passing glitch from a never-connected or revoked player. Ephemeral like
+        /// the rest of the snapshot: never persisted, so a new process starts from null.
+        /// </summary>
+        public ActivityPermissionState? LastKnownPermission { get; }
+
         public ActivityConnectionSnapshot(
             ActivityPermissionState permission,
             ActivitySourceAvailability availability,
             DateTimeOffset? lastSuccessfulRefreshUtc = null,
             DateTimeOffset? lastAttemptUtc = null,
-            string? technicalDetail = null)
+            string? technicalDetail = null,
+            ActivityPermissionState? lastKnownPermission = null)
         {
+            LastKnownPermission = lastKnownPermission;
             Permission = permission;
             Availability = availability;
             LastSuccessfulRefreshUtc = lastSuccessfulRefreshUtc;

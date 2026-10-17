@@ -63,7 +63,9 @@ namespace WalkGame.Application.Activity
     ///      connecting cannot fix an outdated provider, so it outranks permission)
     ///   1. Availability Unsupported  → SourceUnavailable, whatever the permission (D-068, D-146)
     ///   2. Denied/Revoked            → PermissionDenied
-    ///   3. NotRequested              → PermissionNeeded
+    ///   3. NotRequested              → PermissionNeeded; but when TemporarilyUnavailable (status
+    ///      unreadable), LastKnownPermission Granted/PartiallyGranted → RefreshTemporarilyFailed and
+    ///      Denied/Revoked → PermissionDenied (D-192, amends D-144)
     ///   4. TemporarilyUnavailable or last fetch failed → RefreshTemporarilyFailed
     ///   5. Connected, zero processed → WaitingForFirstData
     ///   6. otherwise                 → ConnectedCurrent
@@ -123,6 +125,22 @@ namespace WalkGame.Application.Activity
                 case ActivityPermissionState.Revoked:
                     return ActivityPlayerStatus.PermissionDenied;
                 case ActivityPermissionState.NotRequested:
+                    // D-192 (amends D-144): adapters report an unreadable status as NotRequested
+                    // (they never claim an unseen grant). The last permission they DID read decides:
+                    // a known grant is a passing failure, a known refusal still points to Settings,
+                    // and nothing known (never granted, or a new process) still asks to connect.
+                    if (snapshot.Availability == ActivitySourceAvailability.TemporarilyUnavailable)
+                    {
+                        switch (snapshot.LastKnownPermission)
+                        {
+                            case ActivityPermissionState.Granted:
+                            case ActivityPermissionState.PartiallyGranted:
+                                return ActivityPlayerStatus.RefreshTemporarilyFailed;
+                            case ActivityPermissionState.Denied:
+                            case ActivityPermissionState.Revoked:
+                                return ActivityPlayerStatus.PermissionDenied;
+                        }
+                    }
                     return ActivityPlayerStatus.PermissionNeeded;
             }
 

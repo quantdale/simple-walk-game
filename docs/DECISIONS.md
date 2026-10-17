@@ -2740,6 +2740,8 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Save compatibility.** None.
 
 ## D-144 — Health Connect failure-state UX: exhaustive status matrix and progress safety (2026-10-17)
+
+> **Amended by D-192 (2026-10-17):** the invariant "an ungranted state never shows as RefreshTemporarilyFailed" now has one exception: the status is unreadable (`TemporarilyUnavailable` + `NotRequested`) and the adapter's last read permission was a grant. The matrix gains a last-known-permission dimension.
 **Decision.** Pin the activity-connection failure UX over every permission x availability x last-outcome x processed combination (120), not one sampled row per status. `HealthConnectFailureMatrixTests` assert: projection is deterministic; `ProviderUpdateRequired` dominates; the player is never told the walk is flowing (`ConnectedCurrent`) without a grant, an available source, processed data and a successful last fetch; an ungranted state never reads as waiting/retrying; every fixable state offers exactly its action (Connect / OpenSettings / RetryLater / UpdateProvider) and the rest none; D-068 holds. A session test walks every permission x availability state live and across a reboot: lifetime vitality and project investment never move, and recovery credits only the new walk. No finding; no production change.
 
 **Observation (not changed).** A source that is `Unsupported` with a prior `Denied`/`Revoked` permission still projects `PermissionDenied` + OpenSettings (permission outranks unsupported unless never requested, D-068). On Android 14+ Health Connect is a system module, so this mostly arises on older devices after uninstalling the provider; deciding whether that should read as `SourceUnavailable` is a UX call for later, not a bug.
@@ -3664,3 +3666,36 @@ The new `--selftest-rule6` fixture failed on the old extraction: it found 1 of 4
 - **Self-test:** `--selftest-rule6` proves the extraction finds the one-line, block and chained cases and ignores a comment and a step name. CI runs it, and `verify-ci-wiring.sh` (D-187) now requires that.
 
 **Result.** Rule 6 now checks 14 scripts, all executable and LF-only. Architecture checks went from 10 to 21 passed, 0 failed. Labels: headless-tested.
+
+## D-192 — An unreadable provider status after a known grant reads as a temporary refresh failure (KI-030; amends D-144) (2026-10-17)
+
+**Status:** Accepted. Michael's engineering call, 2026-10-17 ~8:11 PM Asia/Manila: option (b), conditioned on the last known grant.
+
+**Why.** When Health Connect's SDK status or HealthKit's availability cannot be read, both adapters report `TemporarilyUnavailable` with permission `NotRequested`. They deliberately never claim a grant they cannot see. The projector ranked `NotRequested` first, so a connected player hitting a passing glitch was told "Walking data is not connected yet" and offered a Connect button that could not work (KI-030, found by D-188).
+
+**Decision.**
+- **Snapshot:** `ActivityConnectionSnapshot.LastKnownPermission` (new, optional, nullable). It is the permission the adapter last *read* in this process.
+  - Both adapters record it only from a recognised answer: Health Connect `granted` / `denied` / `revoked` / `not_requested`; HealthKit `unnecessary` / `should_request`. A failed or unrecognised read leaves it unchanged.
+  - It is attached only to unreadable-status snapshots.
+  - It is ephemeral like the rest of the snapshot and never saved, so there is no save or schema change.
+- **Projector, `NotRequested` + `TemporarilyUnavailable`:**
+
+| Last known permission | Projected state |
+|---|---|
+| Granted / PartiallyGranted | RefreshTemporarilyFailed / RetryLater |
+| Denied / Revoked | PermissionDenied / OpenSettings |
+| none or NotRequested (never granted, or a new process) | PermissionNeeded / Connect ("not connected"), as before |
+
+- **Unchanged:** `PermissionGranted` stays false, so nothing reads until the status is readable again. A current Denied/Revoked still outranks everything below Unsupported/ProviderUpdateRequired, and those two keep their precedence.
+- **D-144 amended on purpose:**
+  - The matrix now spans permission × availability × outcome × processed × last-known (null plus 5 states).
+  - The old "not granted ⇒ never RefreshTemporarilyFailed" assertion is rewritten as "an ungranted state is RefreshTemporarilyFailed **if and only if** unreadable + NotRequested + last-known grant". Unreadable + last-known Denied/Revoked must be PermissionDenied.
+  - Nothing was deleted.
+
+**Evidence.**
+- `TransientStatusPrecedenceTests` (13): 6 failed before the fix (known grant ×3 outcomes, partial grant, Denied, Revoked). It also covers never-granted + unreadable (still not connected, ×2), current refusal + unreadable, an available NotRequested with a known grant (still asks to connect), and Unsupported/Update precedence.
+- **Mutation check:** disabling the new branch fails 24 rows of the rewritten matrix (the 6 original combinations × Granted/Partial/Denied/Revoked).
+- `LastKnownPermissionTests` (11, both adapters): memory, unrecognised/failed reads ignored, a revocation learnt during a read, and HC/HK parity.
+- EditMode `ActivityConnectionLifecycleTests`: the unreadable test is rewritten to pin the retry state, and 2 tests are added (revoked then unreadable → Settings; a new process + unreadable → not connected).
+- .NET 1835/1835 test cases (162 + 244 + 1429; the Application count grew mainly from the expanded matrix). EditMode 334/334.
+- **Labels:** headless-tested + Unity-editor-tested; device UNVERIFIED (KI-002).

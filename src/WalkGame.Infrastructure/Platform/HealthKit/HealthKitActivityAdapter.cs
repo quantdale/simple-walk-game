@@ -33,6 +33,7 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
         private DateTimeOffset? _lastAttemptUtc;
         private DateTimeOffset? _lastSuccessUtc;
         private string? _lastFailure;
+        private ActivityPermissionState? _lastKnownPermission; // D-192: last request status READ, this process only
 
         /// <param name="deviceOffsetAt">
         /// D-157 fallback, same rule as Health Connect: a sample without <c>HKMetadataKeyTimeZone</c> (the
@@ -57,9 +58,9 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
             if (availability == "unsupported")
                 return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.Unsupported, "healthkit unavailable on this device");
             if (availability != "available")
-                return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.TemporarilyUnavailable, "healthkit status unreadable: " + Clip(availability));
+                return Snap(ActivityPermissionState.NotRequested, ActivitySourceAvailability.TemporarilyUnavailable, "healthkit status unreadable: " + Clip(availability), _lastKnownPermission);
 
-            var permission = MapRequestStatus(Safe(_bridge.GetRequestStatus));
+            var permission = ReadRequestStatus();
             var avail = _lastFailure != null && _lastFailure != "permission"
                 ? ActivitySourceAvailability.TemporarilyUnavailable
                 : ActivitySourceAvailability.Available;
@@ -76,7 +77,7 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
 
             string availability = Safe(_bridge.GetAvailability);
             if (availability != "available") throw Fail("unavailable", new InvalidOperationException("HealthKit is not available (" + Clip(availability) + ")."));
-            if (MapRequestStatus(Safe(_bridge.GetRequestStatus)) != ActivityPermissionState.Granted)
+            if (ReadRequestStatus() != ActivityPermissionState.Granted)
                 throw Fail("permission", new UnauthorizedAccessException("HealthKit authorisation has not been requested."));
 
             string raw;
@@ -203,8 +204,18 @@ namespace WalkGame.Infrastructure.Platform.HealthKit
 
         private void MarkSuccess() { _lastSuccessUtc = _lastAttemptUtc; _lastFailure = null; }
         private Exception Fail(string category, Exception ex) { _lastFailure = category; return ex; }
-        private ActivityConnectionSnapshot Snap(ActivityPermissionState p, ActivitySourceAvailability a, string detail)
-            => new ActivityConnectionSnapshot(p, a, _lastSuccessUtc, _lastAttemptUtc, detail);
+        private ActivityConnectionSnapshot Snap(ActivityPermissionState p, ActivitySourceAvailability a, string detail, ActivityPermissionState? lastKnown = null)
+            => new ActivityConnectionSnapshot(p, a, _lastSuccessUtc, _lastAttemptUtc, detail, lastKnown);
+
+        /// <summary>Maps the request status; a recognised answer becomes the last known permission (D-192).</summary>
+        private ActivityPermissionState ReadRequestStatus()
+        {
+            string raw = Safe(_bridge.GetRequestStatus);
+            var permission = MapRequestStatus(raw);
+            if (raw == "unnecessary" || raw == "should_request")
+                _lastKnownPermission = permission;
+            return permission;
+        }
         private static string Safe(Func<string> call)
         {
             try { return (call() ?? "").Trim(); }
