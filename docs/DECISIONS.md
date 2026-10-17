@@ -2738,3 +2738,12 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Verification.** .NET 907/907 (headless-tested). Device behaviour UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-144 — Health Connect failure-state UX: exhaustive status matrix and progress safety (2026-10-17)
+**Decision.** Pin the activity-connection failure UX over every permission x availability x last-outcome x processed combination (120), not one sampled row per status. `HealthConnectFailureMatrixTests` assert: projection is deterministic; `ProviderUpdateRequired` dominates; the player is never told the walk is flowing (`ConnectedCurrent`) without a grant, an available source, processed data and a successful last fetch; an ungranted state never reads as waiting/retrying; every fixable state offers exactly its action (Connect / OpenSettings / RetryLater / UpdateProvider) and the rest none; D-068 holds. A session test walks every permission x availability state live and across a reboot: lifetime vitality and project investment never move, and recovery credits only the new walk. No finding; no production change.
+
+**Observation (not changed).** A source that is `Unsupported` with a prior `Denied`/`Revoked` permission still projects `PermissionDenied` + OpenSettings (permission outranks unsupported unless never requested, D-068). On Android 14+ Health Connect is a system module, so this mostly arises on older devices after uninstalling the provider; deciding whether that should read as `SourceUnavailable` is a UX call for later, not a bug.
+
+**Verification.** .NET 1028/1028 (headless-tested; +121 theory rows). Real Health Connect UI UNVERIFIED (KI-002).
+
+**Save compatibility.** None.
