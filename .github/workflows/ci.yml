@@ -24,6 +24,11 @@ jobs:
           scripts/verify-no-engine-binaries.sh
           scripts/verify-no-engine-binaries.sh --history
 
+      - name: Unity .meta integrity (missing / orphan / duplicate GUID, D-184)
+        run: |
+          scripts/verify-unity-meta.sh --self-test
+          scripts/verify-unity-meta.sh
+
       - name: ProjectSettings.asset changes need a decision trailer (D-117, KI-015)
         run: |
           scripts/verify-project-settings.sh --self-test

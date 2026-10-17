@@ -3479,3 +3479,23 @@ The first test failed before the controller was wired: it showed the "could not 
 
 Existing D-029, D-053 and D-181 tests pass unchanged. .NET 1211/1211; architecture 15/15; pacing 7/0. Label: headless-tested. Device UNVERIFIED (KI-002).
 
+## D-184 — CI checks Unity .meta integrity without Unity (2026-10-17)
+
+**Status:** Accepted (agent; CI structure validation only; no runtime, save or asset change)
+
+**Gap.** Unity identifies every asset by the GUID in its `.meta` file. CI builds and tests only the .NET solution, and the Unity EditMode run is local. So a commit could add a script under `src/WalkGame.Unity/Assets` without its `.meta`, and nothing would notice. Unity then mints a different random GUID on every clone, which silently breaks asmdef, scene and test references. The same is true of an orphan `.meta` and a copy-pasted `.meta` with a duplicate GUID. Today's tree is clean: 94 metas.
+
+**Decision.** New `scripts/verify-unity-meta.sh`, run in CI as `--self-test` and then the real check, right after the engine-binary guard. Over git-tracked files under `Assets`:
+1. every asset file and every folder holding one has a tracked `.meta`;
+2. every tracked `.meta` belongs to a tracked file or folder, or to a git-ignored generated asset (the synced plugin DLLs);
+3. every `.meta` has exactly one 32-hex `guid`, and GUIDs are unique.
+
+It follows Unity's import rules: dot-names, `~` names, and the contents of `*.androidlib` / `*.bundle` / `*.plugin` / `*.framework` folders get no `.meta`, but the folder itself does. `scripts/verify-ci-steps.sh` picks the step up automatically.
+
+**Evidence.**
+- The self-test builds a throwaway repo and proves the check passes a clean tree and fails each of 5 seeded violations: asset without meta, folder without meta, orphan, duplicate GUID, malformed GUID.
+- The self-test failed first and caught two bugs in the first draft of the checker:
+  - The checker's program was fed on stdin, so the real check silently checked nothing and "passed".
+  - The androidlib folder's own `.meta` was misreported as an orphan.
+- The real tree passes with 94 metas. Label: headless-tested (CI script). No Unity run is needed.
+
