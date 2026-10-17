@@ -222,4 +222,5 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - D-138: KI-023 remainder. Stored summary lines are display-localized (`SummaryLineText`; `ItemRow.DisplayText`) and the single-word labels are in `PlayerStrings` (`label.*`). .NET 880, EditMode 230.
 - D-139: `PersistentSaveFailureSyncTests` (no finding); performance re-measured (`docs/evidence/d139-perf-remeasure/`, no regression).
 - D-140: Region 1 progression summary lines are authored sentences instead of "stage N". .NET 886, EditMode 230.
+- D-141: KI-023 closed. Reward expedition lines (`summary.expedition-complete-reward`, `resource.<Type>#title`) and expedition/care descriptions (`<id>#description`) localize at display time. .NET 889, EditMode 230, PlayMode 4 + 1 ignored capture.
 - Lease: worktree `simple-walk-game-wt-rc-grok0739` was resumed with the predecessor's stable `SWG_SESSION_ID=grok0739d` (its own lease, never `--force`). Released at the end of the session. No Dependabot PRs. Region 2 is still PROPOSED only. Next: an expedition-reward summary form plus expedition/care descriptions through the overlay (KI-023 residual); device lane (KI-002).

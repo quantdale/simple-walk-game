@@ -2716,3 +2716,11 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** `ProgressionNarrativeTests` (3): one sentence per authored stage, no digits or "stage", glance-safe lead, fallback, overlay. .NET 886/886 (headless-tested). EditMode 230/230 (Unity-editor-tested). Pacing evidence 7/7 reproduced, content compatibility passed. Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None (the stored text field is unchanged in shape, with no schema, content-hash or migration change).
+
+## D-141 — KI-023 closed: reward expedition lines and expedition/care descriptions localize at display time (2026-10-17)
+**Decision.** The last English-only application copy now goes through the D-122 overlay, display-only. `SummaryLineText` recognises the reward-suffixed form "{title} expedition complete (+{units} {Resource})." (`summary.expedition-complete-reward#text`, positional {0} title, {1} units verbatim, {2} resource; the resource name resolves from `resource.<ResourceType>#title`). `GameSession.GetExpeditions()` and the region read model's post-completion care row resolve descriptions from `<id>#description` (new `ContentText.Fields.Description`). Every miss falls back to the authored English: an untranslated line returns the stored bytes, a broken pattern falls back to the English form.
+
+**Tests.** `ExpeditionTextOverlayTests` (3, headless-tested). .NET 889/889 (headless-tested). EditMode 230/230 and PlayMode 4 passed + 1 opt-in capture ignored on the new code (Unity-editor-tested, batch mode). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None. Saves, schema, content versions and content hash are unchanged; stored lines stay English.
+
