@@ -32,7 +32,10 @@ namespace WalkGame.Shell.PlayModeTests
             {
                 string screen = Environment.GetEnvironmentVariable("WG_CAPTURE_SCREEN") ?? "Region";
                 ShellController c;
-                if (screen == "Celebration" || screen == "Discoveries" || screen == "EpilogueJournal")
+                string stateEnv = Environment.GetEnvironmentVariable("WG_CAPTURE_STATE");
+                bool seededMidLate = stateEnv == "mid" || stateEnv == "late";
+                // D-155: Discoveries with WG_CAPTURE_STATE=mid|late uses the mid/late save (open finds ahead) instead of a completed region.
+                if (screen == "Celebration" || (screen == "Discoveries" && !seededMidLate) || screen == "EpilogueJournal")
                 {
                     // Seeded completed-region state through the real pipeline (CompletedRegionFixture).
                     c = CompletedRegionFixture.Build(dir, out var done, out _);
@@ -124,6 +127,21 @@ namespace WalkGame.Shell.PlayModeTests
                     scroll.scrollOffset = new Vector2(0f, max);
                     for (int i = 0; i < 10; i++) yield return null;
                     Debug.Log("WG_CAPTURE_SCROLL offset=" + scroll.scrollOffset.y + " max=" + max);
+                }
+                // D-155: WG_CAPTURE_SCROLL_TO='text prefix' scrolls the first label starting with that text
+                // to the top of the viewport (e.g. "Getting there:"), so a mid-screen line can be captured.
+                string scrollTo = Environment.GetEnvironmentVariable("WG_CAPTURE_SCROLL_TO");
+                if (!string.IsNullOrEmpty(scrollTo))
+                {
+                    var scroll = doc.rootVisualElement.Q<ScrollView>("content");
+                    Assert.IsNotNull(scroll, "no content ScrollView to scroll");
+                    var target = doc.rootVisualElement.Query<Label>().Where(x => x.text != null && x.text.StartsWith(scrollTo, StringComparison.Ordinal)).First();
+                    Assert.IsNotNull(target, "no label starting with '" + scrollTo + "'");
+                    float max = Mathf.Max(0f, scroll.contentContainer.layout.height - scroll.contentViewport.layout.height);
+                    float y = target.worldBound.y - scroll.contentContainer.worldBound.y - 160f;
+                    scroll.scrollOffset = new Vector2(0f, Mathf.Clamp(y, 0f, max));
+                    for (int i = 0; i < 10; i++) yield return null;
+                    Debug.Log("WG_CAPTURE_SCROLL_TO offset=" + scroll.scrollOffset.y + " max=" + max);
                 }
                 if (!string.IsNullOrEmpty(expectButton))
                 {

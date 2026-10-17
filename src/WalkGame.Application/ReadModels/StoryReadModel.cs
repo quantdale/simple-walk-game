@@ -38,9 +38,19 @@ namespace WalkGame.Application.ReadModels
             public bool Unlocked { get; }
             public DateTimeOffset? UnlockedAtUtc { get; }
 
+            /// <summary>D-155: the authored restoration milestones (project ids) this chapter needs,
+            /// straight from <c>StoryChapterDefinition.RequiredProjectIds</c>. Ids only, never copy.</summary>
+            public IReadOnlyList<string> RequiredProjectIds { get; }
+
+            /// <summary>D-155: completed care cycles the chapter needs (0 for restoration chapters).</summary>
+            public long MinCareCycles { get; }
+
             public ChapterRow(string chapterId, int number, string titleKey, string? bodyKey, string hintKey,
-                bool unlocked, DateTimeOffset? unlockedAtUtc)
+                bool unlocked, DateTimeOffset? unlockedAtUtc,
+                IReadOnlyList<string>? requiredProjectIds = null, long minCareCycles = 0)
             {
+                RequiredProjectIds = requiredProjectIds ?? Array.Empty<string>();
+                MinCareCycles = minCareCycles;
                 ChapterId = chapterId;
                 Number = number;
                 TitleKey = titleKey;

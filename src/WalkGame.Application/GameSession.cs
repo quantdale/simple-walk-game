@@ -1544,7 +1544,8 @@ namespace WalkGame.Application
                 rows.Add(new StoryReadModel.ChapterRow(
                     p.Chapter.Id, p.Chapter.Number, ContentTitle(p.Chapter.Id, p.Chapter.TitleKey),
                     p.Unlocked ? ContentLocale.Resolve(p.Chapter.Id, WalkGame.Application.Content.ContentText.Fields.Body, p.Chapter.BodyKey) : null,
-                    ContentLocale.Resolve(p.Chapter.Id, WalkGame.Application.Content.ContentText.Fields.Hint, p.Chapter.HintKey), p.Unlocked, p.UnlockedAtUtc));
+                    ContentLocale.Resolve(p.Chapter.Id, WalkGame.Application.Content.ContentText.Fields.Hint, p.Chapter.HintKey), p.Unlocked, p.UnlockedAtUtc,
+                    p.Chapter.RequiredProjectIds, p.Chapter.MinCareCycles));
             }
 
             return new StoryReadModel(rows, StoryProgress.UnlockedCount(progress), nextHint);
@@ -1633,7 +1634,8 @@ namespace WalkGame.Application
                     definition.LocationKey,
                     isUnlocked,
                     runtime?.DiscoveredAtUtc,
-                    runtime?.Reviewed ?? false));
+                    runtime?.Reviewed ?? false,
+                    definition.UnlockedByProjectId));
             }
 
             return new DiscoveriesReadModel(rows, _content.Discoveries.Count, unlocked, unreviewed);
