@@ -259,3 +259,8 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - D-158: `LocalDayViewsConsistencyPropertyTests` (10 seeds × 400 steps) pins that days walked (maintained) and per-day earnings/Today (derived) agree through day-moving corrections, deletions, retirement and reloads. No finding; a mutation check (dropping `MaybeForgetDay`) fails it.
 - Next candidates: device lane (KI-002) to verify `endZoneOffset` and the Today line on a phone; iOS composition (KI-022) would wire `DeviceZoneOffsets.Local` for HealthKit. Region 2 still needs Michael's gate.
 - Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017g` (no `--force`). Removed the merged clean `wt-dailyearn-grok1017f`. Region 2 is still not approved.
+
+## Session note 2026-10-17 (grok1017h)
+- D-159: `Region1PlaythroughTests` plays onboarding → closure → care chapter → full epilogue for low/irregular/high × catalog/cheapest/deepest-first choices. Finding fixed: the survey closed the region with the canopy walkway unbuilt (cheapest-first), locking chapters 7–9 behind a project nobody was prompted for. `MeetsClosureCriterion` now enforces the chain minimum on the milestone route; the validator accepts pre-D-159 closures (`ExplainsRecordedCompletion`). OpenSpec `enforce-closure-chain-minimum`. KI-026 (summary rotation drops a completion line on crowded days) logged low/accepted.
+- Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017h` (no `--force`). Region 2 still not approved.
+

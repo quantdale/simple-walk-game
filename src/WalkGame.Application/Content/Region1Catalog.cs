@@ -449,8 +449,10 @@ namespace WalkGame.Application.Content
             // Closure is authored as a criterion, not inferred from the roster's total cost.
             //
             // The criterion requires the whole valley: the survey milestone is the primary
-            // route, and its prerequisite closure spans all six chains, so the authored minimum
-            // is all six of them. A WEAKER alternative (five of six, or four of six) was
+            // route and the authored minimum is all six chains. The survey's prerequisite
+            // closure touches every chain but does NOT contain every project (the canopy
+            // walkway is no prerequisite of it), so the chain minimum is enforced on the
+            // milestone route too (D-159), not assumed from the prerequisite graph. A WEAKER alternative (five of six, or four of six) was
             // authored, measured, and rejected: with the five-seed definitions frozen and the
             // conversion rate fixed, a weekday-only player can fund the whole rebalanced
             // roster, and a five-chain route closes the region BEFORE the survey for players

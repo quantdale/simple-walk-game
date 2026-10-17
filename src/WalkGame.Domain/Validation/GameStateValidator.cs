@@ -277,7 +277,7 @@ namespace WalkGame.Domain.Validation
             if (state.Region.IsCompleted)
             {
                 var criterion = content.ClosureCriterion;
-                if (criterion != null && !content.MeetsClosureCriterion(state.Region))
+                if (criterion != null && !content.ExplainsRecordedCompletion(state.Region))
                 {
                     violations.Add(
                         "Region is marked completed but its authored closure criterion is not satisfied: milestone '"
