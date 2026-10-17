@@ -38,8 +38,32 @@ if ! git -C "$root" fetch --quiet "$BASE_REMOTE" "+refs/heads/main:refs/remotes/
     exit 1
 fi
 BASE_SHA="$(git -C "$root" rev-parse --verify "refs/remotes/$BASE_REMOTE/main^{commit}")"
+
+# Self-update (D-150): a stale checkout runs ITS OWN copy of this script, which may predate
+# the fetch-and-base fix (that is how a session was branched from stale e44b282 after #61).
+# If the copy being executed differs from <remote>/main's copy, re-exec the fetched copy so
+# the newest contract always applies regardless of which checkout invoked it.
+if [ -z "${SWG_WORKTREE_REEXEC:-}" ] && [ -f "$0" ]; then
+    SELF_BLOB="$(git hash-object "$0")"
+    MAIN_BLOB="$(git -C "$root" rev-parse --verify --quiet "$BASE_SHA:scripts/new-agent-worktree.sh" || true)"
+    if [ -n "$MAIN_BLOB" ] && [ "$SELF_BLOB" != "$MAIN_BLOB" ]; then
+        TMP_SCRIPT="$(mktemp)"
+        git -C "$root" cat-file blob "$MAIN_BLOB" > "$TMP_SCRIPT"
+        echo "This copy of new-agent-worktree.sh differs from $BASE_REMOTE/main; re-running the fetched copy." >&2
+        SWG_WORKTREE_REEXEC="$TMP_SCRIPT"; export SWG_WORKTREE_REEXEC
+        exec sh "$TMP_SCRIPT" "$CAMPAIGN" "$SESSION"
+    fi
+fi
+[ -n "${SWG_WORKTREE_REEXEC:-}" ] && [ -f "$SWG_WORKTREE_REEXEC" ] && rm -f "$SWG_WORKTREE_REEXEC"
 echo "Base: freshly fetched $BASE_REMOTE/main at $BASE_SHA"
 git -C "$root" worktree add --no-track -b "$BRANCH" "$WT" "$BASE_SHA"
+# Self-check: the new worktree must sit exactly on the fetched base, never the invoking HEAD.
+GOT_SHA="$(git -C "$WT" rev-parse HEAD)"
+if [ "$GOT_SHA" != "$BASE_SHA" ]; then
+    echo "SELF-CHECK FAILED: new worktree HEAD $GOT_SHA != fetched base $BASE_SHA" >&2
+    exit 1
+fi
+echo "Self-check OK: worktree HEAD == $BASE_REMOTE/main ($BASE_SHA)"
 echo ""
 echo "WORKTREE READY: $WT (branch $BRANCH)"
 echo "Configuring guards inside the new worktree..."

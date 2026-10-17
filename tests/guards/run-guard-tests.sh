@@ -17,6 +17,7 @@
 #  12. new-agent-worktree.sh honours SWG_SESSION_ID (KI-008)
 #  13. install-git-hooks.sh --allow-no-origin works only in remote-less fixtures (KI-007)
 #  14. new-agent-worktree.sh branches from a freshly fetched <remote>/main, refuses on fetch failure
+#  15. a stale checkout's older copy of new-agent-worktree.sh re-execs the fetched main copy (D-150)
 set -u
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -219,6 +220,18 @@ else bad "worktree HEAD $GOT14; want fetched $ADV14 (stale local $STALE14)"; fi
 git -C "$C14" remote add fixture-dead "$SANDBOX/does-not-exist"
 expect_in_exit "fetch failure refuses (no stale fallback)" 1 "$C14" env SWG_WORKTREE_BASE_REMOTE=fixture-dead SWG_SESSION_ID=s14 sh "$C14/scripts/new-agent-worktree.sh" camp d
 if [ ! -e "$C14/../simple-walk-game-wt-camp-d" ]; then ok "no worktree created after fetch failure"; else bad "worktree created despite fetch failure"; fi
+
+echo "== scenario 15: a STALE copy of new-agent-worktree.sh re-execs the fetched main copy =="
+C15="$(new_clone s15)"
+printf '%s\n' 'echo "FIXTURE-FRESH-COPY-RAN" >&2' >> "$GOLDEN/scripts/new-agent-worktree.sh"
+git -C "$GOLDEN" add -A
+git -C "$GOLDEN" -c user.name=fixture -c user.email=fixture@local commit -qm "fixture: script advanced on main"
+ADV15="$(git -C "$GOLDEN" rev-parse HEAD)"
+git -C "$C15" remote add fixture-base "$GOLDEN"
+OUT15="$( (cd "$C15" && env SWG_WORKTREE_BASE_REMOTE=fixture-base SWG_SESSION_ID=s15 sh "$C15/scripts/new-agent-worktree.sh" camp e) 2>&1)"
+case "$OUT15" in *FIXTURE-FRESH-COPY-RAN*) ok "stale invoking copy re-executed the fetched main copy";; *) bad "fetched copy did not run: $OUT15";; esac
+GOT15="$(git -C "$C15/../simple-walk-game-wt-camp-e" rev-parse HEAD 2>/dev/null || echo none)"
+if [ "$GOT15" = "$ADV15" ]; then ok "worktree from stale checkout is based on fetched main"; else bad "worktree HEAD $GOT15; want $ADV15"; fi
 
 echo "== scenario 13: hook installer in a remote-less fixture (KI-007) =="
 C13="$SANDBOX/s13"; git clone -q --no-hardlinks "$GOLDEN" "$C13"; git -C "$C13" remote remove origin
