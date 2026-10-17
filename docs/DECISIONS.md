@@ -3575,3 +3575,23 @@ It follows Unity's import rules: dot-names, `~` names, and the contents of `*.an
 - **CI:** runs `--selftest-rule7` and the four new self-tests before their real gates.
 
 **Evidence.** Every self-test passes. `verify-ci-wiring.sh` reports 10 wired, 0 not wired. `scripts/verify-ci-steps.sh` replays the CI wiring, Architecture, Pacing, Save-growth, Coverage and Dependency steps locally, all ok. Labels: headless-tested. Shell tooling only: no product code or save format change.
+
+## D-188 — Permission revocation and provider loss are pinned end to end through the shell (2026-10-17)
+
+**Status:** Accepted (engineering authority; style-neutral hardening, 2026-10-17 ~8 PM Asia/Manila). Tests only; no product code or copy change.
+
+**Why.** The projector (D-043/D-093/D-144) and the Health Connect adapter (D-068) are each tested in isolation. Nothing drove a mid-session change through the real adapter, `ShellController` resume, the Activity screen and the save together.
+
+**Decision.** New EditMode suite `ActivityConnectionLifecycleTests` (9 tests). It runs the real `HealthConnectActivityAdapter` over a fake JNI bridge, behind a `ShellController`. It pins:
+- **Revoked mid-session:** no provider read on later resumes; "Access to walking data is turned off…" plus "Next: turn access back on in your phone's settings"; no Connect action; earned Vitality unchanged; Home and Settings still render.
+- **Re-granted:** read at once; re-delivered walks credit nothing; a new walk counts exactly once; status back to connected.
+- **Read refused mid-read (`error:permission`) and a crashing bridge:** contained; refresh-failed text and "try again on its own"; the next resume retries; no double credit.
+- **Health Connect removed:** unavailable text, no read, no Connect dead end.
+- **Provider update required:** update text and next step, no read; reads resume after the update with no double credit.
+- **Unreadable SDK status:** no read, no crash, progress kept. The projected *status* is left open as KI-030 (see below).
+- **Restart:** a revocation persists across a restart, the new process does not read, and the reloaded save keeps every credited walk.
+- **Revoked and restored while paused:** just a normal read; the player is never asked to reconnect.
+
+**Found, not fixed (KI-030).** For an unreadable provider status the adapters report `NotRequested` on purpose, so a connected player is told to "connect". The projector fix conflicts with D-144's pinned matrix invariant, so it was reverted and logged for Michael with options and a recommendation.
+
+**Evidence.** EditMode 332/332 (+9); .NET unchanged at 1211/1211. Labels: Unity-editor-tested; real Health Connect UNVERIFIED (KI-002).
