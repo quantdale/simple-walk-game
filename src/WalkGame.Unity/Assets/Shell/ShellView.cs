@@ -71,7 +71,7 @@ namespace WalkGame.Shell
             if (model.Notice != null)
             {
                 bool error = model.State == ScreenState.Error;
-                var notice = Text((error ? "Problem: " : "Note: ") + model.Notice, BodySize * k, error ? ErrorInk : Ink);
+                var notice = Text(PlayerStrings.F(error ? "label.problem" : "label.note", model.Notice), BodySize * k, error ? ErrorInk : Ink);
                 notice.name = error ? "error" : "notice";
                 notice.style.borderLeftWidth = 4;
                 notice.style.borderLeftColor = error ? ErrorInk : Accent;
