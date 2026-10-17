@@ -3104,3 +3104,16 @@ Everything is derived from canonical state at read time, in the Application laye
 - `VisualChangeStreamTests` (3): every day of the same run, the timestamp stream equals the world-view diff, minus construction. The full history is ordered and ends in RegionCompleted. Reload gives a stable stream, and `since` only filters. A legacy untimed completion becomes baseline; an unexplainable stage gives an empty stream.
 - Mutation check: suppressing Functional stages, or Ida's dialogue, in the projector fails the suites.
 - .NET 1143/1143; architecture 15/15; content compatibility, save growth and pacing evidence pass; simulation smoke and validate selftest pass. Labels: headless-tested. Unity not run (no Unity change).
+
+## D-168 — Art-direction checkpoint package delivered; recommendation B, awaiting Michael (2026-10-17)
+
+**Status:** Accepted (agent record). The art direction itself is **not decided**: that is Michael's gate (D-164).
+
+**Decision (record).**
+- The D-164 / brief §8 package was delivered to Michael on 2026-10-17 at 3:30 PM Asia/Manila. It contains three concepts: A, painted layered 2D; B, cozy isometric diorama; C, low-poly 3D tilt-shift. Each has a gameplay screen, a Nell dialogue sample with choices and Skip, a ruined-vs-restored comparison and a production/animation/performance pipeline. The agent recommendation is **B**, with painted portraits for dialogue. A is the runner-up if an illustrator can be funded.
+- The package stays **off-repo** (`/workspace/art-checkpoint/` on the agents' box). Its images are AI-generated concept material, which `docs/ASSET_LICENSES.md` does not allow without a DECISIONS entry. `docs/direction/ART_CHECKPOINT_2026-10-17.md` is the text-only in-repo summary.
+- Until Michael chooses, agents do only style-neutral work. No art-style-specific Unity UI is built, no assets are produced, and the text shell stays.
+
+**Caveats recorded:** AI concept images are not final art (flat, not pixel-registered between states, not modular or rig-ready); portraits need illustration; A at production quality needs a human illustrator; a licensing decision is required before any AI-derived asset ships.
+
+**Evidence:** none in code (records only). Labels: documentation.
