@@ -2673,3 +2673,13 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Tests.** EditMode `D136_title_size_grows_at_half_rate_and_stays_above_body`. The large-text test now expects `TitleSizeFor(2f)` and still asserts the title is larger than body (intended behaviour change, not a removed test). EditMode 227/227 + 1 ignored (Unity-editor-tested). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None (presentation only).
+
+## D-137 — No Inconclusive EditMode tests; RC check on 86f767a (2026-10-17)
+
+**Context.** The release-candidate clean-clone check on `86f767a` (`scripts/validate-clean-clone.sh --with-unity`) passed every lane except Unity EditMode. That lane reported 227 passed and 1 inconclusive, and Unity exits 2 on an inconclusive test, so the lane failed. The inconclusive test was `SyncReentrancyTests.Double_tapped_start_on_a_project_is_a_no_op_not_an_error`. Since the Guide queues the only open project, Projects offers no `queue:` action after `Started()`, so the test's `Assume` gave up.
+
+**Decision.** The test now walks the Guide until the Guide offers its own Start, double-taps that, and uses `Assert` (not `Assume`). The assertion is not weakened. Tests must not depend on `Assume` for reachable states. No production change.
+
+**Tests.** EditMode 228/228, 0 inconclusive (Unity-editor-tested). .NET 871/871 (headless-tested). The other clean-clone lanes on `86f767a` passed: CI-step reproduction 19 ok, PlayMode 4 + 1 ignored, arm64 APK built. Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None.
