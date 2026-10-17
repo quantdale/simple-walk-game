@@ -24,6 +24,8 @@ namespace WalkGame.Application.Summaries
 
         private readonly ContentText _text;
         private readonly Dictionary<string, string> _titleToId = new Dictionary<string, string>(StringComparer.Ordinal);
+        private readonly HashSet<string> _projectIds = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> _expeditionIds = new HashSet<string>(StringComparer.Ordinal);
 
         // Ordered: more specific forms first ("X's restoration is complete." before "X is complete.").
         // Group "t" is a content title (re-localized); group "n" is a number kept verbatim.
@@ -59,16 +61,19 @@ namespace WalkGame.Application.Summaries
 
         private static Regex R(string p) => new Regex(p, RegexOptions.CultureInvariant);
 
+        /// <summary>The overlay this instance renders with.</summary>
+        public ContentText Locale => _text;
+
         public SummaryLineText(ContentText text, RegionDefinition content)
         {
             _text = text ?? throw new ArgumentNullException(nameof(text));
             if (content == null) throw new ArgumentNullException(nameof(content));
             Add(content.Id.Value, content.TitleKey);
-            foreach (var p in content.Projects) Add(p.Id.Value, p.TitleKey);
+            foreach (var p in content.Projects) { Add(p.Id.Value, p.TitleKey); _projectIds.Add(p.Id.Value); }
             foreach (var l in content.Landmarks) Add(l.Id.Value, l.TitleKey);
             foreach (var p in content.Producers) Add(p.Id.Value, p.TitleKey);
             foreach (var d in content.Discoveries) Add(d.Id.Value, d.TitleKey);
-            foreach (var e in content.Expeditions) Add(e.Id.Value, e.TitleKey);
+            foreach (var e in content.Expeditions) { Add(e.Id.Value, e.TitleKey); _expeditionIds.Add(e.Id.Value); }
             foreach (var c in content.Chapters) Add(c.Id, c.TitleKey);
         }
 
@@ -128,6 +133,85 @@ namespace WalkGame.Application.Summaries
                 catch (FormatException) { return string.Format(CultureInfo.InvariantCulture, english, arg); }
             }
             return line;
+        }
+
+        // ------------------------------------------------------------------ D-162 display copy
+
+        /// <summary>D-162: English display forms for stored lines whose stored form reads badly with
+        /// imperative project titles or "... Route" expedition titles. A locale's own pattern wins.</summary>
+        public const string ProjectReadyDisplayEnglish = "Ready to queue: {0}.";
+        public const string ExpeditionReadyDisplayEnglish = "A new expedition is open: {0}.";
+        public const string ExpeditionCompleteDisplayEnglish = "Expedition walked: {0}.";
+        public const string ExpeditionRewardDisplayEnglish = "Expedition walked: {0} (+{1} {2}).";
+        /// <summary>Fallback completion form for a known project with no authored completion sentence.</summary>
+        public const string ProjectCompleteFallbackEnglish = "Finished: {0}.";
+
+        private static readonly Regex ProjectCompleteLine = R(@"^(?<t>.+) is complete\.$");
+        private static readonly Regex ProjectReadyLine = R(@"^(?<t>.+) is ready to queue\.$");
+        private static readonly Regex ExpeditionReadyLine = R(@"^(?<t>.+) route is ready\.$");
+        private static readonly Regex ExpeditionCompleteLine = R(@"^(?<t>.+) expedition complete\.$");
+
+        /// <summary>
+        /// D-162: the line a player sees for one stored summary line, in EVERY locale including
+        /// English. Lines naming a known project or expedition are re-rendered in a form that reads
+        /// well with any title ("The valley survey is complete.", "Ready to queue: Clear the old
+        /// trailhead."); everything else is <see cref="Localize"/>. The stored line is never changed,
+        /// and shells keep parsing the stored text, never this.
+        /// </summary>
+        public string Display(string? stored)
+        {
+            if (string.IsNullOrEmpty(stored)) return stored ?? string.Empty;
+            string line = stored!;
+            const string Sentinel = "\u0000";
+
+            var pc = ProjectCompleteLine.Match(line);
+            if (pc.Success && !line.EndsWith("'s restoration is complete.", StringComparison.Ordinal)
+                && TryId(pc.Groups["t"].Value, _projectIds, out var pid))
+            {
+                string own = _text.Resolve(pid, ContentText.Fields.Completed, Sentinel);
+                if (own != Sentinel) return own;
+                if (_text.Resolve(PatternId("project-complete"), Field, Sentinel) != Sentinel) return Localize(line);
+                var authored = Region1SummaryCopy.CompletedLine(pid);
+                return authored ?? Format(ProjectCompleteFallbackEnglish, LocalTitle(pc.Groups["t"].Value));
+            }
+
+            var pr = ProjectReadyLine.Match(line);
+            if (pr.Success && TryId(pr.Groups["t"].Value, _projectIds, out _))
+                return Format(_text.Resolve(PatternId("project-ready"), Field, ProjectReadyDisplayEnglish), LocalTitle(pr.Groups["t"].Value), ProjectReadyDisplayEnglish);
+
+            var er = ExpeditionReadyLine.Match(line);
+            if (er.Success && TryId(er.Groups["t"].Value, _expeditionIds, out _))
+                return Format(_text.Resolve(PatternId("expedition-ready"), Field, ExpeditionReadyDisplayEnglish), LocalTitle(er.Groups["t"].Value), ExpeditionReadyDisplayEnglish);
+
+            var ew = ExpeditionReward.Match(line);
+            if (ew.Success && TryId(ew.Groups["t"].Value, _expeditionIds, out _))
+            {
+                string rawRes = ew.Groups["r"].Value;
+                string pattern = _text.Resolve(PatternId(ExpeditionRewardName), Field, ExpeditionRewardDisplayEnglish);
+                object[] args = { LocalTitle(ew.Groups["t"].Value), ew.Groups["n"].Value, _text.Resolve(ResourceId(rawRes), ContentText.Fields.Title, rawRes) };
+                try { return string.Format(CultureInfo.InvariantCulture, pattern, args); }
+                catch (FormatException) { return string.Format(CultureInfo.InvariantCulture, ExpeditionRewardDisplayEnglish, args); }
+            }
+
+            var ec = ExpeditionCompleteLine.Match(line);
+            if (ec.Success && TryId(ec.Groups["t"].Value, _expeditionIds, out _))
+                return Format(_text.Resolve(PatternId("expedition-complete"), Field, ExpeditionCompleteDisplayEnglish), LocalTitle(ec.Groups["t"].Value), ExpeditionCompleteDisplayEnglish);
+
+            return Localize(line);
+        }
+
+        private bool TryId(string englishTitle, HashSet<string> kind, out string id)
+        {
+            id = string.Empty;
+            if (!_titleToId.TryGetValue(englishTitle, out var found) || found.Length == 0 || !kind.Contains(found)) return false;
+            id = found;
+            return true;
+        }
+
+        private static string Format(string pattern, string arg, string? englishFallback = null)
+        {
+            try { return string.Format(CultureInfo.InvariantCulture, pattern, arg); }
+            catch (FormatException) { return string.Format(CultureInfo.InvariantCulture, englishFallback ?? "{0}", arg); }
         }
 
         private string LocalTitle(string englishTitle) =>

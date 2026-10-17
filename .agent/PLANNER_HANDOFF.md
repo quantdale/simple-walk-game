@@ -265,3 +265,7 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017h` (no `--force`). Region 2 still not approved.
 - D-160: the celebration leads with a "What you restored:" recap derived from read models (display only). PNGs in docs/evidence/d160-restored-recap/ (editor-rendered).
 - D-161: RC on f046934, 11/11 mechanical PASS (`docs/evidence/rc-f046934/`). Next: onboarding step captures at 1x/2x; KI-026 summary priority if playtests show confusion; device lane (KI-002). Region 2 still needs Michael's gate.
+
+## Session note 2026-10-17 (grok1017i)
+- Lease: reused worktree `wt-a11y-grok1017d` with `SWG_SESSION_ID=grok1017i` (no `--force`). Region 2 still not approved.
+- D-162: copy-quality sweep. `SummaryLineText.Display` gives the player-facing form of stored summary lines in every locale, including English. Per-project completion sentences live in `Region1SummaryCopy` (overlay `<id>#completed`). Stored lines are unchanged. `SummaryCopyQualityTests.Problems` is the shared checker; reuse it for any new template that takes a title.

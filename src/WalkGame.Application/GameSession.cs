@@ -2268,7 +2268,22 @@ namespace WalkGame.Application
         private ReturnSummaryReadModel? SnapshotSummary(GameState game) =>
             game.PendingReturnSummary == null
                 ? null
-                : ReturnSummaryReadModel.FromState(game.PendingReturnSummary, _clock.UtcNow, SummaryLocalizer());
+                : ReturnSummaryReadModel.FromState(game.PendingReturnSummary, _clock.UtcNow, SummaryDisplay());
+
+        private WalkGame.Application.Summaries.SummaryLineText? _summaryText;
+
+        /// <summary>
+        /// D-162: read-time display form of stored summary lines in every locale, English included
+        /// (imperative project titles and "... Route" expedition titles get a form that reads well).
+        /// Stored text is untouched; <see cref="ReturnSummaryReadModel.ItemRow.Text"/> stays canonical.
+        /// </summary>
+        private Func<string?, string> SummaryDisplay()
+        {
+            var t = _summaryText;
+            if (t == null || !ReferenceEquals(t.Locale, ContentLocale))
+                _summaryText = t = new WalkGame.Application.Summaries.SummaryLineText(ContentLocale, _content);
+            return t.Display;
+        }
 
         /// <summary>D-138: read-time display localizer for stored summary lines (null in English).</summary>
         private Func<string?, string>? SummaryLocalizer()

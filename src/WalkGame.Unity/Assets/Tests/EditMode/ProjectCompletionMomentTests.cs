@@ -31,7 +31,7 @@ namespace WalkGame.Shell.Tests
             c.Invoke("nav:ReturnSummary");
             var m = c.Render();
             string all = string.Join("\n", m.Lines);
-            int at = m.Lines.FindIndex(l => l == "Clear the old trailhead is complete.");
+            int at = m.Lines.FindIndex(l => l == "The old trailhead is clear."); // D-162 display form of "Clear the old trailhead is complete."
             Assert.That(at, Is.GreaterThanOrEqualTo(0), all);
             Assert.That(m.Lines[at + 1], Does.StartWith("Old Trailhead is now stabilized."), all);
             StringAssert.Contains("The Way In", m.Lines[at + 1]);

@@ -369,8 +369,12 @@ public sealed class Region1PlaythroughTests : IDisposable
         if (summary == null) return;
         foreach (var item in summary.Items)
         {
-            run.SummaryLines.Add(item.DisplayText);
-            run.FirstSeenDay.TryAdd(item.DisplayText, day);
+            // Announcement is checked on the stored line (what shells parse); D-162: what the
+            // player actually reads is the display form, and every one of those must read well.
+            run.SummaryLines.Add(item.Text);
+            run.FirstSeenDay.TryAdd(item.Text, day);
+            var problems = SummaryCopyQualityTests.Problems(item.DisplayText);
+            Assert.True(problems.Count == 0, $"day {day}: \"{item.DisplayText}\" ({string.Join("; ", problems)})");
         }
         Assert.True(session.AcknowledgeReturnSummary().IsSuccess);
     }
