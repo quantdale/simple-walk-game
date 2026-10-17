@@ -118,14 +118,17 @@ namespace WalkGame.Shell.Presentation
     /// <summary>The lines of the characters at a place, in order. Always skippable.</summary>
     public sealed class DialogueSequence
     {
-        public DialogueSequence(string locationId, IReadOnlyList<DialogueBeat> beats)
+        public DialogueSequence(string locationId, IReadOnlyList<DialogueBeat> beats, IReadOnlyList<DialogueAction>? actions = null)
         {
             LocationId = locationId;
             Beats = beats ?? throw new ArgumentNullException(nameof(beats));
+            Actions = actions ?? Array.Empty<DialogueAction>();
         }
 
         public string LocationId { get; }
         public IReadOnlyList<DialogueBeat> Beats { get; }
+        /// <summary>KI-027(d): actions offered under the lines (Inspect / Help restore / Maybe later, bible §16). Any can be taken at any beat.</summary>
+        public IReadOnlyList<DialogueAction> Actions { get; }
         public int Index { get; internal set; }
         public bool IsFinished => Index >= Beats.Count;
         public DialogueBeat? Current => IsFinished ? null : Beats[Index];

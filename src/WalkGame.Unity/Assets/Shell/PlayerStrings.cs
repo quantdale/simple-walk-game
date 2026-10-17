@@ -245,6 +245,10 @@ namespace WalkGame.Shell
             ["label.prologue"] = "Prologue · {0}",
             ["label.chapter"] = "Chapter {0} · {1}",
             ["label.storyLine"] = "Story: {0} Next: {1}",
+            // World dialogue actions (KI-027d, bible §15–§16)
+            ["dialogue.action.inspect"] = "Inspect",
+            ["dialogue.action.helpRestore"] = "Help restore",
+            ["dialogue.action.maybeLater"] = "Maybe later",
             ["shell.story.epilogue"] = "Story: Millbrook's story is complete. The valley stays restored, and every chapter is here to reread.",
         };
 
