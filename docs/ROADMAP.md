@@ -670,3 +670,4 @@ The project should prefer **fewer, larger, integrated campaigns** over fragmente
 - [x] 2026-10-17 grok1757: D-184 CI guard `scripts/verify-unity-meta.sh` (missing/orphan .meta, duplicate or malformed GUIDs under Unity Assets) with a self-test that proves it can fail.
 - [x] 2026-10-17 grok1902: D-185 (amends D-107) a resume within 30 s of the last successful provider read skips the 30-day read (reload/UI still run); cold start, grant/permission change and failed/partial reads always read.
 - [x] 2026-10-17 grok1902: D-186 effective reduced motion = in-game setting OR phone setting (Android animator_duration_scale == 0, iOS UIAccessibility.isReduceMotionEnabled) behind IOsMotionPreference with a null editor adapter; native reads UNVERIFIED on device.
+- [x] 2026-10-17 grok1927: D-187 CI wiring gate (every verify-* gate and its self-test runs in CI); self-tests for pacing/save-growth/coverage/dependency gates; dependency-health no longer ignores non-System packages.
