@@ -20,6 +20,8 @@
 #      except src/WalkGame.Unity, the only engine-bearing project (rule 7 covers it).
 #   5. Domain and Application perform no filesystem access.
 #   6. Every script CI invokes directly is committed executable and LF-only.
+#      "Invokes" means any live run line, one-line or block form (D-191);
+#      `verify-architecture.sh --selftest-rule6` proves the extraction.
 #   7. Unity shell scripts never mutate canonical Domain state: no canonical
 #      state/ledger/factory types are named, and Infrastructure adapters are
 #      constructed only in the composition root (ShellBootstrap.cs) and tests.
@@ -125,6 +127,37 @@ rule7_violations() { # assets_root
     grep -rnE --include=*.cs "$UNITY_ADAPTERS" "$root" | grep -v '/ShellBootstrap\.cs:' | grep -v '/Tests/' || true
 }
 
+# Rule 6 extraction: every repository shell script a live ci.yml line invokes.
+ci_invoked_scripts() { # ci.yml
+    # Any live line (not a comment, not a step name) of a run step, one-line or block form.
+    grep -vE '^[[:space:]]*(#|-?[[:space:]]*name:)' "$1" 2>/dev/null \
+        | grep -oE '(^|[^A-Za-z0-9_./-])(scripts|tests/guards|tools)/[A-Za-z0-9._/-]*\.sh' \
+        | sed -E 's#^[^a-z]*##' | sort -u
+}
+
+if [ "${1:-}" = "--selftest-rule6" ]; then
+    # D-191: the extraction must see block-form (`run: |`) and chained invocations, and must
+    # ignore commented-out ones. Before D-191 it saw only `run: scripts/x.sh` on one line, so
+    # every multi-line step silently dropped out of rule 6.
+    t="$(mktemp -d)"; trap 'rm -rf "$t"' EXIT
+    cat > "$t/ci.yml" <<'YML'
+      - name: one-line step
+        run: scripts/one-line.sh --flag
+      - run: |
+          scripts/block-a.sh --self-test
+          scripts/block-a.sh
+          tests/guards/block-guard.sh && tools/android/chained.sh
+      # - run: scripts/commented-out.sh
+      - name: mentions scripts/in-a-name.sh only in prose
+        run: echo done
+YML
+    got="$(ci_invoked_scripts "$t/ci.yml" | tr '\n' ' ')"
+    want="scripts/block-a.sh scripts/one-line.sh tests/guards/block-guard.sh tools/android/chained.sh "
+    if [ "$got" = "$want" ]; then echo "  PASS: rule 6 extraction sees one-line, block and chained steps, not comments or names"; exit 0; fi
+    echo "  FAIL: rule 6 extraction got [$got], want [$want]" >&2
+    exit 1
+fi
+
 if [ "${1:-}" = "--selftest-rule7" ]; then
     t="$(mktemp -d)"; trap 'rm -rf "$t"' EXIT
     mkdir -p "$t/clean/Shell" "$t/dirty/Shell" "$t/adapter/Shell"
@@ -211,11 +244,7 @@ EOF
 done
 
 echo "== rule 6: CI-invoked scripts are executable and LF-only =="
-ci_scripts="$(sed -n 's/^[[:space:]]*run:[[:space:]]*\(scripts\/[A-Za-z0-9._-]*\.sh\).*/\1/p' \
-             .github/workflows/ci.yml 2>/dev/null | sort -u)"
-ci_scripts="$ci_scripts
-$(sed -n 's/^[[:space:]]*run:[[:space:]]*\(tests\/guards\/[A-Za-z0-9._/-]*\.sh\).*/\1/p' \
-             .github/workflows/ci.yml 2>/dev/null | sort -u)"
+ci_scripts="$(ci_invoked_scripts .github/workflows/ci.yml)"
 
 if [ -z "$(printf '%s' "$ci_scripts" | tr -d '[:space:]')" ]; then
     bad "no CI-invoked shell scripts were discovered; the extraction pattern is broken"
