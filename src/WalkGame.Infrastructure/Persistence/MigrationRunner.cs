@@ -60,6 +60,9 @@ namespace WalkGame.Infrastructure.Persistence
                 return false;
             }
 
+            // D-142: work on a local; the caller's payload is replaced only after the WHOLE chain
+            // succeeds, so a mid-chain failure never leaves a half-migrated node behind.
+            JsonNode working = payload;
             int current = fromVersion;
             var applied = new List<string>();
             while (current < toVersion)
@@ -80,10 +83,10 @@ namespace WalkGame.Infrastructure.Persistence
                     return false;
                 }
 
+                JsonNode? result;
                 try
                 {
-                    var working = payload.DeepClone();
-                    payload = next.Migrate(working);
+                    result = next.Migrate(working.DeepClone());
                 }
                 catch (Exception ex)
                 {
@@ -91,10 +94,18 @@ namespace WalkGame.Infrastructure.Persistence
                     return false;
                 }
 
+                if (result == null)
+                {
+                    error = $"Migration '{next.MigrationId}' returned no payload.";
+                    return false;
+                }
+
+                working = result;
                 applied.Add(next.MigrationId);
                 current = next.ToVersion;
             }
 
+            payload = working;
             appliedIds = applied;
             return true;
         }
