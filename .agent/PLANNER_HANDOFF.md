@@ -308,3 +308,9 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - **Awaiting Michael:** the pick, D-170 (AI-art policy) and who paints the final layered art. Until then: no asset production, no style guide, no art-style UI rebuild, no AI image in the repo, no Region 2, no Android device testing.
 - Allowed meanwhile: style-neutral hardening (persistence, migrations, offline progression, ingestion, presentation memory, accessibility of the existing non-art UI logic), with tests.
 - D-177 (KI-027 e): no Unity packages added. The 2D set is chosen with Michael's pick (A: 2D Sprite, 2D Animation, PSD Importer, Animation + Particle modules, no URP) and added in one reviewed PR with an arm64 APK build check.
+- Style-neutral hardening (grok1725), all merged:
+  - D-178 (#179): exactly-once fix. A record revised down and back up, or deleted and re-added, while the balance was spent minted +1 Vitality per cycle. The correction pool is now clamped to 0..99, like deletions.
+  - D-179 (#180): preferences and presentation memory are replaced atomically with `File.Replace`. A crash can no longer reset reduced motion, notifications or the onboarding stage. The M5-H1 rule that a lone temporary is never trusted is kept.
+  - KI-028 (open, Low): a backward clock correction can hide a completion from the replay of changes since the last open. Two fix options are recorded. Decide before wiring the Phase D world presenter.
+- Unity batch runs (even EditMode only) rewrite the tracked `ProjectSettings.asset` (KI-015 addendum). Restore it after every run.
+
