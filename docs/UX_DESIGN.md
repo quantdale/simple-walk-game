@@ -1,5 +1,7 @@
 # UX Design Specification
 
+> **Direction (D-171, 2026-10-17):** Michael's Creative Direction Bible v1 (`docs/direction/CREATIVE_BIBLE_v1_2026-10-17.md`) governs presentation and wins over this document where they differ. The illustrated 2.5D world is the primary experience, and the text screens are the secondary and accessible layer. The current text-stack shell and procedural valley picture are **placeholders** (D-164), not the design. The attention budget, copy, accessibility, error and celebration *rules* below still hold. Phase A audit: `docs/direction/PHASE_A_AUDIT.md`.
+
 ## 1. UX objective
 
 The UX must prove that a persistent progression game can be satisfying **without demanding persistent attention**.
@@ -70,16 +72,14 @@ The Home screen should answer three questions in a few seconds:
 2. **What am I restoring now?**
 3. **Do I need to do anything?**
 
-Suggested hierarchy:
+Hierarchy (bible §18–§19, D-171):
 
-- major return/change card;
-- current project and progress;
-- recent eligible activity contribution;
-- one next-action button;
-- compact region status;
-- optional secondary cards for expedition/discovery/producer status.
+- **center, and most of the screen:** the illustrated view of the current region, with NPCs, the current restoration target, changed landmarks and selectable objects. The world itself answers "what changed?";
+- **top:** compact player status, a subtle activity-connection indicator and one lightweight progress indicator;
+- **bottom:** one clear main action, minimal navigation, and optional access to projects, discoveries and settings;
+- text, numbers and diagnostics stay reachable as a secondary details layer and as the screen-reader path, but are never the main view.
 
-Avoid dashboards containing ten equally weighted cards.
+The earlier card hierarchy (return card, current project, contribution, next action, region status, secondary cards) is the **placeholder text shell**, kept only as that secondary layer. Avoid dashboards containing equally weighted cards.
 
 ---
 
@@ -196,7 +196,7 @@ It should communicate:
 - ecological recovery;
 - region completion trajectory.
 
-The lightweight Region view should not require loading the full 3D world.
+The Region view is a spatial, illustrated map of the valley showing actual environment states, not abstract symbols (bible §20). Selecting a landmark shows its condition, what needs repair and will improve, whether a project is available, and related characters or discoveries. A lightweight version serves normal check-ins; deeper exploration is separate. There is no separate 3D world: the bible chooses an illustrated 2D/2.5D presentation (§4, §31).
 
 ---
 
@@ -216,7 +216,7 @@ It should:
 - preserve settings such as reduced motion and quality level;
 - be fully consistent with canonical world state.
 
-If the 3D scene fails to load, the rest of the game must remain usable.
+Visit World is optional deeper exploration of the same illustrated 2.5D world (bible §28–§29), not a separate 3D mode. If the world view fails to load, the rest of the game must remain usable through the text screens.
 
 ---
 
@@ -309,7 +309,7 @@ Accessibility regressions are release blockers when they prevent core use.
 - **Touch targets:** 56 dp × scale.
 - **Contrast:** at least 7:1 body text.
 - **No colour-only state:** problem/note prefixes; the primary action is marked by fill and position.
-- **Reduced motion:** met by construction (no motion).
+- **Reduced motion:** met by construction **in the placeholder text shell only** (it has no motion). The illustrated world animates (bible §22, §24, §25), so §15 must be implemented for real there. Skipping or reducing motion never skips progress.
 - **Picture alternative:** the valley picture always has alt text.
 
 Scenario 12 above (screen reader Home → Projects → Settings) is covered headlessly by the outline tests; real TalkBack is unverified.
@@ -348,7 +348,7 @@ Use calm copy; indicate that the last valid state was restored if user-visible l
 ### Migration failure
 Do not proceed with partially migrated state. Preserve backup and surface a recoverable support/diagnostic path.
 
-### 3D load failure
+### World view load failure
 Return to lightweight region/home UI without losing game state.
 
 ---
@@ -396,6 +396,9 @@ Short, skippable transition + clear before/after consequence.
 
 ### Major landmark/region milestone
 Richer sequence may be appropriate, but must be skippable/reduced-motion compliant.
+
+### Return after walking (bible §22, D-171)
+The camera shows the valley. A completed landmark is gently highlighted, and a short restoration transition plays. A character reacts if it fits. A concise summary says what the walk contributed, and one useful next action is offered. A finished restoration is never replayed as if it just happened.
 
 Never force repetitive reward-box opening.
 

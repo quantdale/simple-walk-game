@@ -1,5 +1,7 @@
 # World and Content Design
 
+> **Direction (D-171, 2026-10-17):** the Creative Direction Bible v1 (`docs/direction/CREATIVE_BIBLE_v1_2026-10-17.md`, Parts II–IV) governs art and world presentation: a hand-painted, illustrated 2.5D Millbrook Valley, not a 3D world. The sections below on binding, art principles, scope and traversal are revised to match. Content, chains and pacing are unchanged. The on-screen cast is D-172 (Mira, Tavi, Rowan, Eli); Nell is the letter writer.
+
 ## 1. World-design objective
 
 The world is the long-term visual memory of the player's real-world activity.
@@ -197,18 +199,18 @@ Every significant scene element should have a documented mapping from canonical 
 Example:
 
 ```text
-landmark.waterworks.stage = RUINED
-  → broken intake mesh
-  → dry channel
-  → debris decals
-  → no workers
+lm.river-intake@ruined          (D-166 variant key)
+  → broken-intake sprite set (layered)
+  → dry channel layer
+  → debris props
+  → no characters
   → low ambient water audio
 
-landmark.waterworks.stage = RESTORED
-  → repaired mesh
-  → flowing channel
-  → clean bank material
-  → workers/ambient activity
+lm.river-intake@restored
+  → repaired-intake sprite set + turning wheel animation
+  → flowing-water animated layer
+  → clean bank and aquatic plant props
+  → Tavi / ambient activity at authored anchors
   → water ambience
 ```
 
@@ -265,13 +267,13 @@ Useful contrasts:
 - isolated → connected;
 - dark → warmly lit.
 
-The game does not need photorealism. It needs a strong readable transformation language that scales to mobile hardware.
+The game does not need photorealism. It needs a strong readable transformation language that scales to mobile hardware. The palette and the five color stages (Forgotten → Flourishing) are in bible §7–§8. Every stage also needs structural change, never color alone. The procedural shapes in `RegionScene`/`ValleyElement` are placeholders (D-164).
 
 ---
 
-## 16. 3D world scope discipline
+## 16. World scope discipline (illustrated 2.5D)
 
-The Visit World experience should prioritize:
+The illustrated world (Home, Region and optional exploration; there is no separate 3D mode, D-171) should prioritize:
 
 - recognizable landmarks;
 - visible state transitions;
@@ -295,13 +297,12 @@ One polished, stateful region is enough.
 
 Optional traversal should be simple and forgiving.
 
-Possible features:
+Possible features (bible §28–§29; no player avatar is required):
 
-- walking/running avatar;
-- fast travel between restored landmarks;
-- simple camera controls;
+- tap a landmark, NPC, prop or discovery to inspect or talk;
+- simple pan between locations, and fast travel between restored landmarks;
 - inspect points;
-- route gating based on canonical restoration.
+- route gating based on canonical restoration (for example, crossing the rebuilt bridge).
 
 Fast travel is encouraged because the product is not trying to maximize time spent crossing a map.
 

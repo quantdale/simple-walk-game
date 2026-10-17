@@ -197,7 +197,7 @@ The summary should prioritize **change**, not dump raw logs.
 Baseline top-level areas:
 
 ### Home
-Fastest view. Shows what changed, current priority, progress, and one primary action.
+The illustrated world view (bible §19, D-171). The world shows what changed; current priority, compact progress and one primary action sit around it. Text details are secondary. The current text-stack Home is a placeholder (D-164).
 
 ### Region
 A lightweight map/state view of restoration progress and major landmarks.
@@ -209,7 +209,7 @@ Current queue, prerequisites, priorities, and future restoration choices.
 Journal/collection of discovered content and region story.
 
 ### Visit World
-Optional real-time world exploration. May be represented as a prominent secondary action rather than permanent navigation depending on final UX testing.
+Optional deeper exploration of the same illustrated 2.5D world (inspect, talk, discover), not a separate 3D mode (D-171). It may be represented as a prominent secondary action rather than permanent navigation, depending on final UX testing.
 
 ### Settings
 Activity permissions, data/privacy, accessibility, notification settings, diagnostics, export/reset where appropriate.

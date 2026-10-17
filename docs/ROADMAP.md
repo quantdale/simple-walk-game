@@ -16,7 +16,7 @@ Do not skip foundational milestones to make the repository look visually advance
 
 **Art and experience direction (D-171):** Michael's Creative Direction Bible v1 [`docs/direction/CREATIVE_BIBLE_v1_2026-10-17.md`](direction/CREATIVE_BIBLE_v1_2026-10-17.md) governs. It is Cozy Grove–inspired but original: a hand-painted, illustrated 2.5D world that regains color as it is restored, an expressive small cast, short dialogue over a visible world, and a game-first UI. It supersedes the D-164 concept round below (round 1 A/B/C, D-168, not chosen). Phases, in order:
 
-- **A. Audit (bible §39):** replace / reuse / extend for each presentation component; no UI rebuild or art.
+- **A. Audit (bible §39):** replace / reuse / extend for each presentation component; no UI rebuild or art. **Done (D-173):** [`docs/direction/PHASE_A_AUDIT.md`](direction/PHASE_A_AUDIT.md), contradicting docs revised; Phase D prerequisites listed there (§4, §7).
 - **B. Round 2 concepts, the single human art gate (§40, §45):** A Painted Storybook Valley (preferred starting point), B Layered Paper-Craft Wonderland, C Painterly Miniature Diorama, produced off-repo. **Michael approves one before C–E start.**
 - **C. Visual style guide (§41)** after approval, plus an asset-production template.
 - **D. Playable vertical slice (§42):** the Old Trailhead and its damaged bridge in Unity, through the real progression system, surviving restarts. Acceptance gate §46; evidence gate §47.
