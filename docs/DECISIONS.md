@@ -2983,3 +2983,11 @@ Counts of zero are omitted. Each count has a one/many key in `PlayerStrings` (`s
 **Scope.** Display only. No stored summary text, save, content or schema change. It is not shown on any other screen; Progress already carries running totals.
 
 **Evidence.** EditMode `RegionCelebrationTests`: 2 new cases. One completes Region 1 through the real pipeline and checks every recap line against the read models, the calm-copy sweep, that Continue stays primary and that the recap is shown once. The other checks the omissions. EditMode 252/252 (Unity-editor-tested). Captures are editor-rendered (llvmpipe/Xvfb), NOT device: `docs/evidence/d160-restored-recap/celebration-top-editor-rendered.png`, `celebration-recap-editor-rendered.png` and `celebration-recap-2x-editor-rendered.png`. Synthetic walks carry no local day, so the fixture's recap has no days-walked line; with dated walks it shows "You have walked on N days." Device UNVERIFIED (KI-002).
+
+## D-161 — Release-candidate check on f046934 (2026-10-17)
+
+**Context.** D-159 changed a gameplay rule (when Region 1 closes), and D-160 changed the celebration screen. The last RC evidence (`521920e`) predates both, and dozens of slices since.
+
+**Decision.** Re-run the RC procedure (D-075) on main `f046934`. First, `scripts/validate-clean-clone.sh --with-unity`: a fresh clone, every CI `run:` step, .NET, EditMode, PlayMode and an arm64 debug APK from a cold Library. Then `scripts/assemble-release-evidence.sh --clean-clone`. Evidence: `docs/evidence/rc-f046934/`.
+
+**Result.** All 11 mechanical claims PASS. CI steps: 19 ok, 2 hosted-only skips. .NET: 1099/1099. EditMode: 252/252. PlayMode: 4 passed + 1 capture-only ignored. The APK built. Hosted CI is green. Labels: automated verified / Unity-editor-tested / build-verified only. Device is UNVERIFIED (KI-002). Not a release.

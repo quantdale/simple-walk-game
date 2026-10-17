@@ -1,0 +1,24 @@
+== rule 1-3: project reference direction ==
+  PASS: WalkGame.Domain references exactly: (nothing)
+  PASS: WalkGame.Application references exactly: WalkGame.Domain
+  PASS: WalkGame.Infrastructure references exactly: WalkGame.Application WalkGame.Domain
+== rule 4: no engine namespace anywhere in src/ ==
+  PASS: no UnityEngine/UnityEditor reference in src/
+== rule 5: no filesystem access in Domain or Application ==
+  PASS: WalkGame.Domain performs no filesystem access
+  PASS: WalkGame.Application performs no filesystem access
+== rule 6: CI-invoked scripts are executable and LF-only ==
+  PASS: scripts/assert-repo-identity.sh is committed executable and LF-only
+  PASS: scripts/verify-architecture.sh is committed executable and LF-only
+  PASS: scripts/verify-content-compatibility.sh is committed executable and LF-only
+  PASS: scripts/verify-coverage-floor.sh is committed executable and LF-only
+  PASS: scripts/verify-dependency-health.sh is committed executable and LF-only
+  PASS: scripts/verify-pacing-evidence.sh is committed executable and LF-only
+  PASS: scripts/verify-save-growth.sh is committed executable and LF-only
+  PASS: tests/guards/run-guard-tests.sh is committed executable and LF-only
+== rule 7: Unity shell never mutates canonical Domain state ==
+  PASS: Unity assets use GameSession commands/read models only
+
+==============================
+ARCHITECTURE CHECKS: 15 passed, 0 failed
+==============================
