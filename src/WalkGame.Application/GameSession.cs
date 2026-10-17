@@ -1589,6 +1589,18 @@ namespace WalkGame.Application
             return english == null ? null : ContentLocale.Resolve(discoveryId, field, english);
         }
 
+        /// <summary>
+        /// D-165 (OpenSpec add-interactive-world-presentation): the world view, one row per location,
+        /// derived from canonical state. <paramref name="seenDialogueLineIds"/> is presentation-held
+        /// "seen" state (never saved); null means nothing seen yet. Read-only, no clock write.
+        /// </summary>
+        public WorldViewReadModel GetWorldView(IReadOnlyCollection<string>? seenDialogueLineIds = null) =>
+            WorldPresentationProjector.WorldView(_content, RequireState(), ContentLocale, seenDialogueLineIds);
+
+        /// <summary>D-165: every character with the lines reached so far (revisitable). Gates nothing.</summary>
+        public IReadOnlyList<CharacterDialogueReadModel> GetCharacters() =>
+            WorldPresentationProjector.Characters(RequireState(), ContentLocale);
+
         public LettersReadModel GetLetters()
         {
             var game = RequireState();

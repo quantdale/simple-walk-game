@@ -3057,3 +3057,27 @@ Everything is derived from canonical state at read time, in the Application laye
 **Explicitly not done.** No save-schema change (v3 stays). "Seen dialogue" is held by presentation, not the save; a schema v4 for display-only state was rejected in design.md. No content-version or fingerprint change: the location binding and characters are presentation content like `Region1Letters`. No Unity UI, art or prefabs, and no art-style choice (D-164 gate). Region 2 untouched.
 
 **Evidence.** `openspec validate add-interactive-world-presentation --strict`: valid (`@fission-ai/openspec`, run via npx). Spec only; implementation follows in tasks 1–5 of the change.
+
+## D-166 — World view and character dialogue read models (2026-10-17)
+
+**Status:** Accepted (agent; implements tasks 1–2 of OpenSpec `add-interactive-world-presentation`, D-165)
+
+**Decision.**
+- `GameSession.GetWorldView(seenDialogueLineIds)` returns `WorldViewReadModel`, one row per Region 1 landmark: stage, variant key (`<id>@<stage>`), unlocked, interactable, projects, selectable goals (Available/Queued), active project, construction key/stage (D-071), discoveries found there, characters present, current lines and pending lines. Region-level fields: ecology/settlement stages, an atmosphere key (`region@eco<e>-set<s>`) and completion.
+- `GameSession.GetCharacters()` returns `CharacterDialogueReadModel` per character: name, portrait key, current location, every reached line in order (revisitable) and the current line.
+- `Region1WorldLayout` binds each D-062 chain to a landmark, so every project has exactly one location.
+- `Region1Characters` adds three inhabitants:
+  - Wren, a walker at the trailhead who later moves to the observatory: 5 lines.
+  - Arlo, the smith from Nell's letters, who arrives with the workshop: 3 lines.
+  - Ida, at the wetland after drainage: 4 lines.
+
+  Each line is at most 140 characters, keyed by a project completion, and has an expression key.
+- Names and lines are localizable through `ContentText` with the new fields `name` and `line`.
+- "Seen" is a caller-supplied set and is never saved.
+- The pure logic lives in `WorldPresentationProjector`.
+
+**Not changed.** Save schema v3, content version and fingerprint (content compatibility passes), pacing, Domain, Unity. Dialogue gates nothing: a 60-day run that reads everything every day produces a byte-identical save to one that never reads.
+
+**Copy note.** The character lines are first-draft authored copy and can be revised after the art-direction checkpoint (D-164). Portraits and expressions are keys only; no art exists.
+
+**Evidence.** `WorldPresentationContentTests` (4) and `WorldViewReadModelTests` (7): fresh valley, seen/pending, a 120-day run checked against canonical state every day (stages, monotonic unlocks, selectable set equals the Available/Queued set, dialogue only grows), side-effect-free and reload-deterministic reads, never-reading equals reading, locale overlay with English fallback, and construction key equal to the region's build stage. .NET 1137/1137 (Domain 162, Infrastructure 208, Application 767); architecture 15/15; content compatibility pass. Labels: headless-tested. Unity not run (no Unity change).

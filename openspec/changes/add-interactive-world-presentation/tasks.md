@@ -1,7 +1,7 @@
 ## 1. Content bindings
-- [ ] 1.1 `Content/Region1WorldLayout.cs` (chain → landmark) and `Content/Region1Characters.cs` (characters, appearances, lines); `ContentText.Fields.Line` / `Name`. Tests: `tests/WalkGame.Application.Tests/WorldPresentationContentTests.cs` (every project bound exactly once, every location a real landmark, every milestone a real project, line ≤ 140, unique ids, every character reachable).
+- [x] 1.1 `Content/Region1WorldLayout.cs` (chain → landmark) and `Content/Region1Characters.cs` (characters, appearances, lines); `ContentText.Fields.Line` / `Name`. Tests: `tests/WalkGame.Application.Tests/WorldPresentationContentTests.cs` (every project bound exactly once, every location a real landmark, every milestone a real project, line ≤ 140, unique ids, every character reachable).
 ## 2. World view + dialogue
-- [ ] 2.1 `WorldViewReadModel`, `CharacterDialogueReadModel`, `WorldPresentationProjector`, `GameSession.GetWorldView(seen)` / `GetCharacters()`. Tests: `tests/WalkGame.Application.Tests/WorldViewReadModelTests.cs` (fresh game, mid-game, completed region, locale overlay, pending/seen, read leaves the encoded save identical, determinism).
+- [x] 2.1 `WorldViewReadModel`, `CharacterDialogueReadModel`, `WorldPresentationProjector`, `GameSession.GetWorldView(seen)` / `GetCharacters()`. Tests: `tests/WalkGame.Application.Tests/WorldViewReadModelTests.cs` (fresh game, mid-game, completed region, locale overlay, pending/seen, read leaves the encoded save identical, determinism).
 ## 3. Choice previews
 - [ ] 3.1 `RestorationChoicesReadModel`, `GameSession.GetRestorationChoices()`. Tests: `tests/WalkGame.Application.Tests/RestorationChoicePreviewTests.cs`. Each preview's predicted stages, opened projects, producers, arcs, discoveries and chapters must equal what actually happens when that project completes, for every selectable project along a full playthrough.
 ## 4. Visual-change stream
