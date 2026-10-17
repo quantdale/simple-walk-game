@@ -3716,3 +3716,26 @@ The new `--selftest-rule6` fixture failed on the old extraction: it found 1 of 4
 **Platform limit pinned (KI-031).** HealthKit cannot report read denial. A read turned off in iOS Settings returns no samples, not an error, so the screen keeps saying "connected" once any walk was processed. The suite pins that progress is never lost and that re-allowed samples count exactly once. The copy question is logged as KI-031 for before the iOS composition ships.
 
 **Evidence.** EditMode 346/346 (+12). Labels: Unity-editor-tested; the Swift bridge and iOS composition are UNVERIFIED (KI-022, KI-002).
+
+## D-194 — Delete-all withdraws the OS reminder; export → delete → new-world privacy round trip (2026-10-17)
+
+**Status:** Accepted (engineering authority; real bug fixed failing-first, 2026-10-17 ~8:50 PM Asia/Manila). No save-schema, copy or UI change.
+
+**Bug.** "Delete all local data" erased every file but left the D-119 daily reminder scheduled with the OS. A player who deleted their data kept getting a daily note from the game until they started a new world (which defaults reminders off). If they never started one, the notes never stopped.
+
+**Decision.** `ShellController`:
+- On an `Erased` result it calls `WithdrawReminder()`, which runs `Reminders.Cancel()` with failures swallowed: a delivery failure never blocks the delete.
+- `Boot()` with `StartStatus.NoSaveFound` also withdraws. This covers a delete interrupted between the files and the OS, and is a no-op on a first install.
+- A failed or unsupported delete leaves the reminder alone, because the player still has their data and their choice.
+
+**Tests** (new EditMode `DeleteAllDataPrivacyTests`, 5):
+- Withdraws on delete.
+- Leftover reminder withdrawn on the next launch.
+- A throwing cancel never blocks the delete.
+- A failed delete keeps the reminder.
+- Export → delete → new world round trip:
+  - the export carries no save-directory path, temp path or machine name;
+  - afterwards no files remain and the new world starts at 0 Vitality with the reminder off;
+  - the new export differs from the old one.
+
+Three tests failed before the fix (reminder still active). **Evidence:** EditMode 351/351 (+5). Labels: Unity-editor-tested; Android `AlarmManager` cancel on a device UNVERIFIED (KI-002).

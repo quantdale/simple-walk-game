@@ -201,6 +201,13 @@ namespace WalkGame.Shell
             catch (Exception) { /* a delivery failure never blocks the game */ }
         }
 
+        /// <summary>D-194: cancels any OS reminder; a delivery failure never blocks the game or the delete.</summary>
+        private void WithdrawReminder()
+        {
+            if (Reminders == null) return;
+            try { Reminders.Cancel(); } catch (Exception) { }
+        }
+
         public ShellScreen Current { get; private set; } = ShellScreen.Onboarding;
         public StartStatus? LastStartStatus { get; private set; }
 
@@ -292,6 +299,7 @@ namespace WalkGame.Shell
             Current = screen;
             if (_booted) SyncLiveSource();
             if (_booted) SyncReminder();
+            else if (result.Status == StartStatus.NoSaveFound) WithdrawReminder(); // D-194: a delete-all interrupted before the OS heard
             if (_booted && _session.HasUnsavedChanges) _error = PlayerStrings.T("shell.notSavedYet"); // D-131: a sync credit could not be committed.
             if (_booted && OnboardingIncomplete()) Current = ShellScreen.Guide;
             else if (_booted && _session.GetPendingReturnSummary() != null) Current = ShellScreen.ReturnSummary;
@@ -381,6 +389,7 @@ namespace WalkGame.Shell
                     if (erased.Status == LocalDataEraseStatus.Erased)
                     {
                         _booted = false; _notice = PlayerStrings.T("shell.allLocalDataWas"); Current = ShellScreen.Onboarding;
+                        WithdrawReminder(); // D-194: no notification from a game whose data was deleted
                     }
                     else { Current = ShellScreen.Settings; _error = PlayerStrings.T("shell.yourDataCouldNot"); }
                     return;
