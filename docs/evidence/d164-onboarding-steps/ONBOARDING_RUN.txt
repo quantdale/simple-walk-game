@@ -1,0 +1,22 @@
+step0-welcome screen=Onboarding step=0 chosen=0 scale=1 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step0-welcome-2x screen=Onboarding step=0 chosen=0 scale=2 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step0-welcome-2x-end screen=Onboarding step=0 chosen=0 scale=2 scroll=end rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step1-valley screen=Guide step=1 chosen=0 scale=1 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step1-valley-2x screen=Guide step=1 chosen=0 scale=2 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step1-valley-2x-end screen=Guide step=1 chosen=0 scale=2 scroll=end rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step2-walking screen=Guide step=2 chosen=0 scale=1 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step2-walking-2x screen=Guide step=2 chosen=0 scale=2 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step2-walking-2x-end screen=Guide step=2 chosen=0 scale=2 scroll=end rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step3-first-project screen=Guide step=3 chosen=0 scale=1 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step3-first-project-2x screen=Guide step=3 chosen=0 scale=2 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step3-first-project-2x-end screen=Guide step=3 chosen=0 scale=2 scroll=end rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step3-chosen screen=Guide step=3 chosen=1 scale=1 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step3-chosen-2x screen=Guide step=3 chosen=1 scale=2 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step3-chosen-2x-end screen=Guide step=3 chosen=1 scale=2 scroll=end rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step4-away screen=Guide step=4 chosen=0 scale=1 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step4-away-2x screen=Guide step=4 chosen=0 scale=2 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step4-away-2x-end screen=Guide step=4 chosen=0 scale=2 scroll=end rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step5-done screen=Guide step=5 chosen=0 scale=1 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step5-done-2x screen=Guide step=5 chosen=0 scale=2 scroll=top rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+step5-done-2x-end screen=Guide step=5 chosen=0 scale=2 scroll=end rc=0 WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=-1
+ONBOARDING CAPTURE DONE

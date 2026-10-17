@@ -158,6 +158,7 @@ namespace WalkGame.Shell
             ["shell.chooseAFirstRestoration"] = "Choose a first restoration",
             ["shell.goodChoiceItWill"] = "Good choice. It will grow as you move.",
             ["shell.pickOnePlaceTo"] = "Pick one place to restore first. You can change the order later.",
+            ["shell.startWithThisPlace"] = "Start here. More places open as you restore.",
             ["shell.progressWhileYouRe"] = "Progress while you're away",
             ["shell.stepsYouTakeWith"] = "Steps you take with the app closed still count. When you return, you'll see what changed.",
             ["shell.thatSAll"] = "That's all",

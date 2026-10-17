@@ -18,6 +18,15 @@ namespace WalkGame.Shell.PlayModeTests
     /// </summary>
     public sealed class ValleyCaptureTests
     {
+        /// <summary>One guide step forward; on the first-project step, choose the first offered project.</summary>
+        private static void AdvanceGuide(ShellController c)
+        {
+            var m = c.Render();
+            if (!System.Linq.Enumerable.Any(m.Actions, a => a.Id == "guide:next"))
+                c.Invoke(System.Linq.Enumerable.First(m.Actions, a => a.Id.StartsWith("queue:")).Id);
+            c.Invoke("guide:next");
+        }
+
         [UnityTest] public IEnumerator Capture_region_screen_png()
         {
             string output = Environment.GetEnvironmentVariable("WG_CAPTURE_PNG");
@@ -50,6 +59,18 @@ namespace WalkGame.Shell.PlayModeTests
                     c = new ShellController(ShellBootstrap.CreateSession(dir), () => 42UL, devTools: true);
                     c.Boot();
                     Assert.AreEqual(ShellScreen.Onboarding, c.Current);
+                }
+                else if (screen == "Guide" && int.TryParse(Environment.GetEnvironmentVariable("WG_CAPTURE_GUIDE_STEP"), out var guideStep))
+                {
+                    // D-164: a fresh device at guide step N (1 valley, 2 walking, 3 first project, 4 away, 5 done).
+                    // WG_CAPTURE_GUIDE_CHOSEN=1 on step 3 shows it after a first project is chosen.
+                    c = new ShellController(ShellBootstrap.CreateSession(dir), () => 42UL, devTools: true);
+                    c.Boot(); c.Invoke("start");
+                    for (int i = 1; i < guideStep; i++) AdvanceGuide(c);
+                    if (guideStep == 3 && Environment.GetEnvironmentVariable("WG_CAPTURE_GUIDE_CHOSEN") == "1")
+                        c.Invoke(System.Linq.Enumerable.First(c.Render().Actions, a => a.Id.StartsWith("queue:")).Id);
+                    Assert.AreEqual(ShellScreen.Guide, c.Current);
+                    StringAssert.StartsWith("Step " + guideStep + " of ", c.Render().Lines[0]);
                 }
                 else if (screen == "BootError")
                 {

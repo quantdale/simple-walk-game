@@ -3022,3 +3022,20 @@ Counts of zero are omitted. Each count has a one/many key in `PlayerStrings` (`s
 **OpenSpec.** `openspec/changes/rank-same-batch-summary-retention` modifies the `rotate-durable-return-summary` rotation requirement.
 
 **Evidence.** `SummaryPriorityTests` (16 headless tests): the crowded D-159 closure day keeps both completions, both chapters and the region; older batches still rotate first; other kinds rotate as before; rank table; display pruning. `Region1PlaythroughTests` now requires 0 rotated-out completion lines in all 9 playthroughs (was ≤2). An expedition line may yield to chapter and project lines only on a saturated day; Discoveries and the recap still count it. EditMode `RegionCelebrationTests.Celebration_keeps_the_final_completion_line_and_skips_repeats`. Pacing evidence 7/7 reproduced, content compatibility and save growth pass. .NET 1126/1126, EditMode 256/256. Labels: headless-tested, Unity-editor-tested; device UNVERIFIED (KI-002).
+
+## D-164 — Onboarding step captures at 1x and 2x; two guide copy fixes (2026-10-17)
+
+**Context.** The batch asked for editor-rendered captures of every onboarding step at 1x and 2x text, fixing what they show. `tools/unity/capture-onboarding-steps.sh` (new) captures the pre-start welcome, guide steps 1–5 and step 3 after the first project is chosen, at 1x, at 2x, and at 2x scrolled to the end so the primary button is in view (21 PNGs). `ValleyCaptureTests` gained `WG_CAPTURE_SCREEN=Guide` + `WG_CAPTURE_GUIDE_STEP` / `WG_CAPTURE_GUIDE_CHOSEN`.
+
+**Findings.**
+1. Step 2 ("Connect your walking") with walking connected read "Connected. Waiting for your first walk to arrive." followed by "You can keep going without connecting; nothing is locked." The second line contradicts the first.
+2. Step 3 said "Pick one place to restore first. You can change the order later." when a new valley offers a single place (Clear the old trailhead), so there was nothing to pick and no order to change.
+3. Layout: no clipping, overlap or off-screen button at 1x or 2x. At 2x, steps 0 and 2 scroll; their buttons are reachable (the `-2x-end` captures). Steps 1, 3, 4 and 5 fit on one screen at 2x. Nothing to fix.
+
+**Decision.**
+- The "keep going without connecting" line shows only when walking is not connected. `ShellController.IsConnectedStatus` treats ConnectedCurrent, WaitingForFirstData and RefreshTemporarilyFailed as connected. Every other status keeps the line, including the D-094 update-required step, so "nothing is locked" still shows wherever connecting is outstanding. Continue is always offered.
+- With exactly one place offered, step 3 says "Start here. More places open as you restore." (`shell.startWithThisPlace`). With two or more it keeps "Pick one place…".
+
+**Scope.** Shell copy only. No save, schema, content or OpenSpec contract change (no spec quotes these lines). Region 2 untouched.
+
+**Evidence.** EditMode `OnboardingGuideCopyTests` (7 cases): connected step has no "without connecting" line; four unconnected states keep "nothing is locked" and Continue; every `ActivityPlayerStatus` is classified; step 3 copy matches the number of offered places. EditMode 263/263, .NET 1126/1126. Captures: `docs/evidence/d164-onboarding-steps/` (before/after for findings 1–2 in `before-fix/`). Labels: Unity-editor-tested, editor-rendered; device UNVERIFIED (KI-002).

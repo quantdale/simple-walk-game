@@ -1067,9 +1067,12 @@ namespace WalkGame.Shell
                     // D-094: an outdated Health Connect shows the update-required state, never a Connect dead end.
                     m = With(ShellScreen.Guide, needsUpdate ? PlayerStrings.T("shell.updateHealthConnect") : PlayerStrings.T("shell.connectYourWalking"));
                     m.Lines.Add(PlayerStrings.T("shell.theGameReadsOnly"));
-                    m.Lines.Add(PlayerCopy.ActivityStatus(_session.GetActivityStatus().Status));
+                    var guideStatus = _session.GetActivityStatus().Status;
+                    m.Lines.Add(PlayerCopy.ActivityStatus(guideStatus));
                     if (needsUpdate) m.Lines.Add(PlayerCopy.ActivityAction(ActivityRecommendedAction.UpdateProvider));
-                    m.Lines.Add(PlayerStrings.T("shell.youCanKeepGoing"));
+                    // D-164: "keep going without connecting" only while walking is not connected; once
+                    // connected, the line contradicted the status line right above it.
+                    if (!IsConnectedStatus(guideStatus)) m.Lines.Add(PlayerStrings.T("shell.youCanKeepGoing"));
                     if (!needsUpdate && _session.GetActivityStatus().RecommendedAction == ActivityRecommendedAction.Connect && _requestPermission != null)
                         m.Actions.Add(new ShellAction("activity:connect", PlayerStrings.T("shell.connectWalkingData")));
                     m.Actions.Add(new ShellAction("guide:next", PlayerStrings.T("label.continue")));
@@ -1083,8 +1086,10 @@ namespace WalkGame.Shell
                     }
                     else
                     {
-                        m.Lines.Add(PlayerStrings.T("shell.pickOnePlaceTo"));
-                        foreach (var r in _session.GetProjects().Projects.Where(r => r.Status == ProjectStatus.Available))
+                        var offered = _session.GetProjects().Projects.Where(r => r.Status == ProjectStatus.Available).ToList();
+                        // D-164: "Pick one place" read oddly when the valley offers a single place.
+                        m.Lines.Add(PlayerStrings.T(offered.Count == 1 ? "shell.startWithThisPlace" : "shell.pickOnePlaceTo"));
+                        foreach (var r in offered)
                             m.Actions.Add(new ShellAction("queue:" + r.ProjectId, QueueLabel(PlayerCopy.Title(r.TitleKey))));
                     }
                     break;
@@ -1103,6 +1108,12 @@ namespace WalkGame.Shell
             m.Lines.Insert(0, GuideProgress(ob.CurrentStage));
             return m;
         }
+
+        /// <summary>D-164: walking is connected (current, waiting for a first walk, or a transient refresh failure).</summary>
+        public static bool IsConnectedStatus(ActivityPlayerStatus status) =>
+            status == ActivityPlayerStatus.ConnectedCurrent
+            || status == ActivityPlayerStatus.WaitingForFirstData
+            || status == ActivityPlayerStatus.RefreshTemporarilyFailed;
 
         /// <summary>Five player-visible steps: valley, walking, first project, away, done.</summary>
         public const int GuideSteps = 5;
