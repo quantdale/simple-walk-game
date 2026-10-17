@@ -581,6 +581,13 @@ namespace WalkGame.Shell
                 m.Lines.Add(r.Status == ProjectStatus.Completed
                     ? title + " — " + PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition)
                     : title + " — " + PlayerCopy.ProjectStatus(r.Status, r.QueuedPosition) + " (" + r.VitalityInvested + " of " + r.VitalityCost + " vitality)");
+                // D-154: choice framing. Name the locked projects that finishing this one opens
+                // (every other prerequisite already restored), mirroring OfflineAdvancer.UpdateAvailability.
+                if (r.Status != ProjectStatus.Completed)
+                {
+                    var opens = OpensNext(p, r.ProjectId);
+                    if (opens.Count > 0) m.Lines.Add(PlayerStrings.F("shell.projects.opens", string.Join(", ", opens)));
+                }
                 if (r.Status == ProjectStatus.Available) m.Actions.Add(new ShellAction("queue:" + r.ProjectId, QueueLabel(title)));
                 if (r.Status == ProjectStatus.Queued && r.QueuedPosition > 0) m.Actions.Add(new ShellAction("up:" + r.ProjectId, PlayerStrings.F("label.moveUp", title)));
             }
@@ -588,6 +595,21 @@ namespace WalkGame.Shell
             if (locked > 0) m.Lines.Add(PlayerStrings.F(locked == 1 ? "shell.projects.locked.one" : "shell.projects.locked.many", locked));
             m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;
+        }
+
+        /// <summary>D-154: titles of Locked projects that become available once <paramref name="projectId"/>
+        /// is restored, i.e. it is a prerequisite and every other prerequisite is already Completed.</summary>
+        public static List<string> OpensNext(ProjectsReadModel p, string projectId)
+        {
+            var byId = p.Projects.ToDictionary(r => r.ProjectId, StringComparer.Ordinal);
+            var result = new List<string>();
+            foreach (var r in p.Projects)
+            {
+                if (r.Status != ProjectStatus.Locked || !r.PrerequisiteIds.Contains(projectId)) continue;
+                if (r.PrerequisiteIds.All(id => id == projectId || (byId.TryGetValue(id, out var q) && q.Status == ProjectStatus.Completed)))
+                    result.Add(PlayerCopy.Title(r.TitleKey));
+            }
+            return result;
         }
 
         private static int ProjectsOrder(ProjectStatus s) =>

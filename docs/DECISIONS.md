@@ -2815,3 +2815,10 @@ Evidence: `docs/evidence/d108-platform-parity/editmode-results.xml`, EditMode 15
 **Labels.** Editor-rendered (Unity 6000.3.26f1, llvmpipe). Device UNVERIFIED (KI-002).
 
 **Save compatibility.** None.
+
+## D-154 — Projects screen says what finishing each project opens (2026-10-17)
+**Decision.** Region 1 choice framing: each open (active, queued or available) project row on Projects is followed by "Finishing it opens: A, B." naming the Locked projects for which it is a prerequisite and whose other prerequisites are already restored. `ShellController.OpensNext` mirrors `OfflineAdvancer.UpdateAvailability` (prerequisites only), so the line is exactly what completion would unlock. No line when nothing opens; never on restored or locked rows. Locked projects were already counted on screen; naming the immediate next ones is a choice aid, not a spoiler of story content. Display only, new `PlayerStrings` key `shell.projects.opens`.
+
+**Tests.** EditMode `ProjectChoiceFramingTests` (3). EditMode 240/240, PlayMode 4/4 + 1 ignored capture (Unity-editor-tested, batch mode); .NET 1046/1046 unchanged (headless-tested). Capture `docs/evidence/d154-project-choices/` (editor-rendered). Device UNVERIFIED (KI-002).
+
+**Save compatibility.** None. Content fingerprint unchanged.
