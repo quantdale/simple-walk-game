@@ -175,3 +175,9 @@ environment must be reported as UNVERIFIED, honestly and explicitly — never cl
    deliberate human-reviewed act, not a conflict shortcut.
 5. After any incident: update this file / `docs/AGENT_EXECUTION_GUIDE.md` if a new bypass
    or failure mode was found. Prevention knowledge belongs in the repo, not in memory.
+
+## Cross-project UX, DX, and AX principles
+
+Cut taglines, helper text and secondary labels. If a screen needs them to make sense, fix the layout.
+
+Make the best decision that will elevate all three: the user experience (UX), developer experience (DX), and agent experience (AX) always, without breaking anything.
