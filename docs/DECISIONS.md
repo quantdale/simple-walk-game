@@ -3852,3 +3852,13 @@ When they hold, the Activity screen keeps "Connected. Your walks are being count
 
 **Not changed.** No assets, code, packages, save schema. Labels: documentation.
 
+## D-203 — Concept A Unity packages added (completes D-177; KI-027 e) (2026-10-24)
+
+**Status:** Accepted (agent; executes D-177's "when Michael picks" step after D-200)
+
+**Decision.** `src/WalkGame.Unity/Packages/manifest.json` adds `com.unity.2d.sprite` 1.0.0, `com.unity.2d.animation` 13.0.6, `com.unity.2d.psdimporter` 12.0.2 (the versions bundled with editor 6000.3.26f1; `com.unity.2d.common` 12.0.4 resolves as a dependency), `com.unity.modules.animation` 1.0.0 and `com.unity.modules.particlesystem` 1.0.0. **No URP**; the built-in pipeline stays. `packages-lock.json` updated by Unity. No `ProjectSettings.asset` change (restored after each run), no engine binaries.
+
+**Evidence** (`docs/evidence/d203-art-packages/`, Unity-editor-tested): EditMode 367/367 passed with the packages imported; IL2CPP arm64 development APK built (`WG_BUILD_RESULT Succeeded`, `android-build.log`; APK not committed). Device UNVERIFIED (KI-002).
+
+**Art tooling on the box (not in the repo):** Krita 6.0.4.1 AppImage (GPL, free) at `~/apps/krita.AppImage`; `--version` runs headless. GIMP is not installed (no sudo for apt).
+
