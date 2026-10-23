@@ -3969,3 +3969,14 @@ particle cost on a phone: UNVERIFIED.
 row (the D-204 environment and bridge rows previously held condensed paraphrases). Derived layers (D-208 parts, ripple) carry the
 verbatim prompt of their source generation. Superseded generations (MIRA-BODY-01/02, the first half-built bridge) ship no asset and
 get no row; their raws stay off-repo. No prompt names an artist, studio or game. Docs-only change.
+
+## D-210 — Evidence captures of the text shell around the trailhead, incl. Home scrolled to "Visit the Old Trailhead" (2026-10-24)
+
+**Status:** Accepted (agent; evidence only; bible §47)
+
+**Decision.** `Capture_trailhead_opened_from_home_with_taps` also renders the real `ShellView` for the same session into its own
+panel: first launch (onboarding), return after a walk ("While you were away"), Home with the trailhead entry (1x, where it is already
+on screen) and Home at 2x text scrolled to it (`ScrollView.scrollOffset` set from the button's bounds; the test asserts the button
+is inside the viewport), and the Region view. The Region view is still the procedural pre-direction-A valley. Test code only.
+
+**Evidence** (`docs/evidence/d210-shell-captures/`, Unity editor capture, NOT a device): PlayMode 2/2; log `WG_CAPTURE_SCROLL_TO offset=603 max=621`.
