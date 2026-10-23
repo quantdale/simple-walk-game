@@ -188,7 +188,8 @@ namespace WalkGame.Application.Content
                 // Water system
                 new ProjectDefinition(new ProjectId(RiverIntake), "Restore the river intake", 800L,
                     prerequisites: new[] { new ProjectId(ClearTrailHead) },
-                    descriptionKey: "Free the intake works and get clean water moving again."),
+                    descriptionKey: "Free the intake works and get clean water moving again.",
+                    visibleBuildStages: 2), // D-218: jammed → rebuilding → restored (structural stages)
                 new ProjectDefinition(new ProjectId(ClearReservoir), "Clear the old reservoir", 400L,
                     prerequisites: new[] { new ProjectId(RiverIntake) },
                     descriptionKey: "Dredge silt and repair the reservoir basin."),

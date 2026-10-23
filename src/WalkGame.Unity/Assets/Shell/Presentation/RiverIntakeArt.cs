@@ -20,8 +20,11 @@ namespace WalkGame.Shell.Presentation
         public const string ResourceFolder = "Art/Intake/";
         public const string GroundForgotten = "intake_ground_S0";
         public const string GroundFlourishing = "intake_ground_S4";
-        /// <summary>Gate layers: G0 jammed (silt, broken wheel), G2 restored (new boards, wheel, brass plate on the left post).</summary>
-        public const string GateJammed = "intake_gate_G0", GateRestored = "intake_gate_G2";
+        /// <summary>D-218: gate layers G0 jammed, G1 rebuilding, G2 restored (brass plate on the left post).</summary>
+        public static readonly string[] GateLayers = { "intake_gate_G0", "intake_gate_G1", "intake_gate_G2" };
+        public const string GateJammed = "intake_gate_G0", GateRebuilding = "intake_gate_G1", GateRestored = "intake_gate_G2";
+        /// <summary>D-218: flourishing accents (flowers, bird, garland) over the restored gate at Restored/Flourishing.</summary>
+        public const string AccentsFlourish = "intake_accents_FX";
         public const string TaviBody = "tavi_body";
         /// <summary>D-217: locked BODY-02 canvas (padded to multiples of 4).</summary>
         public const int TaviCanvasW = 528, TaviCanvasH = 1244;
@@ -51,8 +54,10 @@ namespace WalkGame.Shell.Presentation
         /// restored; it never gates progress. <paramref name="reviewed"/> = the player already read it: the plate stays tappable
         /// but stops glowing.
         /// </summary>
-        public static bool PlateTappable(bool discoveryUnlocked, int? gateIndex) => discoveryUnlocked && gateIndex == 1;
+        public static bool PlateTappable(bool discoveryUnlocked, int? gateIndex) => discoveryUnlocked && gateIndex == 2;
         public static bool PlateGlows(bool discoveryUnlocked, int? gateIndex, bool reviewed) => PlateTappable(discoveryUnlocked, gateIndex) && !reviewed;
+        /// <summary>Accents draw from Restored onward (structural + colour; style guide §1.2).</summary>
+        public static bool ShowAccents(RestorationStage stage) => stage >= RestorationStage.Restored;
         /// <summary>Glow ring pulse (alpha); static under reduced motion (still visible, never blinking).</summary>
         public static float GlowAlpha(float t, bool reducedMotion) => reducedMotion ? 0.8f : 0.55f + 0.35f * (0.5f + 0.5f * (float)Math.Sin(2 * Math.PI * t / 2.4f));
 
@@ -64,17 +69,18 @@ namespace WalkGame.Shell.Presentation
             return (1.2f * (float)Math.Sin(w * t), 3.0f * (float)Math.Sin(w * t * 1.2f + 1.1f), 0.008f * (float)Math.Sin(w * t));
         }
 
-        /// <summary>Gate layer index: 0 jammed for @ruined and every build step, 1 restored for @done; null for foreign/malformed keys.</summary>
+        /// <summary>Gate layer index: 0 jammed (@ruined), 1 rebuilding (@build-kofN), 2 restored (@done); null for foreign/malformed keys.</summary>
         public static int? GateIndexFor(string? gateVisualKey)
         {
             if (string.IsNullOrEmpty(gateVisualKey) || !gateVisualKey!.StartsWith(GateId + "@", StringComparison.Ordinal)) return null;
             string s = gateVisualKey.Substring(GateId.Length + 1);
-            if (s == "done") return 1;
-            if (s == "ruined" || s.StartsWith("build-", StringComparison.Ordinal)) return 0;
+            if (s == "done") return 2;
+            if (s == "ruined") return 0;
+            if (s.StartsWith("build-", StringComparison.Ordinal)) return 1;
             return null;
         }
 
-        public static string GateLayer(int index) => index >= 1 ? GateRestored : GateJammed;
+        public static string GateLayer(int index) => GateLayers[Math.Clamp(index, 0, GateLayers.Length - 1)];
 
         public static IntakeTarget HitTest(float ax, float ay, bool taviPresent, bool plateTappable)
         {
@@ -95,8 +101,11 @@ namespace WalkGame.Shell.Presentation
                 [LocationId + "@flourishing"] = GroundFlourishing,
                 [LocationId] = GroundForgotten,
                 [GateId + "@ruined"] = GateJammed,
+                [GateId + "@build-0of2"] = GateRebuilding,
+                [GateId + "@build-1of2"] = GateRebuilding,
                 [GateId + "@done"] = GateRestored,
                 [GateId] = GateJammed,
+                [LocationId + "@accents"] = AccentsFlourish,
                 [TaviId] = TaviBody,
                 ["portrait." + TaviId] = "portrait_tavi_neutral",
             };
@@ -114,7 +123,9 @@ namespace WalkGame.Shell.Presentation
             foreach (var p in landmark.Props) if (p.ProjectId == GateId) { gateKey = p.VisualKey; break; }
             int? idx = GateIndexFor(gateKey);
             string? layer = idx != null ? GateLayer(idx.Value) : gateKey != null ? resolver.Resolve(gateKey).Asset : null;
-            return new IntakeFrame(stage ?? RestorationStage.Ruined, low.Asset, high.Asset, stage == null ? 0f : TrailheadArt.FlourishingShare(stage.Value), gateKey, idx, layer);
+            var st = stage ?? RestorationStage.Ruined;
+            string? accents = ShowAccents(st) ? AccentsFlourish : null;
+            return new IntakeFrame(st, low.Asset, high.Asset, stage == null ? 0f : TrailheadArt.FlourishingShare(stage.Value), gateKey, idx, layer, accents);
         }
     }
 
@@ -122,8 +133,8 @@ namespace WalkGame.Shell.Presentation
 
     public sealed class IntakeFrame
     {
-        public IntakeFrame(RestorationStage stage, string? low, string? high, float highShare, string? gateKey, int? gateIndex, string? gate)
-        { Stage = stage; GroundLow = low; GroundHigh = high; HighShare = highShare; GateKey = gateKey; GateIndex = gateIndex; Gate = gate; }
+        public IntakeFrame(RestorationStage stage, string? low, string? high, float highShare, string? gateKey, int? gateIndex, string? gate, string? accents)
+        { Stage = stage; GroundLow = low; GroundHigh = high; HighShare = highShare; GateKey = gateKey; GateIndex = gateIndex; Gate = gate; Accents = accents; }
         public RestorationStage Stage { get; }
         public string? GroundLow { get; }
         public string? GroundHigh { get; }
@@ -131,5 +142,6 @@ namespace WalkGame.Shell.Presentation
         public string? GateKey { get; }
         public int? GateIndex { get; }
         public string? Gate { get; }
+        public string? Accents { get; }
     }
 }

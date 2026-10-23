@@ -54,6 +54,11 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Moment | Status | Evidence |
 |---|---|---|
 | Walked from the trailhead, jammed gate, Tavi present | PASS (editor) | `I/intake-s0-gate-jammed-tavi` |
+| Gate mid-rebuild (G1) from real play | PASS (editor) | `docs/evidence/d218-intake-stages/intake-gate-rebuilding-g1` |
+| Stabilized + restored gate + find | PASS (editor) | `docs/evidence/d218-intake-stages/intake-s1-gate-restored-plate-glow` |
+| Functional (WetlandDrainage, real play) | PASS (editor) | `docs/evidence/d218-intake-stages/intake-s2-functional` |
+| Restored + flourish accents (CanopyWalkway, real play) | PASS (editor) | `docs/evidence/d218-intake-stages/intake-s3-restored` |
+| Flourishing plate (key-driven) | PASS (editor, labelled) | `docs/evidence/d218-intake-stages/intake-s4-flourishing-keydriven` |
 | Tap Tavi → dialogue (1× and 2× text) | PASS (editor) | `I/intake-dialogue-tavi`, `I/intake-dialogue-tavi-text2x` |
 | Restored gate + optional find glowing (static, reduced motion) | PASS (editor) | `I/intake-gate-restored-plate-glow` |
 | Tap the brass plate → find card (1× and 2× text) | PASS (editor) | `I/intake-find-card`, `I/intake-find-card-text2x` |
@@ -85,5 +90,5 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 ## Open (cannot be closed by a small PR)
 
 1. ~~Text shell in direction A~~ and ~~world-first boot~~ → D-215. Residual: a painted Region map; a lighter Home menu.
-3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate at the intake). Residual: more finds, expeditions in-world, a painted Region map, lighter Home; intake stage structure clarity (D-218).
+3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate at the intake). Residual: more finds, expeditions in-world, a painted Region map, lighter Home.
 4. Device verification of everything above (KI-002).
