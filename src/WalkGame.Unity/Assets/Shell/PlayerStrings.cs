@@ -111,6 +111,8 @@ namespace WalkGame.Shell
             ["shell.theValley"] = "The valley",
             ["shell.yourProgress"] = "Your progress",
             ["shell.devSimulateADay"] = "[dev] Simulate a day of walking",
+            ["shell.welcomeBack.days"] = "Welcome back. Everything you restored is still here.", // D-198
+            ["shell.welcomeBack.long"] = "Welcome back. Everything you restored is still here, and your next walk picks up right where you left off.", // D-198
             ["shell.nothingNewSinceYour"] = "Nothing new since your last visit.",
             ["shell.theValleyChangedWhile"] = "The valley changed while you were away.",
             ["shell.yourWalksChangedThe"] = "Your walks changed the valley.",

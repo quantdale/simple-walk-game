@@ -1857,6 +1857,17 @@ namespace WalkGame.Application
         /// The pending return summary of already-committed progress, or null when nothing
         /// is awaiting presentation. Survives restart; acknowledgement is a separate op.
         /// </summary>
+        private AbsenceTier _absence = AbsenceTier.None;
+
+        /// <summary>
+        /// D-198: the welcome-back tier for the gap before this session's latest boot or resume
+        /// catch-up. Session-only; cleared by <see cref="AcknowledgeAbsence"/>. Never alters state.
+        /// </summary>
+        public AbsenceTier GetAbsence() => _absence;
+
+        /// <summary>D-198: the welcome line has been shown; do not repeat it this session.</summary>
+        public void AcknowledgeAbsence() => _absence = AbsenceTier.None;
+
         public ReturnSummaryReadModel? GetPendingReturnSummary()
         {
             var game = RequireState();
@@ -2340,6 +2351,7 @@ namespace WalkGame.Application
                 cause);
 
             var events = new List<SimulationEvent>();
+            _absence = AbsenceWelcome.Classify(state.LastAdvancedUtc, _clock.UtcNow); // D-198
             OfflineAdvancer.Advance(state, _content, _clock.UtcNow, events);
 
             // Compose BEFORE persisting: a crash after commit but before presentation
@@ -2583,6 +2595,8 @@ namespace WalkGame.Application
         {
             var state = RequireState();
             var events = new List<SimulationEvent>();
+            var tier = AbsenceWelcome.Classify(state.LastAdvancedUtc, _clock.UtcNow); // D-198
+            if (tier > _absence) _absence = tier;
             OfflineAdvancer.Advance(state, _content, _clock.UtcNow, events);
             ComposePendingSummary(state, events);
             try { return PersistOrThrow(); }
