@@ -155,6 +155,9 @@ Optimization must remain evidence-based; do not obscure maintainable code for hy
 
 Every major art category requires a budget before final content production:
 
+**Concept A texture budget (D-202, Phase C style guide §7.5–7.6):** ≤ 12 MB GPU texture memory for the Old Trailhead slice scene, ≤ 6 MB per additional visible area (current + neighbour loaded only); atlases ≤ 2048², ASTC 6×6, world-sprite mipmaps off; PPU 200 at the 2× master (= 100 at 1×). Batches < 60, ≤ 60 live particles. UNVERIFIED on device (KI-002) until measured.
+
+
 - texture resolution/compression;
 - material count;
 - shader variants;

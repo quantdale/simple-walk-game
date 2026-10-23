@@ -3836,3 +3836,19 @@ When they hold, the Activity screen keeps "Connected. Your walks are being count
 
 **Not changed.** No paid services. Records only. Labels: documentation.
 
+## D-202 — Phase C style guide for direction A lands (2026-10-24)
+
+**Status:** Accepted (agent; Phase C, bible §41, opened by D-200; open questions resolved per Michael's 2026-10-24 instructions)
+
+**Decision.** `docs/direction/art/STYLE_GUIDE_A.md` (+ `palette_storybook_A.gpl`, `provenance_ledger_template.csv`, `trailhead_asset_list.csv`) is the canonical art guide. Resolutions:
+- Mira's locked details stand as drafted: one braid over her left shoulder, no loose curls, satchel crossbody from left shoulder to right hip, staff in her right hand.
+- The round-2 Mira (and other round-2 images) may be used as generation references when recorded in the ledger (D-170 owner scope). Round-1 images never.
+- Bridge garlands require the bridge `@done` AND `lm.trailhead` Restored or Flourishing.
+- `proj.clear-trailhead` has **N = 1** visible build stage (content default): keys `@ruined`, `@build-0of1`, `@done`.
+- Texture budget 12 MB slice / 6 MB per extra area and PPU 200 master (100 at 1×) are written into `docs/PERFORMANCE_BUDGETS.md` §9.
+- Fraunces and Nunito (SIL OFL) are approved; they are listed in `docs/ASSET_LICENSES.md` when their files are added.
+
+**Bible §41 coverage.** Camera, proportions, outlines, texture, palette, lighting, typography, UI/dialogue, animation, dimensions and naming, render/export, licensing, accessibility, quality, plus the reusable production template (§10.6 and the CSVs).
+
+**Not changed.** No assets, code, packages, save schema. Labels: documentation.
+
