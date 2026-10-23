@@ -3960,3 +3960,12 @@ reaches Functional, day 17 of continued play). No save/content change.
 **Evidence** (`docs/evidence/d208-motion/`, Unity editor capture, NOT a device): EditMode 379/379 incl.
 `Ambient_motion_has_a_reduced_motion_path`; PlayMode captures 2/2 incl. `trailhead-s2-functional`. Motion smoothness and
 particle cost on a phone: UNVERIFIED.
+
+## D-209 — Provenance ledger carries the verbatim prompt for every shipped trailhead asset (2026-10-24)
+
+**Status:** Accepted (agent; follow-up 5 to D-204)
+
+**Decision.** `prompt_text` in `docs/direction/art/provenance_ledger.csv` is now the exact text sent to the image generator for every
+row (the D-204 environment and bridge rows previously held condensed paraphrases). Derived layers (D-208 parts, ripple) carry the
+verbatim prompt of their source generation. Superseded generations (MIRA-BODY-01/02, the first half-built bridge) ship no asset and
+get no row; their raws stay off-repo. No prompt names an artist, studio or game. Docs-only change.
