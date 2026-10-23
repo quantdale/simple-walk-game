@@ -106,6 +106,25 @@ namespace WalkGame.Shell
             Redraw();
         }
 
+        private WalkGame.Shell.Presentation.TrailheadWorldHost? _world;
+
+        /// <summary>D-207: the painted Old Trailhead over the text shell; its Home button returns to the shell.</summary>
+        private void OpenWorld()
+        {
+            if (_controller == null || _document == null) return;
+            _document.rootVisualElement.style.display = DisplayStyle.None;
+            var go = new GameObject("trailhead-world");
+            _world = go.AddComponent<WalkGame.Shell.Presentation.TrailheadWorldHost>();
+            _world.Open(_controller.Session, new WalkGame.Shell.Presentation.SessionPresentationMemory(_controller.Session), MotionPreference.ForCurrentPlatform(),
+                UnityEngine.Accessibility.AccessibilitySettings.fontScale, () =>
+                {
+                    _world = null;
+                    _controller.CloseWorld();
+                    _document.rootVisualElement.style.display = DisplayStyle.Flex;
+                    Redraw();
+                });
+        }
+
         private ShellScreen? _lastScreen;
         private AudioSource _audio;
 
@@ -127,6 +146,7 @@ namespace WalkGame.Shell
             // captures a stack trace on every screen switch in a release build too).
             if (Debug.isDebugBuild) Debug.Log("WG_RENDER screen=" + model.Screen + " state=" + model.State + " lines=" + model.Lines.Count + " actions=" + model.Actions.Count + (model.Notice != null ? " notice=" + model.Notice : "")); // l10n-ignore: developer log
             System.Action<string> act = id => { _controller.Invoke(id); Redraw(); };
+            if (_controller.WorldRequested != null && _world == null) { OpenWorld(); return; }
             ShellView.Render(_document.rootVisualElement, model, act, UnityEngine.Accessibility.AccessibilitySettings.fontScale);
             // D-104: a calm cue only on arrival at a summary that earned one, and only with sound on.
             if (SoundCues.ShouldPlay(_lastScreen, model)) PlayCue(model.Cue);
