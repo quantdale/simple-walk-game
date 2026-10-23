@@ -374,7 +374,7 @@ namespace WalkGame.Shell
                     _requestPermission();
                     return;
                 case "guide:next": GuideNext(); return;
-                case "ack": if (Check(_session.AcknowledgeReturnSummary())) Current = ShellScreen.Home; return;
+                case "ack": if (Check(_session.AcknowledgeReturnSummary())) { _session.AcknowledgeAbsence(); Current = ShellScreen.Home; } return;
                 case "toggle:reducedMotion": Check(_session.SetReducedMotion(!_session.GetSettings().ReducedMotion)); return;
                 case "toggle:sound": Check(_session.SetSoundEnabled(!_session.GetSettings().SoundEnabled)); return;
                 case "toggle:reminder": ToggleReminder(); return;
@@ -519,6 +519,14 @@ namespace WalkGame.Shell
             return m;
         }
 
+        /// <summary>D-198: the welcome-back line for an absence tier, or null.</summary>
+        public static string? AbsenceLine(WalkGame.Application.ReadModels.AbsenceTier tier) => tier switch
+        {
+            WalkGame.Application.ReadModels.AbsenceTier.FewDays => PlayerStrings.T("shell.welcomeBack.days"),
+            WalkGame.Application.ReadModels.AbsenceTier.Long => PlayerStrings.T("shell.welcomeBack.long"),
+            _ => null,
+        };
+
         private ScreenModel Home()
         {
             var home = _session.GetHome();
@@ -529,6 +537,9 @@ namespace WalkGame.Shell
             // since you were last here" reads oddly on first run; skip it until anything has happened.
             bool firstRun = empty && !home.HasPendingSummary && home.CompletedProjects == 0 && home.Vitality == 0
                 && home.AttentionReason == HomeAttentionReason.NoProjectStartedYet;
+            // D-198: a calm welcome-back line after a long gap (session-only, never a penalty).
+            var welcome = AbsenceLine(_session.GetAbsence());
+            if (welcome != null && !firstRun) m.Lines.Add(welcome);
             if (!firstRun) m.Lines.Add(glance.WhatChangedSentence);
             // D-106: the empty-state line below already says nothing is being restored; skip the duplicate.
             // D-149: once the active project is funded, the D-145 payoff line names it with its percent
@@ -572,6 +583,8 @@ namespace WalkGame.Shell
         {
             var s = _session.GetPendingReturnSummary();
             var m = With(ShellScreen.ReturnSummary, PlayerStrings.T("shell.whileYouWereAway"), s == null ? ScreenState.Empty : ScreenState.Normal);
+            var welcomeBack = AbsenceLine(_session.GetAbsence()); // D-198
+            if (welcomeBack != null) m.Lines.Add(welcomeBack);
             if (s == null) m.Lines.Add(PlayerStrings.T("shell.nothingNewSinceYour"));
             else
             {

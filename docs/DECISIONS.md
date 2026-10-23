@@ -3795,3 +3795,11 @@ When they hold, the Activity screen keeps "Connected. Your walks are being count
 **Decision.** No code change: envelope decoding already rejects every tested prefix and boot recovers the backup. `TruncatedPrimaryRecoveryTests` (4 cases: 1 byte, 1/4, 1/2, all but the last byte) pins it: status `RecoveredFromBackup`, Vitality equals the backup generation's (never a fresh or partial world), and the next save heals the primary (`Loaded`). No save-schema change.
 
 **Evidence.** .NET 1859/1859 (162 + 252 + 1445). Label: headless-tested. Device UNVERIFIED (KI-002).
+
+## D-198 — Long-absence return: caps unchanged, a calm welcome-back line (2026-10-24)
+
+**Context.** Offline progression was already capped (producer stores bounded, `MaxInterval` 3650 days, backward clock ignored), but a player returning after weeks saw no acknowledgement and nothing pinned that accomplishments survive any gap.
+
+**Decision.** `AbsenceWelcome.Classify(lastAdvancedUtc, now)`: gap < 2 days → none; 2–13 days → `FewDays`; ≥ 14 days → `Long`; now ≤ last (backward clock) → none. Captured at boot and on resume catch-up (`GameSession.GetAbsence()`, session-only, never saved, cleared by `AcknowledgeAbsence()` when the return summary is acknowledged). The shell shows one text line on Home and the return summary: "Welcome back. Everything you restored is still here." / "Welcome back. Everything you restored is still here, and your next walk picks up right where you left off." Localized via `PlayerStrings`; no art, layout, or save change.
+
+**Evidence.** `LongAbsenceReturnTests` (12 .NET: 12 h, 1 day, 2 days, 13.9 days, 2 weeks, 6 months, 100 years; 6 months and 100 years give the same capped world; backward jump keeps everything and never welcomes; back-then-forward jump; resume + acknowledge; not persisted). `LongAbsenceWelcomeTests` (4 EditMode: tiers, no shaming/loss words, locale). The read-model sweep now covers 17 surfaces. .NET 1871/1871 (162 + 252 + 1457). EditMode 364/364. Labels: headless-tested, Unity-editor-tested. Device UNVERIFIED (KI-002).
