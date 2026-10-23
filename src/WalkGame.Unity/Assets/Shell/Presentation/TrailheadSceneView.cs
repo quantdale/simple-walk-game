@@ -26,6 +26,8 @@ namespace WalkGame.Shell.Presentation
         private System.Action? _onSkip;
 
         public bool ReducedMotion { get; set; }
+        /// <summary>Player text scale (1–2); the dialogue panel grows with it and buttons wrap instead of clipping.</summary>
+        public float TextScale { get; set; } = 1f;
         public TrailheadFrame? Frame { get; private set; }
         public DialogueSequence? Dialogue { get; private set; }
         public bool MiraVisible => _mira != null && _mira.enabled;
@@ -132,7 +134,7 @@ namespace WalkGame.Shell.Presentation
             var beat = Dialogue?.Current;
             if (Dialogue == null || beat == null) return;
             _dialogueRoot.Add(TrailheadDialoguePanel.Build(beat, Dialogue.Actions, SpriteFor(_resolver.Resolve(beat.PortraitKey + "@" + beat.Expression).Asset, new Vector2(0.5f, 0.5f))?.texture,
-                a => _onAction?.Invoke(a), () => _onSkip?.Invoke()));
+                a => _onAction?.Invoke(a), () => _onSkip?.Invoke(), TextScale));
         }
     }
 }

@@ -3909,3 +3909,19 @@ the remaining differences there are stage content (bare vs full trees, dry vs gr
 from content, so **≤ 4 px at master is only claimed for the shared riverbed**, not for the banks.
 
 **Evidence** (`docs/evidence/d205-seams/`, Unity editor capture, NOT a device): EditMode 374/374; 9 recaptures. Ledger rows updated (edits, final SHA-256).
+
+## D-206 — Mira repainted to the locked sheet; five expression portraits; bridge-specific dialogue labels (2026-10-24)
+
+**Status:** Accepted (agent; follow-up 2 to D-204)
+
+**Decision.** New locked base `MIRA-BODY-03`: one braid over her left shoulder, satchel crossbody from the left shoulder to the RIGHT hip
+(mallet + rope), staff in the right hand. Remaining drift: a few side wisps of hair framing the face (no loose curls at the back).
+Portraits `portrait.npc.mira@neutral|glad|worried|proud|celebration` come from that one base: each expression image is ECC-registered
+(≤ 2.4 px shift) and only a feathered face ellipse is composited onto the base, so hat, hair, clothes and framing are identical (`tools/art/mira_finish_pass.py`).
+Unknown expressions (content uses `curious`) fall back to neutral. Celebration is face-only (no arms-up pose).
+For the bridge, dialogue buttons read "Inspect the bridge" / "Help restore it" (new keys `dialogue.action.inspect.bridge`,
+`dialogue.action.helpRestore.bridge`); other places keep the generic labels. At 2× text all four buttons fit inside the panel (they wrap to two rows;
+bounds asserted in the capture test and logged in `capture-run.log`).
+
+**Evidence** (`docs/evidence/d206-mira/`, Unity editor capture, NOT a device): EditMode 375/375; captures incl. `trailhead-dialogue-mira-text2x`.
+Ledger: body + 5 portrait rows with verbatim prompts.
