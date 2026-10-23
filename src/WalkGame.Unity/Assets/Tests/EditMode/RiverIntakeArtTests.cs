@@ -54,7 +54,7 @@ namespace WalkGame.Shell.Tests
 
         [Test] public void Reduced_motion_stills_Tavi_and_the_glow()
         {
-            Assert.AreEqual((0f, 0f), RiverIntakeArt.IdlePose(1.3f, true));
+            Assert.AreEqual((0f, 0f, 0f), RiverIntakeArt.IdlePose(1.3f, true));
             Assert.AreEqual(RiverIntakeArt.GlowAlpha(0f, true), RiverIntakeArt.GlowAlpha(1.1f, true), "static glow");
             Assert.Greater(RiverIntakeArt.GlowAlpha(0f, true), 0.5f, "still clearly visible");
             Assert.AreNotEqual(RiverIntakeArt.GlowAlpha(0f, false), RiverIntakeArt.GlowAlpha(0.6f, false), "pulses with motion on");
@@ -63,7 +63,8 @@ namespace WalkGame.Shell.Tests
         [Test] public void Every_intake_layer_exists_and_fits_its_texture_budget()
         {
             long bytes = 0;
-            foreach (var name in RiverIntakeArt.CatalogEntries().Values.Distinct())
+            var names = RiverIntakeArt.CatalogEntries().Values.Concat(RiverIntakeArt.TaviParts.Select(p => p.name)).Distinct();
+            foreach (var name in names)
             {
                 var tex = Resources.Load<Texture2D>(RiverIntakeArt.ResourceFolder + name);
                 Assert.IsNotNull(tex, name);
@@ -71,8 +72,34 @@ namespace WalkGame.Shell.Tests
                 Assert.AreEqual(0, tex.width % 4, name); Assert.AreEqual(0, tex.height % 4, name);
                 bytes += Profiler.GetRuntimeMemorySizeLong(tex);
             }
-            Debug.Log("D216_TEXTURE_BYTES " + bytes);
+            var rigTex = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Resources/Art/Intake/" + RiverIntakeArt.TaviRig + ".psb").OfType<Texture2D>().ToArray();
+            Assert.AreEqual(1, rigTex.Length, "one Tavi rig atlas");
+            bytes += Profiler.GetRuntimeMemorySizeLong(rigTex[0]);
+            Debug.Log("D217_TEXTURE_BYTES " + bytes);
             Assert.LessOrEqual(bytes, 12L * 1024 * 1024, "PERFORMANCE_BUDGETS §9: ≤ 12 MB per place (editor estimate)");
+        }
+
+        [Test] public void Tavi_bone_rig_authors_the_expected_bones_with_reduced_motion_path()
+        {
+            var go = new GameObject("tavi-rig-test");
+            try
+            {
+                var v = go.AddComponent<RiverIntakeSceneView>(); v.Build();
+                Assert.IsNotNull(v.TaviRigRoot, "bone rig preferred over cut-out");
+                Assert.AreEqual(RiverIntakeArt.TaviBones.Length, v.TaviBones.Count);
+                CollectionAssert.AreEquivalent(RiverIntakeArt.TaviBones, v.TaviBones.Keys);
+                var rest = v.TaviBones.ToDictionary(b => b.Key, b => b.Value.localEulerAngles.z);
+                v.ReducedMotion = false; v.Tick(1.1f);
+                Assert.IsTrue(v.TaviBones.Any(b => Mathf.Abs(Mathf.DeltaAngle(rest[b.Key], b.Value.localEulerAngles.z)) > 0.1f), "idle moves the bones");
+                v.ReducedMotion = true; v.Tick(2.3f);
+                Assert.IsTrue(v.TaviBones.All(b => Mathf.Abs(Mathf.DeltaAngle(rest[b.Key], b.Value.localEulerAngles.z)) < 1e-3f), "reduced motion: Tavi at rest");
+                var head = v.TaviBones["head"]; var h0 = head.localRotation;
+                v.React(); v.Tick(v.GetType().GetField("_clock", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance) == null ? 0f : 0f);
+                // reaction under reduced motion: React sets the clock marker but pose stays at rest
+                v.Tick(0.4f);
+                Assert.AreEqual(h0, head.localRotation, "reduced motion: no reaction movement");
+            }
+            finally { Object.DestroyImmediate(go); }
         }
 
         [Test] public void The_view_draws_what_the_presentation_says()

@@ -23,8 +23,19 @@ namespace WalkGame.Shell.Presentation
         /// <summary>Gate layers: G0 jammed (silt, broken wheel), G2 restored (new boards, wheel, brass plate on the left post).</summary>
         public const string GateJammed = "intake_gate_G0", GateRestored = "intake_gate_G2";
         public const string TaviBody = "tavi_body";
-        public const int TaviCanvasW = 484, TaviCanvasH = 1124;
+        /// <summary>D-217: locked BODY-02 canvas (padded to multiples of 4).</summary>
+        public const int TaviCanvasW = 528, TaviCanvasH = 1244;
         public static readonly string[] TaviExpressions = { "neutral", "curious", "glad", "proud", "wistful" };
+        /// <summary>D-217: cut-out parts (pixels in the body canvas; pivot = joint).</summary>
+        public static readonly (string name, int x, int y, int w, int h, int px, int py, int order)[] TaviParts =
+        {
+            ("tavi_part_body", 0, 0, 528, 1244, 264, 1244, 0),
+            ("tavi_part_bandana_tail", 398, 248, 90, 175, 430, 280, 1),
+            ("tavi_part_head", 149, 0, 351, 313, 360, 300, 2),
+        };
+        /// <summary>D-217: 2D Animation bone rig (PSD Importer character prefab).</summary>
+        public const string TaviRig = "Rig/tavi_rig";
+        public static readonly string[] TaviBones = { "hips", "spine", "head", "bandana_1", "bandana_2" };
 
         /// <summary>The brass plate on the restored gate's left post (art space 0..1 of the 720×1280 view) and its tap box.</summary>
         public const float PlateX = 0.590f, PlateY = 0.494f;
@@ -45,12 +56,12 @@ namespace WalkGame.Shell.Presentation
         /// <summary>Glow ring pulse (alpha); static under reduced motion (still visible, never blinking).</summary>
         public static float GlowAlpha(float t, bool reducedMotion) => reducedMotion ? 0.8f : 0.55f + 0.35f * (0.5f + 0.5f * (float)Math.Sin(2 * Math.PI * t / 2.4f));
 
-        /// <summary>Tavi's idle sway (degrees about the feet, body breath scale); zero with reduced motion.</summary>
-        public static (float sway, float breath) IdlePose(float t, bool reducedMotion)
+        /// <summary>D-217: idle pose (degrees per part + breath); all zero with reduced motion (same timing as Mira, style guide §6.4).</summary>
+        public static (float head, float bandana, float breath) IdlePose(float t, bool reducedMotion)
         {
-            if (reducedMotion) return (0f, 0f);
-            float w = 2f * (float)Math.PI / 3.6f;
-            return (0.8f * (float)Math.Sin(w * t), 0.008f * (float)Math.Sin(w * t + 0.5f));
+            if (reducedMotion) return (0f, 0f, 0f);
+            float w = 2f * (float)Math.PI / 3.2f;
+            return (1.2f * (float)Math.Sin(w * t), 3.0f * (float)Math.Sin(w * t * 1.2f + 1.1f), 0.008f * (float)Math.Sin(w * t));
         }
 
         /// <summary>Gate layer index: 0 jammed for @ruined and every build step, 1 restored for @done; null for foreign/malformed keys.</summary>
