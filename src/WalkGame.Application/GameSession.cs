@@ -2050,7 +2050,22 @@ namespace WalkGame.Application
                 hasProcessedAnyRecord: game.ProcessedRecords.Count > 0,
                 lastOutcome: outcome?.Outcome ?? IngestionOutcomeKind.NeverRun,
                 lastBatchVitalityCredited: outcome?.Outcome == IngestionOutcomeKind.Succeeded ? outcome.VitalityCredited : 0L,
-                lastProcessedAtUtc: outcome?.Outcome == IngestionOutcomeKind.Succeeded ? outcome.CompletedAtUtc : null);
+                lastProcessedAtUtc: outcome?.Outcome == IngestionOutcomeKind.Succeeded ? outcome.CompletedAtUtc : null,
+                lastSampleArrivedUtc: LastSampleArrivedUtc(game));
+        }
+
+        /// <summary>
+        /// D-196: latest processing instant of a retained ledger row that carries steps (a credit or a
+        /// revision). Deletions and tombstones carry no steps, so they never count as a walk arriving.
+        /// Derived from data the save already holds; no schema change.
+        /// </summary>
+        private static DateTimeOffset? LastSampleArrivedUtc(GameState game)
+        {
+            DateTimeOffset? latest = null;
+            foreach (var entry in game.ProcessedRecords.Entries.Values)
+                if (entry.EligibleSteps > 0L && (latest == null || entry.ProcessedAtUtc.UtcTicks > latest.Value.UtcTicks))
+                    latest = entry.ProcessedAtUtc;
+            return latest;
         }
 
         // ---------------------------------------------------------------------

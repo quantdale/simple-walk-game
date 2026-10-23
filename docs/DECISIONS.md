@@ -3758,3 +3758,32 @@ Three tests failed before the fix (reminder still active). **Evidence:** EditMod
 Content copy (titles, letters) has its own overlay (D-122) and is outside this sweep. Before the fix, the sweep and the targeted test failed only on the six Privacy lines.
 
 **Evidence.** EditMode 355/355 (+4). Label: Unity-editor-tested. No translation exists yet (KI-023 scope: readiness only).
+
+## D-196 — HealthKit quiet-days hint (KI-031 copy rule) (2026-10-17)
+
+**Status:** Accepted (Michael's decision, 2026-10-17 8:54 PM Asia/Manila: "the copy rule"). Implemented ~9:40 PM. No save-schema change, no notification, no art/UI rebuild.
+
+**Rule.** All of these must hold:
+- the adapter cannot report a refused read (HealthKit);
+- the status is ConnectedCurrent with the permission granted;
+- at least one walk sample has arrived;
+- the local calendar day of now minus the local calendar day of the last arrival is **≥ 3**, both read in the phone's current zone. Example: last arrival on the 14th, hint from 00:00 local on the 17th.
+
+When they hold, the Activity screen keeps "Connected. Your walks are being counted." and adds one line, `activity.quietHint`, from the shell string table: "No walks have come in for a few days. If that's unexpected, check Health access in Settings." The line clears as soon as a sample arrives. No notification is scheduled or requested, and progress is untouched.
+
+**Data, derived and not stored.** The last arrival is the latest `ProcessedAtUtc` among retained ledger rows that carry steps. That includes credits and revisions, and a late watch sync of an old walk counts as arriving now. Deletions and tombstones carry no steps, so they never count. Plumbing:
+- `ActivityConnectionSnapshot.ReadDenialHidden` is ephemeral: HealthKit sets it true, Health Connect leaves it false.
+- `ActivityStatusReadModel` gains `ReadDenialHidden` and `LastSampleArrivedUtc`.
+- `ActivityQuietHint.Applies` is a pure function. A clock that moved back, or an offset outside ±18 h, never shows the hint.
+- The day count uses the shell's existing `LocalOffsetSeconds` (D-156).
+
+**Known edge.** If every row has been retired (D-066 horizon) or deleted, there is no arrival to measure from, and the hint does not show.
+
+**Tests.**
+- .NET `ActivityQuietHintTests`, 14 cases: threshold edges 2/3; local midnight vs 72 h; zone-dependent days; Health Connect excluded; status gating; clock rollback; hostile offset; session derivation, where a deletion doesn't move the arrival, a late old walk clears the hint, and the value survives a restart.
+- `ReadDenialHiddenTests`, 8 cases.
+- EditMode `HealthKitQuietHintTests`, 5 tests through the shell with real adapters over fake bridges: day 2 vs day 3; no nagging; no progress effect; clears on the next sample; zone boundary; follows the locale; Health Connect unaffected.
+
+**Evidence.** .NET 1855/1855 (162 + 252 + 1441). EditMode 360/360. Labels: implemented, headless-tested, Unity-editor-tested. The device, Swift bridge and iOS composition are UNVERIFIED (KI-022, KI-002). KI-031 resolved.
+
+**Amendment 2026-10-24 (grok1024a).** The D-196 commit was found unpushed after an interrupted run and is landed here. Its hint copy said "…check Health access in your phone's settings."; the owner-specified copy is "No walks have come in for a few days. If that's unexpected, check Health access in Settings." and `activity.quietHint` now matches it. Counts re-run on this tree: .NET 1855/1855 (162 + 252 + 1441); EditMode 360/360.

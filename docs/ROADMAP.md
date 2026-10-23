@@ -679,3 +679,4 @@ The project should prefer **fewer, larger, integrated campaigns** over fragmente
 - [x] 2026-10-17 grok2012: D-193 HealthKit lifecycle parity suite through the shell (12 EditMode cases); KI-031 (iOS denial invisible) logged.
 - [x] 2026-10-17 grok2013: D-194 delete-all withdraws the OS daily reminder (bug, failing-first) + export→delete→new-world privacy round trip (5 EditMode tests).
 - [x] 2026-10-17 grok2014: D-195 runtime pseudo-locale sweep over 10 screens; Privacy lines now follow a later locale (bug, failing-first); Presentation seam scanned.
+- [x] 2026-10-17 grok2016: D-196 KI-031 resolved: HealthKit quiet-days hint (3 local days, Activity screen only, no save change).

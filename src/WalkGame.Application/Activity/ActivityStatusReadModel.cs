@@ -34,6 +34,15 @@ namespace WalkGame.Application.Activity
 
         public DateTimeOffset? LastAttemptUtc { get; }
 
+        /// <summary>D-196: the adapter cannot report a refused read (HealthKit). From the snapshot; never persisted.</summary>
+        public bool ReadDenialHidden { get; }
+
+        /// <summary>
+        /// D-196: when a walk sample last ARRIVED (latest processing instant of a retained ledger row
+        /// with steps), derived from existing save data; null when none is retained. Not a new field.
+        /// </summary>
+        public DateTimeOffset? LastSampleArrivedUtc { get; }
+
         public ActivityStatusReadModel(
             ActivityPlayerStatus status,
             ActivityRecommendedAction recommendedAction,
@@ -44,8 +53,12 @@ namespace WalkGame.Application.Activity
             long lastBatchVitalityCredited,
             DateTimeOffset? lastProcessedAtUtc,
             DateTimeOffset? lastSuccessfulRefreshUtc,
-            DateTimeOffset? lastAttemptUtc)
+            DateTimeOffset? lastAttemptUtc,
+            bool readDenialHidden = false,
+            DateTimeOffset? lastSampleArrivedUtc = null)
         {
+            ReadDenialHidden = readDenialHidden;
+            LastSampleArrivedUtc = lastSampleArrivedUtc;
             Status = status;
             RecommendedAction = recommendedAction;
             PermissionGranted = permissionGranted;

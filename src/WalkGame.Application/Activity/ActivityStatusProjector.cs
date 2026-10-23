@@ -77,7 +77,8 @@ namespace WalkGame.Application.Activity
             bool hasProcessedAnyRecord,
             IngestionOutcomeKind lastOutcome,
             long lastBatchVitalityCredited,
-            DateTimeOffset? lastProcessedAtUtc)
+            DateTimeOffset? lastProcessedAtUtc,
+            DateTimeOffset? lastSampleArrivedUtc = null)
         {
             if (snapshot == null)
                 return new ActivityStatusReadModel(
@@ -103,7 +104,9 @@ namespace WalkGame.Application.Activity
                 lastBatchVitalityCredited,
                 lastProcessedAtUtc,
                 snapshot.LastSuccessfulRefreshUtc,
-                snapshot.LastAttemptUtc);
+                snapshot.LastAttemptUtc,
+                snapshot.ReadDenialHidden,
+                lastSampleArrivedUtc);
         }
 
         private static ActivityPlayerStatus Classify(

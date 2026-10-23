@@ -50,6 +50,8 @@ is offered (no dead end), onboarding completes, and no development walking is ex
 5. Reads only on boot and resume over `ShellController.SyncWindowDays` (D-107 budget tests must pass
    with the iOS bridge fake). HealthKit read authorisation is not observable; the adapter must treat
    "no samples" as possibly denied and never claim Connected without data.
+   D-196: after 3 quiet local days the shell adds a gentle "check Health access" hint line on the
+   Activity screen (status stays Connected; no notification; clears on the next sample).
 6. Privacy: read-only scope, no write types, usage string reviewed against PRIVACY_REVIEW.
 
 Building it needs a macOS host with Xcode (not on this box) and a device for verification, so it is

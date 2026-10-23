@@ -1089,6 +1089,8 @@ namespace WalkGame.Shell
             var m = With(ShellScreen.ActivityStatus, PlayerStrings.T("label.activity"), a.HasProcessedAnyRecord ? ScreenState.Normal : ScreenState.Empty);
             // UX_DESIGN §5: player-facing states only; never raw identifiers or exception text.
             m.Lines.Add(PlayerCopy.ActivityStatus(a.Status));
+            // D-196 (KI-031): HealthKit hides a refused read; after 3 quiet local days, one gentle line. No notification.
+            if (ActivityQuietHint.Applies(a, UtcNow(), LocalOffsetSeconds())) m.Lines.Add(PlayerStrings.T("activity.quietHint"));
             string next = PlayerCopy.ActivityAction(a.RecommendedAction);
             if (next != null) m.Lines.Add(next);
             if (a.RecommendedAction == ActivityRecommendedAction.Connect && _requestPermission != null)
