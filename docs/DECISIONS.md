@@ -3894,3 +3894,18 @@ tree crowns, flowers, water strip are baked into plate/structure layers); static
 ≤ 4 px at master); a faint ground seam around the B2/B3 log/plank patch over the forgotten plate; one portrait (neutral) serves all expressions
 (`portrait.npc.mira@worried|glad|proud` fall back); Mira drift vs locked sheet: a few loose curls, satchel on her left hip (sheet: right);
 no Mira rig/animation, no water UV scroll, no particles; Functional (stage 2) was skipped by the capture's play order (mapping covered by tests).
+
+## D-205 — Trailhead seams fixed: alpha cutouts and a shared riverbed (2026-10-24)
+
+**Status:** Accepted (agent; follow-up 1 to D-204)
+
+**Decision.** Re-ran the finish pass as `tools/art/trailhead_finish_pass_v2.py` (OpenCV, free; venv on the box, not a repo dependency).
+Structure layers are now true alpha cutouts (Lab ΔE hysteresis vs their registered plate, grass/water hues stay with the plate, only
+pin-holes filled, 1 px choke + 1.6 px feather), so no rectangular patch or water seam shows at the abutments, and the green ground seam at
+the half/full-deck stages is gone. Registration: the riverbed is one hand-traced shared static region (`docs/direction/art/trailhead_riverbed_guide.png`);
+inside it every stage uses the master plate's water geometry, re-graded to the stage-0 murky ramp, so the shoreline drift between plates is
+**0 px** by construction. Outside the riverbed the forgotten plate is affine-registered to the master (`docs/evidence/d205-seams/registration.json`);
+the remaining differences there are stage content (bare vs full trees, dry vs green grass), and the automatic flow metric cannot separate drift
+from content, so **≤ 4 px at master is only claimed for the shared riverbed**, not for the banks.
+
+**Evidence** (`docs/evidence/d205-seams/`, Unity editor capture, NOT a device): EditMode 374/374; 9 recaptures. Ledger rows updated (edits, final SHA-256).
