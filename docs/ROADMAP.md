@@ -662,6 +662,7 @@ The project should prefer **fewer, larger, integrated campaigns** over fragmente
 - [x] 2026-10-17 grok1725: records: Phase B round 2 package sent to Michael ~4:45 PM Asia/Manila, recommendation A (`docs/direction/ART_CHECKPOINT_R2_2026-10-17.md`, text only); awaiting his pick, D-170 and the final-art painter decision.
 - [x] 2026-10-24 grok1024rec: records: Michael picked A (D-200), D-170 accepted with scope, agent-made final art (D-201); D-171 gate closed; ASSET_LICENSES gains the AI-derived-with-ledger category.
 - [x] 2026-10-24 grok1024sty: Phase C style guide A landed (`docs/direction/art/`, D-202).
+- [x] 2026-10-24 grok1024pkg: concept A Unity packages (2D Sprite, 2D Animation, PSD Importer, Animation, Particle System; no URP), D-203.
 - [x] 2026-10-17 grok1725: D-177 KI-027(e) Unity 2D art packages deferred until Michael's round 2 pick (style-dependent; concept A needs 2D Sprite, 2D Animation, PSD Importer, no URP). Nothing added.
 - [x] 2026-10-17 grok1725: D-178 exactly-once fix: a record revised down and back up (or deleted and re-added) while the balance was spent minted +1 Vitality per cycle; the correction pool is clamped to 0..99 like deletions (`CorrectionOscillationTests`, property over 150 seeded histories).
 - [x] 2026-10-17 grok1725: D-179 side files (UX preferences incl. reduced motion, presentation memory) are replaced atomically with `File.Replace`; a crash can no longer reset them to defaults (`SideFileReplaceAtomicityTests`).
