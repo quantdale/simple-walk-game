@@ -4055,3 +4055,23 @@ The world's Home button returns to the shell. No save/Domain/Application change.
 
 **Evidence** (`docs/evidence/d215-shell-a/`, Unity editor capture, NOT a device): EditMode 384/384 incl. 4 `ShellDirectionATests`
 and all accessibility audits; PlayMode 2/2. Screen-reader behaviour on a phone: UNVERIFIED (KI-002).
+
+## D-216 — Painted River Intake (direction A) with Tavi and the optional brass-plate find (2026-10-24)
+
+**Status:** Accepted (agent; addresses §48 for Region 1)
+
+**Decision.** The River Intake is the second painted Region-1 place, same consistency bar as the Old Trailhead
+(D-204…D-215). Two registered ground plates (`intake_ground_S0`/`S4`) crossfade by landmark stage over a shared
+riverbed; the gate is one of two layers (`intake_gate_G0` jammed for @ruined and every build step, `intake_gate_G2`
+restored for @done). Tavi (`npc.tavi`) is in-world with a gentle idle (still under reduced motion) and five portraits
+(neutral/curious/glad/proud/wistful) from a locked base. The host (`TrailheadWorldHost`) now hosts either place via
+`IPaintedPlaceView` and offers a walk between them once the intake is unlocked. **Optional find (§48):** the brass
+plate on the restored gate's left post (`disc.intake-plate-stamp`) is offered once the discovery is canonically
+unlocked — a honey glow ring (static under reduced motion), a ≥ 48 dp tap box, and a screen-reader / keyboard
+button ("Look at the brass plate") that open the same in-engine find card and call the existing
+`MarkDiscoveryReviewed` (GAME_SYSTEMS §7: presentation convenience, never gates progress). No Domain /
+Application / save-schema change. No Region 2. Tavi bone rig: remaining (cut-out body is enough for this slice).
+
+**Evidence** (`docs/evidence/d216-intake/`, Unity editor capture, NOT a device): EditMode 389/389 incl. 5
+`RiverIntakeArtTests`; PlayMode 3/3. Texture budget ~4.2 MB. Screen-reader behaviour on a phone: UNVERIFIED (KI-002).
+

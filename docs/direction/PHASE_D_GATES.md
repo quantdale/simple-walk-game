@@ -1,9 +1,9 @@
 # Phase D trailhead slice — Creative Bible §45–48 gate audit (2026-10-24)
 
-Scope: the painted Old Trailhead slice (D-204 … D-212) on main `55311700`. Statuses: **PASS** (evidence shown),
+Scope: the painted Region-1 places (Old Trailhead D-204…D-215, River Intake D-216) on main. Statuses: **PASS** (evidence shown),
 **FAIL** (not met), **PARTIAL** (met inside the trailhead view, not across the app), **UNVERIFIED** (needs a device or real players).
 All captures are **Unity editor captures (software GL), NOT device-tested** (KI-002). `E/` = `docs/evidence/d212-bone-rig/`
-(the latest full capture set) unless noted; `F/` = `docs/evidence/d215-shell-a/`; D-214 refreshed the trailhead set in `docs/evidence/d214-fringe/`.
+(the latest full capture set) unless noted; `F/` = `docs/evidence/d215-shell-a/`; `I/` = `docs/evidence/d216-intake/`; D-214 refreshed the trailhead set in `docs/evidence/d214-fringe/`.
 
 ## §45 Art approval gate
 
@@ -23,9 +23,9 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 |---|---|---|
 | Runs in Unity | PASS (editor) | EditMode 380/380, PlayMode captures 2/2 (D-212). Device: UNVERIFIED |
 | Real authored illustrated environment assets | PASS | 2 ground plates + 5 bridge layers + ripple, ledger rows with verbatim prompts (D-209) |
-| A character appears and interacts naturally | PASS (editor) | Mira bone rig, idle + Help-restore reaction (D-212); tap Mira → dialogue `E/home-tap-mira-dialogue`; `E/trailhead-motion…gif` |
+| A character appears and interacts naturally | PASS (editor) | Mira bone rig, idle + Help-restore reaction (D-212); tap Mira → dialogue `E/home-tap-mira-dialogue`; `E/trailhead-motion…gif`. Tavi at the intake (D-216; cut-out body + idle; bone rig remaining): `I/intake-dialogue-tavi` |
 | Dialogue short, expressive, context-aware | PASS | 1–2 sentence lines by stage/bridge key, 5 expression portraits (D-206); `E/trailhead-dialogue-mira` |
-| A real restoration project changes the environment | PASS | `proj.rebuild-trail-bridges` from real walking: `E/trailhead-s1-bridge-build-0of3` → `…-done` |
+| A real restoration project changes the environment | PASS | `proj.rebuild-trail-bridges` from real walking: `E/trailhead-s1-bridge-build-0of3` → `…-done`. Intake: `proj.river-intake` jammed → restored `I/intake-s0-gate-jammed-tavi` → `I/intake-gate-restored-plate-glow` |
 | Ruined and restored visibly distinct | PASS | `E/trailhead-s0-forgotten-bridge-ruined` vs `E/trailhead-s3-restored` (bare vs full crowns, murky vs clear water) |
 | UI matches the art identity | PASS (editor) | D-215: every text-shell screen is an A parchment card (ink-brown border, Fraunces/Nunito, Forest-deep primary) over the painted stage plate: `F/shell-first-launch`, `F/shell-home-visit-trailhead*`, `F/shell-return-after-walking`, `F/shell-region-view`. Deviation: primary is Forest deep, not Honey (charcoal on honey 5.81:1 misses the shell's 7:1 target) |
 | The world dominates the screen | PASS (editor) | D-215: the app opens on the painted trailhead (once per launch; text shell first only under a screen reader, D-215 test); shell screens keep ≥ 42 % painted world above a compact card |
@@ -49,6 +49,18 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Short gameplay/animation capture | PASS (editor, simulated time) | `E/trailhead-motion.unity-editor-capture.gif` (D-211/D-212) |
 | Labelling concept vs editor vs device | PASS | Every capture carries an in-image caption; no device claims |
 
+## River Intake (D-216) — labelled editor captures (`I/` = `docs/evidence/d216-intake/`)
+
+| Moment | Status | Evidence |
+|---|---|---|
+| Walked from the trailhead, jammed gate, Tavi present | PASS (editor) | `I/intake-s0-gate-jammed-tavi` |
+| Tap Tavi → dialogue (1× and 2× text) | PASS (editor) | `I/intake-dialogue-tavi`, `I/intake-dialogue-tavi-text2x` |
+| Restored gate + optional find glowing (static, reduced motion) | PASS (editor) | `I/intake-gate-restored-plate-glow` |
+| Tap the brass plate → find card (1× and 2× text) | PASS (editor) | `I/intake-find-card`, `I/intake-find-card-text2x` |
+| Flourishing plate (key-driven) | PASS (editor, labelled) | `I/intake-s4-flourishing-keydriven` |
+| Texture budget ≤ 12 MB | PASS (editor) | ~4.2 MB (`D216_TEXTURE_BYTES`) |
+| Region 2 | NOT STARTED | — |
+
 ## §48 Final evaluation questions (agent assessment; no player test — UNVERIFIED with people)
 
 | Question | Answer | Why |
@@ -59,7 +71,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Interact with the world naturally? | Yes (editor) | Tap bridge/signpost/Mira; touch on a phone UNVERIFIED |
 | Walking produces meaningful visible change? | Yes | Steps → bridge build stages → stage plates (real-play captures) |
 | Follow progress without reading paragraphs? | Yes inside the world | Bridge stages + goal-progress line; the Region view is still text-heavy |
-| Worthwhile optional gameplay beyond dialogue? | **No (central gap)** | Inspect cards only; discoveries/expeditions exist only as text-shell screens |
+| Worthwhile optional gameplay beyond dialogue? | **Yes (one find, editor)** | D-216: the brass intake plate (`disc.intake-plate-stamp`) is an optional in-world find with a honey glow ring (static under reduced motion), a ≥ 48 dp tap and a screen-reader button; card text is in-engine (`I/intake-find-card*`). Marks reviewed via the existing command; never gates progress. Further finds / expeditions still text-only |
 | Leave without being penalised? | Yes | D-198: caps unchanged, calm welcome-back; nothing decays |
 
 ## Failures fixed
@@ -73,5 +85,5 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 ## Open (cannot be closed by a small PR)
 
 1. ~~Text shell in direction A~~ and ~~world-first boot~~ → D-215. Residual: a painted Region map; a lighter Home menu.
-3. Optional in-world play beyond dialogue (e.g. a discovery to find at the trailhead) — §48 central gap.
+3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate at the intake). Residual: more finds, expeditions in-world, a Tavi bone rig, a painted Region map.
 4. Device verification of everything above (KI-002).

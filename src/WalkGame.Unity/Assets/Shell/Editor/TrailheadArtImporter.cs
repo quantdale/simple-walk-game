@@ -9,10 +9,12 @@ namespace WalkGame.Shell.Editor
     public sealed class TrailheadArtImporter : AssetPostprocessor
     {
         public const string Folder = "Assets/Resources/Art/Trailhead/";
+        /// <summary>D-216: the River Intake art follows the same rules.</summary>
+        public const string IntakeFolder = "Assets/Resources/Art/Intake/";
 
         private void OnPreprocessTexture()
         {
-            if (!assetPath.StartsWith(Folder)) return;
+            if (!assetPath.StartsWith(Folder) && !assetPath.StartsWith(IntakeFolder)) return;
             var t = (TextureImporter)assetImporter;
             t.textureType = TextureImporterType.Default;
             t.mipmapEnabled = false;
