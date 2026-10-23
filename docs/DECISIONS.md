@@ -3994,3 +3994,23 @@ still and a 24-frame GIF and asserts the motes are live.
 
 **Evidence** (`docs/evidence/d211-hair-motes/`, Unity editor capture, NOT a device): EditMode 379/379 (texture estimate 8,280,144 B);
 PlayMode 2/2; `trailhead-s4-motion-on`, `trailhead-motion.unity-editor-capture.gif` (`WG_MOTES live=40`). Particle cost on a phone: UNVERIFIED.
+
+## D-212 — Mira is a 2D Animation bone rig (PSD Importer source, weighted bones) with a subtle idle and a "Help restore it" reaction (2026-10-24)
+
+**Status:** Accepted (agent; follow-up to D-208, replaces its Transform cut-out rig as the shipped path)
+
+**Decision.** `Assets/Resources/Art/Trailhead/Rig/mira_rig.psb` (4 layers: scarf tail, body, braid, head; built by
+`tools/art/mira_rig_psb.py` from the D-211 parts) is imported by the PSD Importer in character mode. Its skeleton and skin are
+authored deterministically by `Shell/Editor/MiraRigAuthoring.Author` (menu or `-executeMethod`) and stored in the `.psb.meta`:
+7 bones (hips → spine → head; spine → braid_1 → braid_2; spine → scarf_1 → scarf_2) on the D-208 joints, a 24 px grid mesh per
+layer and distance-to-bone weights (≤ 2 bones per vertex). Runtime: `TrailheadSceneView` instantiates the imported prefab
+(SpriteSkin on every layer) and drives bone rotations: idle = `IdlePose` (breath on the spine, head sway, braid and scarf chains);
+reaction = `ReactionPose` (glad nod, small hop, braid flick, 1.1 s), fired by the dialogue's Help restore button.
+Reduced motion: bones held at bind pose, no reaction movement (the glad portrait still shows). Fallbacks unchanged: cut-out
+parts, then the flat body. Texture estimate incl. the rig atlas: 10,378,176 B (≤ 12 MB). Packages were added by D-203; asmdefs
+now reference Unity.2D.Animation/PSD Importer/Sprite editor and Animation runtime.
+
+**Evidence** (`docs/evidence/d212-bone-rig/`, Unity editor capture, NOT a device): EditMode 380/380 incl.
+`Mira_is_a_skinned_bone_rig_with_a_help_restore_reaction_and_a_reduced_motion_path` (4 SpriteSkins, bind poses, reduced-motion
+rest); PlayMode 2/2; rest pose matches the D-211 cut-out within 0.15 mean RGB diff; `trailhead-mira-reaction-help-restore`,
+`trailhead-motion.unity-editor-capture.gif`. Skinning cost on a phone: UNVERIFIED (KI-002).

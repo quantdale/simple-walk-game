@@ -56,6 +56,20 @@ namespace WalkGame.Shell.Presentation
             return (1.2f * (float)Math.Sin(w * t), 2.5f * (float)Math.Sin(w * t + 0.8f), 3.5f * (float)Math.Sin(w * t * 1.3f + 1.6f), 0.008f * (float)Math.Sin(w * t));
         }
 
+        /// <summary>D-212: Mira's 2D Animation rig (PSD Importer character prefab, Resources path) and its bone names.</summary>
+        public const string MiraRig = "Rig/mira_rig";
+        public static readonly string[] MiraBones = { "hips", "spine", "head", "braid_1", "braid_2", "scarf_1", "scarf_2" };
+        public const float ReactionSeconds = 1.1f;
+
+        /// <summary>D-212: the "Help restore it" reaction — a glad nod with a small hop and a braid flick, <paramref name="t"/>
+        /// seconds after the tap. Reduced motion: no movement (the portrait's glad expression carries it).</summary>
+        public static (float head, float hop, float braid) ReactionPose(float t, bool reducedMotion)
+        {
+            if (reducedMotion || t < 0f || t >= ReactionSeconds) return (0f, 0f, 0f);
+            float u = t / ReactionSeconds, env = (float)Math.Sin(Math.PI * u);
+            return (-6f * (float)Math.Sin(2 * Math.PI * u * 2f) * env, 0.12f * (float)Math.Max(0, Math.Sin(Math.PI * u * 2f)) * (u < 0.5f ? 1f : 0f), 8f * (float)Math.Sin(2 * Math.PI * u * 1.5f) * env);
+        }
+
         /// <summary>D-208: ripple drift speed multiplier per stage (style guide §1.2); 0 with reduced motion.</summary>
         public static float RippleSpeed(RestorationStage stage, bool reducedMotion) => reducedMotion ? 0f : stage switch
         {

@@ -73,8 +73,34 @@ namespace WalkGame.Shell.Presentation
         public ParticleSystem? Motes => _motes;
         public SpriteRenderer? Ripple => _ripple;
 
+        private readonly Dictionary<string, Transform> _bones = new Dictionary<string, Transform>();
+        private readonly Dictionary<string, Quaternion> _boneRest = new Dictionary<string, Quaternion>();
+        private Vector3 _hipsRest; private Transform? _rigRoot;
+        private float _reactAt = float.NegativeInfinity;
+        /// <summary>D-212: the bone rig's bones by name (empty when the rig asset is missing and the cut-out fallback is used).</summary>
+        public IReadOnlyDictionary<string, Transform> MiraBones => _bones;
+        public Transform? MiraRigRoot => _rigRoot;
+
+        /// <summary>D-212: plays the "Help restore it" reaction (no-op with reduced motion).</summary>
+        public void React() { _reactAt = _clock; Tick(_clock); }
+
+        private bool BuildBoneRig()
+        {
+            var prefab = Resources.Load<GameObject>(TrailheadArt.ResourceFolder + TrailheadArt.MiraRig);
+            if (prefab == null) return false;
+            var go = Instantiate(prefab, _mira.transform, false); go.name = "mira_rig";
+            go.transform.localPosition = Vector3.zero; // document pivot (0.5, 0) = feet centre, like the flat body
+            foreach (var t in go.GetComponentsInChildren<Transform>(true))
+                if (System.Array.IndexOf(TrailheadArt.MiraBones, t.name) >= 0) { _bones[t.name] = t; _boneRest[t.name] = t.localRotation; }
+            if (_bones.Count != TrailheadArt.MiraBones.Length) { DestroyImmediate(go); _bones.Clear(); _boneRest.Clear(); return false; }
+            foreach (var r in go.GetComponentsInChildren<SpriteRenderer>(true)) r.sortingOrder += 4;
+            _hipsRest = _bones["hips"].localPosition; _rigRoot = go.transform;
+            return true;
+        }
+
         private void BuildMiraRig()
         {
+            if (BuildBoneRig()) return;
             // The root renderer stays empty; parts are children placed so their joints line up on the body canvas.
             foreach (var p in TrailheadArt.MiraParts)
             {
@@ -128,7 +154,8 @@ namespace WalkGame.Shell.Presentation
 
         private void SetMiraVisible(bool on)
         {
-            _mira.enabled = on && _parts.Count == 0;
+            _mira.enabled = on && _parts.Count == 0 && _rigRoot == null;
+            if (_rigRoot != null) _rigRoot.gameObject.SetActive(on);
             foreach (var p in _parts) p.t.gameObject.SetActive(on);
             _miraOn = on;
         }
@@ -139,6 +166,15 @@ namespace WalkGame.Shell.Presentation
         {
             _clock = t;
             var pose = TrailheadArt.IdlePose(t, ReducedMotion);
+            if (_rigRoot != null)
+            {
+                var re = TrailheadArt.ReactionPose(t - _reactAt, ReducedMotion);
+                void Rot(string b, float deg) => _bones[b].localRotation = _boneRest[b] * Quaternion.Euler(0, 0, deg);
+                Rot("hips", 0f); Rot("spine", pose.breath * 60f); Rot("head", pose.head + re.head);
+                Rot("braid_1", pose.braid + re.braid); Rot("braid_2", (pose.braid + re.braid) * 0.6f);
+                Rot("scarf_1", pose.scarf); Rot("scarf_2", pose.scarf * 0.7f);
+                _bones["hips"].localPosition = _hipsRest + new Vector3(0f, re.hop * PixelsPerUnit / 100f, 0f);
+            }
             foreach (var (tr, name) in _parts)
             {
                 float deg = name.EndsWith("head") ? pose.head : name.EndsWith("braid") ? pose.braid : name.EndsWith("scarf_tail") ? pose.scarf : 0f;
@@ -212,7 +248,7 @@ namespace WalkGame.Shell.Presentation
 
         // ICharacterPresenter / ICharacterView
         public ICharacterView? FindCharacter(string characterId) => characterId == TrailheadArt.MiraId ? this : null;
-        public void Show(CharacterPresentation character) => SetMiraVisible(character.LocationId == TrailheadArt.LocationId && (_parts.Count > 0 || _mira.sprite != null));
+        public void Show(CharacterPresentation character) => SetMiraVisible(character.LocationId == TrailheadArt.LocationId && (_rigRoot != null || _parts.Count > 0 || _mira.sprite != null));
         public void React(CharacterReaction reaction) { }
 
         // IDialoguePresenter
