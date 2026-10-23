@@ -210,6 +210,10 @@ namespace WalkGame.Shell.PlayModeTests
                 {
                     var root = doc.rootVisualElement;
                     root.style.backgroundColor = ShellView.Background;
+                    // D-215: the painted stage plate behind the card, as ShellBootstrap does
+                    WalkGame.Domain.Regions.RestorationStage? st = null;
+                    try { st = shell.Session.GetRegion().Landmarks.FirstOrDefault(l => l.LandmarkId == TrailheadArt.LocationId)?.Stage; } catch (Exception) { }
+                    ShellView.Backdrop = Resources.Load<Texture2D>(TrailheadArt.ResourceFolder + TrailheadArt.BackdropFor(st));
                     ShellView.Render(root, shell.Render(), _ => { }, textScale);
                     var cap = new Label("Unity editor capture (software GL, not a device) · text shell · " + note);
                     cap.style.position = Position.Absolute; cap.style.top = 4; cap.style.left = 8; cap.style.right = 8;
@@ -260,8 +264,10 @@ namespace WalkGame.Shell.PlayModeTests
                 yield return ShellShot("shell-home-visit-trailhead", "Home with Visit the Old Trailhead", ShellController.WorldTrailheadAction);
                 yield return ShellShot("shell-home-visit-trailhead-text2x", "Home at 2x text, scrolled to Visit the Old Trailhead", ShellController.WorldTrailheadAction, 2f);
                 shell.Invoke("nav:Region");
-                yield return ShellShot("shell-region-view", "Region view (procedural valley, pre-direction-A placeholder)");
+                yield return ShellShot("shell-region-view", "Region view (direction-A card over the painted trailhead; a painted region map is not drawn yet)");
                 shell.Invoke("nav:Home");
+                ShellView.Backdrop = null;
+                Assert.IsTrue(TrailheadArt.OpenWorldFirst(shell.Current == ShellScreen.Home, false, false), "D-215: boot lands in the world");
                 UnityEngine.Object.DestroyImmediate(shellGo); shellRt.Release();
                 shell.Invoke(ShellController.WorldTrailheadAction);
                 Assert.AreEqual(TrailheadArt.LocationId, shell.WorldRequested, "Home opened the trailhead");
@@ -281,7 +287,7 @@ namespace WalkGame.Shell.PlayModeTests
                 var cam = go.GetComponentInChildren<Camera>();
                 IEnumerator Shot(string name, string note)
                 {
-                    caption.text = "Unity editor capture (software GL, not a device) · Phase D trailhead from Home · " + note;
+                    caption.text = "Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · " + note;
                     host.View.Settle();
                     for (int i = 0; i < 6; i++) yield return null;
                     cam.Render();

@@ -12,11 +12,32 @@ namespace WalkGame.Shell
     /// </summary>
     public static class ShellView
     {
-        public static readonly Color Background = new Color32(0xF4, 0xF1, 0xEA, 0xFF); // warm paper
-        public static readonly Color Ink = new Color32(0x1F, 0x2A, 0x24, 0xFF);        // ~13:1 on Background
-        public static readonly Color Muted = new Color32(0x44, 0x50, 0x48, 0xFF);      // 7.49:1 on Background (D-095 measured)
-        public static readonly Color Accent = new Color32(0x24, 0x5A, 0x41, 0xFF);     // white text 8.03:1 (D-095: was 2F6B4F, 6.29:1, below the 7:1 body target)
-        public static readonly Color ErrorInk = new Color32(0x8A, 0x1C, 0x1C, 0xFF);
+        // D-215: direction A palette (STYLE_GUIDE_A §1.1/§9.5), kept at the shell's 7:1 body target (stricter than the guide's AA):
+        public static readonly Color Background = new Color32(0xF5, 0xEB, 0xDD, 0xFF); // Canvas parchment
+        public static readonly Color Ink = new Color32(0x3D, 0x40, 0x38, 0xFF);        // Charcoal, 8.95:1 on Canvas
+        public static readonly Color Muted = new Color32(0x45, 0x48, 0x3F, 0xFF);      // 7.91:1 on Canvas
+        public static readonly Color Accent = new Color32(0x2F, 0x4A, 0x36, 0xFF);     // Forest deep, darkened: white text 9.75:1 (guide #3F6248 is 6.88:1)
+        public static readonly Color ErrorInk = new Color32(0x8A, 0x1C, 0x1C, 0xFF);   // 7.87:1 on Canvas
+        public static readonly Color InkBrown = new Color32(0x5A, 0x3E, 0x2B, 0xFF);   // painted card border (§9.1), 8.25:1 on Canvas
+        public static readonly Color Honey = new Color32(0xE5, 0xBA, 0x69, 0xFF);      // ribbon decoration only (charcoal on honey is 5.81:1 < 7)
+
+        /// <summary>D-215: the painted world behind the shell (current trailhead stage plate); null = plain canvas (tests).</summary>
+        public static Texture2D Backdrop;
+        /// <summary>D-215: share of the screen height left to the painted world above the card when a backdrop is shown.</summary>
+        public const float WorldShare = 0.42f;
+
+        private static Font _display, _body, _bodyBold; private static bool _fontsLoaded;
+        /// <summary>D-215: Fraunces (display) and Nunito (body/UI), SIL OFL, from Resources/Fonts.</summary>
+        public static Font DisplayFont { get { LoadFonts(); return _display; } }
+        public static Font BodyFont { get { LoadFonts(); return _body; } }
+        public static Font ButtonFont { get { LoadFonts(); return _bodyBold; } }
+        private static void LoadFonts()
+        {
+            if (_fontsLoaded) return; _fontsLoaded = true;
+            _display = Resources.Load<Font>("Fonts/Fraunces-SemiBold");
+            _body = Resources.Load<Font>("Fonts/Nunito-Medium");
+            _bodyBold = Resources.Load<Font>("Fonts/Nunito-ExtraBold");
+        }
 
         public const float TitleSize = 28f, BodySize = 18f, ButtonHeight = 56f;
 
@@ -51,21 +72,36 @@ namespace WalkGame.Shell
                 root.Clear();
                 scroll = new ScrollView(ScrollViewMode.Vertical) { name = "content" };
                 scroll.style.flexGrow = 1;
-                scroll.contentContainer.style.paddingLeft = 24;
-                scroll.contentContainer.style.paddingRight = 24;
-                scroll.contentContainer.style.paddingTop = 56;
-                scroll.contentContainer.style.paddingBottom = 32;
+                scroll.contentContainer.style.paddingLeft = 20;
+                scroll.contentContainer.style.paddingRight = 20;
+                scroll.contentContainer.style.paddingTop = 20;
+                scroll.contentContainer.style.paddingBottom = 20;
+                // D-215: a parchment card with a hand-ink border (STYLE_GUIDE_A §9.1) over the painted world
+                scroll.style.backgroundColor = Background;
+                scroll.style.borderTopWidth = scroll.style.borderBottomWidth = scroll.style.borderLeftWidth = scroll.style.borderRightWidth = 3;
+                scroll.style.borderTopColor = scroll.style.borderBottomColor = scroll.style.borderLeftColor = scroll.style.borderRightColor = InkBrown;
+                scroll.style.borderTopLeftRadius = scroll.style.borderTopRightRadius = scroll.style.borderBottomLeftRadius = scroll.style.borderBottomRightRadius = 16;
                 root.Add(scroll);
             }
             scroll.Clear();
             scroll.scrollOffset = Vector2.zero;
             root.style.flexGrow = 1;
             root.style.backgroundColor = Background;
+            // D-215: painted world dominant — the stage plate fills the screen and the card sits low and compact.
+            bool world = Backdrop != null;
+            root.style.backgroundImage = world ? new StyleBackground(Backdrop) : new StyleBackground(StyleKeyword.None);
+            root.style.backgroundSize = new BackgroundSize(BackgroundSizeType.Cover);
+            root.style.justifyContent = Justify.FlexEnd;
+            scroll.style.flexGrow = world ? 0 : 1;
+            scroll.style.maxHeight = world ? new Length((1f - WorldShare) * 100f, LengthUnit.Percent) : new StyleLength(StyleKeyword.None);
+            scroll.style.marginLeft = scroll.style.marginRight = world ? 12 : 0;
+            scroll.style.marginBottom = world ? 16 : 0; scroll.style.marginTop = world ? 12 : 0;
 
             var title = Text(model.Title, TitleSizeFor(k), Ink);
             title.name = "title";
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
-            title.style.marginBottom = 16;
+            if (DisplayFont != null) { title.style.unityFont = DisplayFont; title.style.unityFontDefinition = FontDefinition.FromFont(DisplayFont); }
+            title.style.marginBottom = 12;
             scroll.Add(title);
 
             if (model.Notice != null)
@@ -80,7 +116,8 @@ namespace WalkGame.Shell
                 scroll.Add(notice);
             }
 
-            if (model.Scene != null) scroll.Add(new ValleyElement(model.Scene));
+            // D-215: over the painted world the procedural valley strip (pre-A placeholder) is not drawn; its states are in the text lines.
+            if (model.Scene != null && !world) scroll.Add(new ValleyElement(model.Scene));
 
             // Empty state (UX_DESIGN §17): the screen's own explanatory line IS the empty state,
             // at body size; no generic small-print filler.
@@ -145,7 +182,8 @@ namespace WalkGame.Shell
                     b = new ActionButton(state);
                     b.style.marginBottom = 12;
                     b.style.marginLeft = 0; b.style.marginRight = 0;
-                    b.style.borderTopLeftRadius = b.style.borderTopRightRadius = b.style.borderBottomLeftRadius = b.style.borderBottomRightRadius = 12;
+                    b.style.borderTopLeftRadius = b.style.borderTopRightRadius = b.style.borderBottomLeftRadius = b.style.borderBottomRightRadius = 14;
+                    if (ButtonFont != null) { b.style.unityFont = ButtonFont; b.style.unityFontDefinition = FontDefinition.FromFont(ButtonFont); }
                     b.style.whiteSpace = WhiteSpace.Normal;
                     b.style.borderTopWidth = b.style.borderBottomWidth = b.style.borderLeftWidth = b.style.borderRightWidth = 2;
                     b.style.borderTopColor = b.style.borderBottomColor = b.style.borderLeftColor = b.style.borderRightColor = Accent;
@@ -158,7 +196,7 @@ namespace WalkGame.Shell
                 b.style.minWidth = ButtonHeight * k;   // D-147: a short label never shrinks the target below 48 dp wide
                 b.style.fontSize = BodySize * k;
                 // Primary action is distinguished by fill AND position (first), not colour alone.
-                b.style.backgroundColor = first ? Accent : Color.white;
+                b.style.backgroundColor = first ? Accent : Background; // D-215: secondary = canvas fill + Forest-deep border/label
                 b.style.color = first ? Color.white : Ink;
                 actions.Add(b);
             }
@@ -201,6 +239,7 @@ namespace WalkGame.Shell
             l.style.fontSize = size;
             l.style.color = color;
             l.style.whiteSpace = WhiteSpace.Normal;
+            if (BodyFont != null) { l.style.unityFont = BodyFont; l.style.unityFontDefinition = FontDefinition.FromFont(BodyFont); }
             return l;
         }
     }

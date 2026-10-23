@@ -56,6 +56,13 @@ namespace WalkGame.Shell.Presentation
             return (1.2f * (float)Math.Sin(w * t), 2.5f * (float)Math.Sin(w * t + 0.8f), 3.5f * (float)Math.Sin(w * t * 1.3f + 1.6f), 0.008f * (float)Math.Sin(w * t));
         }
 
+        /// <summary>D-215: the painted plate behind the text shell for the trailhead's canonical stage (forgotten until it is Functional).</summary>
+        public static string BackdropFor(RestorationStage? stage) => stage.HasValue && FlourishingShare(stage.Value) >= 0.5f ? GroundFlourishing : GroundForgotten;
+
+        /// <summary>D-215: world-first boot. Home opens straight into the painted trailhead once per launch, except with a screen
+        /// reader on, where the accessible text shell stays the entry point (the world's Home button always returns to it).</summary>
+        public static bool OpenWorldFirst(bool atHome, bool screenReaderOn, bool alreadyOpenedThisLaunch) => atHome && !screenReaderOn && !alreadyOpenedThisLaunch;
+
         /// <summary>D-212: Mira's 2D Animation rig (PSD Importer character prefab, Resources path) and its bone names.</summary>
         public const string MiraRig = "Rig/mira_rig";
         public static readonly string[] MiraBones = { "hips", "spine", "head", "braid_1", "braid_2", "scarf_1", "scarf_2" };
