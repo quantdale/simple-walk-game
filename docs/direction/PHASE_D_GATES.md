@@ -3,7 +3,7 @@
 Scope: the painted Old Trailhead slice (D-204 … D-212) on main `55311700`. Statuses: **PASS** (evidence shown),
 **FAIL** (not met), **PARTIAL** (met inside the trailhead view, not across the app), **UNVERIFIED** (needs a device or real players).
 All captures are **Unity editor captures (software GL), NOT device-tested** (KI-002). `E/` = `docs/evidence/d212-bone-rig/`
-(the latest full capture set) unless noted; D-214 refreshed the trailhead set in `docs/evidence/d214-fringe/`.
+(the latest full capture set) unless noted; `F/` = `docs/evidence/d215-shell-a/`; D-214 refreshed the trailhead set in `docs/evidence/d214-fringe/`.
 
 ## §45 Art approval gate
 
@@ -27,25 +27,25 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Dialogue short, expressive, context-aware | PASS | 1–2 sentence lines by stage/bridge key, 5 expression portraits (D-206); `E/trailhead-dialogue-mira` |
 | A real restoration project changes the environment | PASS | `proj.rebuild-trail-bridges` from real walking: `E/trailhead-s1-bridge-build-0of3` → `…-done` |
 | Ruined and restored visibly distinct | PASS | `E/trailhead-s0-forgotten-bridge-ruined` vs `E/trailhead-s3-restored` (bare vs full crowns, murky vs clear water) |
-| UI matches the art identity | **PARTIAL** | In-world dialogue/cards use the A palette and shapes; the text shell (first launch, Home, Region, return summary) is still the pre-A placeholder (`E/shell-*`) |
-| The world dominates the screen | **PARTIAL** | Full-screen inside the trailhead; the app still boots to the text Home, and the world is one button away (`E/shell-home-visit-trailhead`) |
-| Not a dashboard or visual novel | **PARTIAL** | Trailhead: world-first with taps (bridge, signpost, Mira). Home/Region text screens still read as a dashboard |
+| UI matches the art identity | PASS (editor) | D-215: every text-shell screen is an A parchment card (ink-brown border, Fraunces/Nunito, Forest-deep primary) over the painted stage plate: `F/shell-first-launch`, `F/shell-home-visit-trailhead*`, `F/shell-return-after-walking`, `F/shell-region-view`. Deviation: primary is Forest deep, not Honey (charcoal on honey 5.81:1 misses the shell's 7:1 target) |
+| The world dominates the screen | PASS (editor) | D-215: the app opens on the painted trailhead (once per launch; text shell first only under a screen reader, D-215 test); shell screens keep ≥ 42 % painted world above a compact card |
+| Not a dashboard or visual novel | PASS (editor), with a residual | World-first with taps; shell screens are cards over the world. Residual: Home still lists 7–8 buttons (kept for screen-reader parity) and Region has no painted map yet |
 | Core state correctness preserved | PASS | No save/Domain/Application change in D-204…D-212; full EditMode suite green each PR |
 
 ## §47 Visual evidence gate
 
 | Required capture | Status | Path |
 |---|---|---|
-| First launch / onboarding | PASS (text shell) | `E/shell-first-launch` (D-210) — not yet in direction A |
+| First launch / onboarding | PASS | `F/shell-first-launch` (D-215, direction A) |
 | Initial damaged world | PASS | `E/trailhead-s0-forgotten-bridge-ruined` |
 | NPC interaction | PASS | `E/home-tap-mira-dialogue`, `E/trailhead-mira-reaction-help-restore` |
 | Dialogue presentation | PASS | `E/trailhead-dialogue-mira`, `E/trailhead-dialogue-mira-text2x` |
 | Project selection | PASS | `E/home-help-restore-goal-card` |
 | Intermediate restoration | PASS | `E/trailhead-s1-bridge-build-1of3`, `E/trailhead-s2-functional` (real play) |
 | Completed restoration | PASS | `E/trailhead-s1-bridge-done`, `E/trailhead-s3-restored`; S4 is key-driven (labelled) |
-| Return-after-walking | PASS (text shell) | `E/shell-return-after-walking` (D-210) |
-| Home | PASS (text shell) | `E/shell-home-visit-trailhead`, `…-text2x` (scrolled, D-210) |
-| Region view | PASS (placeholder) | `E/shell-region-view` — procedural pre-A valley |
+| Return-after-walking | PASS | `F/shell-return-after-walking` (D-215) |
+| Home | PASS | `F/shell-home-visit-trailhead`, `…-text2x` (scrolled; D-210/D-215) |
+| Region view | PASS (partial art) | `F/shell-region-view` — A card over the painted trailhead; no painted region map yet |
 | Short gameplay/animation capture | PASS (editor, simulated time) | `E/trailhead-motion.unity-editor-capture.gif` (D-211/D-212) |
 | Labelling concept vs editor vs device | PASS | Every capture carries an in-image caption; no device claims |
 
@@ -62,7 +62,9 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Worthwhile optional gameplay beyond dialogue? | **No (central gap)** | Inspect cards only; discoveries/expeditions exist only as text-shell screens |
 | Leave without being penalised? | Yes | D-198: caps unchanged, calm welcome-back; nothing decays |
 
-## Failures fixed in this round
+## Failures fixed
+
+- §46 UI identity / world dominance / not-a-dashboard partials → D-215 (direction-A shell, world-first boot).
 
 - §47 missing captures (first launch, return after walking, Home scrolled to the trailhead, Region view, animation) → D-210, D-211, D-212.
 - §46 "character interacts naturally": cut-out idle replaced by a weighted bone rig with a reaction → D-212.
@@ -70,7 +72,6 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 
 ## Open (cannot be closed by a small PR)
 
-1. Text shell in direction A (Home, onboarding, return summary, Region) — §46 UI identity / world dominance / not-a-dashboard.
-2. World-first boot (open on the painted world, text shell as an accessible layer) — §46 world dominance.
+1. ~~Text shell in direction A~~ and ~~world-first boot~~ → D-215. Residual: a painted Region map; a lighter Home menu.
 3. Optional in-world play beyond dialogue (e.g. a discovery to find at the trailhead) — §48 central gap.
 4. Device verification of everything above (KI-002).

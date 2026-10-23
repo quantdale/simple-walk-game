@@ -4037,3 +4037,21 @@ so bilinear filtering and block compression cannot pull cream in. Crop, part rec
 the rig re-authored by `MiraRigAuthoring`. Remaining: the painted frayed straw on the brim is light by design.
 
 **Evidence** (`docs/evidence/d214-fringe/`, Unity editor capture, NOT a device): EditMode 380/380; PlayMode 2/2.
+
+## D-215 — The text shell in direction A over the painted world; the app opens on the world (2026-10-24)
+
+**Status:** Accepted (agent; closes the §46 partials of D-213)
+
+**Decision.** `ShellView` keeps its structure (one `content` ScrollView, pooled lines and `ActionButton`s, names, order, sizes —
+so focus order, screen-reader labels and every accessibility test are unchanged) and changes its skin to STYLE_GUIDE_A §9:
+Canvas `#F5EBDD` parchment card with a 3 px ink-brown border and 16 radius, Charcoal text, Forest-deep primary / canvas secondary
+buttons, Fraunces SemiBold titles, Nunito Medium body and ExtraBold buttons (SIL OFL, static instances, `Resources/Fonts/`,
+listed in ASSET_LICENSES). With a backdrop (`ShellView.Backdrop`, the trailhead plate for its canonical stage, set by ShellBootstrap)
+the painting fills the screen and the card is capped at 58 % height at the bottom; the procedural valley strip is not drawn over
+it (its states stay in the text). Palette stays at the shell's 7:1 target: Forest deep darkened to `#2F4A36` (white 9.75:1) and
+primary is Forest deep, not Honey (charcoal on honey 5.81:1). **World-first boot:** on reaching Home, `ShellBootstrap` opens the
+painted trailhead once per launch (`TrailheadArt.OpenWorldFirst`); with a screen reader on, the text shell stays the entry point.
+The world's Home button returns to the shell. No save/Domain/Application change.
+
+**Evidence** (`docs/evidence/d215-shell-a/`, Unity editor capture, NOT a device): EditMode 384/384 incl. 4 `ShellDirectionATests`
+and all accessibility audits; PlayMode 2/2. Screen-reader behaviour on a phone: UNVERIFIED (KI-002).

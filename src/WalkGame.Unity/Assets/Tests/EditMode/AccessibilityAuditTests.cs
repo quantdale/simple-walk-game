@@ -146,7 +146,7 @@ namespace WalkGame.Shell.Tests
             Assert.That(Contrast(ShellView.Ink, ShellView.Background), Is.GreaterThanOrEqualTo(7.0), "Ink on paper");
             Assert.That(Contrast(ShellView.Muted, ShellView.Background), Is.GreaterThanOrEqualTo(7.0), "Muted on paper");
             Assert.That(Contrast(ShellView.ErrorInk, ShellView.Background), Is.GreaterThanOrEqualTo(7.0), "Problem text on paper");
-            Assert.That(Contrast(ShellView.Ink, Color.white), Is.GreaterThanOrEqualTo(7.0), "secondary button text");
+            Assert.That(Contrast(ShellView.Ink, ShellView.Background), Is.GreaterThanOrEqualTo(7.0), "secondary button text (D-215: canvas fill)");
             Assert.That(Contrast(Color.white, ShellView.Accent), Is.GreaterThanOrEqualTo(7.0), "primary button text");
         }
 
