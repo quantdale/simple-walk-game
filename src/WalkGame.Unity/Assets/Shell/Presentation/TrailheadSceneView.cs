@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using WalkGame.Application.ReadModels;
+using WalkGame.Domain.Regions;
 
 namespace WalkGame.Shell.Presentation
 {
@@ -25,12 +26,13 @@ namespace WalkGame.Shell.Presentation
         private System.Action<DialogueAction>? _onAction;
         private System.Action? _onSkip;
 
-        public bool ReducedMotion { get; set; }
+        private bool _reduced;
+        public bool ReducedMotion { get => _reduced; set { _reduced = value; ApplyParticles(); Tick(_clock); } }
         /// <summary>Player text scale (1–2); the dialogue panel grows with it and buttons wrap instead of clipping.</summary>
         public float TextScale { get; set; } = 1f;
         public TrailheadFrame? Frame { get; private set; }
         public DialogueSequence? Dialogue { get; private set; }
-        public bool MiraVisible => _mira != null && _mira.enabled;
+        public bool MiraVisible => _miraOn;
         public string LocationId => TrailheadArt.LocationId;
         public string CharacterId => TrailheadArt.MiraId;
         public IReadOnlyCollection<string> MissingKeys => _resolver.MissingKeys;
@@ -46,16 +48,104 @@ namespace WalkGame.Shell.Presentation
             }
             _resolver = new PresentationAssetResolver<string>(catalog);
             _low = Layer("ground_low", 0); _high = Layer("ground_high", 1); _structure = Layer("structures", 2); _mira = Layer("npc.mira", 3);
-            _mira.sprite = SpriteFor(TrailheadArt.MiraBody, new Vector2(0.5f, 0f));
-            if (_mira.sprite != null)
-            {
-                float h = 0.21f * 12.8f; // in-world height ≈ 21 % of the 12.8-unit view (style guide §2.2)
-                float s = h / _mira.sprite.bounds.size.y;
-                _mira.transform.localScale = new Vector3(s, s, 1f);
-            }
             _miraHome = new Vector3(1.75f, -5.3f, 0f);
             _mira.transform.localPosition = _miraHome;
-            _mira.enabled = false;
+            float scale = 0.21f * 12.8f / (TrailheadArt.MiraCanvasH / PixelsPerUnit); // in-world height ≈ 21 % of the view (style guide §2.2)
+            _mira.transform.localScale = new Vector3(scale, scale, 1f);
+            BuildMiraRig();
+            _ripple = Layer("water_ripple", 1);
+            _ripple.sprite = SpriteFor(TrailheadArt.WaterRipple, new Vector2(0.5f, 0.5f));
+            _rippleHome = new Vector3((TrailheadArt.RippleX + TrailheadArt.RippleW / 2f - 360f) / PixelsPerUnit, (640f - TrailheadArt.RippleY - TrailheadArt.RippleH / 2f) / PixelsPerUnit, 0f);
+            _ripple.transform.localPosition = _rippleHome;
+            _ripple.color = new Color(1f, 1f, 1f, 0.35f);
+            _ripple.sortingOrder = 1; _high.sortingOrder = 1; _ripple.sortingOrder = 2; _structure.sortingOrder = 3;
+            BuildParticles();
+            SetMiraVisible(false);
+        }
+
+        private SpriteRenderer? _ripple;
+        private Vector3 _rippleHome;
+        private ParticleSystem? _motes;
+        private readonly List<(Transform t, string name)> _parts = new List<(Transform, string)>();
+        private float _clock;
+        /// <summary>Mira's parts (cut-out rig; transform joints, not skinned bones).</summary>
+        public IReadOnlyList<(Transform t, string name)> MiraParts => _parts;
+        public ParticleSystem? Motes => _motes;
+        public SpriteRenderer? Ripple => _ripple;
+
+        private void BuildMiraRig()
+        {
+            // The root renderer stays empty; parts are children placed so their joints line up on the body canvas.
+            foreach (var p in TrailheadArt.MiraParts)
+            {
+                var go = new GameObject(p.name); go.transform.SetParent(_mira.transform, false);
+                var r = go.AddComponent<SpriteRenderer>(); r.sortingOrder = 4 + p.order;
+                var tex = Resources.Load<Texture2D>(TrailheadArt.ResourceFolder + p.name);
+                if (tex == null) continue;
+                var pivot = new Vector2((p.px - p.x) / (float)p.w, 1f - (p.py - p.y) / (float)p.h);
+                r.sprite = Sprite.Create(tex, new Rect(0, 0, Mathf.Min(p.w, tex.width), Mathf.Min(p.h, tex.height)), pivot, PixelsPerUnit); // textures are padded to multiples of 4 at the top/right (block compression)
+                go.transform.localPosition = new Vector3((p.px - TrailheadArt.MiraCanvasW / 2f) / PixelsPerUnit, (TrailheadArt.MiraCanvasH - p.py) / PixelsPerUnit, 0f);
+                _parts.Add((go.transform, p.name));
+            }
+            if (_parts.Count == 0) _mira.sprite = SpriteFor(TrailheadArt.MiraBody, new Vector2(0.5f, 0f)); // fallback: the flat body
+        }
+
+        private void BuildParticles()
+        {
+            var go = new GameObject("fx_motes"); go.transform.SetParent(transform, false); go.transform.localPosition = new Vector3(0f, 1.0f, 0f);
+            _motes = go.AddComponent<ParticleSystem>();
+            _motes.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = _motes.main; main.maxParticles = 60; main.startLifetime = 6f; main.startSpeed = 0.15f; main.startSize = 0.09f;
+            main.startColor = new Color(0.898f, 0.729f, 0.412f, 0.8f); main.simulationSpace = ParticleSystemSimulationSpace.Local; main.playOnAwake = false;
+            var shape = _motes.shape; shape.shapeType = ParticleSystemShapeType.Box; shape.scale = new Vector3(7f, 9f, 0.1f);
+            var col = _motes.colorOverLifetime; col.enabled = true;
+            var g = new Gradient(); g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.3f), new GradientAlphaKey(0f, 1f) });
+            col.color = g;
+            var r = go.GetComponent<ParticleSystemRenderer>(); r.sortingOrder = 10;
+            var dot = new Texture2D(16, 16, TextureFormat.RGBA32, false);
+            for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++)
+            { float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(8, 8)) / 8f; dot.SetPixel(x, y, new Color(1, 1, 1, Mathf.Clamp01(1f - d * d))); }
+            dot.Apply();
+            var shader = Shader.Find("Sprites/Default");
+            if (shader != null) r.sharedMaterial = new Material(shader) { mainTexture = dot };
+        }
+
+        private void ApplyParticles()
+        {
+            if (_motes == null || Frame == null) return;
+            int n = TrailheadArt.ParticleCount(Frame.Stage, ReducedMotion);
+            var em = _motes.emission; em.rateOverTime = n / 6f;
+            var main = _motes.main; main.maxParticles = Mathf.Max(1, n);
+            if (n == 0) _motes.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            else if (!_motes.isPlaying) { _motes.Play(); _motes.Simulate(6f, true, false); _motes.Play(); }
+        }
+
+        private void SetMiraVisible(bool on)
+        {
+            _mira.enabled = on && _parts.Count == 0;
+            foreach (var p in _parts) p.t.gameObject.SetActive(on);
+            _miraOn = on;
+        }
+        private bool _miraOn;
+
+        /// <summary>Advances ambient motion to time <paramref name="t"/> (seconds). Reduced motion: everything at rest.</summary>
+        public void Tick(float t)
+        {
+            _clock = t;
+            var pose = TrailheadArt.IdlePose(t, ReducedMotion);
+            foreach (var (tr, name) in _parts)
+            {
+                float deg = name.EndsWith("head") ? pose.head : name.EndsWith("braid") ? pose.braid : name.EndsWith("scarf_tail") ? pose.scarf : 0f;
+                tr.localRotation = Quaternion.Euler(0, 0, deg);
+                if (name.EndsWith("body")) tr.localScale = new Vector3(1f, 1f + pose.breath, 1f);
+            }
+            if (_ripple != null)
+            {
+                float speed = TrailheadArt.RippleSpeed(Frame?.Stage ?? RestorationStage.Ruined, ReducedMotion);
+                _ripple.transform.localPosition = _rippleHome + new Vector3(0.06f * Mathf.Sin(t * 0.8f * speed), 0f, 0f);
+                var c = _ripple.color; c.a = (Frame?.Stage ?? RestorationStage.Ruined) == RestorationStage.Ruined ? 0.12f : 0.35f + 0.1f * Mathf.Sin(t * 1.7f * speed); _ripple.color = c;
+            }
         }
 
         private SpriteRenderer Layer(string name, int order)
@@ -96,6 +186,8 @@ namespace WalkGame.Shell.Presentation
             _fadeLen = TrailheadArt.TransitionSeconds(ReducedMotion);
             _fadeT = _fadeLen <= 0f ? 1f : 0f;
             if (_fadeT >= 1f) SetHigh(_highTarget);
+            ApplyParticles();
+            Tick(_clock);
         }
 
         private void SetHigh(float a) { var c = _high.color; c.a = a; _high.color = c; }
@@ -107,8 +199,7 @@ namespace WalkGame.Shell.Presentation
                 _fadeT = Mathf.Min(1f, _fadeT + Time.deltaTime / Mathf.Max(0.0001f, _fadeLen));
                 SetHigh(Mathf.Lerp(_highFrom, _highTarget, _fadeT));
             }
-            if (_mira != null && _mira.enabled)
-                _mira.transform.localPosition = _miraHome + new Vector3(0f, TrailheadArt.IdleBobAmplitude(ReducedMotion) * Mathf.Sin(Time.time * 2f * Mathf.PI / 3.2f), 0f);
+            Tick(Time.time);
         }
 
         /// <summary>Jumps any running crossfade to its end (captures, tests).</summary>
@@ -116,7 +207,7 @@ namespace WalkGame.Shell.Presentation
 
         // ICharacterPresenter / ICharacterView
         public ICharacterView? FindCharacter(string characterId) => characterId == TrailheadArt.MiraId ? this : null;
-        public void Show(CharacterPresentation character) => _mira.enabled = character.LocationId == TrailheadArt.LocationId && _mira.sprite != null;
+        public void Show(CharacterPresentation character) => SetMiraVisible(character.LocationId == TrailheadArt.LocationId && (_parts.Count > 0 || _mira.sprite != null));
         public void React(CharacterReaction reaction) { }
 
         // IDialoguePresenter

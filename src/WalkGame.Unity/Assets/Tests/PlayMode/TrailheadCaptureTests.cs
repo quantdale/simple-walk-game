@@ -132,11 +132,14 @@ namespace WalkGame.Shell.PlayModeTests
 
                 // Later landmark stages: a low-decision player keeps walking (20,000 steps/day) and queues the first open goal.
                 var stagesShot = new HashSet<string>();
-                for (int day = 0; day < 200 && !stagesShot.Contains("restored"); day++)
+                for (int day = 0; day < 400 && !stagesShot.Contains("restored"); day++)
                 {
                     if (!s.GetProjects().Projects.Any(p => p.Status == ProjectStatus.Queued || p.Status == ProjectStatus.Active))
                     {
-                        var open = s.GetProjects().Projects.FirstOrDefault(p => p.Status == ProjectStatus.Available);
+                        // D-208: keep the lookout for after the workshop so the trailhead passes through Functional on screen.
+                        bool functionalSeen = view.Frame!.Stage >= WalkGame.Domain.Regions.RestorationStage.Functional;
+                        var open = s.GetProjects().Projects.FirstOrDefault(p => p.Status == ProjectStatus.Available && (functionalSeen || p.ProjectId != "proj.open-lookout"))
+                            ?? s.GetProjects().Projects.FirstOrDefault(p => p.Status == ProjectStatus.Available);
                         if (open != null) s.EnqueueProject(open.ProjectId);
                     }
                     WalkSteps(20000, 24);

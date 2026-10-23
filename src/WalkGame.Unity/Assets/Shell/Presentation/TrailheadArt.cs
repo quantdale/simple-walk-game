@@ -35,6 +35,40 @@ namespace WalkGame.Shell.Presentation
             action.ProjectId == BridgeId && (action.Kind == DialogueActionKind.Inspect || action.Kind == DialogueActionKind.HelpRestore)
                 ? action.LabelKey + ".bridge" : action.LabelKey;
 
+        /// <summary>D-208: Mira cut-out rig parts (pixels in the 576×1091 body canvas, top-left origin; pivot = joint).</summary>
+        public static readonly (string name, int x, int y, int w, int h, int px, int py, int order)[] MiraParts =
+        {
+            ("mira_part_body", 0, 0, 576, 1091, 288, 1091, 0),
+            ("mira_part_braid", 298, 260, 83, 229, 338, 266, 1),
+            ("mira_part_scarf_tail", 418, 303, 133, 200, 425, 315, 1),
+            ("mira_part_head", 79, 0, 434, 271, 300, 262, 2),
+        };
+        public const int MiraCanvasW = 576, MiraCanvasH = 1091;
+        /// <summary>D-208: the ripple strip (pixels in the 720×1280 plate).</summary>
+        public const string WaterRipple = "water_ripple";
+        public const int RippleX = 0, RippleY = 476, RippleW = 720, RippleH = 350;
+
+        /// <summary>D-208: idle pose at time t (seconds): degrees per part and body breath scale; all zero with reduced motion.</summary>
+        public static (float head, float braid, float scarf, float breath) IdlePose(float t, bool reducedMotion)
+        {
+            if (reducedMotion) return (0f, 0f, 0f, 0f);
+            float w = 2f * (float)Math.PI / 3.2f; // 3.2 s breathe loop (style guide §6.4)
+            return (1.2f * (float)Math.Sin(w * t), 2.5f * (float)Math.Sin(w * t + 0.8f), 3.5f * (float)Math.Sin(w * t * 1.3f + 1.6f), 0.008f * (float)Math.Sin(w * t));
+        }
+
+        /// <summary>D-208: ripple drift speed multiplier per stage (style guide §1.2); 0 with reduced motion.</summary>
+        public static float RippleSpeed(RestorationStage stage, bool reducedMotion) => reducedMotion ? 0f : stage switch
+        {
+            RestorationStage.Ruined => 0.25f, RestorationStage.Stabilized => 0.5f, RestorationStage.Functional => 1f,
+            RestorationStage.Restored => 1.25f, RestorationStage.Flourishing => 1.5f, _ => 0.25f,
+        };
+
+        /// <summary>D-208: light motes per stage (≤ 60, PERFORMANCE_BUDGETS §9); none with reduced motion.</summary>
+        public static int ParticleCount(RestorationStage stage, bool reducedMotion) => reducedMotion ? 0 : stage switch
+        {
+            RestorationStage.Stabilized => 8, RestorationStage.Functional => 16, RestorationStage.Restored => 28, RestorationStage.Flourishing => 40, _ => 0,
+        };
+
         /// <summary>Crossfade length for a stage change; 0 (instant swap) with reduced motion.</summary>
         public static float TransitionSeconds(bool reducedMotion) => reducedMotion ? 0f : 0.6f;
         /// <summary>Mira's idle bob amplitude in world units; 0 with reduced motion (style guide §6.4).</summary>
