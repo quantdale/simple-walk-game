@@ -127,13 +127,15 @@ namespace WalkGame.Shell
 
         private bool _worldFirstDone;
 
-        /// <summary>D-215: the trailhead stage plate shown behind every text-shell screen.</summary>
+        /// <summary>D-215/D-219: trailhead stage plate behind most text shells; Region uses the painted Region 1 map.</summary>
         private Texture2D BackdropTexture()
         {
+            if (_controller!.Current == ShellScreen.Region)
+                return Resources.Load<Texture2D>(WalkGame.Shell.Presentation.RegionArt.ResourceFolder + WalkGame.Shell.Presentation.RegionArt.Backdrop());
             WalkGame.Domain.Regions.RestorationStage? stage = null;
             try
             {
-                foreach (var l in _controller!.Session.GetRegion().Landmarks)
+                foreach (var l in _controller.Session.GetRegion().Landmarks)
                     if (l.LandmarkId == WalkGame.Shell.Presentation.TrailheadArt.LocationId) stage = l.Stage;
             }
             catch (Exception) { } // no world yet (first launch): forgotten plate

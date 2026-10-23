@@ -50,7 +50,7 @@ namespace WalkGame.Shell.Tests
             c.Boot();
             var all = new Dictionary<string, ScreenModel> { ["ReturnSummary"] = c.Render() };
             Assume.That(c.Current, Is.EqualTo(ShellScreen.ReturnSummary));
-            foreach (var screen in new[] { "Home", "Projects", "Region", "Story", "Discoveries", "Progress", "Settings", "Privacy", "ActivityStatus" })
+            foreach (var screen in new[] { "Home", "Projects", "Region", "Story", "Discoveries", "Progress", "Settings", "Privacy", "ActivityStatus", "More", "More" })
             {
                 c.Invoke("nav:" + screen);
                 Assert.AreEqual(screen, c.Current.ToString(), "could not reach " + screen);

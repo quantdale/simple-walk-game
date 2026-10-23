@@ -11,10 +11,11 @@ namespace WalkGame.Shell.Editor
         public const string Folder = "Assets/Resources/Art/Trailhead/";
         /// <summary>D-216: the River Intake art follows the same rules.</summary>
         public const string IntakeFolder = "Assets/Resources/Art/Intake/";
+        public const string RegionFolder = "Assets/Resources/Art/Region/";
 
         private void OnPreprocessTexture()
         {
-            if (!assetPath.StartsWith(Folder) && !assetPath.StartsWith(IntakeFolder)) return;
+            if (!assetPath.StartsWith(Folder) && !assetPath.StartsWith(IntakeFolder) && !assetPath.StartsWith(RegionFolder)) return;
             var t = (TextureImporter)assetImporter;
             t.textureType = TextureImporterType.Default;
             t.mipmapEnabled = false;

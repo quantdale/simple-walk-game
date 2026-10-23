@@ -211,9 +211,14 @@ namespace WalkGame.Shell.PlayModeTests
                     var root = doc.rootVisualElement;
                     root.style.backgroundColor = ShellView.Background;
                     // D-215: the painted stage plate behind the card, as ShellBootstrap does
-                    WalkGame.Domain.Regions.RestorationStage? st = null;
-                    try { st = shell.Session.GetRegion().Landmarks.FirstOrDefault(l => l.LandmarkId == TrailheadArt.LocationId)?.Stage; } catch (Exception) { }
-                    ShellView.Backdrop = Resources.Load<Texture2D>(TrailheadArt.ResourceFolder + TrailheadArt.BackdropFor(st));
+                    if (shell.Current == ShellScreen.Region)
+                        ShellView.Backdrop = Resources.Load<Texture2D>(RegionArt.ResourceFolder + RegionArt.Backdrop());
+                    else
+                    {
+                        WalkGame.Domain.Regions.RestorationStage? st = null;
+                        try { st = shell.Session.GetRegion().Landmarks.FirstOrDefault(l => l.LandmarkId == TrailheadArt.LocationId)?.Stage; } catch (Exception) { }
+                        ShellView.Backdrop = Resources.Load<Texture2D>(TrailheadArt.ResourceFolder + TrailheadArt.BackdropFor(st));
+                    }
                     ShellView.Render(root, shell.Render(), _ => { }, textScale);
                     var cap = new Label("Unity editor capture (software GL, not a device) · text shell · " + note);
                     cap.style.position = Position.Absolute; cap.style.top = 4; cap.style.left = 8; cap.style.right = 8;
@@ -261,10 +266,10 @@ namespace WalkGame.Shell.PlayModeTests
                     shell.Invoke("ack");
                 }
                 shell.Invoke("nav:Home");
-                yield return ShellShot("shell-home-visit-trailhead", "Home with Visit the Old Trailhead", ShellController.WorldTrailheadAction);
+                yield return ShellShot("shell-home-visit-trailhead", "Home (lighter menu) with Visit the Old Trailhead", ShellController.WorldTrailheadAction);
                 yield return ShellShot("shell-home-visit-trailhead-text2x", "Home at 2x text, scrolled to Visit the Old Trailhead", ShellController.WorldTrailheadAction, 2f);
                 shell.Invoke("nav:Region");
-                yield return ShellShot("shell-region-view", "Region view (direction-A card over the painted trailhead; a painted region map is not drawn yet)");
+                yield return ShellShot("shell-region-view", "Region view (direction-A card over the painted Region 1 map)");
                 shell.Invoke("nav:Home");
                 ShellView.Backdrop = null;
                 Assert.IsTrue(TrailheadArt.OpenWorldFirst(shell.Current == ShellScreen.Home, false, false), "D-215: boot lands in the world");

@@ -4100,3 +4100,15 @@ content stage). The optional brass-plate find requires gate index 2. No save-sch
 
 **Evidence** (`docs/evidence/d218-intake-stages/`, Unity editor, NOT a device): EditMode + PlayMode captures including
 real-play Functional and Restored.
+
+## D-219 — Painted Region 1 map + lighter Home menu (2026-10-24)
+
+**Status:** Accepted (agent)
+
+**Decision.** The Region text shell draws over a painted Region 1 valley map (`Resources/Art/Region/region1_map`,
+`RegionArt`) instead of the trailhead plate; the procedural `ValleyElement` stays unused whenever a backdrop is set
+(D-215). Landmark stages remain in the Region lines. Home is lightened: Projects, The Valley, Visit the Old Trailhead,
+Settings, and More; Story/Progress/Activity/Discoveries live on a new `ShellScreen.More` (still fully labelled, ≥48 dp,
+focus order = action order). Accessibility suite stays green. No Domain/Application/save-schema change.
+
+**Evidence** (`docs/evidence/d219-region-home/`, Unity editor, NOT a device).
