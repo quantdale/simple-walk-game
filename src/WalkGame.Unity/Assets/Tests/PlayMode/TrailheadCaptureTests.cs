@@ -152,6 +152,22 @@ namespace WalkGame.Shell.PlayModeTests
                 view.Show(new LandmarkPresentation(TrailheadArt.LocationId, "Old Trailhead", TrailheadArt.LocationId + "@flourishing", null, true, true, false,
                     new[] { TrailheadArt.MiraId }, new[] { new WalkGame.Application.ReadModels.WorldViewReadModel.ProjectVisual(TrailheadArt.BridgeId, TrailheadArt.LocationId, ProjectStatus.Completed, 0, 3) }));
                 yield return Shot("trailhead-s4-flourishing-keydriven", "KEY-DRIVEN (stage not reachable in current content)");
+                // D-211: ambient motion ON (idle, ripple, motes) — one still plus a short frame sequence
+                // (tools/unity/capture-trailhead.sh turns anim-* frames into an animated GIF). Simulated time, editor only.
+                view.ReducedMotion = false;
+                for (int fr = 0; fr < 24; fr++)
+                {
+                    float t = fr / 6f;
+                    view.Tick(t); view.Motes!.Simulate(fr == 0 ? 6f : 1f / 6f, true, fr == 0, false);
+                    caption.text = "Unity editor capture (software GL, not a device) · Phase D trailhead · motion ON (idle, ripple, motes) · t=" + t.ToString("0.00") + " s (simulated)";
+                    for (int i = 0; i < 2; i++) yield return null;
+                    cam.Render();
+                    if (fr == 9) { Debug.Log("WG_MOTES live=" + view.Motes.particleCount); Assert.Greater(view.Motes.particleCount, 0, "motes are live with motion on"); }
+                    string nm = fr == 9 ? "trailhead-s4-motion-on" : "anim-" + fr.ToString("00");
+                    Dump(worldRt, Path.Combine(outDir, nm + ".world")); Dump(uiRt, Path.Combine(outDir, nm + ".ui"));
+                    if (fr == 9) { Dump(worldRt, Path.Combine(outDir, "anim-09.world")); Dump(uiRt, Path.Combine(outDir, "anim-09.ui")); }
+                }
+                view.ReducedMotion = true;
 
                 File.WriteAllText(Path.Combine(outDir, "captures.txt"), string.Join("\n", shots) + "\nmissing keys: " + string.Join(", ", view.MissingKeys) + "\n");
                 Assert.GreaterOrEqual(shots.Count, 6);

@@ -95,17 +95,22 @@ namespace WalkGame.Shell.Presentation
             var go = new GameObject("fx_motes"); go.transform.SetParent(transform, false); go.transform.localPosition = new Vector3(0f, 1.0f, 0f);
             _motes = go.AddComponent<ParticleSystem>();
             _motes.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-            var main = _motes.main; main.maxParticles = 60; main.startLifetime = 6f; main.startSpeed = 0.15f; main.startSize = 0.09f;
-            main.startColor = new Color(0.898f, 0.729f, 0.412f, 0.8f); main.simulationSpace = ParticleSystemSimulationSpace.Local; main.playOnAwake = false;
+            var main = _motes.main; main.maxParticles = 60; main.startLifetime = 6f; main.startSpeed = 0.15f; main.startSize = new ParticleSystem.MinMaxCurve(0.22f, 0.34f); // D-211: larger glow, still ≤ 40 live (budget ≤ 60)
+            main.startColor = new Color(1f, 0.92f, 0.66f, 1f); // warm light, brighter than the plate highlights
+            main.simulationSpace = ParticleSystemSimulationSpace.Local; main.playOnAwake = false;
             var shape = _motes.shape; shape.shapeType = ParticleSystemShapeType.Box; shape.scale = new Vector3(7f, 9f, 0.1f);
             var col = _motes.colorOverLifetime; col.enabled = true;
             var g = new Gradient(); g.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
                 new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.3f), new GradientAlphaKey(0f, 1f) });
             col.color = g;
             var r = go.GetComponent<ParticleSystemRenderer>(); r.sortingOrder = 10;
-            var dot = new Texture2D(16, 16, TextureFormat.RGBA32, false);
-            for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++)
-            { float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(8, 8)) / 8f; dot.SetPixel(x, y, new Color(1, 1, 1, Mathf.Clamp01(1f - d * d))); }
+            var dot = new Texture2D(32, 32, TextureFormat.RGBA32, false);
+            for (int y = 0; y < 32; y++) for (int x = 0; x < 32; x++)
+            {   // D-211: bright core + soft halo, so a mote reads against both the pale and the green plate
+                float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(16, 16)) / 16f;
+                float core = Mathf.Clamp01(1f - d / 0.3f), halo = Mathf.Clamp01(1f - d) * Mathf.Clamp01(1f - d) * 0.7f;
+                dot.SetPixel(x, y, new Color(1, 1, 1, Mathf.Clamp01(core + halo)));
+            }
             dot.Apply();
             var shader = Shader.Find("Sprites/Default");
             if (shader != null) r.sharedMaterial = new Material(shader) { mainTexture = dot };
