@@ -27,6 +27,13 @@ namespace WalkGame.Shell.Presentation
             { "trailhead_structures_B0", "trailhead_structures_B1", "trailhead_structures_B2", "trailhead_structures_B3", "trailhead_structures_B4" };
         public const string MiraBody = "mira_body";
         public const string MiraPortrait = "portrait_mira_neutral";
+        /// <summary>D-206: portrait busts, one per expression, all from the same locked base.</summary>
+        public static readonly string[] MiraExpressions = { "neutral", "glad", "worried", "proud", "celebration" };
+
+        /// <summary>D-206: the bridge-specific label key for a dialogue action, or the generic one.</summary>
+        public static string LabelKeyFor(DialogueAction action) =>
+            action.ProjectId == BridgeId && (action.Kind == DialogueActionKind.Inspect || action.Kind == DialogueActionKind.HelpRestore)
+                ? action.LabelKey + ".bridge" : action.LabelKey;
 
         /// <summary>Crossfade length for a stage change; 0 (instant swap) with reduced motion.</summary>
         public static float TransitionSeconds(bool reducedMotion) => reducedMotion ? 0f : 0.6f;
@@ -89,8 +96,9 @@ namespace WalkGame.Shell.Presentation
                 [BridgeId + "@done"] = StructureLayers[4],
                 [BridgeId] = StructureLayers[0],                // subject fallback: collapsed bridge
                 [MiraId] = MiraBody,
-                ["portrait." + MiraId] = MiraPortrait,          // every expression falls back to the neutral bust
+                ["portrait." + MiraId] = MiraPortrait,          // unknown expressions (e.g. curious) fall back to the neutral bust
             };
+            foreach (var e in MiraExpressions) d["portrait." + MiraId + "@" + e] = "portrait_mira_" + e;
             return d;
         }
 

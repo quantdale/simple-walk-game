@@ -104,6 +104,17 @@ namespace WalkGame.Shell.PlayModeTests
 
                 Assert.AreEqual(TapOutcome.Opened, c.TapCharacter(TrailheadArt.MiraId));
                 yield return Shot("trailhead-dialogue-mira", "canonical: tap Mira (skippable)");
+                view.TextScale = 2f; view.RedrawDialogue();
+                yield return Shot("trailhead-dialogue-mira-text2x", "canonical: same dialogue at 2x text");
+                var rootRect = dialogueHost.worldBound;
+                foreach (var b in dialogueHost.Query<Button>().ToList())
+                {
+                    Debug.Log("WG_TRAILHEAD_BUTTON '" + b.text + "' " + b.worldBound + " in " + rootRect);
+                    Assert.LessOrEqual(b.worldBound.xMax, rootRect.xMax + 0.5f, b.text + " fits at 2x text");
+                    Assert.GreaterOrEqual(b.worldBound.xMin, rootRect.xMin - 0.5f, b.text);
+                    Assert.LessOrEqual(b.worldBound.yMax, rootRect.yMax + 0.5f, b.text);
+                }
+                view.TextScale = 1f;
                 c.SkipDialogue();
 
                 Assert.IsTrue(c.ChooseRestorationGoal(TrailheadArt.BridgeId).IsSuccess);

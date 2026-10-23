@@ -17,8 +17,9 @@ namespace WalkGame.Shell.Presentation
         private static Color Hex(int rgb) => new Color(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f, 1f);
 
         public static VisualElement Build(DialogueBeat beat, IReadOnlyList<DialogueAction> actions, Texture2D? portrait,
-            Action<DialogueAction> onAction, Action onSkip)
+            Action<DialogueAction> onAction, Action onSkip, float textScale = 1f)
         {
+            float t = Mathf.Max(1f, textScale);
             var root = new VisualElement { name = "trailhead-dialogue" };
             root.style.position = Position.Absolute; root.style.left = 16; root.style.right = 16; root.style.bottom = 24;
             root.style.backgroundColor = Canvas; Border(root, Ink, 3, 18);
@@ -35,10 +36,10 @@ namespace WalkGame.Shell.Presentation
             var col = new VisualElement(); col.style.flexGrow = 1; col.style.flexShrink = 1;
             var name = new Label(beat.Name) { name = "speaker" };
             name.style.backgroundColor = Honey; name.style.color = Charcoal; name.style.unityFontStyleAndWeight = FontStyle.Bold;
-            name.style.fontSize = 20; name.style.alignSelf = Align.FlexStart; name.style.paddingLeft = 10; name.style.paddingRight = 10;
+            name.style.fontSize = 20 * t; name.style.alignSelf = Align.FlexStart; name.style.paddingLeft = 10; name.style.paddingRight = 10;
             name.style.paddingTop = 2; name.style.paddingBottom = 2; Border(name, Ink, 2, 10);
             var line = new Label(beat.Text) { name = "line" };
-            line.style.whiteSpace = WhiteSpace.Normal; line.style.color = Charcoal; line.style.fontSize = 19; line.style.marginTop = 8;
+            line.style.whiteSpace = WhiteSpace.Normal; line.style.color = Charcoal; line.style.fontSize = 19 * t; line.style.marginTop = 8;
             col.Add(name); col.Add(line); top.Add(col);
             root.Add(top);
 
@@ -47,20 +48,20 @@ namespace WalkGame.Shell.Presentation
             {
                 var act = a;
                 bool primary = a.Kind == DialogueActionKind.HelpRestore;
-                row.Add(Button(PlayerStrings.T(a.LabelKey), primary ? ForestDeep : a.Kind == DialogueActionKind.Inspect ? ClayDeep : Canvas,
+                row.Add(Button(PlayerStrings.T(TrailheadArt.LabelKeyFor(a)), t, primary ? ForestDeep : a.Kind == DialogueActionKind.Inspect ? ClayDeep : Canvas,
                     primary || a.Kind == DialogueActionKind.Inspect ? Canvas : Charcoal, () => onAction(act)));
             }
-            var skip = Button(PlayerStrings.T("dialogue.action.skip"), Canvas, Charcoal, onSkip);
+            var skip = Button(PlayerStrings.T("dialogue.action.skip"), t, Canvas, Charcoal, onSkip);
             skip.name = "skip"; skip.style.marginLeft = StyleKeyword.Auto;
             row.Add(skip);
             root.Add(row);
             return root;
         }
 
-        private static Button Button(string text, Color bg, Color fg, Action onClick)
+        private static Button Button(string text, float t, Color bg, Color fg, Action onClick)
         {
             var b = new Button(onClick) { text = text };
-            b.style.backgroundColor = bg; b.style.color = fg; b.style.fontSize = 18; b.style.minHeight = 48; // ≥ 48 px tap target
+            b.style.backgroundColor = bg; b.style.color = fg; b.style.fontSize = 18 * t; b.name = "action"; b.style.minHeight = 48; // ≥ 48 px tap target
             b.style.paddingLeft = 14; b.style.paddingRight = 14; b.style.marginRight = 8; b.style.marginTop = 4;
             Border(b, Ink, 2, 14);
             return b;

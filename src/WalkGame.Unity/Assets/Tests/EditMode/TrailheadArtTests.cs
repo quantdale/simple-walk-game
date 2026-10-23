@@ -105,6 +105,22 @@ namespace WalkGame.Shell.Tests
             Assert.IsNull(none.Structure); Assert.AreEqual(AssetResolution.Missing, none.StructureResolution);
         }
 
+        [Test] public void Mira_has_one_portrait_per_expression_and_bridge_labels_are_specific()
+        {
+            var r = Shipped();
+            foreach (var e in TrailheadArt.MiraExpressions)
+            {
+                var res = r.Resolve("portrait." + TrailheadArt.MiraId + "@" + e);
+                Assert.AreEqual(AssetResolution.Exact, res.Resolution, e);
+                Assert.IsNotNull(Resources.Load<Texture2D>(TrailheadArt.ResourceFolder + res.Asset), e);
+            }
+            Assert.AreEqual(AssetResolution.SubjectFallback, r.Resolve("portrait.npc.mira@curious").Resolution, "unknown expressions fall back to the neutral bust");
+            Assert.AreEqual("Inspect the bridge", PlayerStrings.T(TrailheadArt.LabelKeyFor(new DialogueAction(DialogueActionKind.Inspect, TrailheadArt.LocationId, Bridge))));
+            Assert.AreEqual("Help restore it", PlayerStrings.T(TrailheadArt.LabelKeyFor(new DialogueAction(DialogueActionKind.HelpRestore, TrailheadArt.LocationId, Bridge))));
+            Assert.AreEqual("Inspect", PlayerStrings.T(TrailheadArt.LabelKeyFor(new DialogueAction(DialogueActionKind.Inspect, TrailheadArt.LocationId, "proj.clear-trailhead"))));
+            Assert.AreEqual("Maybe later", PlayerStrings.T(TrailheadArt.LabelKeyFor(new DialogueAction(DialogueActionKind.MaybeLater, TrailheadArt.LocationId, null))));
+        }
+
         [Test] public void Reduced_motion_swaps_instantly_and_stills_Mira()
         {
             Assert.AreEqual(0f, TrailheadArt.TransitionSeconds(true));
