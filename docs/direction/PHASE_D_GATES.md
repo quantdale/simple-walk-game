@@ -72,7 +72,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 |---|---|---|
 | Recognisable as a cozy illustrated indie game? | Yes inside the trailhead; no on the text screens | See §46 UI rows |
 | Charm and personality? | Yes (trailhead) | Painted plates, garlands/bench on completion, Mira's idle and reaction |
-| Characters memorable and expressive? | Partly | Mira only; 5 expressions + reaction. Tavi/Rowan/Eli not yet drawn |
+| Characters memorable and expressive? | Partly | Mira (5 expr + reaction) and Tavi (BODY-02, 4 expr + bone idle). Rowan/Eli not yet drawn |
 | Interact with the world naturally? | Yes (editor) | Tap bridge/signpost/Mira; touch on a phone UNVERIFIED |
 | Walking produces meaningful visible change? | Yes | Steps → bridge build stages → stage plates (real-play captures) |
 | Follow progress without reading paragraphs? | Yes inside the world | Bridge stages + goal-progress line; the Region view is still text-heavy |
@@ -89,6 +89,6 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 
 ## Open (cannot be closed by a small PR)
 
-1. ~~Text shell in direction A~~ and ~~world-first boot~~ → D-215. Residual: a painted Region map; a lighter Home menu.
+1. ~~Text shell in direction A~~ and ~~world-first boot~~ → D-215. ~~Painted Region map + lighter Home~~ → D-219.
 3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate at the intake). Residual: more finds, expeditions in-world.
 4. Device verification of everything above (KI-002).
