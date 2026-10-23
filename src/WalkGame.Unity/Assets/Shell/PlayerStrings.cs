@@ -65,7 +65,7 @@ namespace WalkGame.Shell
             ["activity.waiting"] = "Connected. Waiting for your first walk to arrive.",
             ["activity.refreshFailed"] = "We could not refresh your walks just now. Nothing is lost; we will try again.",
             ["activity.providerUpdate"] = "Health Connect needs an update before new walks can count. Your progress is safe.",
-            ["activity.quietHint"] = "No walks have come in for a few days. If that's unexpected, check Health access in your phone's settings.", // D-196
+            ["activity.quietHint"] = "No walks have come in for a few days. If that's unexpected, check Health access in Settings.", // D-196
             ["activity.unknown"] = "Walking data status is unknown right now. Your progress is safe.",
             ["activity.action.connect"] = "Next: connect your walking data.",
             ["activity.action.openSettings"] = "Next: turn access back on in your phone's settings.",

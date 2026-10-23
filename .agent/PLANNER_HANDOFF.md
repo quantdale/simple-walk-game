@@ -338,3 +338,6 @@ For `/goal continue`: read repository instructions, this file, the execution pro
 - D-195 (#197, bug): Privacy lines were captured at type load and ignored a later locale. A runtime pseudo-locale sweep now covers 10 screens.
 - Counts at e81fe46: .NET 1835/1835. EditMode 355/355 (Unity-editor-tested). Device items are still UNVERIFIED (KI-002).
 - Next free D-number: **D-196**. Morning queue unchanged (KVM/device, art gate round 2, D-170, Region 2 gate, history purge). KI-031 is not queued; decide it before the iOS composition ships.
+
+### Count reconciliation (2026-10-24, grok1024a)
+- ".NET 1211 vs 1835" is not a records error. Re-ran `dotnet test` on archived trees: D-183 `a91aa04`, D-188 `736a44f`, D-190 `81c4e47`, D-191 `1129dca` = 1211 (162 + 233 + 816). D-192 `3b5292d`, D-193, D-194, D-195 `e81fe46` = 1835 (162 + 244 + 1429). D-192 added the expanded failure matrix (+624), and its entry already records 1835. D-196 = 1855 (162 + 252 + 1441). No recorded number needed correcting.

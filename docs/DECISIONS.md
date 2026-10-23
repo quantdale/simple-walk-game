@@ -3769,7 +3769,7 @@ Content copy (titles, letters) has its own overlay (D-122) and is outside this s
 - at least one walk sample has arrived;
 - the local calendar day of now minus the local calendar day of the last arrival is **≥ 3**, both read in the phone's current zone. Example: last arrival on the 14th, hint from 00:00 local on the 17th.
 
-When they hold, the Activity screen keeps "Connected. Your walks are being counted." and adds one line, `activity.quietHint`, from the shell string table: "No walks have come in for a few days. If that's unexpected, check Health access in your phone's settings." The line clears as soon as a sample arrives. No notification is scheduled or requested, and progress is untouched.
+When they hold, the Activity screen keeps "Connected. Your walks are being counted." and adds one line, `activity.quietHint`, from the shell string table: "No walks have come in for a few days. If that's unexpected, check Health access in Settings." The line clears as soon as a sample arrives. No notification is scheduled or requested, and progress is untouched.
 
 **Data, derived and not stored.** The last arrival is the latest `ProcessedAtUtc` among retained ledger rows that carry steps. That includes credits and revisions, and a late watch sync of an old walk counts as arriving now. Deletions and tombstones carry no steps, so they never count. Plumbing:
 - `ActivityConnectionSnapshot.ReadDenialHidden` is ephemeral: HealthKit sets it true, Health Connect leaves it false.
@@ -3785,3 +3785,5 @@ When they hold, the Activity screen keeps "Connected. Your walks are being count
 - EditMode `HealthKitQuietHintTests`, 5 tests through the shell with real adapters over fake bridges: day 2 vs day 3; no nagging; no progress effect; clears on the next sample; zone boundary; follows the locale; Health Connect unaffected.
 
 **Evidence.** .NET 1855/1855 (162 + 252 + 1441). EditMode 360/360. Labels: implemented, headless-tested, Unity-editor-tested. The device, Swift bridge and iOS composition are UNVERIFIED (KI-022, KI-002). KI-031 resolved.
+
+**Amendment 2026-10-24 (grok1024a).** The D-196 commit was found unpushed after an interrupted run and is landed here. Its hint copy said "…check Health access in your phone's settings."; the owner-specified copy is "No walks have come in for a few days. If that's unexpected, check Health access in Settings." and `activity.quietHint` now matches it. Counts re-run on this tree: .NET 1855/1855 (162 + 252 + 1441); EditMode 360/360.
