@@ -136,18 +136,46 @@ namespace WalkGame.Shell.Tests
             try
             {
                 var v = go.AddComponent<TrailheadSceneView>(); v.Build();
-                Assert.AreEqual(4, v.MiraParts.Count, "body, braid, scarf tail, head");
+                Assert.AreEqual(TrailheadArt.MiraBones.Length, v.MiraBones.Count, "D-212: Mira is the 2D Animation bone rig");
+                float Off(Transform t) => Mathf.Abs(Mathf.DeltaAngle(0f, t.localEulerAngles.z));
+                var rest = v.MiraBones.ToDictionary(b => b.Key, b => b.Value.localEulerAngles.z);
                 v.Show(Landmark("restored", "x", ProjectStatus.Completed));
                 v.ReducedMotion = false; v.Tick(1.1f);
-                Assert.IsTrue(v.MiraParts.Any(p => Mathf.Abs(Mathf.DeltaAngle(0f, p.t.localEulerAngles.z)) > 0.1f), "idle moves the parts");
+                Assert.IsTrue(v.MiraBones.Any(b => Mathf.Abs(Mathf.DeltaAngle(rest[b.Key], b.Value.localEulerAngles.z)) > 0.1f), "idle moves the bones");
                 Assert.Greater(v.Motes!.emission.rateOverTime.constant, 0f);
                 var ripple = v.Ripple!.transform.localPosition;
                 v.ReducedMotion = true; v.Tick(2.3f);
-                Assert.IsTrue(v.MiraParts.All(p => Mathf.Abs(Mathf.DeltaAngle(0f, p.t.localEulerAngles.z)) < 1e-3f), "reduced motion: Mira at rest");
+                Assert.IsTrue(v.MiraBones.All(b => Mathf.Abs(Mathf.DeltaAngle(rest[b.Key], b.Value.localEulerAngles.z)) < 1e-3f), "reduced motion: Mira at rest");
                 Assert.AreEqual(0f, v.Motes!.emission.rateOverTime.constant);
                 Assert.IsFalse(v.Motes.isPlaying);
                 var still = v.Ripple.transform.localPosition; v.Tick(5.9f);
                 Assert.AreEqual(still, v.Ripple.transform.localPosition, "reduced motion: water does not scroll");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(go); }
+        }
+
+        [Test] public void Mira_is_a_skinned_bone_rig_with_a_help_restore_reaction_and_a_reduced_motion_path()
+        {
+            var go = new GameObject("th");
+            try
+            {
+                var v = go.AddComponent<TrailheadSceneView>(); v.Build();
+                Assert.IsNotNull(v.MiraRigRoot, "rig prefab imported from Rig/mira_rig.psb");
+                var skins = v.MiraRigRoot!.GetComponentsInChildren<UnityEngine.U2D.Animation.SpriteSkin>(true);
+                Assert.AreEqual(4, skins.Length, "body, braid, scarf tail and head are skinned");
+                foreach (var sk in skins) Assert.Greater(sk.boneTransforms.Length, 0, sk.name + " has weighted bones");
+                foreach (var sk in skins) Assert.Greater(UnityEngine.U2D.SpriteDataAccessExtensions.GetBindPoses(sk.GetComponent<SpriteRenderer>().sprite).Length, 0, sk.name + " bind poses");
+                Assert.AreEqual((0f, 0f, 0f), TrailheadArt.ReactionPose(0.4f, true));
+                Assert.AreNotEqual(0f, TrailheadArt.ReactionPose(0.4f, false).head);
+                Assert.AreEqual((0f, 0f, 0f), TrailheadArt.ReactionPose(TrailheadArt.ReactionSeconds + 0.01f, false), "the reaction ends");
+                v.Show(Landmark("restored", "x", ProjectStatus.Completed));
+                var head = v.MiraBones["head"]; var hips = v.MiraBones["hips"];
+                v.ReducedMotion = true; v.Tick(3f); var h0 = head.localRotation; var p0 = hips.localPosition;
+                v.React(); v.Tick(3.4f);
+                Assert.AreEqual(h0, head.localRotation, "reduced motion: no reaction movement");
+                Assert.AreEqual(p0, hips.localPosition);
+                v.ReducedMotion = false; v.Tick(3f); v.React(); v.Tick(3.3f);
+                Assert.AreNotEqual(p0, hips.localPosition, "full motion: the reaction hops");
             }
             finally { UnityEngine.Object.DestroyImmediate(go); }
         }
@@ -187,6 +215,11 @@ namespace WalkGame.Shell.Tests
                 Assert.AreEqual(1, tex.mipmapCount, name + ": world sprites have no mipmaps");
                 bytes += Profiler.GetRuntimeMemorySizeLong(tex);
             }
+            // D-212: the rig's mosaic atlas (PSD Importer) is part of the slice
+            var rigTex = UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Resources/Art/Trailhead/" + TrailheadArt.MiraRig + ".psb").OfType<Texture2D>().ToArray();
+            Assert.AreEqual(1, rigTex.Length, "one rig atlas");
+            Assert.LessOrEqual(Mathf.Max(rigTex[0].width, rigTex[0].height), 2048); Assert.AreEqual(1, rigTex[0].mipmapCount, "rig atlas has no mipmaps");
+            bytes += Profiler.GetRuntimeMemorySizeLong(rigTex[0]);
             Debug.Log("D204_TEXTURE_BYTES " + bytes);
             Assert.LessOrEqual(bytes, 12L * 1024 * 1024, "PERFORMANCE_BUDGETS §9: ≤ 12 MB for the trailhead slice (editor estimate)");
         }

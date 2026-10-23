@@ -1,8 +1,16 @@
 {
     "name": "WalkGame.Shell.Editor",
     "rootNamespace": "WalkGame.Shell.Editor",
-    "references": ["WalkGame.Shell"],
-    "includePlatforms": ["Editor"],
+    "references": [
+        "WalkGame.Shell",
+        "Unity.2D.Animation.Editor",
+        "Unity.2D.Psdimporter.Editor",
+        "Unity.2D.Sprite.Editor",
+        "Unity.2D.Animation.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "autoReferenced": false
 }

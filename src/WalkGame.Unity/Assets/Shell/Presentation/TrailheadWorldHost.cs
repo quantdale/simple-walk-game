@@ -72,7 +72,7 @@ namespace WalkGame.Shell.Presentation
             home.style.position = Position.Absolute; home.style.top = 12; home.style.right = 12; home.style.minHeight = 48;
             Style(home, Canvas, Charcoal, 18 * Mathf.Max(1f, View.TextScale));
             root.Add(home);
-            View.BindDialogue(dialogue, a => { Controller.ChooseDialogueAction(a); }, () => Controller.SkipDialogue());
+            View.BindDialogue(dialogue, a => { if (a.Kind == DialogueActionKind.HelpRestore) View.React(); Controller.ChooseDialogueAction(a); }, () => Controller.SkipDialogue());
         }
 
         /// <summary>A tap at normalized screen coordinates (0..1 from top-left) on a screen of the given aspect (w/h).</summary>

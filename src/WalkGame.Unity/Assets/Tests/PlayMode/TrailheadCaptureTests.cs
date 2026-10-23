@@ -158,14 +158,15 @@ namespace WalkGame.Shell.PlayModeTests
                 for (int fr = 0; fr < 24; fr++)
                 {
                     float t = fr / 6f;
+                    if (fr == 12) view.React(); // D-212: the "Help restore it" reaction, mid-sequence
                     view.Tick(t); view.Motes!.Simulate(fr == 0 ? 6f : 1f / 6f, true, fr == 0, false);
                     caption.text = "Unity editor capture (software GL, not a device) · Phase D trailhead · motion ON (idle, ripple, motes) · t=" + t.ToString("0.00") + " s (simulated)";
                     for (int i = 0; i < 2; i++) yield return null;
                     cam.Render();
                     if (fr == 9) { Debug.Log("WG_MOTES live=" + view.Motes.particleCount); Assert.Greater(view.Motes.particleCount, 0, "motes are live with motion on"); }
-                    string nm = fr == 9 ? "trailhead-s4-motion-on" : "anim-" + fr.ToString("00");
+                    string nm = fr == 9 ? "trailhead-s4-motion-on" : fr == 15 ? "trailhead-mira-reaction-help-restore" : "anim-" + fr.ToString("00");
                     Dump(worldRt, Path.Combine(outDir, nm + ".world")); Dump(uiRt, Path.Combine(outDir, nm + ".ui"));
-                    if (fr == 9) { Dump(worldRt, Path.Combine(outDir, "anim-09.world")); Dump(uiRt, Path.Combine(outDir, "anim-09.ui")); }
+                    if (fr == 9 || fr == 15) { Dump(worldRt, Path.Combine(outDir, "anim-" + fr.ToString("00") + ".world")); Dump(uiRt, Path.Combine(outDir, "anim-" + fr.ToString("00") + ".ui")); }
                 }
                 view.ReducedMotion = true;
 
@@ -293,6 +294,7 @@ namespace WalkGame.Shell.PlayModeTests
                 Assert.IsNotNull(host.View.Dialogue);
                 yield return Shot("home-tap-mira-dialogue", "tap Mira");
                 var help = host.View.Dialogue!.Actions.Single(a => a.Kind == DialogueActionKind.HelpRestore);
+                host.View.React(); // as the dialogue button does (TrailheadWorldHost binding)
                 host.Controller.ChooseDialogueAction(help);
                 for (int i = 0; i < 3; i++) yield return null;
                 Assert.AreEqual("choices", host.ShownCard);
