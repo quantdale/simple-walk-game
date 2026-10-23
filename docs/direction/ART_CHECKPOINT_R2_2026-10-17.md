@@ -1,6 +1,6 @@
 # Art checkpoint round 2 (Phase B, D-171 gate), 2026-10-17
 
-**Status:** Produced and sent to Michael on 2026-10-17 at about 4:45 PM Asia/Manila. **Awaiting Michael.** The recommendation is **A, Painted Storybook Valley**. Agents may not approve a direction (D-171, bible §40, §45). Until Michael decides, there is no asset production, no style guide, no art-style UI rebuild, and no AI image enters the repository.
+**Status:** Produced and sent to Michael on 2026-10-17 at about 4:45 PM Asia/Manila. **Decided 2026-10-24 2:47 AM Asia/Manila:** Michael picked **A, Painted Storybook Valley** (D-200), accepted D-170 with scope (AI-generated art may ship with a ledger row per asset; round 1 images unusable) and decided the final layered art is agent-made from AI-generated art (D-201). The gate is closed; Phase C has started. The historical text below records the package as sent.
 
 Michael has three open decisions:
 

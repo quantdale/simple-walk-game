@@ -3151,7 +3151,15 @@ Everything is derived from canonical state at read time, in the Application laye
 
 ## D-170 — How AI-assisted art could be used under the licensing rule (2026-10-17)
 
-**Status:** **Proposed. NOT in effect. Needs Michael's approval** (morning queue). Agents may not accept it. Until Michael accepts or amends it, `docs/ASSET_LICENSES.md` stands unchanged: only in-repo-created or CC0 assets may be added, and no AI-generated or AI-derived image may be committed under `src/` or shipped.
+**Status:** **Accepted with owner scope** (Michael, personally in chat, 2026-10-24 2:47 AM Asia/Manila). Originally Proposed on 2026-10-17. The owner scope below governs where it differs from the proposed rule.
+
+**Owner scope (2026-10-24, binding).**
+- AI-generated art **is allowed in the shipped game** provided provenance is recorded for **every** asset: one ledger row per asset (`docs/direction/provenance_ledger_template.csv` columns, Phase C), including tool, date, prompt summary, reference inputs, raw-output SHA-256, edits made and final SHA-256.
+- Prompts still must not name artists, studios, games or franchises, or ask for their style (rule 3 stands).
+- **Round 1 images (D-168, `/workspace/art-checkpoint/`) remain unusable**, even as references or underpaintings. Round 2 images (`/workspace/art-checkpoint-r2/`) were generated with clean prompts and may be used as generation references when the use is recorded in the ledger.
+- Final layered art is produced by the agent from AI-generated art, split into layers and cleaned up for consistency and animation (D-201). This replaces rule 2's "substantial human work" wording: shipped assets are agent-processed (layered, cleaned, palette-matched), never an unrecorded raw generation.
+- Approved tool: Grok Bot's built-in image generator (free; the round 2 tool). Paid tools stay out of scope. Rules 4 (ledger), 6 (later CI ledger check) and 7 (reversibility) stand. Rule 5's per-kind first-batch review is by self-review against the style guide unless Michael asks otherwise. Disclosure (rule 8) is not yet decided and does not block production.
+- `docs/ASSET_LICENSES.md` now has a third category, "AI-derived with a provenance ledger row".
 
 **Context.**
 - Nothing in the rule covers AI images. The concept material produced for the D-164 checkpoint is AI-generated and was kept off-repo for that reason (D-168).
@@ -3189,7 +3197,7 @@ Everything is derived from canonical state at read time, in the Application laye
 **Not changed by this proposal:** `docs/ASSET_LICENSES.md`, any asset, save, content or code. No CI check is added until accepted.
 ## D-171 — Creative Direction Bible v1 governs art and experience; round 2 concepts are the single art gate (2026-10-17)
 
-**Status:** Accepted (owner direction from Michael, 2026-10-17 4:12 PM Asia/Manila)
+**Status:** Accepted (owner direction from Michael, 2026-10-17 4:12 PM Asia/Manila). **Art-approval gate CLOSED 2026-10-24:** Michael picked A (D-200), accepted D-170 with scope and decided the art production route (D-201). Phase C may start.
 
 **Decision.**
 - `docs/direction/CREATIVE_BIBLE_v1_2026-10-17.md` (Michael's Creative Direction Bible v1.0, copied verbatim; `cmp` against `/workspace/briefs/simple-walk-creative-bible-v1-2026-10-17.md` is identical) is the **governing art and player-experience direction**. Cozy Grove is the primary aesthetic reference; the game stays original (bible §30, §34, §36): no Cozy Grove images, sprites, characters, UI or extracted files, and nothing traced or closely reproduced.
@@ -3811,3 +3819,20 @@ When they hold, the Activity screen keeps "Connected. Your walks are being count
 **Decision.** `AccessibilityPlayedWorldTests` (3 EditMode) rebuild a world, walk for two weeks away, and audit the return summary plus 9 screens at 1x / 1.3x / 2x. Checks: unique human labels, button order = focus order = screen-reader order, visible label = screen-reader label, valley picture described, ≥ 48 dp both ways, wrapping text, no fixed-height + overflow-hidden ancestor of any text, and no transitions. No product bug was found. The first run failed only on the old "contains ':'" id heuristic, which flagged the prose "Start: Rebuild the trail bridges". The new test uses a token regex instead (the original audit is unchanged). No UI change.
 
 **Evidence.** EditMode 367/367. .NET 1871/1871 unchanged. Label: Unity-editor-tested; TalkBack on hardware UNVERIFIED (KI-002).
+
+## D-200 — Art direction A, Painted Storybook Valley, is approved (closes the D-171 gate) (2026-10-24)
+
+**Status:** Accepted (owner decision, Michael personally in chat, 2026-10-24 2:47 AM Asia/Manila)
+
+**Decision.** Concept **A, Painted Storybook Valley**, from the round 2 package (`/workspace/art-checkpoint-r2/A-storybook/`, text record `docs/direction/ART_CHECKPOINT_R2_2026-10-17.md`) is the art direction. B and C are not chosen. The single human art gate of D-171 (bible §40, §45) is passed. Phase C (style guide, bible §41) starts; Phase D (Old Trailhead slice, §42) follows the style guide. D-177's concept-A package set (2D Sprite, 2D Animation, PSD Importer, Animation and Particle System modules, no URP) is now due.
+
+**Not changed.** Save schema, content, rules, Region 2 gate (D-011). Records only. Labels: documentation.
+
+## D-201 — Final layered art is agent-made from AI-generated art; no outside illustrator (2026-10-24)
+
+**Status:** Accepted (owner decision, Michael personally in chat, 2026-10-24 2:47 AM Asia/Manila)
+
+**Decision.** The final layered art is produced by the agent itself from AI-generated source images (D-170 owner scope), split into layers (separable parts, fixed pivots) and cleaned up for consistency and animation using free tools (Krita or GIMP, Pillow). No outside illustrator is commissioned. Each shipped asset has a provenance ledger row. This answers round 2's third open decision ("who paints the final layered art"), replacing the package's statement that our tools could not produce it with an agent pipeline whose consistency is checked against the Phase C style guide.
+
+**Not changed.** No paid services. Records only. Labels: documentation.
+
