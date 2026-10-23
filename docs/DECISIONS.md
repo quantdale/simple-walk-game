@@ -3787,3 +3787,11 @@ When they hold, the Activity screen keeps "Connected. Your walks are being count
 **Evidence.** .NET 1855/1855 (162 + 252 + 1441). EditMode 360/360. Labels: implemented, headless-tested, Unity-editor-tested. The device, Swift bridge and iOS composition are UNVERIFIED (KI-022, KI-002). KI-031 resolved.
 
 **Amendment 2026-10-24 (grok1024a).** The D-196 commit was found unpushed after an interrupted run and is landed here. Its hint copy said "…check Health access in your phone's settings."; the owner-specified copy is "No walks have come in for a few days. If that's unexpected, check Health access in Settings." and `activity.quietHint` now matches it. Counts re-run on this tree: .NET 1855/1855 (162 + 252 + 1441); EditMode 360/360.
+
+## D-197 — A truncated primary save boots the backup generation (2026-10-24)
+
+**Gap.** Kill-mid-save coverage (`KillMidSaveTests`, `SessionMissingPrimaryRecoveryTests`) pins every rename step, but not a primary that is a byte prefix of what was written (process or power death on a file system that does not order the data flush before the rename).
+
+**Decision.** No code change: envelope decoding already rejects every tested prefix and boot recovers the backup. `TruncatedPrimaryRecoveryTests` (4 cases: 1 byte, 1/4, 1/2, all but the last byte) pins it: status `RecoveredFromBackup`, Vitality equals the backup generation's (never a fresh or partial world), and the next save heals the primary (`Loaded`). No save-schema change.
+
+**Evidence.** .NET 1859/1859 (162 + 252 + 1445). Label: headless-tested. Device UNVERIFIED (KI-002).
