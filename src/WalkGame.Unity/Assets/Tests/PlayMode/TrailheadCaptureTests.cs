@@ -324,6 +324,115 @@ namespace WalkGame.Shell.PlayModeTests
             }
         }
 
+        /// <summary>D-216: the River Intake reached on foot from the trailhead in the running host: Tavi, the jammed gate,
+        /// the restoration walked to completion, the restored gate and the optional brass-plate find.</summary>
+        [UnityTest] public IEnumerator Capture_river_intake_with_tavi_and_find()
+        {
+            string outDir = Environment.GetEnvironmentVariable("WG_TRAILHEAD_CAPTURE_DIR");
+            if (string.IsNullOrEmpty(outDir)) { Assert.Ignore("WG_TRAILHEAD_CAPTURE_DIR not set"); yield break; }
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) { Assert.Ignore("no graphics device"); yield break; }
+            Directory.CreateDirectory(outDir);
+            var dir = Path.Combine(UnityEngine.Application.temporaryCachePath, "wg-ri-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(dir);
+            var worldRt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
+            var uiRt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
+            var go = new GameObject("intake-world");
+            try
+            {
+                var clock = new ManualClock(new DateTimeOffset(2026, 3, 2, 9, 0, 0, TimeSpan.Zero));
+                var s = ShellBootstrap.CreateSession(dir, new ShellConnectionPort(true), clock);
+                Assert.AreEqual(StartStatus.NewGameCreated, s.StartNewGame(42UL, overwriteExisting: false).Status);
+                int walk = 0;
+                void Walk(long steps, double hours)
+                {
+                    clock.Advance(TimeSpan.FromHours(hours));
+                    s.IngestActivityBatch(new[] { new NormalizedActivityRecord("capture", "r" + (++walk), ActivityCategory.Walking, ActivityUnits.Steps, steps, clock.UtcNow.AddMinutes(-30), clock.UtcNow) });
+                    if (s.GetPendingReturnSummary() != null) s.AcknowledgeReturnSummary();
+                }
+                ProjectStatus St(string id) => s.GetProjects().Projects.Single(p => p.ProjectId == id).Status;
+                Assert.IsTrue(s.EnqueueProject("proj.clear-trailhead").IsSuccess);
+                for (int i = 0; i < 80 && St("proj.clear-trailhead") != ProjectStatus.Completed; i++) Walk(1500, 2);
+
+                var panel = ScriptableObject.CreateInstance<PanelSettings>();
+                panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("ShellTheme");
+                panel.targetTexture = uiRt; panel.scaleMode = PanelScaleMode.ConstantPixelSize; panel.scale = 1f;
+                panel.clearColor = true; panel.colorClearValue = new Color(0, 0, 0, 0);
+                var host = go.AddComponent<TrailheadWorldHost>();
+                host.Open(s, new InMemoryPresentationMemory(), NullOsMotionPreference.Instance, 1f, () => { }, panel, worldRt);
+                host.Place.ReducedMotion = true;
+                var travel = host.Overlay!.Q<Button>("world-travel");
+                Assert.IsNotNull(travel, "the trailhead offers the path to the intake once it is open");
+                Assert.GreaterOrEqual(travel!.resolvedStyle.minHeight.value, 48f);
+                host.GoTo(RiverIntakeArt.LocationId);
+                Assert.IsNotNull(host.Intake); host.Place.ReducedMotion = true;
+                var caption = new Label { name = "capture-caption" }; caption.style.position = Position.Absolute; caption.style.top = 8; caption.style.left = 8; caption.style.right = 110;
+                caption.style.backgroundColor = new Color(0.24f, 0.25f, 0.22f, 0.8f); caption.style.color = Color.white; caption.style.fontSize = 15; caption.style.whiteSpace = WhiteSpace.Normal;
+                caption.pickingMode = PickingMode.Ignore;
+                var cam = go.GetComponentInChildren<Camera>();
+                var shots = new List<string>();
+                IEnumerator Shot(string name, string note)
+                {
+                    if (caption.parent != host.Overlay) host.Overlay!.Add(caption);
+                    var f = host.Intake!.Frame!;
+                    caption.text = "Unity editor capture (software GL, not a device) · Phase D River Intake · " + f.Stage.ToString().ToLowerInvariant() + " · " + (f.GateKey ?? "no gate key") + " · " + note;
+                    host.Place.Settle();
+                    for (int i = 0; i < 6; i++) yield return null;
+                    cam.Render();
+                    Dump(worldRt, Path.Combine(outDir, name + ".world")); Dump(uiRt, Path.Combine(outDir, name + ".ui"));
+                    shots.Add(name);
+                    Debug.Log("WG_TRAILHEAD_CAPTURE " + name + " " + caption.text);
+                }
+                float aspect = (float)W / H;
+                Assert.IsTrue(host.Intake!.TaviVisible, "Tavi waits at the intake after the trailhead is cleared");
+                Assert.AreEqual(0, host.Intake.Frame!.GateIndex);
+                Assert.IsFalse(host.Intake.PlateTappable, "no find before the gates are freed");
+                yield return Shot("intake-s0-gate-jammed-tavi", "walked from the trailhead (canonical: trailhead cleared)");
+                Assert.AreEqual(IntakeTarget.Tavi, host.TapIntakeAt(new Vector2(0.18f, 0.80f), aspect));
+                Assert.IsNotNull(host.Place.Dialogue);
+                yield return Shot("intake-dialogue-tavi", "tap Tavi (skippable)");
+                host.Place.TextScale = 2f; host.Intake.RedrawDialogue();
+                yield return Shot("intake-dialogue-tavi-text2x", "same dialogue at 2x text");
+                host.Place.TextScale = 1f; host.Controller.SkipDialogue();
+                host.Controller.CloseLocation();
+                for (int day = 0; day < 200 && St(RiverIntakeArt.GateId) != ProjectStatus.Completed; day++)
+                {
+                    if (!s.GetProjects().Projects.Any(p => p.Status == ProjectStatus.Queued || p.Status == ProjectStatus.Active))
+                    {
+                        var next = St(RiverIntakeArt.GateId) == ProjectStatus.Available ? RiverIntakeArt.GateId
+                            : s.GetProjects().Projects.FirstOrDefault(p => p.Status == ProjectStatus.Available)?.ProjectId;
+                        if (next != null) s.EnqueueProject(next);
+                    }
+                    Walk(20000, 24);
+                }
+                Assert.AreEqual(ProjectStatus.Completed, St(RiverIntakeArt.GateId));
+                host.Controller.Resume(); host.GoTo(TrailheadArt.LocationId); host.GoTo(RiverIntakeArt.LocationId); host.Place.ReducedMotion = true;
+                Assert.AreEqual(1, host.Intake!.Frame!.GateIndex);
+                Assert.IsTrue(host.Intake.PlateTappable, "the find is offered once the intake discovery is unlocked");
+                Assert.IsTrue(host.Intake.Glow.enabled, "glow ring on (static under reduced motion)");
+                yield return Shot("intake-gate-restored-plate-glow", "canonical: intake restored; optional find glowing (static, reduced motion)");
+                var findButton = host.Overlay!.Q<Button>("world-find");
+                Assert.AreEqual(DisplayStyle.Flex, findButton.resolvedStyle.display, "screen-reader route to the same find");
+                Assert.AreEqual(IntakeTarget.Plate, host.TapIntakeAt(new Vector2(RiverIntakeArt.PlateX, RiverIntakeArt.PlateY), aspect));
+                Assert.AreEqual("find:" + RiverIntakeArt.DiscoveryId, host.ShownCard);
+                yield return Shot("intake-find-card", "tap the brass plate → the find (in-engine text; marks it reviewed)");
+                Assert.IsFalse(host.Intake.Glow.enabled, "reviewed: the glow stops, the plate stays tappable");
+                host.Place.TextScale = 2f; host.OpenFind();
+                yield return Shot("intake-find-card-text2x", "the find at 2x text");
+                host.Place.TextScale = 1f;
+                host.CloseFind(); Assert.IsNull(host.ShownCard);
+                host.Intake.Show(new LandmarkPresentation(RiverIntakeArt.LocationId, "River Intake", RiverIntakeArt.LocationId + "@flourishing", null, true, true, false,
+                    new[] { RiverIntakeArt.TaviId }, new[] { new WalkGame.Application.ReadModels.WorldViewReadModel.ProjectVisual(RiverIntakeArt.GateId, RiverIntakeArt.LocationId, ProjectStatus.Completed, 0, 1) }));
+                yield return Shot("intake-s4-flourishing-keydriven", "KEY-DRIVEN (stage not reached in this run)");
+                File.WriteAllText(Path.Combine(outDir, "captures-intake.txt"), string.Join("\n", shots) + "\nmissing keys: " + string.Join(", ", host.Intake.MissingKeys) + "\n");
+            }
+            finally
+            {
+                if (go != null) UnityEngine.Object.DestroyImmediate(go);
+                worldRt.Release(); uiRt.Release();
+                try { Directory.Delete(dir, true); } catch (IOException) { }
+            }
+        }
+
         private static void Dump(RenderTexture rt, string path)
         {
             var prev = RenderTexture.active;

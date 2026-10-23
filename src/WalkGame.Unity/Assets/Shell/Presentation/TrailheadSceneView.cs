@@ -14,7 +14,7 @@ namespace WalkGame.Shell.Presentation
     /// from a presentation pushed by <see cref="WorldPresentationController"/>; nothing here writes state.
     /// All text is drawn in-engine (UI Toolkit), never baked into art.
     /// </summary>
-    public sealed class TrailheadSceneView : MonoBehaviour, IWorldPresenter, ILandmarkView, ICharacterPresenter, ICharacterView, IDialoguePresenter
+    public sealed class TrailheadSceneView : MonoBehaviour, IPaintedPlaceView
     {
         public const float PixelsPerUnit = 100f;
         private PresentationAssetResolver<string> _resolver = new PresentationAssetResolver<string>(new DictionaryAssetCatalog<string>());

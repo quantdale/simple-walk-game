@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="3" result="Passed" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-23 21:42:52Z" end-time="2026-10-23 21:43:02Z" duration="9.4348441">
+  <test-suite type="TestSuite" id="1021" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-23 21:42:52Z" end-time="2026-10-23 21:43:02Z" duration="9.434844" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1017" name="WalkGame.Shell.PlayModeTests.dll" fullname="/workspace/simple-walk-game-wt-phase-intake-grok1024phg/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.PlayModeTests.dll" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-23 21:42:52Z" end-time="2026-10-23 21:43:02Z" duration="9.427854" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="220186" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1018" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-23 21:42:52Z" end-time="2026-10-23 21:43:02Z" duration="9.427324" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1019" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-23 21:42:52Z" end-time="2026-10-23 21:43:02Z" duration="9.427048" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1020" name="PlayModeTests" fullname="WalkGame.Shell.PlayModeTests" runstate="Runnable" testcasecount="8" result="Passed" start-time="2026-10-23 21:42:52Z" end-time="2026-10-23 21:43:02Z" duration="9.426780" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1009" name="TrailheadCaptureTests" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-23 21:42:52Z" end-time="2026-10-23 21:43:02Z" duration="9.425362" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1012" name="Capture_river_intake_with_tavi_and_find" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests.Capture_river_intake_with_tavi_and_find" methodname="Capture_river_intake_with_tavi_and_find" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" seed="1038795461" result="Passed" start-time="2026-10-23 21:42:52Z" end-time="2026-10-23 21:42:55Z" duration="3.143612" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_TRAILHEAD_CAPTURE intake-s0-gate-jammed-tavi Unity editor capture (software GL, not a device) · Phase D River Intake · ruined · proj.river-intake@ruined · walked from the trailhead (canonical: trailhead cleared)
+WG_TRAILHEAD_CAPTURE intake-dialogue-tavi Unity editor capture (software GL, not a device) · Phase D River Intake · ruined · proj.river-intake@ruined · tap Tavi (skippable)
+WG_TRAILHEAD_CAPTURE intake-dialogue-tavi-text2x Unity editor capture (software GL, not a device) · Phase D River Intake · ruined · proj.river-intake@ruined · same dialogue at 2x text
+WG_TRAILHEAD_CAPTURE intake-gate-restored-plate-glow Unity editor capture (software GL, not a device) · Phase D River Intake · stabilized · proj.river-intake@done · canonical: intake restored; optional find glowing (static, reduced motion)
+WG_TRAILHEAD_CAPTURE intake-find-card Unity editor capture (software GL, not a device) · Phase D River Intake · stabilized · proj.river-intake@done · tap the brass plate → the find (in-engine text; marks it reviewed)
+WG_TRAILHEAD_CAPTURE intake-find-card-text2x Unity editor capture (software GL, not a device) · Phase D River Intake · stabilized · proj.river-intake@done · the find at 2x text
+WG_TRAILHEAD_CAPTURE intake-s4-flourishing-keydriven Unity editor capture (software GL, not a device) · Phase D River Intake · flourishing · proj.river-intake@done · KEY-DRIVEN (stage not reached in this run)
+]]></output>
+              </test-case>
+              <test-case id="1011" name="Capture_trailhead_opened_from_home_with_taps" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests.Capture_trailhead_opened_from_home_with_taps" methodname="Capture_trailhead_opened_from_home_with_taps" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" seed="2073367097" result="Passed" start-time="2026-10-23 21:42:55Z" end-time="2026-10-23 21:42:57Z" duration="1.852059" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_TRAILHEAD_CAPTURE shell-first-launch Unity editor capture (software GL, not a device) · text shell · first launch / onboarding
+WG_TRAILHEAD_CAPTURE shell-return-after-walking Unity editor capture (software GL, not a device) · text shell · return after a walk (While you were away)
+WG_CAPTURE_SCROLL_TO offset=254 max=254
+WG_TRAILHEAD_CAPTURE shell-home-visit-trailhead Unity editor capture (software GL, not a device) · text shell · Home with Visit the Old Trailhead
+WG_CAPTURE_SCROLL_TO offset=854.6 max=1187
+WG_TRAILHEAD_CAPTURE shell-home-visit-trailhead-text2x Unity editor capture (software GL, not a device) · text shell · Home at 2x text, scrolled to Visit the Old Trailhead
+WG_TRAILHEAD_CAPTURE shell-region-view Unity editor capture (software GL, not a device) · text shell · Region view (direction-A card over the painted trailhead; a painted region map is not drawn yet)
+WG_TRAILHEAD_CAPTURE home-trailhead-open Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · Home → Visit the Old Trailhead (canonical: trailhead cleared)
+WG_TRAILHEAD_CAPTURE home-tap-mira-dialogue Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · tap Mira
+WG_TRAILHEAD_CAPTURE home-help-restore-goal-card Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · Help restore it → goal card (Start = existing EnqueueProject)
+WG_TRAILHEAD_CAPTURE home-tap-bridge-inspect Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · tap the bridge → inspect card
+]]></output>
+              </test-case>
+              <test-case id="1010" name="Capture_trailhead_stages_and_dialogue" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests.Capture_trailhead_stages_and_dialogue" methodname="Capture_trailhead_stages_and_dialogue" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" seed="1341837315" result="Passed" start-time="2026-10-23 21:42:57Z" end-time="2026-10-23 21:43:02Z" duration="4.419259" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_TRAILHEAD_CAPTURE trailhead-s0-forgotten-bridge-ruined Unity editor capture (software GL, not a device) · Phase D trailhead · ruined · proj.rebuild-trail-bridges@ruined · canonical: new game
+WG_TRAILHEAD_CAPTURE trailhead-s1-awakening-bridge-ruined Unity editor capture (software GL, not a device) · Phase D trailhead · stabilized · proj.rebuild-trail-bridges@ruined · canonical: trailhead cleared
+WG_TRAILHEAD_CAPTURE trailhead-dialogue-mira Unity editor capture (software GL, not a device) · Phase D trailhead · stabilized · proj.rebuild-trail-bridges@ruined · canonical: tap Mira (skippable)
+WG_TRAILHEAD_CAPTURE trailhead-dialogue-mira-text2x Unity editor capture (software GL, not a device) · Phase D trailhead · stabilized · proj.rebuild-trail-bridges@ruined · canonical: same dialogue at 2x text
+WG_TRAILHEAD_BUTTON 'Inspect the bridge' (x:37.00, y:1097.00, width:344.00, height:68.00) in (x:0.00, y:0.00, width:720.00, height:1280.00)
+WG_TRAILHEAD_BUTTON 'Help restore it' (x:393.00, y:1097.00, width:273.00, height:68.00) in (x:0.00, y:0.00, width:720.00, height:1280.00)
+WG_TRAILHEAD_BUTTON 'Maybe later' (x:37.00, y:1171.00, width:234.00, height:68.00) in (x:0.00, y:0.00, width:720.00, height:1280.00)
+WG_TRAILHEAD_BUTTON 'Skip' (x:573.00, y:1171.00, width:106.00, height:68.00) in (x:0.00, y:0.00, width:720.00, height:1280.00)
+WG_TRAILHEAD_CAPTURE trailhead-s1-bridge-build-0of3 Unity editor capture (software GL, not a device) · Phase D trailhead · stabilized · proj.rebuild-trail-bridges@build-0of3 · canonical: bridge goal picked
+WG_TRAILHEAD_CAPTURE trailhead-s1-bridge-build-1of3 Unity editor capture (software GL, not a device) · Phase D trailhead · stabilized · proj.rebuild-trail-bridges@build-1of3 · canonical: walking
+WG_TRAILHEAD_CAPTURE trailhead-s1-bridge-build-2of3 Unity editor capture (software GL, not a device) · Phase D trailhead · stabilized · proj.rebuild-trail-bridges@build-2of3 · canonical: walking
+WG_TRAILHEAD_CAPTURE trailhead-s1-bridge-done Unity editor capture (software GL, not a device) · Phase D trailhead · stabilized · proj.rebuild-trail-bridges@done · canonical: walking
+WG_TRAILHEAD_CAPTURE trailhead-s2-functional Unity editor capture (software GL, not a device) · Phase D trailhead · functional · proj.rebuild-trail-bridges@done · canonical: day 17 of continued play
+WG_TRAILHEAD_CAPTURE trailhead-s3-restored Unity editor capture (software GL, not a device) · Phase D trailhead · restored · proj.rebuild-trail-bridges@done · canonical: day 19 of continued play
+WG_TRAILHEAD_CAPTURE trailhead-s4-flourishing-keydriven Unity editor capture (software GL, not a device) · Phase D trailhead · flourishing · proj.rebuild-trail-bridges@done · KEY-DRIVEN (stage not reachable in current content)
+WG_MOTES live=40
+Saving results to: /home/box/.config/unity3d/quantdale/Simple Walk Game/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>
