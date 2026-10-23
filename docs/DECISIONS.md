@@ -3942,3 +3942,21 @@ Goal cards wait while a dialogue is open. Reduced motion = in-game setting OR OS
 **Evidence** (`docs/evidence/d207-boot/`, Unity editor capture, NOT a device): EditMode 378/378 incl. `TrailheadWorldWiringTests`;
 PlayMode `Capture_trailhead_opened_from_home_with_taps` (real ShellController: Home → world, tap Mira, Help restore → goal card,
 tap bridge → inspect, tap signpost, Home → text shell). Touch input on a phone: UNVERIFIED (KI-002).
+
+## D-208 — Trailhead ambient motion: Mira cut-out rig, water ripple, light motes, each with a reduced-motion path (2026-10-24)
+
+**Status:** Accepted (agent; follow-up 4 to D-204)
+
+**Decision.** Mira is split (`tools/art/mira_parts_and_ripple.py`) into body / head / braid / scarf-tail layers placed by
+`TrailheadArt.MiraParts` (art-space rect + pivot) and animated by a **Transform cut-out rig** (parented joints, subtle breathing
+bob + head/braid/scarf sway, `TrailheadArt.IdlePose`). This is NOT a `com.unity.2d.animation` SpriteSkin bone rig: adding that
+package and authoring bone weights was out of scope for a small PR; the cut-out rig gives the same layered idle with no new
+dependency. Water scroll = a ripple strip (bright strokes of the master water, clipped to the shared riverbed) drifting at
+`RippleSpeed`; light motes = a `ParticleSystem` sized by stage (`ParticleCount` 0/8/16/28/40). **Reduced motion** (in-game OR OS,
+D-186): pose held at rest, ripple static, 0 particles. Textures padded to multiples of 4 so block compression applies (slice
+8.3 MB editor estimate, budget 12 MB). Stage 2 *Functional* is now captured from real play (lookout held until the trailhead
+reaches Functional, day 17 of continued play). No save/content change.
+
+**Evidence** (`docs/evidence/d208-motion/`, Unity editor capture, NOT a device): EditMode 379/379 incl.
+`Ambient_motion_has_a_reduced_motion_path`; PlayMode captures 2/2 incl. `trailhead-s2-functional`. Motion smoothness and
+particle cost on a phone: UNVERIFIED.

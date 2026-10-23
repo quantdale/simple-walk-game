@@ -121,6 +121,37 @@ namespace WalkGame.Shell.Tests
             Assert.AreEqual("Maybe later", PlayerStrings.T(TrailheadArt.LabelKeyFor(new DialogueAction(DialogueActionKind.MaybeLater, TrailheadArt.LocationId, null))));
         }
 
+        [Test] public void Ambient_motion_has_a_reduced_motion_path()
+        {
+            Assert.AreEqual((0f, 0f, 0f, 0f), TrailheadArt.IdlePose(1.7f, true));
+            Assert.AreNotEqual(0f, TrailheadArt.IdlePose(1.7f, false).braid);
+            float last = 0f;
+            foreach (RestorationStage st in Enum.GetValues(typeof(RestorationStage)))
+            {
+                Assert.AreEqual(0f, TrailheadArt.RippleSpeed(st, true)); Assert.AreEqual(0, TrailheadArt.ParticleCount(st, true));
+                Assert.Greater(TrailheadArt.RippleSpeed(st, false), last); last = TrailheadArt.RippleSpeed(st, false);
+                Assert.LessOrEqual(TrailheadArt.ParticleCount(st, false), 60);
+            }
+            var go = new GameObject("th");
+            try
+            {
+                var v = go.AddComponent<TrailheadSceneView>(); v.Build();
+                Assert.AreEqual(4, v.MiraParts.Count, "body, braid, scarf tail, head");
+                v.Show(Landmark("restored", "x", ProjectStatus.Completed));
+                v.ReducedMotion = false; v.Tick(1.1f);
+                Assert.IsTrue(v.MiraParts.Any(p => Mathf.Abs(Mathf.DeltaAngle(0f, p.t.localEulerAngles.z)) > 0.1f), "idle moves the parts");
+                Assert.Greater(v.Motes!.emission.rateOverTime.constant, 0f);
+                var ripple = v.Ripple!.transform.localPosition;
+                v.ReducedMotion = true; v.Tick(2.3f);
+                Assert.IsTrue(v.MiraParts.All(p => Mathf.Abs(Mathf.DeltaAngle(0f, p.t.localEulerAngles.z)) < 1e-3f), "reduced motion: Mira at rest");
+                Assert.AreEqual(0f, v.Motes!.emission.rateOverTime.constant);
+                Assert.IsFalse(v.Motes.isPlaying);
+                var still = v.Ripple.transform.localPosition; v.Tick(5.9f);
+                Assert.AreEqual(still, v.Ripple.transform.localPosition, "reduced motion: water does not scroll");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(go); }
+        }
+
         [Test] public void Reduced_motion_swaps_instantly_and_stills_Mira()
         {
             Assert.AreEqual(0f, TrailheadArt.TransitionSeconds(true));
@@ -148,7 +179,7 @@ namespace WalkGame.Shell.Tests
         [Test] public void Every_shipped_layer_exists_and_the_slice_fits_its_texture_budget()
         {
             long bytes = 0;
-            foreach (var name in TrailheadArt.CatalogEntries().Values.Distinct())
+            foreach (var name in TrailheadArt.CatalogEntries().Values.Concat(TrailheadArt.MiraParts.Select(p => p.name)).Append(TrailheadArt.WaterRipple).Distinct())
             {
                 var tex = Resources.Load<Texture2D>(TrailheadArt.ResourceFolder + name);
                 Assert.IsNotNull(tex, name);
