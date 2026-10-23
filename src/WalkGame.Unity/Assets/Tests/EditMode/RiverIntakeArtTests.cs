@@ -22,27 +22,37 @@ namespace WalkGame.Shell.Tests
             new LandmarkPresentation(RiverIntakeArt.LocationId, "River Intake", RiverIntakeArt.LocationId + "@" + stage, null, true, true, false,
                 new[] { RiverIntakeArt.TaviId }, new[] { new WorldViewReadModel.ProjectVisual(RiverIntakeArt.GateId, RiverIntakeArt.LocationId, status, k, n) });
 
-        [Test] public void Gate_layer_follows_the_intake_visual_key()
+        [Test] public void Gate_layer_follows_the_intake_visual_key_through_three_structural_stages()
         {
             Assert.AreEqual(0, RiverIntakeArt.GateIndexFor(RiverIntakeArt.GateId + "@ruined"));
-            Assert.AreEqual(0, RiverIntakeArt.GateIndexFor(RiverIntakeArt.GateId + "@build-0of1"));
-            Assert.AreEqual(1, RiverIntakeArt.GateIndexFor(RiverIntakeArt.GateId + "@done"));
+            Assert.AreEqual(1, RiverIntakeArt.GateIndexFor(RiverIntakeArt.GateId + "@build-0of2"));
+            Assert.AreEqual(1, RiverIntakeArt.GateIndexFor(RiverIntakeArt.GateId + "@build-1of2"));
+            Assert.AreEqual(2, RiverIntakeArt.GateIndexFor(RiverIntakeArt.GateId + "@done"));
             Assert.IsNull(RiverIntakeArt.GateIndexFor("proj.rebuild-trail-bridges@done"));
             Assert.IsNull(RiverIntakeArt.GateIndexFor(RiverIntakeArt.GateId + "@weird"));
             var f = RiverIntakeArt.Map(Lm("ruined", ProjectStatus.Available), Shipped());
-            Assert.AreEqual(RiverIntakeArt.GateJammed, f.Gate); Assert.AreEqual(0f, f.HighShare);
-            var done = RiverIntakeArt.Map(Lm("stabilized", ProjectStatus.Completed), Shipped());
+            Assert.AreEqual(RiverIntakeArt.GateJammed, f.Gate); Assert.AreEqual(0f, f.HighShare); Assert.IsNull(f.Accents);
+            var mid = RiverIntakeArt.Map(Lm("stabilized", ProjectStatus.Active, k: 0, n: 2), Shipped());
+            Assert.AreEqual(RiverIntakeArt.GateRebuilding, mid.Gate);
+            var done = RiverIntakeArt.Map(Lm("stabilized", ProjectStatus.Completed, n: 2), Shipped());
             Assert.AreEqual(RiverIntakeArt.GateRestored, done.Gate); Assert.AreEqual(RestorationStage.Stabilized, done.Stage);
+            Assert.IsNull(done.Accents, "Stabilized: gate restored, accents wait for Restored");
+            var restored = RiverIntakeArt.Map(Lm("restored", ProjectStatus.Completed, n: 2), Shipped());
+            Assert.AreEqual(RiverIntakeArt.AccentsFlourish, restored.Accents);
+            Assert.IsTrue(RiverIntakeArt.ShowAccents(RestorationStage.Restored));
+            Assert.IsTrue(RiverIntakeArt.ShowAccents(RestorationStage.Flourishing));
+            Assert.IsFalse(RiverIntakeArt.ShowAccents(RestorationStage.Functional));
             Assert.AreEqual(TrailheadArt.FlourishingShare(RestorationStage.Stabilized), done.HighShare, 1e-5f, "same stage ramp as the trailhead");
         }
 
         [Test] public void The_find_is_optional_canonical_and_only_on_the_restored_gate()
         {
-            Assert.IsFalse(RiverIntakeArt.PlateTappable(false, 1), "not before the discovery is unlocked");
+            Assert.IsFalse(RiverIntakeArt.PlateTappable(false, 2), "not before the discovery is unlocked");
             Assert.IsFalse(RiverIntakeArt.PlateTappable(true, 0), "not on the jammed gate");
-            Assert.IsTrue(RiverIntakeArt.PlateTappable(true, 1));
-            Assert.IsTrue(RiverIntakeArt.PlateGlows(true, 1, reviewed: false));
-            Assert.IsFalse(RiverIntakeArt.PlateGlows(true, 1, reviewed: true), "read: no glow, still tappable");
+            Assert.IsFalse(RiverIntakeArt.PlateTappable(true, 1), "not while rebuilding");
+            Assert.IsTrue(RiverIntakeArt.PlateTappable(true, 2));
+            Assert.IsTrue(RiverIntakeArt.PlateGlows(true, 2, reviewed: false));
+            Assert.IsFalse(RiverIntakeArt.PlateGlows(true, 2, reviewed: true), "read: no glow, still tappable");
             Assert.AreEqual(IntakeTarget.Plate, RiverIntakeArt.HitTest(RiverIntakeArt.PlateX, RiverIntakeArt.PlateY, true, true));
             Assert.AreEqual(IntakeTarget.Gate, RiverIntakeArt.HitTest(RiverIntakeArt.PlateX, RiverIntakeArt.PlateY, true, false), "no find: the gate answers");
             Assert.AreEqual(IntakeTarget.None, RiverIntakeArt.HitTest(0.18f, 0.80f, false, false), "absent Tavi is not tappable");
@@ -111,8 +121,10 @@ namespace WalkGame.Shell.Tests
                 v.Show(Lm("ruined", ProjectStatus.Available));
                 Assert.AreEqual(0, v.Frame!.GateIndex); Assert.IsFalse(v.Glow.enabled);
                 v.SetDiscovery(true, false); Assert.IsFalse(v.Glow.enabled, "jammed gate: no find yet");
-                v.Show(Lm("stabilized", ProjectStatus.Completed)); Assert.IsTrue(v.Glow.enabled); Assert.IsTrue(v.PlateTappable);
+                v.Show(Lm("stabilized", ProjectStatus.Active, k: 0, n: 2)); Assert.AreEqual(1, v.Frame!.GateIndex); Assert.IsFalse(v.Glow.enabled);
+                v.Show(Lm("stabilized", ProjectStatus.Completed, n: 2)); Assert.AreEqual(2, v.Frame!.GateIndex); Assert.IsTrue(v.Glow.enabled); Assert.IsTrue(v.PlateTappable);
                 v.SetDiscovery(true, true); Assert.IsFalse(v.Glow.enabled); Assert.IsTrue(v.PlateTappable);
+                v.Show(Lm("restored", ProjectStatus.Completed, n: 2)); Assert.IsNotNull(v.Frame!.Accents);
                 Assert.IsEmpty(v.MissingKeys);
             }
             finally { Object.DestroyImmediate(go); }

@@ -394,22 +394,26 @@ namespace WalkGame.Shell.PlayModeTests
                 yield return Shot("intake-dialogue-tavi-text2x", "same dialogue at 2x text");
                 host.Place.TextScale = 1f; host.Controller.SkipDialogue();
                 host.Controller.CloseLocation();
-                for (int day = 0; day < 200 && St(RiverIntakeArt.GateId) != ProjectStatus.Completed; day++)
+                // D-218: walk the intake build (G0 → G1 → G2), then landmark Functional and Restored from real play.
+                Assert.IsTrue(s.EnqueueProject(RiverIntakeArt.GateId).IsSuccess);
+                bool sawG1 = false;
+                for (int day = 0; day < 80 && St(RiverIntakeArt.GateId) != ProjectStatus.Completed; day++)
                 {
-                    if (!s.GetProjects().Projects.Any(p => p.Status == ProjectStatus.Queued || p.Status == ProjectStatus.Active))
+                    Walk(1500, 2);
+                    host.Controller.Resume();
+                    if (!sawG1 && host.Intake!.Frame!.GateIndex == 1)
                     {
-                        var next = St(RiverIntakeArt.GateId) == ProjectStatus.Available ? RiverIntakeArt.GateId
-                            : s.GetProjects().Projects.FirstOrDefault(p => p.Status == ProjectStatus.Available)?.ProjectId;
-                        if (next != null) s.EnqueueProject(next);
+                        sawG1 = true; host.Place.ReducedMotion = true;
+                        yield return Shot("intake-gate-rebuilding-g1", "canonical: proj.river-intake mid-build (structural)");
                     }
-                    Walk(20000, 24);
                 }
+                Assert.IsTrue(sawG1, "G1 rebuilding layer was reached during the build");
                 Assert.AreEqual(ProjectStatus.Completed, St(RiverIntakeArt.GateId));
                 host.Controller.Resume(); host.GoTo(TrailheadArt.LocationId); host.GoTo(RiverIntakeArt.LocationId); host.Place.ReducedMotion = true;
-                Assert.AreEqual(1, host.Intake!.Frame!.GateIndex);
+                Assert.AreEqual(2, host.Intake!.Frame!.GateIndex);
                 Assert.IsTrue(host.Intake.PlateTappable, "the find is offered once the intake discovery is unlocked");
                 Assert.IsTrue(host.Intake.Glow.enabled, "glow ring on (static under reduced motion)");
-                yield return Shot("intake-gate-restored-plate-glow", "canonical: intake restored; optional find glowing (static, reduced motion)");
+                yield return Shot("intake-s1-gate-restored-plate-glow", "canonical: Stabilized + gate @done; optional find glowing");
                 var findButton = host.Overlay!.Q<Button>("world-find");
                 Assert.AreEqual(DisplayStyle.Flex, findButton.resolvedStyle.display, "screen-reader route to the same find");
                 Assert.AreEqual(IntakeTarget.Plate, host.TapIntakeAt(new Vector2(RiverIntakeArt.PlateX, RiverIntakeArt.PlateY), aspect));
@@ -420,9 +424,31 @@ namespace WalkGame.Shell.PlayModeTests
                 yield return Shot("intake-find-card-text2x", "the find at 2x text");
                 host.Place.TextScale = 1f;
                 host.CloseFind(); Assert.IsNull(host.ShownCard);
+                var stagesShot = new HashSet<string>();
+                for (int day = 0; day < 500 && !stagesShot.Contains("restored"); day++)
+                {
+                    if (!s.GetProjects().Projects.Any(p => p.Status == ProjectStatus.Queued || p.Status == ProjectStatus.Active))
+                    {
+                        var open = s.GetProjects().Projects.FirstOrDefault(p => p.Status == ProjectStatus.Available);
+                        if (open != null) s.EnqueueProject(open.ProjectId);
+                    }
+                    Walk(20000, 24);
+                    host.Controller.Resume();
+                    string st = host.Intake!.Frame!.Stage.ToString().ToLowerInvariant();
+                    if ((st == "functional" || st == "restored") && stagesShot.Add(st))
+                    {
+                        host.Place.ReducedMotion = true;
+                        yield return Shot("intake-s" + (int)host.Intake.Frame.Stage + "-" + st,
+                            "canonical: day " + (day + 1) + (st == "restored" ? " (accents on)" : ""));
+                        if (st == "restored") Assert.IsNotNull(host.Intake.Frame.Accents, "Restored draws the flourish accents");
+                    }
+                }
+                Assert.IsTrue(stagesShot.Contains("functional"), "Functional reached by WetlandDrainage in real play");
+                Assert.IsTrue(stagesShot.Contains("restored"), "Restored reached by CanopyWalkway in real play");
                 host.Intake.Show(new LandmarkPresentation(RiverIntakeArt.LocationId, "River Intake", RiverIntakeArt.LocationId + "@flourishing", null, true, true, false,
-                    new[] { RiverIntakeArt.TaviId }, new[] { new WalkGame.Application.ReadModels.WorldViewReadModel.ProjectVisual(RiverIntakeArt.GateId, RiverIntakeArt.LocationId, ProjectStatus.Completed, 0, 1) }));
-                yield return Shot("intake-s4-flourishing-keydriven", "KEY-DRIVEN (stage not reached in this run)");
+                    new[] { RiverIntakeArt.TaviId }, new[] { new WalkGame.Application.ReadModels.WorldViewReadModel.ProjectVisual(RiverIntakeArt.GateId, RiverIntakeArt.LocationId, ProjectStatus.Completed, 0, 2) }));
+                yield return Shot("intake-s4-flourishing-keydriven", "KEY-DRIVEN (no Flourishing stage in current content; accents on)");
+                Assert.IsNotNull(host.Intake.Frame!.Accents);
                 File.WriteAllText(Path.Combine(outDir, "captures-intake.txt"), string.Join("\n", shots) + "\nmissing keys: " + string.Join(", ", host.Intake.MissingKeys) + "\n");
             }
             finally

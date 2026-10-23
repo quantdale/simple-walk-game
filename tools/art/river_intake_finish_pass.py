@@ -50,8 +50,12 @@ cv2.imwrite(f"{O}/riverbed_mask.png", river)
 plates = {"S0": s0, "S4": master}
 for k, v in plates.items(): cv2.imwrite(f"{O}/intake_ground_{k}.png", cv2.cvtColor(grain(pal_pull(v, .25)), cv2.COLOR_RGB2BGR))
 rep = {"S0_affine_to_master": M0.tolist(), "plate_S0_vs_master_px": {"before": before, "after": after}}
-ROI = {"G0": [(330,500),(560,470),(720,560),(720,1010),(520,1000),(360,900)], "G2": [(340,470),(720,430),(720,960),(560,930),(380,860)]}
-SRC = {"G0": "RI-GT-G0-01", "G2": "RI-GT-G2-01"}; PL = {"G0": "S0", "G2": "S4"}
+ROI = {"G0": [(330,500),(560,470),(720,560),(720,1010),(520,1000),(360,900)],
+       "G1": [(340,480),(720,450),(720,1000),(560,960),(380,880)],
+       "G2": [(340,470),(720,430),(720,960),(560,930),(380,860)],
+       "FX": [(200,450),(680,450),(680,1000),(280,1000),(200,900)]}
+SRC = {"G0": "RI-GT-G0-01", "G1": "RI-GT-G1-01", "G2": "RI-GT-G2-01", "FX": "RI-FX-FLOURISH-01"}
+PL = {"G0": "S0", "G1": "S4", "G2": "S4", "FX": "S4"}
 def lab(x): return cv2.cvtColor(cv2.GaussianBlur(x,(0,0),1.5), cv2.COLOR_RGB2LAB).astype(float)
 for g, n in SRC.items():
     plate_ref = master; raw = load(n)
@@ -59,8 +63,10 @@ for g, n in SRC.items():
     roi = np.zeros((1280,720), np.uint8); cv2.fillPoly(roi, [np.int32(ROI[g])], 255)
     d = np.sqrt(((lab(img)-lab(plate_ref))**2).sum(-1))
     h2 = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-    d[((h2[...,0] > 28) & (h2[...,0] < 80) & (h2[...,1] > 40))] *= 0.4   # grass stays with the plate
-    strong = ((d > 40) & (roi > 0)).astype(np.uint8); weak = ((d > 22) & (roi > 0)).astype(np.uint8)
+    if g != "FX":
+        d[((h2[...,0] > 28) & (h2[...,0] < 80) & (h2[...,1] > 40))] *= 0.4   # grass stays with the plate
+    thr_s, thr_w = (28, 16) if g == "FX" else (40, 22)
+    strong = ((d > thr_s) & (roi > 0)).astype(np.uint8); weak = ((d > thr_w) & (roi > 0)).astype(np.uint8)
     n_, lbl, stats, _ = cv2.connectedComponentsWithStats(weak, 8)
     keep = np.zeros(n_, bool); keep[np.unique(lbl[strong > 0])] = True; keep[0] = False
     keep &= stats[:, cv2.CC_STAT_AREA] > 150
@@ -77,6 +83,16 @@ for g, n in SRC.items():
     if g == "G0":   # weathered: pulled toward the forgotten plate's grey ramp
         hs = cv2.cvtColor(col, cv2.COLOR_RGB2HSV).astype(float); hs[...,1] *= 0.6; col = cv2.cvtColor(hs.astype(np.uint8), cv2.COLOR_HSV2RGB)
     rgba = np.dstack([col, a.clip(0,255).astype(np.uint8)])
-    cv2.imwrite(f"{O}/intake_gate_{g}.png", cv2.cvtColor(rgba, cv2.COLOR_RGBA2BGRA))
+    if g == "FX":
+        hsv = cv2.cvtColor(col, cv2.COLOR_RGB2HSV)
+        keep = ((hsv[...,0] > 140) & (hsv[...,0] < 175) & (hsv[...,1] > 40)) | \
+               ((hsv[...,0] < 30) & (hsv[...,1] > 50) & (hsv[...,2] > 120)) | \
+               ((hsv[...,2] < 90) & (hsv[...,1] < 80))   # bird / dark accents
+        keep = cv2.dilate(keep.astype(np.uint8), np.ones((7,7),np.uint8))
+        a = (a * keep).astype(np.float32)
+        a = cv2.GaussianBlur(a, (0,0), 1.2)
+        rgba = np.dstack([col, a.clip(0,255).astype(np.uint8)])
+    name = f"intake_accents_FX.png" if g == "FX" else f"intake_gate_{g}.png"
+    cv2.imwrite(f"{O}/{name}", cv2.cvtColor(rgba, cv2.COLOR_RGBA2BGRA))
     rep[g] = {"layer_vs_base_px": residual(plate_ref, img), "alpha_px": int((a > 128).sum())}
 json.dump(rep, open(f"{O}/registration.json","w"), indent=1); print(json.dumps(rep))

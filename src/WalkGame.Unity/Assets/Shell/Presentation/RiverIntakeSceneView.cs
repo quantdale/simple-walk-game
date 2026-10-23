@@ -17,7 +17,7 @@ namespace WalkGame.Shell.Presentation
         public const float PixelsPerUnit = 100f;
         private PresentationAssetResolver<string> _resolver = new PresentationAssetResolver<string>(new DictionaryAssetCatalog<string>());
         private readonly Dictionary<string, Sprite> _sprites = new Dictionary<string, Sprite>();
-        private SpriteRenderer _low = null!, _high = null!, _gate = null!, _tavi = null!, _glow = null!;
+        private SpriteRenderer _low = null!, _high = null!, _gate = null!, _accents = null!, _tavi = null!, _glow = null!;
         private float _highTarget, _highFrom, _fadeT = 1f, _fadeLen, _clock, _reactAt = float.NegativeInfinity;
         private Vector3 _taviHome;
         private VisualElement? _dialogueRoot;
@@ -53,7 +53,7 @@ namespace WalkGame.Shell.Presentation
                 catalog = d;
             }
             _resolver = new PresentationAssetResolver<string>(catalog);
-            _low = Layer("ground_low", 0); _high = Layer("ground_high", 1); _gate = Layer("gate", 3); _glow = Layer("plate_glow", 4); _tavi = Layer("npc.tavi", 5);
+            _low = Layer("ground_low", 0); _high = Layer("ground_high", 1); _gate = Layer("gate", 3); _accents = Layer("accents", 4); _glow = Layer("plate_glow", 5); _tavi = Layer("npc.tavi", 6);
             _taviHome = new Vector3(-2.1f, -5.6f, 0f);
             _tavi.transform.localPosition = _taviHome;
             float scale = 0.22f * 12.8f / (RiverIntakeArt.TaviCanvasH / PixelsPerUnit);   // ≈ 22 % of the view, like Mira
@@ -181,6 +181,7 @@ namespace WalkGame.Shell.Presentation
             var c = new Vector2(0.5f, 0.5f);
             _low.sprite = SpriteFor(f.GroundLow, c); _high.sprite = SpriteFor(f.GroundHigh, c);
             _gate.sprite = SpriteFor(f.Gate, c); _gate.enabled = _gate.sprite != null;
+            _accents.sprite = SpriteFor(f.Accents, c); _accents.enabled = _accents.sprite != null;
             _highFrom = _high.color.a; _highTarget = f.HighShare;
             _fadeLen = TrailheadArt.TransitionSeconds(ReducedMotion);
             _fadeT = _fadeLen <= 0f ? 1f : 0f;

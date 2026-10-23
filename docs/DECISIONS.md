@@ -4087,3 +4087,16 @@ same idle/reaction timing and reduced-motion still path as Mira (D-212). Replace
 Application / save-schema change.
 
 **Evidence** (`docs/evidence/d217-tavi/`, Unity editor, NOT a device): EditMode 390/390; PlayMode 3/3.
+
+## D-218 — River Intake structural stages through Restored (G0→G1→G2 + flourish accents) (2026-10-24)
+
+**Status:** Accepted (agent)
+
+**Decision.** The intake project ships `visibleBuildStages: 2` so the painted gate advances structurally: G0 jammed
+(`@ruined`), G1 rebuilding (`@build-kof2`), G2 restored (`@done`). Landmark stages still come from content
+(Stabilized←RiverIntake, Functional←WetlandDrainage, Restored←CanopyWalkway); from Restored onward a flourish accents
+layer (`intake_accents_FX`: flowers, bird, garland) draws over the restored gate. Flourishing remains key-driven (no
+content stage). The optional brass-plate find requires gate index 2. No save-schema change.
+
+**Evidence** (`docs/evidence/d218-intake-stages/`, Unity editor, NOT a device): EditMode + PlayMode captures including
+real-play Functional and Restored.
