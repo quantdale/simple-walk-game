@@ -1,8 +1,13 @@
 # Asset licence register
 
 Every non-code asset that ships in the game is listed here with its origin and licence.
-Rule: only assets **created in this repository** or **CC0** (public domain) may be added without a
-separate decision. Anything else needs a DECISIONS entry first.
+Rule: only these categories may be added without a separate decision:
+1. assets **created in this repository**;
+2. **CC0** (public domain) assets;
+3. **AI-derived art with a provenance ledger row** (D-170 as accepted 2026-10-24, D-201): every such asset has exactly one row in the provenance ledger (`docs/direction/provenance_ledger_template.csv` format) recording tool, date, prompt summary, reference inputs and their licence, raw-output SHA-256, edits made and final SHA-256. Prompts must not name artists, studios, games or franchises. Round 1 checkpoint images (D-168) are never usable;
+4. fonts under the **SIL Open Font License** that a DECISIONS entry approves (Fraunces and Nunito are approved; list them here when added).
+
+Anything else needs a DECISIONS entry first.
 
 | Asset | Where | Origin | Licence | Notes |
 |---|---|---|---|---|
