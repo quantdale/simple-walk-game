@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-23 19:35:38Z" end-time="2026-10-23 19:35:43Z" duration="5.4963811">
+  <test-suite type="TestSuite" id="1019" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-23 19:35:38Z" end-time="2026-10-23 19:35:43Z" duration="5.496381" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1015" name="WalkGame.Shell.PlayModeTests.dll" fullname="/workspace/simple-walk-game-wt-phased-trailhead-grok1024phd/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.PlayModeTests.dll" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-23 19:35:38Z" end-time="2026-10-23 19:35:43Z" duration="5.489530" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="96402" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1016" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-23 19:35:38Z" end-time="2026-10-23 19:35:43Z" duration="5.489007" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1017" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-23 19:35:38Z" end-time="2026-10-23 19:35:43Z" duration="5.488718" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1018" name="PlayModeTests" fullname="WalkGame.Shell.PlayModeTests" runstate="Runnable" testcasecount="6" result="Passed" start-time="2026-10-23 19:35:38Z" end-time="2026-10-23 19:35:43Z" duration="5.488389" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1009" name="TrailheadCaptureTests" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-10-23 19:35:38Z" end-time="2026-10-23 19:35:43Z" duration="5.487052" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1010" name="Capture_trailhead_stages_and_dialogue" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests.Capture_trailhead_stages_and_dialogue" methodname="Capture_trailhead_stages_and_dialogue" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" seed="1311617691" result="Passed" start-time="2026-10-23 19:35:38Z" end-time="2026-10-23 19:35:43Z" duration="5.478167" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_TRAILHEAD_CAPTURE trailhead-s0-forgotten-bridge-ruined Unity editor capture (software GL, not a device) · D-204 · ruined · proj.rebuild-trail-bridges@ruined · canonical: new game
+WG_TRAILHEAD_CAPTURE trailhead-s1-awakening-bridge-ruined Unity editor capture (software GL, not a device) · D-204 · stabilized · proj.rebuild-trail-bridges@ruined · canonical: trailhead cleared
+WG_TRAILHEAD_CAPTURE trailhead-dialogue-mira Unity editor capture (software GL, not a device) · D-204 · stabilized · proj.rebuild-trail-bridges@ruined · canonical: tap Mira (skippable)
+WG_TRAILHEAD_CAPTURE trailhead-s1-bridge-build-0of3 Unity editor capture (software GL, not a device) · D-204 · stabilized · proj.rebuild-trail-bridges@build-0of3 · canonical: bridge goal picked
+WG_TRAILHEAD_CAPTURE trailhead-s1-bridge-build-1of3 Unity editor capture (software GL, not a device) · D-204 · stabilized · proj.rebuild-trail-bridges@build-1of3 · canonical: walking
+WG_TRAILHEAD_CAPTURE trailhead-s1-bridge-build-2of3 Unity editor capture (software GL, not a device) · D-204 · stabilized · proj.rebuild-trail-bridges@build-2of3 · canonical: walking
+WG_TRAILHEAD_CAPTURE trailhead-s1-bridge-done Unity editor capture (software GL, not a device) · D-204 · stabilized · proj.rebuild-trail-bridges@done · canonical: walking
+WG_TRAILHEAD_CAPTURE trailhead-s3-restored Unity editor capture (software GL, not a device) · D-204 · restored · proj.rebuild-trail-bridges@done · canonical: day 2 of continued play
+WG_TRAILHEAD_CAPTURE trailhead-s4-flourishing-keydriven Unity editor capture (software GL, not a device) · D-204 · flourishing · proj.rebuild-trail-bridges@done · KEY-DRIVEN (stage not reachable in current content)
+Saving results to: /home/box/.config/unity3d/quantdale/Simple Walk Game/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

@@ -3862,3 +3862,35 @@ When they hold, the Activity screen keeps "Connected. Your walks are being count
 
 **Art tooling on the box (not in the repo):** Krita 6.0.4.1 AppImage (GPL, free) at `~/apps/krita.AppImage`; `--version` runs headless. GIMP is not installed (no sudo for apt).
 
+
+## D-204 — Phase D slice: painted Old Trailhead + footbridge in Unity (2026-10-24)
+
+**Status:** Accepted (agent; Phase D, bible §42.8; under D-200/D-170/D-201/D-202/D-203)
+
+**Decision.** The Old Trailhead is drawn in Unity from direction-A layers, driven only by canonical state through the D-169/KI-027 seams:
+`TrailheadSceneView` implements `IWorldPresenter`/`ILandmarkView`/`ICharacterPresenter`/`ICharacterView`/`IDialoguePresenter` for `lm.trailhead`;
+`TrailheadArt` (pure) maps keys to layers. Ground = two registered plates (`@ruined` forgotten, `@flourishing`) crossfaded by landmark stage
+(0 / 0.35 / 0.7 / 0.88 / 1.0 share; the plates differ structurally: bare vs full crowns, dry vs green banks, murky vs clear water).
+Structure layer by bridge visual key: `@ruined` collapsed + debris + broken signpost (B0) · `@build-0of3` new posts, upright signpost (B1) ·
+`@build-1of3` half span + plank pile (B2) · `@build-2of3` full deck + rope rails (B3) · `@done` garlands + bench (B4). Unmapped build counts
+map by progress, then resolver subject/global fallback; an empty catalog draws nothing and never throws. Reduced motion: stage crossfade
+0 s (else 0.6 s), Mira idle bob 0. Mira's dialogue panel (UI Toolkit; all text in-engine): portrait bust, name, line, Inspect / Help restore /
+Maybe later, and Skip (new string `dialogue.action.skip`). No save-schema, content or Domain/Application change; the text shell stays the
+shipped UI (the view is not wired into the boot scene yet).
+
+**Art.** 8 generator outputs → 9 shipped PNGs (`Assets/Resources/Art/Trailhead/`), one row each in `docs/direction/art/provenance_ledger.csv`
+(prompt text is stored condensed for B0/B1/B3/B4/Mira; full prompts in this run's transcript). Finish pass is scripted
+(`tools/art/trailhead_finish_pass.py`, PIL/numpy; Krita not used this run): palette pull to `palette_storybook_A.gpl`, grain, ROI∧difference layer
+split with choke/feather, Mira background key. Import rules: `TrailheadArtImporter` (no mipmaps, ≤ 2048, ASTC 6×6 Android/iOS).
+Editor texture estimate 9,107,376 B (≤ 12 MB, PERFORMANCE_BUDGETS §9).
+
+**Evidence** (`docs/evidence/d204-trailhead/`, Unity editor capture, software GL, NOT a device): EditMode 374/374 incl. 7 `TrailheadArtTests`;
+`TrailheadCaptureTests` (PlayMode, env-gated) 9 captures from a real session: S0 forgotten, S1 cleared, S1 bridge build 0of3/1of3/2of3/done,
+S3 restored (day-N continued play), S4 flourishing **key-driven** (no Region 1 content raises the trailhead past Restored), and Mira's dialogue.
+Device UNVERIFIED (KI-002).
+
+**Known gaps (follow-ups).** Not the full style-guide pipeline: no Blender camera guide / Krita `.kra` master, no per-part split (posts, planks,
+tree crowns, flowers, water strip are baked into plate/structure layers); static drift between the two plates is ~10–15 px at 1× (guide asks
+≤ 4 px at master); a faint ground seam around the B2/B3 log/plank patch over the forgotten plate; one portrait (neutral) serves all expressions
+(`portrait.npc.mira@worried|glad|proud` fall back); Mira drift vs locked sheet: a few loose curls, satchel on her left hip (sheet: right);
+no Mira rig/animation, no water UV scroll, no particles; Functional (stage 2) was skipped by the capture's play order (mapping covered by tests).
