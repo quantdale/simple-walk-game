@@ -4014,3 +4014,13 @@ now reference Unity.2D.Animation/PSD Importer/Sprite editor and Animation runtim
 `Mira_is_a_skinned_bone_rig_with_a_help_restore_reaction_and_a_reduced_motion_path` (4 SpriteSkins, bind poses, reduced-motion
 rest); PlayMode 2/2; rest pose matches the D-211 cut-out within 0.15 mean RGB diff; `trailhead-mira-reaction-help-restore`,
 `trailhead-motion.unity-editor-capture.gif`. Skinning cost on a phone: UNVERIFIED (KI-002).
+
+## D-213 — Phase D gate audit against Creative Bible §45–48 (2026-10-24)
+
+**Status:** Accepted (agent; docs only)
+
+**Decision.** `docs/direction/PHASE_D_GATES.md` records each §45–48 gate for the trailhead slice as PASS / PARTIAL / FAIL /
+UNVERIFIED with evidence. Summary: §45 7/7 pass; §46 7 pass, 3 partial (UI identity, world dominance, not-a-dashboard — all because
+the text shell is still pre-direction-A); §47 12/12 captured (Unity editor, NOT device; shell screens are placeholders); §48 one
+central "no" (optional in-world play beyond dialogue). Gaps fixable as small PRs were fixed in D-210…D-212; the rest are listed as open.
+Region 2 stays unstarted.
