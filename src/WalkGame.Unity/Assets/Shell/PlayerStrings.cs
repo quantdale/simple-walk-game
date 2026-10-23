@@ -253,6 +253,7 @@ namespace WalkGame.Shell
             ["dialogue.action.inspect"] = "Inspect",
             ["dialogue.action.helpRestore"] = "Help restore",
             ["dialogue.action.maybeLater"] = "Maybe later",
+            ["dialogue.action.skip"] = "Skip",
             ["shell.story.epilogue"] = "Story: Millbrook's story is complete. The valley stays restored, and every chapter is here to reread.",
         };
 

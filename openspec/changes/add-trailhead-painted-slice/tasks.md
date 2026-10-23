@@ -1,0 +1,5 @@
+- [x] Mapping + fallbacks + reduced motion (EditMode `TrailheadArtTests`)
+- [x] Trailhead view and dialogue panel driven by `WorldPresentationController`
+- [x] Art layers + provenance ledger rows + ASSET_LICENSES row
+- [x] Editor captures per stage + dialogue (`tools/unity/capture-trailhead.sh`)
+- [ ] Per-part split, Mira rig/expressions, water scroll, boot-scene wiring (follow-ups, see D-204)
