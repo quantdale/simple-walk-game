@@ -4024,3 +4024,16 @@ UNVERIFIED with evidence. Summary: §45 7/7 pass; §46 7 pass, 3 partial (UI ide
 the text shell is still pre-direction-A); §47 12/12 captured (Unity editor, NOT device; shell screens are placeholders); §48 one
 central "no" (optional in-world play beyond dialogue). Gaps fixable as small PRs were fixed in D-210…D-212; the rest are listed as open.
 Region 2 stays unstarted.
+
+## D-214 — Mira's cream/white edge fringes removed (edge decontamination) (2026-10-24)
+
+**Status:** Accepted (agent; art fix)
+
+**Decision.** The fringes came from the source, not the renderer: the generator's light halo just outside the ink line, enclosed
+pockets of the flat cream key (neck, hat-brim/hair gaps) and key colour in the transparent texels. `tools/art/mira_finish_pass.py`
+now (1) removes small enclosed key-colour pockets, (2) chokes alpha within 5 px of the edge for pixels close to the key OR to white,
+(3) un-mixes the key from semi-transparent pixels and (4) bleeds edge colours into the transparent area (also into the 4 px padding),
+so bilinear filtering and block compression cannot pull cream in. Crop, part rects and rig bones are unchanged; the PSB was rebuilt and
+the rig re-authored by `MiraRigAuthoring`. Remaining: the painted frayed straw on the brim is light by design.
+
+**Evidence** (`docs/evidence/d214-fringe/`, Unity editor capture, NOT a device): EditMode 380/380; PlayMode 2/2.
