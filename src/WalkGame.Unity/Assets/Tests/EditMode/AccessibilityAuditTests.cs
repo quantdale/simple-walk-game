@@ -45,7 +45,7 @@ namespace WalkGame.Shell.Tests
                 var q = m.Actions.FirstOrDefault(a => a.Id.StartsWith("queue:"));
                 c.Invoke(m.Actions.Any(a => a.Id == "guide:next") ? "guide:next" : q?.Id ?? m.Actions[0].Id);
             }
-            foreach (var s in new[] { "Home", "ReturnSummary", "Projects", "Region", "Story", "Discoveries", "Progress", "Settings", "Privacy", "ActivityStatus" })
+            foreach (var s in new[] { "Home", "ReturnSummary", "Projects", "Region", "Story", "Discoveries", "Progress", "Settings", "Privacy", "ActivityStatus", "More", "More" })
             {
                 c.Invoke("nav:" + s);
                 Assert.AreEqual(s, c.Current.ToString(), "could not reach " + s);
@@ -192,7 +192,7 @@ namespace WalkGame.Shell.Tests
                 c.Invoke("nav:Settings");
                 if (reduced) c.Invoke("toggle:reducedMotion");
                 Assert.IsTrue(c.Render().Lines.Contains(ShellController.ReducedMotionLine(reduced)));
-                foreach (var s in new[] { "Home", "ReturnSummary", "Projects", "Region", "Story", "Discoveries", "Progress", "Settings", "ActivityStatus" })
+                foreach (var s in new[] { "Home", "ReturnSummary", "Projects", "Region", "Story", "Discoveries", "Progress", "Settings", "ActivityStatus", "More" })
                 {
                     c.Invoke("nav:" + s);
                     var root = new VisualElement();

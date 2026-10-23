@@ -37,9 +37,11 @@ namespace WalkGame.Shell.Tests
             StringAssert.DoesNotContain("record", line.ToLowerInvariant());
         }
 
-        [Test] public void Home_links_to_progress_and_back()
+        [Test] public void Home_links_to_progress_via_More_and_back()
         {
             var c = Played(0);
+            Assert.IsTrue(c.Render().Actions.Any(a => a.Id == "nav:More"));
+            c.Invoke("nav:More");
             Assert.IsTrue(c.Render().Actions.Any(a => a.Id == "nav:Progress" && a.Label == "Your progress"));
             c.Invoke("nav:Progress");
             var m = c.Render();

@@ -518,6 +518,7 @@ namespace WalkGame.Shell
                 case ShellScreen.Discoveries: return Discoveries();
                 case ShellScreen.Progress: return Progress();
                 case ShellScreen.Privacy: return Privacy();
+                case ShellScreen.More: return More();
                 default: throw new InvalidOperationException("Unmapped screen " + Current); // l10n-ignore: developer exception, never shown
             }
         }
@@ -579,14 +580,13 @@ namespace WalkGame.Shell
             var today = _session.GetTodayEarnings(LocalOffsetSeconds());
             if (today.IsKnown && today.Vitality > 0) m.Lines.Add(PlayerStrings.F("home.today.earned", today.Vitality));
             if (empty) m.Lines.Add(PlayerStrings.T("shell.nothingIsBeingRestored"));
+            // D-219: lighter Home — primary destinations first; Story/Progress/Activity/Discoveries live under More.
             if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", PlayerStrings.T("shell.whileYouWereAway")));
             m.Actions.Add(new ShellAction("nav:Projects", PlayerStrings.T("label.projects")));
             m.Actions.Add(new ShellAction("nav:Region", PlayerStrings.T("shell.theValley")));
             m.Actions.Add(new ShellAction(WorldTrailheadAction, PlayerStrings.T("shell.visitTrailhead")));
-            m.Actions.Add(new ShellAction("nav:Story", PlayerStrings.T("label.story")));
-            m.Actions.Add(new ShellAction("nav:Progress", PlayerStrings.T("shell.yourProgress")));
-            m.Actions.Add(new ShellAction("nav:ActivityStatus", PlayerStrings.T("label.activity")));
             m.Actions.Add(new ShellAction("nav:Settings", PlayerStrings.T("label.settings")));
+            m.Actions.Add(new ShellAction("nav:More", PlayerStrings.T("shell.more")));
             if (_devTools) m.Actions.Add(new ShellAction("dev:walk", PlayerStrings.T("shell.devSimulateADay")));
             m.Lines.RemoveAll(string.IsNullOrEmpty);
             // D-106: the glance can repeat a sentence (what changed == attention); show each line once.
@@ -721,6 +721,19 @@ namespace WalkGame.Shell
             s == ProjectStatus.Active ? 0 : s == ProjectStatus.Queued ? 1 : s == ProjectStatus.Available ? 2 : 3;
 
         /// <summary>UX_DESIGN §9 compact region status: landmarks as phrases, producers, closure.</summary>
+
+        /// <summary>D-219: secondary Home destinations (keeps Home light; every destination still one tap from More).</summary>
+        private ScreenModel More()
+        {
+            var m = With(ShellScreen.More, PlayerStrings.T("shell.more"));
+            m.Actions.Add(new ShellAction("nav:Story", PlayerStrings.T("label.story")));
+            m.Actions.Add(new ShellAction("nav:Progress", PlayerStrings.T("shell.yourProgress")));
+            m.Actions.Add(new ShellAction("nav:ActivityStatus", PlayerStrings.T("label.activity")));
+            m.Actions.Add(new ShellAction("nav:Discoveries", PlayerStrings.T("shell.discoveriesAndExpeditions")));
+            m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
+            return m;
+        }
+
         private ScreenModel Region()
         {
             var r = _session.GetRegion();

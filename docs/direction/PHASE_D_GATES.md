@@ -29,7 +29,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Ruined and restored visibly distinct | PASS | `E/trailhead-s0-forgotten-bridge-ruined` vs `E/trailhead-s3-restored` (bare vs full crowns, murky vs clear water) |
 | UI matches the art identity | PASS (editor) | D-215: every text-shell screen is an A parchment card (ink-brown border, Fraunces/Nunito, Forest-deep primary) over the painted stage plate: `F/shell-first-launch`, `F/shell-home-visit-trailhead*`, `F/shell-return-after-walking`, `F/shell-region-view`. Deviation: primary is Forest deep, not Honey (charcoal on honey 5.81:1 misses the shell's 7:1 target) |
 | The world dominates the screen | PASS (editor) | D-215: the app opens on the painted trailhead (once per launch; text shell first only under a screen reader, D-215 test); shell screens keep ≥ 42 % painted world above a compact card |
-| Not a dashboard or visual novel | PASS (editor), with a residual | World-first with taps; shell screens are cards over the world. Residual: Home still lists 7–8 buttons (kept for screen-reader parity) and Region has no painted map yet |
+| Not a dashboard or visual novel | PASS (editor) | World-first with taps; shell screens are cards over the world. D-219: Home is a short primary list + More; Region uses the painted map |
 | Core state correctness preserved | PASS | No save/Domain/Application change in D-204…D-212; full EditMode suite green each PR |
 
 ## §47 Visual evidence gate
@@ -45,7 +45,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Completed restoration | PASS | `E/trailhead-s1-bridge-done`, `E/trailhead-s3-restored`; S4 is key-driven (labelled) |
 | Return-after-walking | PASS | `F/shell-return-after-walking` (D-215) |
 | Home | PASS | `F/shell-home-visit-trailhead`, `…-text2x` (scrolled; D-210/D-215) |
-| Region view | PASS (partial art) | `F/shell-region-view` — A card over the painted trailhead; no painted region map yet |
+| Region view | PASS (editor) | `docs/evidence/d219-region-home/shell-region-view` — A card over the painted Region 1 map (D-219) |
 | Short gameplay/animation capture | PASS (editor, simulated time) | `E/trailhead-motion.unity-editor-capture.gif` (D-211/D-212) |
 | Labelling concept vs editor vs device | PASS | Every capture carries an in-image caption; no device claims |
 
@@ -90,5 +90,5 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 ## Open (cannot be closed by a small PR)
 
 1. ~~Text shell in direction A~~ and ~~world-first boot~~ → D-215. Residual: a painted Region map; a lighter Home menu.
-3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate at the intake). Residual: more finds, expeditions in-world, a painted Region map, lighter Home.
+3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate at the intake). Residual: more finds, expeditions in-world.
 4. Device verification of everything above (KI-002).

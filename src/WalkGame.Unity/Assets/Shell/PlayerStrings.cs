@@ -255,6 +255,7 @@ namespace WalkGame.Shell
             ["dialogue.action.maybeLater"] = "Maybe later",
             ["dialogue.action.skip"] = "Skip",
             ["shell.visitTrailhead"] = "Visit the Old Trailhead",
+            ["shell.more"] = "More",
             ["world.goalProgress"] = "{0} of {1} Vitality invested",
             ["world.close"] = "Close",
             ["world.goIntake"] = "Walk to the River Intake",
