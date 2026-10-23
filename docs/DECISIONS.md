@@ -4075,3 +4075,15 @@ Application / save-schema change. No Region 2. Tavi bone rig: remaining (cut-out
 **Evidence** (`docs/evidence/d216-intake/`, Unity editor capture, NOT a device): EditMode 389/389 incl. 5
 `RiverIntakeArtTests`; PlayMode 3/3. Texture budget ~4.2 MB. Screen-reader behaviour on a phone: UNVERIFIED (KI-002).
 
+## D-217 — Tavi locked to STYLE_GUIDE_A (BODY-02) with a bone rig and reduced-motion path (2026-10-24)
+
+**Status:** Accepted (agent)
+
+**Decision.** Tavi is redrawn from a Mira-referenced BODY-02 sheet (gouache fills, ink-brown `#5A3E2B` contours, palette pull +
+paper grain in `tavi_finish_pass.py`) and locked in STYLE_GUIDE_A §6. Portraits (curious/glad/proud/wistful) are face-ellipse
+composites on that base. Cut-out parts feed a PSD Importer character PSB (`Rig/tavi_rig.psb`) authored by `TaviRigAuthoring`
+(bones `hips/spine/head/bandana_1/bandana_2`); `RiverIntakeSceneView` prefers the bone rig and falls back to cut-outs, with the
+same idle/reaction timing and reduced-motion still path as Mira (D-212). Replaces the D-216 BODY-01 art. No Domain /
+Application / save-schema change.
+
+**Evidence** (`docs/evidence/d217-tavi/`, Unity editor, NOT a device): EditMode 390/390; PlayMode 3/3.

@@ -24,6 +24,13 @@ namespace WalkGame.Shell.Presentation
         private System.Action<DialogueAction>? _onAction;
         private System.Action? _onSkip;
         private bool _reduced, _taviOn, _discoveryUnlocked, _discoveryReviewed;
+        private readonly List<(Transform t, string name)> _parts = new List<(Transform, string)>();
+        private readonly Dictionary<string, Transform> _bones = new Dictionary<string, Transform>();
+        private readonly Dictionary<string, Quaternion> _boneRest = new Dictionary<string, Quaternion>();
+        private Vector3 _hipsRest; private Transform? _rigRoot;
+        public IReadOnlyList<(Transform t, string name)> TaviPartsList => _parts;
+        public IReadOnlyDictionary<string, Transform> TaviBones => _bones;
+        public Transform? TaviRigRoot => _rigRoot;
 
         public bool ReducedMotion { get => _reduced; set { _reduced = value; Tick(_clock); } }
         public float TextScale { get; set; } = 1f;
@@ -51,7 +58,7 @@ namespace WalkGame.Shell.Presentation
             _tavi.transform.localPosition = _taviHome;
             float scale = 0.22f * 12.8f / (RiverIntakeArt.TaviCanvasH / PixelsPerUnit);   // ≈ 22 % of the view, like Mira
             _tavi.transform.localScale = new Vector3(scale, scale, 1f);
-            _tavi.sprite = SpriteFor(RiverIntakeArt.TaviBody, new Vector2(0.5f, 0f));
+            BuildTaviRig();
             _glow.sprite = Sprite.Create(GlowRing(), new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
             _glow.transform.localPosition = new Vector3((RiverIntakeArt.PlateX - 0.5f) * 7.2f, (0.5f - RiverIntakeArt.PlateY) * 12.8f, 0f);
             _glow.transform.localScale = new Vector3(0.62f, 0.62f, 1f);
@@ -77,17 +84,71 @@ namespace WalkGame.Shell.Presentation
 
         public void React() { _reactAt = _clock; Tick(_clock); }
 
-        private void SetTavi(bool on) { _taviOn = on && _tavi.sprite != null; _tavi.enabled = _taviOn; }
+        private bool BuildBoneRig()
+        {
+            var prefab = Resources.Load<GameObject>(RiverIntakeArt.ResourceFolder + RiverIntakeArt.TaviRig);
+            if (prefab == null) return false;
+            var go = Instantiate(prefab, _tavi.transform, false); go.name = "tavi_rig";
+            go.transform.localPosition = Vector3.zero;
+            foreach (var tr in go.GetComponentsInChildren<Transform>(true))
+                if (System.Array.IndexOf(RiverIntakeArt.TaviBones, tr.name) >= 0) { _bones[tr.name] = tr; _boneRest[tr.name] = tr.localRotation; }
+            if (_bones.Count != RiverIntakeArt.TaviBones.Length) { DestroyImmediate(go); _bones.Clear(); _boneRest.Clear(); return false; }
+            foreach (var r in go.GetComponentsInChildren<SpriteRenderer>(true)) r.sortingOrder += 5;
+            _hipsRest = _bones["hips"].localPosition; _rigRoot = go.transform;
+            return true;
+        }
+
+        private void BuildTaviRig()
+        {
+            if (BuildBoneRig()) return;
+            foreach (var p in RiverIntakeArt.TaviParts)
+            {
+                var go = new GameObject(p.name); go.transform.SetParent(_tavi.transform, false);
+                var r = go.AddComponent<SpriteRenderer>(); r.sortingOrder = 5 + p.order;
+                var tex = Resources.Load<Texture2D>(RiverIntakeArt.ResourceFolder + p.name);
+                if (tex == null) continue;
+                var pivot = new Vector2((p.px - p.x) / (float)p.w, 1f - (p.py - p.y) / (float)p.h);
+                r.sprite = Sprite.Create(tex, new Rect(0, 0, Mathf.Min(p.w, tex.width), Mathf.Min(p.h, tex.height)), pivot, PixelsPerUnit);
+                go.transform.localPosition = new Vector3((p.px - RiverIntakeArt.TaviCanvasW / 2f) / PixelsPerUnit, (RiverIntakeArt.TaviCanvasH - p.py) / PixelsPerUnit, 0f);
+                _parts.Add((go.transform, p.name));
+            }
+            if (_parts.Count == 0) _tavi.sprite = SpriteFor(RiverIntakeArt.TaviBody, new Vector2(0.5f, 0f));
+        }
+
+        private void SetTavi(bool on)
+        {
+            _taviOn = on && (_rigRoot != null || _parts.Count > 0 || _tavi.sprite != null);
+            _tavi.enabled = on && _parts.Count == 0 && _rigRoot == null;
+            if (_rigRoot != null) _rigRoot.gameObject.SetActive(on);
+            foreach (var p in _parts) p.t.gameObject.SetActive(on);
+        }
 
         public void Tick(float t)
         {
             _clock = t;
             var pose = RiverIntakeArt.IdlePose(t, ReducedMotion);
-            var re = TrailheadArt.ReactionPose(t - _reactAt, ReducedMotion);   // the shared glad nod/hop timing
-            _tavi.transform.localRotation = Quaternion.Euler(0, 0, pose.sway + re.head * 0.4f);
-            float s = _tavi.transform.localScale.x;
-            _tavi.transform.localScale = new Vector3(s, s * (1f + pose.breath), 1f);
-            _tavi.transform.localPosition = _taviHome + new Vector3(0f, re.hop, 0f);
+            var re = TrailheadArt.ReactionPose(t - _reactAt, ReducedMotion);
+            if (_rigRoot != null)
+            {
+                void Rot(string b, float deg) => _bones[b].localRotation = _boneRest[b] * Quaternion.Euler(0, 0, deg);
+                Rot("hips", 0f); Rot("spine", pose.breath * 60f); Rot("head", pose.head + re.head);
+                Rot("bandana_1", pose.bandana); Rot("bandana_2", pose.bandana * 0.7f);
+                _bones["hips"].localPosition = _hipsRest + new Vector3(0f, re.hop * PixelsPerUnit / 100f, 0f);
+            }
+            foreach (var (tr, name) in _parts)
+            {
+                float deg = name.EndsWith("head") ? pose.head + re.head : name.EndsWith("bandana_tail") ? pose.bandana : 0f;
+                tr.localRotation = Quaternion.Euler(0, 0, deg);
+                if (name.EndsWith("body")) tr.localScale = new Vector3(1f, 1f + pose.breath, 1f);
+            }
+            if (_rigRoot == null && _parts.Count == 0)
+            {
+                _tavi.transform.localRotation = Quaternion.Euler(0, 0, pose.head * 0.5f);
+                float s = Mathf.Abs(_tavi.transform.localScale.x);
+                _tavi.transform.localScale = new Vector3(s, s * (1f + pose.breath), 1f);
+                _tavi.transform.localPosition = _taviHome + new Vector3(0f, re.hop, 0f);
+            }
+            else _tavi.transform.localPosition = _taviHome;
             bool glow = RiverIntakeArt.PlateGlows(_discoveryUnlocked, Frame?.GateIndex, _discoveryReviewed);
             _glow.enabled = glow;
             if (glow) _glow.color = new Color(1f, 1f, 1f, RiverIntakeArt.GlowAlpha(t, ReducedMotion));
@@ -138,7 +199,7 @@ namespace WalkGame.Shell.Presentation
         public void Settle() { _fadeT = 1f; SetHigh(_highTarget); }
 
         public ICharacterView? FindCharacter(string characterId) => characterId == RiverIntakeArt.TaviId ? this : null;
-        public void Show(CharacterPresentation character) => SetTavi(character.LocationId == RiverIntakeArt.LocationId);
+        public void Show(CharacterPresentation character) => SetTavi(character.LocationId == RiverIntakeArt.LocationId && (_rigRoot != null || _parts.Count > 0 || _tavi.sprite != null));
         public void React(CharacterReaction reaction) { }
 
         public void BindDialogue(VisualElement root, System.Action<DialogueAction> onAction, System.Action onSkip)

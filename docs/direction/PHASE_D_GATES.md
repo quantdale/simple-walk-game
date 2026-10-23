@@ -23,7 +23,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 |---|---|---|
 | Runs in Unity | PASS (editor) | EditMode 380/380, PlayMode captures 2/2 (D-212). Device: UNVERIFIED |
 | Real authored illustrated environment assets | PASS | 2 ground plates + 5 bridge layers + ripple, ledger rows with verbatim prompts (D-209) |
-| A character appears and interacts naturally | PASS (editor) | Mira bone rig, idle + Help-restore reaction (D-212); tap Mira → dialogue `E/home-tap-mira-dialogue`; `E/trailhead-motion…gif`. Tavi at the intake (D-216; cut-out body + idle; bone rig remaining): `I/intake-dialogue-tavi` |
+| A character appears and interacts naturally | PASS (editor) | Mira bone rig, idle + Help-restore reaction (D-212); tap Mira → dialogue `E/home-tap-mira-dialogue`; `E/trailhead-motion…gif`. Tavi at the intake (D-217 locked BODY-02 + bone rig + reduced-motion): see `docs/evidence/d217-tavi/intake-*` |
 | Dialogue short, expressive, context-aware | PASS | 1–2 sentence lines by stage/bridge key, 5 expression portraits (D-206); `E/trailhead-dialogue-mira` |
 | A real restoration project changes the environment | PASS | `proj.rebuild-trail-bridges` from real walking: `E/trailhead-s1-bridge-build-0of3` → `…-done`. Intake: `proj.river-intake` jammed → restored `I/intake-s0-gate-jammed-tavi` → `I/intake-gate-restored-plate-glow` |
 | Ruined and restored visibly distinct | PASS | `E/trailhead-s0-forgotten-bridge-ruined` vs `E/trailhead-s3-restored` (bare vs full crowns, murky vs clear water) |
@@ -85,5 +85,5 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 ## Open (cannot be closed by a small PR)
 
 1. ~~Text shell in direction A~~ and ~~world-first boot~~ → D-215. Residual: a painted Region map; a lighter Home menu.
-3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate at the intake). Residual: more finds, expeditions in-world, a Tavi bone rig, a painted Region map.
+3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate at the intake). Residual: more finds, expeditions in-world, a painted Region map, lighter Home; intake stage structure clarity (D-218).
 4. Device verification of everything above (KI-002).

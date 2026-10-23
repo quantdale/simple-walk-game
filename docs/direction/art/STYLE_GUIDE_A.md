@@ -162,7 +162,12 @@ expression change (0.15 s squash) · celebrate (1.2 s, skippable) · acknowledge
 
 ### 6.5 Other cast (placeholders — NOTES ONLY, no sheets in Phase C/D)
 - **Rowan (`npc.rowan`)**, gardener: silhouette idea = broad-brim cloth hat + seed apron; Meadow/Forest dominant. Not designed.
-- **Tavi (`npc.tavi`)**, tinkerer: goggles on head, tool belt; Clay/brass dominant. Not designed.
+- **Tavi (`npc.tavi`)**, tinkerer — **locked model sheet (D-217, BODY-02)**: short messy dark-brown hair; honey-yellow bandana
+  headband with one short tuft; round brass-rimmed goggles on the forehead; light olive skin with one grease smudge; big round
+  dark eyes; soft closed-mouth smile; muted soft-blue `#83B8C4` rolled-sleeve shirt; clay-orange `#CB866C` canvas overalls
+  (bib pocket + pencil); brown tool belt (hammer, screwdriver); big brass wrench on the shoulder; patched knee; brown boots.
+  Silhouette class = goggles+overalls+wrench (no wide-brim hat). Same gouache + ink-brown `#5A3E2B` contours and grain as Mira;
+  2D Animation bone rig (`hips/spine/head/bandana_1/bandana_2`) with reduced-motion still path.
 - **Eli (`npc.eli`)**, naturalist: tall, satchel of notebooks, binocular strap; River blue dominant. Not designed.
 - Rule: each must differ from Mira in silhouette class (no second wide-brim hat), and gets its own locked sheet before any art.
 
