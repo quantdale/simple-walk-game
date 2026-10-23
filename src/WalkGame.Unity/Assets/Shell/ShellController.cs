@@ -321,10 +321,25 @@ namespace WalkGame.Shell
             DrainPendingResume();
         }
 
+        /// <summary>D-207: Home action that opens the painted Old Trailhead (the host lives in ShellBootstrap).</summary>
+        public const string WorldTrailheadAction = "world:trailhead";
+        /// <summary>D-207: the place the player asked to see in the painted world, or null (text shell only).</summary>
+        public string? WorldRequested { get; private set; }
+        /// <summary>D-207: the painted world closed; the text shell is current again.</summary>
+        public void CloseWorld() => WorldRequested = null;
+        /// <summary>D-207: the session, for the painted world's presenter (reads and the existing commands only).</summary>
+        public GameSession Session => _session;
+
         private void InvokeCore(string actionId)
         {
             _error = null;
             if (string.IsNullOrEmpty(actionId)) { _error = PlayerStrings.T("shell.unknownAction"); return; }
+            if (actionId == WorldTrailheadAction)
+            {
+                if (!_booted || Current != ShellScreen.Home) { _error = PlayerStrings.T("shell.startOrContinueA"); return; }
+                WorldRequested = WalkGame.Shell.Presentation.TrailheadArt.LocationId;
+                return;
+            }
             if (actionId.StartsWith("nav:", StringComparison.Ordinal))
             {
                 _notice = null;
@@ -567,6 +582,7 @@ namespace WalkGame.Shell
             if (home.HasPendingSummary) m.Actions.Add(new ShellAction("nav:ReturnSummary", PlayerStrings.T("shell.whileYouWereAway")));
             m.Actions.Add(new ShellAction("nav:Projects", PlayerStrings.T("label.projects")));
             m.Actions.Add(new ShellAction("nav:Region", PlayerStrings.T("shell.theValley")));
+            m.Actions.Add(new ShellAction(WorldTrailheadAction, PlayerStrings.T("shell.visitTrailhead")));
             m.Actions.Add(new ShellAction("nav:Story", PlayerStrings.T("label.story")));
             m.Actions.Add(new ShellAction("nav:Progress", PlayerStrings.T("shell.yourProgress")));
             m.Actions.Add(new ShellAction("nav:ActivityStatus", PlayerStrings.T("label.activity")));

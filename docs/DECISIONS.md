@@ -3925,3 +3925,20 @@ bounds asserted in the capture test and logged in `capture-run.log`).
 
 **Evidence** (`docs/evidence/d206-mira/`, Unity editor capture, NOT a device): EditMode 375/375; captures incl. `trailhead-dialogue-mira-text2x`.
 Ledger: body + 5 portrait rows with verbatim prompts.
+
+## D-207 — The painted trailhead is reachable from Home in the running app (2026-10-24)
+
+**Status:** Accepted (agent; follow-up 3 to D-204; supersedes D-204's "not wired into the boot scene")
+
+**Decision.** Home gets one more action, "Visit the Old Trailhead" (`world:trailhead`, only with a loaded game on Home). `ShellBootstrap`
+hides the text-shell panel and opens `TrailheadWorldHost` (camera + `TrailheadSceneView` + one UI Toolkit overlay); its always-visible
+**Home** button closes the world and shows the text shell again, so every text-shell screen stays one tap away (and screen-reader reachable).
+Taps go through `TrailheadArt.HitTest` (art-space regions: Mira > signpost > bridge) and `TrailheadArt.Route` into the existing controller:
+Mira → `TapCharacter` (dialogue), signpost → `TapLandmark` (place goals + dialogue), bridge → `TapProp` (inspect card) or the place while
+the bridge is locked. "Help restore it" opens the goal card whose Start button is `ChooseRestorationGoal` (the existing `EnqueueProject`).
+Goal cards wait while a dialogue is open. Reduced motion = in-game setting OR OS setting (D-186). New strings: `shell.visitTrailhead`,
+`world.goalProgress`, `world.close`. No save, content or Domain/Application change.
+
+**Evidence** (`docs/evidence/d207-boot/`, Unity editor capture, NOT a device): EditMode 378/378 incl. `TrailheadWorldWiringTests`;
+PlayMode `Capture_trailhead_opened_from_home_with_taps` (real ShellController: Home → world, tap Mira, Help restore → goal card,
+tap bridge → inspect, tap signpost, Home → text shell). Touch input on a phone: UNVERIFIED (KI-002).

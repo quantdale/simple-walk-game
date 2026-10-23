@@ -76,7 +76,7 @@ namespace WalkGame.Shell.PlayModeTests
                 IEnumerator Shot(string name, string note)
                 {
                     var f = view.Frame!;
-                    caption.text = "Unity editor capture (software GL, not a device) · D-204 · " + f.Stage.ToString().ToLowerInvariant()
+                    caption.text = "Unity editor capture (software GL, not a device) · Phase D trailhead · " + f.Stage.ToString().ToLowerInvariant()
                         + " · " + (f.BridgeKey ?? "no bridge key") + (note.Length > 0 ? " · " + note : "");
                     view.Settle();
                     for (int i = 0; i < 6; i++) yield return null;
@@ -156,6 +156,88 @@ namespace WalkGame.Shell.PlayModeTests
             finally
             {
                 UnityEngine.Object.DestroyImmediate(root); UnityEngine.Object.DestroyImmediate(camGo); UnityEngine.Object.DestroyImmediate(uiGo);
+                worldRt.Release(); uiRt.Release();
+                try { Directory.Delete(dir, true); } catch (IOException) { }
+            }
+        }
+
+        /// <summary>D-207: the trailhead opened from Home in the running shell, with taps on Mira, the bridge and the signpost.</summary>
+        [UnityTest] public IEnumerator Capture_trailhead_opened_from_home_with_taps()
+        {
+            string outDir = Environment.GetEnvironmentVariable("WG_TRAILHEAD_CAPTURE_DIR");
+            if (string.IsNullOrEmpty(outDir)) { Assert.Ignore("WG_TRAILHEAD_CAPTURE_DIR not set"); yield break; }
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) { Assert.Ignore("no graphics device"); yield break; }
+            Directory.CreateDirectory(outDir);
+            var dir = Path.Combine(UnityEngine.Application.temporaryCachePath, "wg-thb-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(dir);
+            var worldRt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
+            var uiRt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
+            var go = new GameObject("trailhead-world");
+            try
+            {
+                var clock = new ManualClock(new DateTimeOffset(2026, 3, 2, 9, 0, 0, TimeSpan.Zero));
+                var shell = new ShellController(ShellBootstrap.CreateSession(dir, new ShellConnectionPort(true), clock), () => 42UL, devTools: true);
+                shell.Boot(); shell.Invoke("start");
+                if (shell.Current != ShellScreen.Home) shell.Invoke("nav:Home");
+                var s = shell.Session;
+                Assert.IsTrue(s.EnqueueProject("proj.clear-trailhead").IsSuccess);
+                int walk = 0;
+                for (int i = 0; i < 80 && s.GetProjects().Projects.Single(p => p.ProjectId == "proj.clear-trailhead").Status != ProjectStatus.Completed; i++)
+                {
+                    clock.Advance(TimeSpan.FromHours(2));
+                    s.IngestActivityBatch(new[] { new NormalizedActivityRecord("capture", "b" + (++walk), ActivityCategory.Walking, ActivityUnits.Steps, 1500L, clock.UtcNow.AddMinutes(-30), clock.UtcNow) });
+                    if (s.GetPendingReturnSummary() != null) s.AcknowledgeReturnSummary();
+                }
+                shell.Invoke("nav:Home");
+                shell.Invoke(ShellController.WorldTrailheadAction);
+                Assert.AreEqual(TrailheadArt.LocationId, shell.WorldRequested, "Home opened the trailhead");
+
+                var panel = ScriptableObject.CreateInstance<PanelSettings>();
+                panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("ShellTheme");
+                panel.targetTexture = uiRt; panel.scaleMode = PanelScaleMode.ConstantPixelSize; panel.scale = 1f;
+                panel.clearColor = true; panel.colorClearValue = new Color(0, 0, 0, 0);
+                var host = go.AddComponent<TrailheadWorldHost>();
+                bool closed = false;
+                host.Open(s, new InMemoryPresentationMemory(), NullOsMotionPreference.Instance, 1f, () => { closed = true; shell.CloseWorld(); }, panel, worldRt);
+                host.View.ReducedMotion = true;
+                var caption = new Label(); caption.style.position = Position.Absolute; caption.style.top = 8; caption.style.left = 8; caption.style.right = 110;
+                caption.style.backgroundColor = new Color(0.24f, 0.25f, 0.22f, 0.8f); caption.style.color = Color.white; caption.style.fontSize = 15; caption.style.whiteSpace = WhiteSpace.Normal;
+                caption.pickingMode = PickingMode.Ignore;
+                host.Overlay!.Add(caption);
+                var cam = go.GetComponentInChildren<Camera>();
+                IEnumerator Shot(string name, string note)
+                {
+                    caption.text = "Unity editor capture (software GL, not a device) · Phase D trailhead from Home · " + note;
+                    host.View.Settle();
+                    for (int i = 0; i < 6; i++) yield return null;
+                    cam.Render();
+                    Dump(worldRt, Path.Combine(outDir, name + ".world")); Dump(uiRt, Path.Combine(outDir, name + ".ui"));
+                    Debug.Log("WG_TRAILHEAD_CAPTURE " + name + " " + caption.text);
+                }
+                float aspect = (float)W / H;
+                yield return Shot("home-trailhead-open", "Home → Visit the Old Trailhead (canonical: trailhead cleared)");
+                Assert.AreEqual(TrailheadTarget.Mira, host.TapAt(new Vector2(0.75f, 0.8f), aspect));
+                Assert.IsNotNull(host.View.Dialogue);
+                yield return Shot("home-tap-mira-dialogue", "tap Mira");
+                var help = host.View.Dialogue!.Actions.Single(a => a.Kind == DialogueActionKind.HelpRestore);
+                host.Controller.ChooseDialogueAction(help);
+                for (int i = 0; i < 3; i++) yield return null;
+                Assert.AreEqual("choices", host.ShownCard);
+                yield return Shot("home-help-restore-goal-card", "Help restore it → goal card (Start = existing EnqueueProject)");
+                host.Controller.CloseLocation();
+                Assert.AreEqual(TrailheadTarget.Bridge, host.TapAt(new Vector2(0.5f, 0.5f), aspect));
+                Assert.AreEqual("inspect:" + TrailheadArt.BridgeId, host.ShownCard);
+                yield return Shot("home-tap-bridge-inspect", "tap the bridge → inspect card");
+                host.Controller.CloseLocation();
+                Assert.AreEqual(TrailheadTarget.Signpost, host.TapAt(new Vector2(0.08f, 0.45f), aspect));
+                Assert.AreEqual(TrailheadArt.LocationId, host.Controller.OpenLocationId);
+                host.Close();
+                yield return null;
+                Assert.IsTrue(closed); Assert.IsNull(shell.WorldRequested); Assert.AreEqual(ShellScreen.Home, shell.Current, "Home button returns to the text shell");
+            }
+            finally
+            {
+                if (go != null) UnityEngine.Object.DestroyImmediate(go);
                 worldRt.Release(); uiRt.Release();
                 try { Directory.Delete(dir, true); } catch (IOException) { }
             }

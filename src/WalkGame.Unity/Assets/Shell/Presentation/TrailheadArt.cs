@@ -81,6 +81,41 @@ namespace WalkGame.Shell.Presentation
             return k * 2 < n ? 2 : 3; // first half of the build: half span; later: full span
         }
 
+        // D-207: tappable props. Regions in art space (0..1 of the 720×1280 view, from top-left), checked in priority order.
+        public static readonly (TrailheadTarget target, float x0, float y0, float x1, float y1)[] TapRegions =
+        {
+            (TrailheadTarget.Mira, 0.66f, 0.69f, 0.84f, 0.93f),
+            (TrailheadTarget.Signpost, 0.00f, 0.36f, 0.20f, 0.62f),
+            (TrailheadTarget.Bridge, 0.28f, 0.28f, 0.70f, 0.70f),
+        };
+
+        /// <summary>Screen (0..1 from top-left, aspect w/h) to art space; the camera fits the 9:16 art to the screen height.</summary>
+        public static (float x, float y) ScreenToArt(float sx, float sy, float aspect) =>
+            (0.5f + (sx - 0.5f) * aspect / (720f / 1280f), sy);
+
+        public static TrailheadTarget HitTest(float ax, float ay, bool miraPresent)
+        {
+            foreach (var r in TapRegions)
+            {
+                if (r.target == TrailheadTarget.Mira && !miraPresent) continue;
+                if (ax >= r.x0 && ax <= r.x1 && ay >= r.y0 && ay <= r.y1) return r.target;
+            }
+            return TrailheadTarget.None;
+        }
+
+        /// <summary>Routes a tap through the controller: Mira talks, the signpost opens the place, the bridge opens its inspect card (or the place while it is locked).</summary>
+        public static bool Route(TrailheadTarget target, WorldPresentationController controller)
+        {
+            switch (target)
+            {
+                case TrailheadTarget.Mira: return controller.TapCharacter(MiraId) == TapOutcome.Opened;
+                case TrailheadTarget.Signpost: return controller.TapLandmark(LocationId) == LandmarkTapOutcome.Opened;
+                case TrailheadTarget.Bridge:
+                    return controller.TapProp(BridgeId) == TapOutcome.Opened || controller.TapLandmark(LocationId) == LandmarkTapOutcome.Opened;
+                default: return false;
+            }
+        }
+
         /// <summary>The catalog of keys this slice ships, as resource names (asset-key catalog, D-169).</summary>
         public static IReadOnlyDictionary<string, string> CatalogEntries()
         {
@@ -126,6 +161,9 @@ namespace WalkGame.Shell.Presentation
                 stage == null ? 0f : FlourishingShare(stage.Value), bridgeKey, structure, resolution);
         }
     }
+
+    /// <summary>D-207: what a tap on the trailhead hit.</summary>
+    public enum TrailheadTarget { None = 0, Mira = 1, Signpost = 2, Bridge = 3 }
 
     /// <summary>One drawable state of the trailhead (resource names; null = draw nothing for that layer).</summary>
     public sealed class TrailheadFrame
