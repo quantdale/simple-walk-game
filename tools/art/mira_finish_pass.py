@@ -20,6 +20,19 @@ a = cv2.GaussianBlur(cv2.erode(a, np.ones((3,3),np.uint8)).astype(float), (0,0),
 FACE = (int(305*1.25), int(232*1.25), int(78*1.25), int(70*1.25))   # cx, cy, rx, ry (preview coords x1.25)
 fm = np.zeros(base.shape[:2], np.float32); cv2.ellipse(fm, (FACE[0], FACE[1]), (FACE[2], FACE[3]), 0, 0, 360, 1, -1)
 fm = cv2.GaussianBlur(fm, (0,0), 6)[..., None]
+# D-211 hair pass: MIRA-HAIR-01 (same base, loose side wisps smoothed under the hat) is ECC-registered and contributes
+# ONLY the hair around the face (head box minus the face ellipse, feathered). Alpha and crop stay from the original base,
+# so the D-208 part rects and pivots are unchanged.
+import os
+if os.path.exists(f"{R}/MIRA-HAIR-01.jpg"):
+    hr = cv2.resize(ld("MIRA-HAIR-01"), (base.shape[1], base.shape[0])); Wh = np.eye(2,3,dtype=np.float32)
+    _, Wh = cv2.findTransformECC(cv2.cvtColor(base, cv2.COLOR_RGB2GRAY).astype(np.float32), cv2.cvtColor(hr, cv2.COLOR_RGB2GRAY).astype(np.float32),
+                                 Wh, cv2.MOTION_AFFINE, (cv2.TERM_CRITERIA_EPS|cv2.TERM_CRITERIA_COUNT, 200, 1e-6), None, 5)
+    hr = cv2.warpAffine(hr, Wh, (base.shape[1], base.shape[0]), flags=cv2.INTER_LINEAR|cv2.WARP_INVERSE_MAP, borderMode=cv2.BORDER_REPLICATE)
+    hm = np.zeros(base.shape[:2], np.float32); cv2.rectangle(hm, (200, 175), (530, 400), 1, -1)
+    hm = cv2.GaussianBlur(hm, (0,0), 10) * (1 - cv2.GaussianBlur(fm[..., 0], (0,0), 3))
+    base = (hr*hm[..., None] + base*(1-hm[..., None])).astype(np.uint8)
+    print("hair ecc", np.round(Wh,3).tolist())
 g0 = cv2.cvtColor(base, cv2.COLOR_RGB2GRAY).astype(np.float32)
 out = {"neutral": base}
 for k, n in [("glad","MIRA-EXPR-GLAD-01"),("worried","MIRA-EXPR-WORRIED-01"),("proud","MIRA-EXPR-PROUD-01"),("celebration","MIRA-EXPR-CELEB-01")]:

@@ -3980,3 +3980,17 @@ on screen) and Home at 2x text scrolled to it (`ScrollView.scrollOffset` set fro
 is inside the viewport), and the Region view. The Region view is still the procedural pre-direction-A valley. Test code only.
 
 **Evidence** (`docs/evidence/d210-shell-captures/`, Unity editor capture, NOT a device): PlayMode 2/2; log `WG_CAPTURE_SCROLL_TO offset=603 max=621`.
+
+## D-211 — Mira's loose side wisps smoothed under the hat; light motes legible; motion-on evidence (2026-10-24)
+
+**Status:** Accepted (agent; follow-up to D-206/D-208)
+
+**Decision.** One more generation, MIRA-HAIR-01 (edit of MIRA-BODY-03, prompt verbatim in the ledger), is ECC-registered and
+contributes ONLY the hair around the face (head box minus the face ellipse, feathered) in `tools/art/mira_finish_pass.py`; alpha,
+crop and D-208 part rects are unchanged, and every portrait/part is re-derived from the new base. Motes: 32 px core+halo dot,
+size 0.22–0.34 u, warm light colour; counts unchanged (≤ 40 live, budget ≤ 60). Fixes a D-208 line that had silently dropped the
+motes' local simulation space and playOnAwake into a comment. The capture test now also renders motion ON (simulated time) as a
+still and a 24-frame GIF and asserts the motes are live.
+
+**Evidence** (`docs/evidence/d211-hair-motes/`, Unity editor capture, NOT a device): EditMode 379/379 (texture estimate 8,280,144 B);
+PlayMode 2/2; `trailhead-s4-motion-on`, `trailhead-motion.unity-editor-capture.gif` (`WG_MOTES live=40`). Particle cost on a phone: UNVERIFIED.
