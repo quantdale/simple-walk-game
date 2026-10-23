@@ -180,7 +180,46 @@ namespace WalkGame.Shell.PlayModeTests
             {
                 var clock = new ManualClock(new DateTimeOffset(2026, 3, 2, 9, 0, 0, TimeSpan.Zero));
                 var shell = new ShellController(ShellBootstrap.CreateSession(dir, new ShellConnectionPort(true), clock), () => 42UL, devTools: true);
-                shell.Boot(); shell.Invoke("start");
+                // D-210: the text-shell screens around the world (bible §47: first launch, return after walking,
+                // Home with the trailhead entry scrolled into view, the Region view), rendered by the real ShellView.
+                var shellRt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
+                var shellPanel = ScriptableObject.CreateInstance<PanelSettings>();
+                shellPanel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("ShellTheme");
+                shellPanel.targetTexture = shellRt; shellPanel.scaleMode = PanelScaleMode.ConstantPixelSize; shellPanel.scale = 1f;
+                shellPanel.clearColor = true; shellPanel.colorClearValue = ShellView.Background;
+                var shellGo = new GameObject("shell-doc");
+                var doc = shellGo.AddComponent<UIDocument>(); doc.panelSettings = shellPanel;
+                IEnumerator ShellShot(string name, string note, string? scrollToAction = null, float textScale = 1f)
+                {
+                    var root = doc.rootVisualElement;
+                    root.style.backgroundColor = ShellView.Background;
+                    ShellView.Render(root, shell.Render(), _ => { }, textScale);
+                    var cap = new Label("Unity editor capture (software GL, not a device) · text shell · " + note);
+                    cap.style.position = Position.Absolute; cap.style.top = 4; cap.style.left = 8; cap.style.right = 8;
+                    cap.style.backgroundColor = new Color(0.24f, 0.25f, 0.22f, 0.8f); cap.style.color = Color.white; cap.style.fontSize = 15; cap.style.whiteSpace = WhiteSpace.Normal;
+                    root.Add(cap);
+                    for (int i = 0; i < 4; i++) yield return null;
+                    if (scrollToAction != null)
+                    {
+                        var target = root.Query<ShellView.ActionButton>().ToList().FirstOrDefault(b => b.ActionId == scrollToAction);
+                        Assert.IsNotNull(target, "no button for " + scrollToAction);
+                        var scroll = root.Q<ScrollView>("content");
+                        float max = Mathf.Max(0f, scroll.contentContainer.layout.height - scroll.contentViewport.layout.height);
+                        float y = target!.worldBound.y - scroll.contentContainer.worldBound.y - scroll.contentViewport.layout.height * 0.4f;
+                        scroll.scrollOffset = new Vector2(0f, Mathf.Clamp(y, 0f, max));
+                        for (int i = 0; i < 4; i++) yield return null;
+                        var vp = scroll.contentViewport.worldBound;
+                        Assert.IsTrue(vp.Overlaps(target.worldBound), "the Visit the Old Trailhead button is on screen after scrolling");
+                        Debug.Log("WG_CAPTURE_SCROLL_TO offset=" + scroll.scrollOffset.y + " max=" + max);
+                    }
+                    Dump(shellRt, Path.Combine(outDir, name + ".world"));
+                    File.WriteAllBytes(Path.Combine(outDir, name + ".ui.rgba"), new byte[W * H * 4]);
+                    File.WriteAllText(Path.Combine(outDir, name + ".ui.size"), W + " " + H);
+                    Debug.Log("WG_TRAILHEAD_CAPTURE " + name + " " + cap.text);
+                }
+                shell.Boot();
+                yield return ShellShot("shell-first-launch", "first launch / onboarding");
+                shell.Invoke("start");
                 if (shell.Current != ShellScreen.Home) shell.Invoke("nav:Home");
                 var s = shell.Session;
                 Assert.IsTrue(s.EnqueueProject("proj.clear-trailhead").IsSuccess);
@@ -191,7 +230,22 @@ namespace WalkGame.Shell.PlayModeTests
                     s.IngestActivityBatch(new[] { new NormalizedActivityRecord("capture", "b" + (++walk), ActivityCategory.Walking, ActivityUnits.Steps, 1500L, clock.UtcNow.AddMinutes(-30), clock.UtcNow) });
                     if (s.GetPendingReturnSummary() != null) s.AcknowledgeReturnSummary();
                 }
+                clock.Advance(TimeSpan.FromHours(20));
+                s.IngestActivityBatch(new[] { new NormalizedActivityRecord("capture", "b" + (++walk), ActivityCategory.Walking, ActivityUnits.Steps, 4200L, clock.UtcNow.AddMinutes(-90), clock.UtcNow) });
                 shell.Invoke("nav:Home");
+                if (s.GetPendingReturnSummary() != null)
+                {
+                    shell.Invoke("nav:ReturnSummary");
+                    yield return ShellShot("shell-return-after-walking", "return after a walk (While you were away)");
+                    shell.Invoke("ack");
+                }
+                shell.Invoke("nav:Home");
+                yield return ShellShot("shell-home-visit-trailhead", "Home with Visit the Old Trailhead", ShellController.WorldTrailheadAction);
+                yield return ShellShot("shell-home-visit-trailhead-text2x", "Home at 2x text, scrolled to Visit the Old Trailhead", ShellController.WorldTrailheadAction, 2f);
+                shell.Invoke("nav:Region");
+                yield return ShellShot("shell-region-view", "Region view (procedural valley, pre-direction-A placeholder)");
+                shell.Invoke("nav:Home");
+                UnityEngine.Object.DestroyImmediate(shellGo); shellRt.Release();
                 shell.Invoke(ShellController.WorldTrailheadAction);
                 Assert.AreEqual(TrailheadArt.LocationId, shell.WorldRequested, "Home opened the trailhead");
 
