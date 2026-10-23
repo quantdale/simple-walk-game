@@ -43,8 +43,42 @@ for k, n in [("glad","MIRA-EXPR-GLAD-01"),("worried","MIRA-EXPR-WORRIED-01"),("p
     out[k] = (er*fm + base*(1-fm)).astype(np.uint8)
     print(k, "ecc", np.round(W,3).tolist())
 ys, xs = np.where(a > 8); x0, x1, y0, y1 = xs.min(), xs.max()+1, ys.min(), ys.max()+1
+def decontaminate(rgb, alpha):
+    """D-214: remove the cream key colour from edge pixels (un-mix: C = (I - (1-a)·bg) / a) and bleed edge colours into the
+    fully transparent area, so bilinear filtering / compression never pulls cream into the silhouette (hat brim, arm)."""
+    f = rgb.astype(np.float32); al = (alpha.astype(np.float32) / 255.0)[..., None]
+    semi = (al > 0.02) & (al < 0.98)
+    un = np.clip((f - (1 - al) * bg[None, None, :]) / np.maximum(al, 0.02), 0, 255)
+    f = np.where(semi, un, f)
+    known = (alpha >= 250).astype(np.float32)
+    acc = f * known[..., None]; wsum = known.copy()
+    for r in (2, 4, 8, 16, 32, 64):   # push-pull style fill of the transparent area from the opaque interior
+        k = 2 * r + 1
+        acc_b = cv2.blur(acc, (k, k)); w_b = cv2.blur(wsum, (k, k))
+        fill = (wsum < 0.5) & (w_b > 1e-4)
+        acc[fill] = acc_b[fill] / w_b[fill][..., None]; wsum[fill] = 1.0
+    f = np.where((alpha < 6)[..., None], acc, f)
+    return np.clip(f, 0, 255).astype(np.uint8)
+
+# D-214 choke: the generator draws a light key-coloured rim just outside the ink line. Within 4 px of the transparent area,
+# pixels close to the key colour lose alpha (the ink line itself is dark, so it stays).
+# D-214 pockets: small enclosed patches of the flat key colour (between hat brim, hair, braid and scarf) are background too.
+_kd = np.abs(base.astype(np.float32) - bg[None, None, :]).sum(-1)
+_n, _lab, _st, _ = cv2.connectedComponentsWithStats((_kd < 30).astype(np.uint8), 8)
+pockets = np.zeros(a.shape, np.uint8)
+for _i in range(1, _n):
+    if 20 <= _st[_i][4] <= 5000 and _kd[_lab == _i].mean() < 16: pockets[_lab == _i] = 1
+a = np.where(cv2.dilate(pockets, np.ones((3, 3), np.uint8)) > 0, 0, a).astype(np.uint8)
+print("key pockets removed:", int(pockets.sum()), "px")
+dist = cv2.distanceTransform((a > 0).astype(np.uint8), cv2.DIST_L2, 3)
+key_d = np.minimum(np.abs(base.astype(np.float32) - bg[None, None, :]).sum(-1),       # cream key
+                   np.abs(base.astype(np.float32) - 255.0).sum(-1))                     # and the generator's white halo
+ring = dist <= 5.0
+a = np.where(ring, (a * np.clip((key_d - 30) / 60.0, 0, 1)).astype(np.uint8), a)
+a = cv2.GaussianBlur(a, (0, 0), 0.6)
+
 for k, img in out.items():
-    rgba = np.dstack([pal_pull(img, .12), a])[y0:y1, x0:x1]
+    rgba = np.dstack([decontaminate(pal_pull(img, .12), a), a])[y0:y1, x0:x1]
     if k == "neutral": cv2.imwrite(f"{O}/mira_body.png", cv2.cvtColor(rgba, cv2.COLOR_RGBA2BGRA))
     h, w = rgba.shape[:2]
     bust = rgba[0:int(h*0.42), int(w*0.12):int(w*0.92)]   # same box for every expression

@@ -3,7 +3,7 @@
 Scope: the painted Old Trailhead slice (D-204 … D-212) on main `55311700`. Statuses: **PASS** (evidence shown),
 **FAIL** (not met), **PARTIAL** (met inside the trailhead view, not across the app), **UNVERIFIED** (needs a device or real players).
 All captures are **Unity editor captures (software GL), NOT device-tested** (KI-002). `E/` = `docs/evidence/d212-bone-rig/`
-(the latest full capture set) unless noted.
+(the latest full capture set) unless noted; D-214 refreshed the trailhead set in `docs/evidence/d214-fringe/`.
 
 ## §45 Art approval gate
 
@@ -66,7 +66,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 
 - §47 missing captures (first launch, return after walking, Home scrolled to the trailhead, Region view, animation) → D-210, D-211, D-212.
 - §46 "character interacts naturally": cut-out idle replaced by a weighted bone rig with a reaction → D-212.
-- Mira sheet drift (loose side wisps) → D-211; motes were not rendering their intended settings (a D-208 line folded into a comment) → D-211.
+- Mira sheet drift (loose side wisps) → D-211; cream/white edge fringes on the hat brim, arm, staff and neck → D-214; motes were not rendering their intended settings (a D-208 line folded into a comment) → D-211.
 
 ## Open (cannot be closed by a small PR)
 

@@ -110,7 +110,7 @@ ScriptedImporter:
     spriteID: cf2dba87de3f66863a755943c327d28a
     spriteBone:
     - name: hips
-      guid: 40068ec7790c803f1a871993f6cfe8da
+      guid: a79abf6443bfd9a8d983e8b64ed15c7c
       position: {x: 209, y: -429, z: 0}
       rotation: {x: 0, y: 0, z: 0.70710677, w: 0.70710677}
       length: 180
@@ -119,7 +119,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: spine
-      guid: a9149529e3720e723950405981ef3bf4
+      guid: f1cceec5de8dfc939954f9323365a5cc
       position: {x: 179.99998, y: 0.000010728836, z: 0}
       rotation: {x: 0, y: 0, z: -0.02270962, w: 0.9997421}
       length: 220.22716
@@ -128,7 +128,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: head
-      guid: 5e33eb71bff31413d9a8ad480a7e9445
+      guid: 395fef6e11151b1a3bb7bd875d15e266
       position: {x: 258.27878, y: -0.27247882, z: 0}
       rotation: {x: 0, y: 0, z: 0.02270962, w: 0.9997421}
       length: 202
@@ -137,7 +137,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_1
-      guid: 7d7de82ba98980a84a162dad9b9edb1c
+      guid: ee26d677bcc8f7c54966edff3402a6be
       position: {x: 256.0084, y: -38.414913, z: 0}
       rotation: {x: 0, y: 0, z: -0.9989083, w: 0.04671454}
       length: 104.120125
@@ -146,7 +146,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_2
-      guid: 63ea9450d4a2b4bc18dadd2820c630ca
+      guid: 2d55c07fc2685b75880a35b599bf181e
       position: {x: 104.120125, y: -0.000016450882, z: 0}
       rotation: {x: 0, y: 0, z: -0.014929526, w: 0.99988854}
       length: 110.01818
@@ -155,7 +155,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_1
-      guid: aaf5374eb2818f6709004291acc10fea
+      guid: eb086b472ece9cf83ba485942fd2be7a
       position: {x: 211.00938, y: -127.55015, z: 0}
       rotation: {x: 0, y: 0, z: -0.9647877, w: 0.26302972}
       length: 96.17692
@@ -164,7 +164,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_2
-      guid: 1b88000dadbef866b97469f5f661ea17
+      guid: 1caf8976c24a6f7a3b9667c22b55c02d
       position: {x: 96.17692, y: 0.0000023841858, z: 0}
       rotation: {x: 0, y: 0, z: -0.0012106394, w: 0.9999993}
       length: 107.35455
@@ -2857,7 +2857,7 @@ ScriptedImporter:
     spriteID: 7f9673e874a1191d995652f43924a5c8
     spriteBone:
     - name: hips
-      guid: 6e5821a30476779e78ecf1634bb7cd57
+      guid: 182f29dbcf547860b87fd6314e47a589
       position: {x: -10, y: -211, z: 0}
       rotation: {x: 0, y: 0, z: 0.70710677, w: 0.70710677}
       length: 180
@@ -2866,7 +2866,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: spine
-      guid: c5dff4bd21cc059898447f148969067d
+      guid: 49b9672b38082ee8bbbeb42f20c5df9b
       position: {x: 179.99998, y: 0.000010728836, z: 0}
       rotation: {x: 0, y: 0, z: -0.02270962, w: 0.9997421}
       length: 220.22716
@@ -2875,7 +2875,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: head
-      guid: 534316377165e5c79948477897613745
+      guid: 29ad15fb363bd252e8094988250dadbd
       position: {x: 258.27878, y: -0.27247882, z: 0}
       rotation: {x: 0, y: 0, z: 0.02270962, w: 0.9997421}
       length: 202
@@ -2884,7 +2884,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_1
-      guid: e5049ce2e7549a0aebb4cd382a540df4
+      guid: 1f40e6ae4740092a884e8ae8f0dedf38
       position: {x: 256.0084, y: -38.414913, z: 0}
       rotation: {x: 0, y: 0, z: -0.9989083, w: 0.04671454}
       length: 104.120125
@@ -2893,7 +2893,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_2
-      guid: 6b73f7b22150711c5b121f0ac1d91cd6
+      guid: d083e2918fc2fbb33a108f2f62f110e9
       position: {x: 104.120125, y: -0.000016450882, z: 0}
       rotation: {x: 0, y: 0, z: -0.014929526, w: 0.99988854}
       length: 110.01818
@@ -2902,7 +2902,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_1
-      guid: 595d1dfb8e86796c687004fefce480e8
+      guid: bb2b786ff789d943690785604d7a6309
       position: {x: 211.00938, y: -127.55015, z: 0}
       rotation: {x: 0, y: 0, z: -0.9647877, w: 0.26302972}
       length: 96.17692
@@ -2911,7 +2911,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_2
-      guid: 6ef544fbec0b9e2c2a5ec7d24b8aec1e
+      guid: 30dcfeb5168f9638a90f47647c7f9536
       position: {x: 96.17692, y: 0.0000023841858, z: 0}
       rotation: {x: 0, y: 0, z: -0.0012106394, w: 0.9999993}
       length: 107.35455
@@ -3520,7 +3520,7 @@ ScriptedImporter:
     spriteID: e3af719b97c8d00ec86326489c2b27ad
     spriteBone:
     - name: hips
-      guid: 449599003f4621060905e0e1cae46233
+      guid: 87900d76a760f9cdcaf3bd0957696ae5
       position: {x: 288, y: 391, z: 0}
       rotation: {x: 0, y: 0, z: 0.70710677, w: 0.70710677}
       length: 180
@@ -3529,7 +3529,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: spine
-      guid: 5f26fb9fdc4b97a028fef96639e9dc76
+      guid: 01fcad9b782a25d9e9cc934d29df64eb
       position: {x: 179.99998, y: 0.000010728836, z: 0}
       rotation: {x: 0, y: 0, z: -0.02270962, w: 0.9997421}
       length: 220.22716
@@ -3538,7 +3538,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: head
-      guid: 550f76568efff72aa95f70b3f6dc5303
+      guid: 5070b81d921c5c9d3bdb483ccf267aa4
       position: {x: 258.27878, y: -0.27247882, z: 0}
       rotation: {x: 0, y: 0, z: 0.02270962, w: 0.9997421}
       length: 202
@@ -3547,7 +3547,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_1
-      guid: 4667a8a6264475737bcc8f33291283da
+      guid: 287fd93c15aa6a43396ef22d8aecee3a
       position: {x: 256.0084, y: -38.414913, z: 0}
       rotation: {x: 0, y: 0, z: -0.9989083, w: 0.04671454}
       length: 104.120125
@@ -3556,7 +3556,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_2
-      guid: 70b583496b961c91d878daceb7f15f08
+      guid: 0bc13ef8f3bd61e809fa0a3224ebee6f
       position: {x: 104.120125, y: -0.000016450882, z: 0}
       rotation: {x: 0, y: 0, z: -0.014929526, w: 0.99988854}
       length: 110.01818
@@ -3565,7 +3565,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_1
-      guid: 10c8346d6a3cdd4cf97aec44a3668ec6
+      guid: 3ba3f71608ad8895e86267f7c8b99ecf
       position: {x: 211.00938, y: -127.55015, z: 0}
       rotation: {x: 0, y: 0, z: -0.9647877, w: 0.26302972}
       length: 96.17692
@@ -3574,7 +3574,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_2
-      guid: 22cc106a7bbebec8aa35c2db34b2ad29
+      guid: 00c8bd461c6089b7aad1415bfb5c1950
       position: {x: 96.17692, y: 0.0000023841858, z: 0}
       rotation: {x: 0, y: 0, z: -0.0012106394, w: 0.9999993}
       length: 107.35455
@@ -15495,7 +15495,7 @@ ScriptedImporter:
     spriteID: 3b562bcd8145050588ad715c9dcdcba8
     spriteBone:
     - name: hips
-      guid: 99533192131fc1c4f834273c4b9af847
+      guid: dbad56a8a4d908aeab745cb186f39ddf
       position: {x: -130, y: -197, z: 0}
       rotation: {x: 0, y: 0, z: 0.70710677, w: 0.70710677}
       length: 180
@@ -15504,7 +15504,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: spine
-      guid: 145e084c9911ebf6a99418e37b58a473
+      guid: c52adc952ee0947b6a5728681a83492b
       position: {x: 179.99998, y: 0.000010728836, z: 0}
       rotation: {x: 0, y: 0, z: -0.02270962, w: 0.9997421}
       length: 220.22716
@@ -15513,7 +15513,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: head
-      guid: 2f4c324f6313e8b648a657f506b317c3
+      guid: de3bf768ed38eb97a80e20cebdc904ff
       position: {x: 258.27878, y: -0.27247882, z: 0}
       rotation: {x: 0, y: 0, z: 0.02270962, w: 0.9997421}
       length: 202
@@ -15522,7 +15522,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_1
-      guid: 84c6f96dc20f28cc2b6835833a01c4d8
+      guid: 508bbd4833b76f907bec902f9a234590
       position: {x: 256.0084, y: -38.414913, z: 0}
       rotation: {x: 0, y: 0, z: -0.9989083, w: 0.04671454}
       length: 104.120125
@@ -15531,7 +15531,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_2
-      guid: e60dc90a1c7544b7d8a248fd610f0a23
+      guid: 618b61054ce738ae59f65465e8edc2ef
       position: {x: 104.120125, y: -0.000016450882, z: 0}
       rotation: {x: 0, y: 0, z: -0.014929526, w: 0.99988854}
       length: 110.01818
@@ -15540,7 +15540,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_1
-      guid: c8949f47d82ea5d29a37273d1190766e
+      guid: 55f1f1b1ca73b9aeda4dfd79670bf9f0
       position: {x: 211.00938, y: -127.55015, z: 0}
       rotation: {x: 0, y: 0, z: -0.9647877, w: 0.26302972}
       length: 96.17692
@@ -15549,7 +15549,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_2
-      guid: 8798c68527648d2abb28372e5e0328c3
+      guid: 763e99cef0f8c8fdfa25f96ba4851744
       position: {x: 96.17692, y: 0.0000023841858, z: 0}
       rotation: {x: 0, y: 0, z: -0.0012106394, w: 0.9999993}
       length: 107.35455
@@ -16309,7 +16309,7 @@ ScriptedImporter:
   characterData:
     bones:
     - name: hips
-      guid: d8b79ea4df9b2cdc49d8f82a044bd798
+      guid: 292c6d241377cb3adb4d0346b2ec4abd
       position: {x: 288, y: 392, z: 0}
       rotation: {x: 0, y: 0, z: 0.70710677, w: 0.70710677}
       length: 180
@@ -16318,7 +16318,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: spine
-      guid: 1f38948845ecc905ebc07ae8e167c1ae
+      guid: f95429f23aab7df689816ad811a4e807
       position: {x: 179.99998, y: 0.000010728836, z: 0}
       rotation: {x: 0, y: 0, z: -0.02270962, w: 0.9997421}
       length: 220.22716
@@ -16327,7 +16327,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: head
-      guid: 7a63e8e2c43b6d8949a96ae28d5b3072
+      guid: 2274d8dc29efd5f19b34682aa3b4a50a
       position: {x: 258.27878, y: -0.27247882, z: 0}
       rotation: {x: 0, y: 0, z: 0.02270962, w: 0.9997421}
       length: 202
@@ -16336,7 +16336,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_1
-      guid: 1948768720416055c865e6f4c4789f57
+      guid: 44cb947015b7017f1857b1763c1ea651
       position: {x: 256.0084, y: -38.414913, z: 0}
       rotation: {x: 0, y: 0, z: -0.9989083, w: 0.04671454}
       length: 104.120125
@@ -16345,7 +16345,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: braid_2
-      guid: e66cef137526d345aa08ed96a79a4a0d
+      guid: 6b4db8f55e6e53b2fb92e3792a6a815d
       position: {x: 104.120125, y: -0.000016450882, z: 0}
       rotation: {x: 0, y: 0, z: -0.014929526, w: 0.99988854}
       length: 110.01818
@@ -16354,7 +16354,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_1
-      guid: 6b8cea71ecf3e38a3b32a753f53b060c
+      guid: 3d6f734de7021b0568e82a636031f962
       position: {x: 211.00938, y: -127.55015, z: 0}
       rotation: {x: 0, y: 0, z: -0.9647877, w: 0.26302972}
       length: 96.17692
@@ -16363,7 +16363,7 @@ ScriptedImporter:
         serializedVersion: 2
         rgba: 4294967295
     - name: scarf_2
-      guid: d983ae1a123a378f7a262fc1de0ddc9d
+      guid: 868f57d48639e14939be8e6bb69d1386
       position: {x: 96.17692, y: 0.0000023841858, z: 0}
       rotation: {x: 0, y: 0, z: -0.0012106394, w: 0.9999993}
       length: 107.35455
