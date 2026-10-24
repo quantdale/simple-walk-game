@@ -136,6 +136,11 @@ namespace WalkGame.Shell
             ["shell.region.expeditions"] = "{0} expedition routes open, {1} completed.",
             ["shell.region.discoveries.one"] = "{0} discovery found.",
             ["shell.region.discoveries.many"] = "{0} discoveries found.",
+            ["shell.region.mapSummary"] = "{0} places recovering well · {1} still damaged.",
+            ["shell.region.placeMapOnly"] = "Still a pin on the map — a painted visit comes later. Keep restoring nearby places.",
+            ["shell.region.placeLocked"] = "That place is not open to walk to yet. Restore the way there first.",
+            ["shell.region.backToMap"] = "Back to the map",
+            ["shell.region.tapHint"] = "Tap a place on the map.",
             // Shell screens (ShellController: discoveries, story, progress, settings, guide, privacy; KI-023)
             ["shell.nothingFoundYetRestoring"] = "Nothing found yet. Restoring landmarks reveals what the valley kept.",
             ["shell.moreRestoration"] = "more restoration",

@@ -325,6 +325,8 @@ namespace WalkGame.Shell
         public const string WorldTrailheadAction = "world:trailhead";
         /// <summary>D-207: the place the player asked to see in the painted world, or null (text shell only).</summary>
         public string? WorldRequested { get; private set; }
+        /// <summary>D-221: Region map focus — a short card for a place that is not yet a painted visit.</summary>
+        private string? _regionFocusId;
         /// <summary>D-207: the painted world closed; the text shell is current again.</summary>
         public void CloseWorld() => WorldRequested = null;
         /// <summary>D-207: the session, for the painted world's presenter (reads and the existing commands only).</summary>
@@ -334,11 +336,23 @@ namespace WalkGame.Shell
         {
             _error = null;
             if (string.IsNullOrEmpty(actionId)) { _error = PlayerStrings.T("shell.unknownAction"); return; }
-            if (actionId == WorldTrailheadAction)
+            if (actionId == WorldTrailheadAction || WalkGame.Shell.Presentation.RegionArt.IsPlaceAction(actionId))
             {
-                if (!_booted || Current != ShellScreen.Home) { _error = PlayerStrings.T("shell.startOrContinueA"); return; }
-                WorldRequested = WalkGame.Shell.Presentation.TrailheadArt.LocationId;
+                if (!_booted) { _error = PlayerStrings.T("shell.startOrContinueA"); return; }
+                string loc = actionId == WorldTrailheadAction
+                    ? WalkGame.Shell.Presentation.TrailheadArt.LocationId
+                    : WalkGame.Shell.Presentation.RegionArt.PlaceIdOf(actionId)!;
+                if (actionId == WorldTrailheadAction && Current != ShellScreen.Home && Current != ShellScreen.Region)
+                { _error = PlayerStrings.T("shell.startOrContinueA"); return; }
+                if (WalkGame.Shell.Presentation.RegionArt.IsPlaceAction(actionId) && Current != ShellScreen.Region)
+                { _error = PlayerStrings.T("shell.startOrContinueA"); return; }
+                OpenRegionPlace(loc);
                 return;
+            }
+            if (actionId == "region:clearFocus")
+            {
+                _regionFocusId = null; _notice = null;
+                if (Current == ShellScreen.Region) return;
             }
             if (actionId.StartsWith("nav:", StringComparison.Ordinal))
             {
@@ -356,6 +370,7 @@ namespace WalkGame.Shell
                 // that is false, so the shell refuses it calmly and stays where it is.
                 if (_booted && screen == ShellScreen.BootError)
                 { _error = PlayerStrings.T("shell.yourWorldIsOpen"); return; }
+                if (screen != ShellScreen.Region) _regionFocusId = null;
                 Current = screen;
                 return;
             }
@@ -734,26 +749,69 @@ namespace WalkGame.Shell
             return m;
         }
 
+        /// <summary>D-221: open a painted place from the Region map, or show a short focus card.</summary>
+        private void OpenRegionPlace(string landmarkId)
+        {
+            _regionFocusId = null; _notice = null;
+            bool painted = WalkGame.Shell.Presentation.RegionArt.IsPaintedPlace(landmarkId);
+            bool unlocked = false;
+            foreach (var loc in _session.GetWorldView().Locations)
+                if (loc.LocationId == landmarkId) { unlocked = loc.IsUnlocked; break; }
+            if (painted && unlocked)
+            {
+                WorldRequested = landmarkId;
+                return;
+            }
+            // Short card: keep the player on Region with a compact focus summary.
+            _regionFocusId = landmarkId;
+            Current = ShellScreen.Region;
+        }
+
         private ScreenModel Region()
         {
             var r = _session.GetRegion();
             var m = With(ShellScreen.Region, PlayerStrings.T("shell.theValley"));
             m.Scene = RegionScene.Build(r);
+            // Compact visible summary (map carries the places). Full landmark phrases live on place actions for TalkBack.
             if (r.RegionCompleted)
                 m.Lines.Add(PlayerStrings.T("shell.theValleyIsFully"));
             else
                 m.Lines.Add(PlayerStrings.F("shell.region.finished", r.CompletedProjects, r.TotalProjects));
-            foreach (var l in r.Landmarks) m.Lines.Add(GlancePhrases.FormatLandmark(PlayerCopy.Title(l.TitleKey), l.Stage));
-            foreach (var pr in r.Producers)
-                m.Lines.Add(PlayerCopy.Title(pr.TitleKey) + ": " + (!pr.Unlocked
-                    ? PlayerStrings.T("shell.notRunningYetRestore")
-                    : pr.CapacityLimited ? PlayerStrings.T("shell.storageFullHoldingWhat") : PlayerStrings.T("shell.producingWhileYouAre")));
+            int recovering = 0, safe = 0;
+            foreach (var l in r.Landmarks)
+            {
+                if (l.Stage == WalkGame.Domain.Regions.RestorationStage.Ruined) recovering++;
+                else safe++;
+            }
+            m.Lines.Add(PlayerStrings.F("shell.region.mapSummary", safe, recovering));
             m.Lines.Add(r.DiscoveriesUnlocked == 0
                 ? PlayerStrings.T("shell.noDiscoveriesYetWalks")
                 : PlayerStrings.F(r.DiscoveriesUnlocked == 1 ? "shell.region.discoveries.one" : "shell.region.discoveries.many", r.DiscoveriesUnlocked));
-            m.Lines.Add(r.ExpeditionsAvailable == 0 && r.ExpeditionsCompleted == 0
-                ? PlayerStrings.T("shell.noExpeditionRoutesAre")
-                : PlayerStrings.F("shell.region.expeditions", r.ExpeditionsAvailable, r.ExpeditionsCompleted));
+
+            if (_regionFocusId != null)
+            {
+                var focus = r.Landmarks.FirstOrDefault(l => l.LandmarkId == _regionFocusId);
+                if (focus != null)
+                {
+                    string title = PlayerCopy.Title(focus.TitleKey);
+                    m.Notice = GlancePhrases.FormatLandmark(title, focus.Stage);
+                    bool painted = WalkGame.Shell.Presentation.RegionArt.IsPaintedPlace(focus.LandmarkId);
+                    m.Lines.Add(painted
+                        ? PlayerStrings.T("shell.region.placeLocked")
+                        : PlayerStrings.T("shell.region.placeMapOnly"));
+                }
+                else _regionFocusId = null;
+            }
+
+            // Place actions first (map markers + a11y list), then chrome. Visible label = short title; AccessibleLabel = full phrase.
+            foreach (var l in r.Landmarks)
+            {
+                string title = PlayerCopy.Title(l.TitleKey);
+                // Visible = accessible name (D-147). Full stage phrase is in Scene landmarks + AccessibleOutline.
+                m.Actions.Add(new ShellAction(WalkGame.Shell.Presentation.RegionArt.PlaceAction(l.LandmarkId), title));
+            }
+            if (_regionFocusId != null)
+                m.Actions.Add(new ShellAction("region:clearFocus", PlayerStrings.T("shell.region.backToMap")));
             m.Actions.Add(new ShellAction("nav:Discoveries", PlayerStrings.T("shell.discoveriesAndExpeditions")));
             m.Actions.Add(new ShellAction("nav:Home", PlayerStrings.T("label.home")));
             return m;

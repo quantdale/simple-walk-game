@@ -122,7 +122,7 @@ namespace WalkGame.Shell
                     _controller.CloseWorld();
                     _document.rootVisualElement.style.display = DisplayStyle.Flex;
                     Redraw();
-                });
+                }, locationId: _controller.WorldRequested);
         }
 
         private bool _worldFirstDone;

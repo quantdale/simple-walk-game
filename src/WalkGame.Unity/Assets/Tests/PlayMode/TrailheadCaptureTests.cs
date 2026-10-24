@@ -273,7 +273,7 @@ namespace WalkGame.Shell.PlayModeTests
                 yield return ShellShot("shell-home-visit-trailhead", "Home (lighter menu) with Visit the Old Trailhead", ShellController.WorldTrailheadAction);
                 yield return ShellShot("shell-home-visit-trailhead-text2x", "Home at 2x text, scrolled to Visit the Old Trailhead", ShellController.WorldTrailheadAction, 2f);
                 shell.Invoke("nav:Region");
-                yield return ShellShot("shell-region-view", "Region view (direction-A card over the painted Region 1 map)");
+                yield return ShellShot("shell-region-view", "Region view (interactive map pins + compact card)");
                 shell.Invoke("nav:Home");
                 ShellView.Backdrop = null;
                 Assert.IsTrue(TrailheadArt.OpenWorldFirst(shell.Current == ShellScreen.Home, false, false), "D-215: boot lands in the world");

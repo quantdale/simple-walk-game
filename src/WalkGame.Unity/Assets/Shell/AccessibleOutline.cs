@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using WalkGame.Application.ReadModels;
 
 namespace WalkGame.Shell
 {
@@ -19,8 +20,7 @@ namespace WalkGame.Shell
     /// <summary>
     /// Engine-free screen-reader outline for a <see cref="ScreenModel"/> (M8 UX/accessibility, D-073).
     /// Reading order mirrors the visual order: title, notice/problem, picture description, text lines, then actions.
-    /// The picture is announced by its alt text, never skipped. Every action is a labelled button.
-    /// <see cref="ScreenReaderBridge"/> publishes this to the OS screen reader on device (UNVERIFIED, KI-002).
+    /// D-221: on Region, each map pin\'s full stage phrase is announced (compact card keeps the short title on the button).
     /// </summary>
     public static class AccessibleOutline
     {
@@ -36,11 +36,22 @@ namespace WalkGame.Shell
             if (model.Scene != null) items.Add(new AccessibleItem(AccessibleRole.Image, model.Scene.AltText));
             foreach (var line in model.Lines)
                 if (!string.IsNullOrWhiteSpace(line)) items.Add(new AccessibleItem(AccessibleRole.StaticText, line));
+            // D-221: full landmark phrases for TalkBack (visible Region card stays compact).
+            if (model.Screen == ShellScreen.Region && model.Scene != null)
+                foreach (var lv in model.Scene.Landmarks)
+                    items.Add(new AccessibleItem(AccessibleRole.StaticText, GlancePhrases.FormatLandmark(lv.Label, lv.Stage)));
             if (!string.IsNullOrWhiteSpace(model.TextPreview)) items.Add(new AccessibleItem(AccessibleRole.StaticText, model.TextPreview!));
             bool first = true;
             foreach (var a in model.Actions)
             {
-                items.Add(new AccessibleItem(AccessibleRole.Button, a.Label, a.Id, first && model.Actions.Count > 1 ? PrimaryHint : null));
+                string? hint = first && model.Actions.Count > 1 ? PrimaryHint : null;
+                if (WalkGame.Shell.Presentation.RegionArt.IsPlaceAction(a.Id) && model.Scene != null)
+                {
+                    string id = WalkGame.Shell.Presentation.RegionArt.PlaceIdOf(a.Id)!;
+                    foreach (var lv in model.Scene.Landmarks)
+                        if (lv.LandmarkId == id) { hint = GlancePhrases.FormatLandmark(lv.Label, lv.Stage); break; }
+                }
+                items.Add(new AccessibleItem(AccessibleRole.Button, a.AccessibleLabel, a.Id, hint));
                 first = false;
             }
             return items;
