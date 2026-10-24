@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="17" result="Passed" total="17" passed="17" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:55Z" duration="0.6299487">
+  <test-suite type="TestSuite" id="1000" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="411" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:55Z" duration="0.629949" total="17" passed="17" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1486" name="WalkGame.Shell.Tests.dll" fullname="/workspace/simple-walk-game-wt-phase-rowan-expr-grok1024phg/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.Tests.dll" runstate="Runnable" testcasecount="411" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:55Z" duration="0.623534" total="17" passed="17" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="370299" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1487" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="411" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:55Z" duration="0.622557" total="17" passed="17" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1488" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="411" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:55Z" duration="0.621845" total="17" passed="17" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1489" name="Tests" fullname="WalkGame.Shell.Tests" runstate="Runnable" testcasecount="411" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:55Z" duration="0.621173" total="17" passed="17" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1047" name="ArtFringeTests" fullname="WalkGame.Shell.Tests.ArtFringeTests" classname="WalkGame.Shell.Tests.ArtFringeTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.145358" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1048" name="Canopy_character_and_find_layers_have_no_key_fringe" fullname="WalkGame.Shell.Tests.ArtFringeTests.Canopy_character_and_find_layers_have_no_key_fringe" methodname="Canopy_character_and_find_layers_have_no_key_fringe" classname="WalkGame.Shell.Tests.ArtFringeTests" runstate="Runnable" seed="1544459276" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.093618" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1050" name="Orchid_sprite_is_humble_versus_Rowan_canvas" fullname="WalkGame.Shell.Tests.ArtFringeTests.Orchid_sprite_is_humble_versus_Rowan_canvas" methodname="Orchid_sprite_is_humble_versus_Rowan_canvas" classname="WalkGame.Shell.Tests.ArtFringeTests" runstate="Runnable" seed="310848935" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.002061" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1049" name="Trailhead_and_intake_character_layers_have_no_key_fringe" fullname="WalkGame.Shell.Tests.ArtFringeTests.Trailhead_and_intake_character_layers_have_no_key_fringe" methodname="Trailhead_and_intake_character_layers_have_no_key_fringe" classname="WalkGame.Shell.Tests.ArtFringeTests" runstate="Runnable" seed="1638404459" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.038509" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1061" name="CanopyGroveArtTests" fullname="WalkGame.Shell.Tests.CanopyGroveArtTests" classname="WalkGame.Shell.Tests.CanopyGroveArtTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.159215" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1065" name="Every_canopy_layer_exists_and_fits_its_texture_budget" fullname="WalkGame.Shell.Tests.CanopyGroveArtTests.Every_canopy_layer_exists_and_fits_its_texture_budget" methodname="Every_canopy_layer_exists_and_fits_its_texture_budget" classname="WalkGame.Shell.Tests.CanopyGroveArtTests" runstate="Runnable" seed="1974294878" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.027242" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[D222_TEXTURE_BYTES 6754912
+]]></output>
+              </test-case>
+              <test-case id="1063" name="Orchids_find_is_optional_and_only_from_Functional" fullname="WalkGame.Shell.Tests.CanopyGroveArtTests.Orchids_find_is_optional_and_only_from_Functional" methodname="Orchids_find_is_optional_and_only_from_Functional" classname="WalkGame.Shell.Tests.CanopyGroveArtTests" runstate="Runnable" seed="275861917" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.002035" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1064" name="Reduced_motion_stills_Rowan_and_the_glow" fullname="WalkGame.Shell.Tests.CanopyGroveArtTests.Reduced_motion_stills_Rowan_and_the_glow" methodname="Reduced_motion_stills_Rowan_and_the_glow" classname="WalkGame.Shell.Tests.CanopyGroveArtTests" runstate="Runnable" seed="1137271199" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.001759" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1068" name="Region_map_opens_canopy_as_a_painted_place" fullname="WalkGame.Shell.Tests.CanopyGroveArtTests.Region_map_opens_canopy_as_a_painted_place" methodname="Region_map_opens_canopy_as_a_painted_place" classname="WalkGame.Shell.Tests.CanopyGroveArtTests" runstate="Runnable" seed="1532524196" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.000538" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1066" name="Rowan_has_expression_plates_authored_bone_weights_and_cut_out_idle" fullname="WalkGame.Shell.Tests.CanopyGroveArtTests.Rowan_has_expression_plates_authored_bone_weights_and_cut_out_idle" methodname="Rowan_has_expression_plates_authored_bone_weights_and_cut_out_idle" classname="WalkGame.Shell.Tests.CanopyGroveArtTests" runstate="Runnable" seed="729919399" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.054593" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1067" name="The_view_draws_what_the_presentation_says" fullname="WalkGame.Shell.Tests.CanopyGroveArtTests.The_view_draws_what_the_presentation_says" methodname="The_view_draws_what_the_presentation_says" classname="WalkGame.Shell.Tests.CanopyGroveArtTests" runstate="Runnable" seed="975593144" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.069565" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1062" name="Timber_and_walkway_follow_stage_and_walkway_key" fullname="WalkGame.Shell.Tests.CanopyGroveArtTests.Timber_and_walkway_follow_stage_and_walkway_key" methodname="Timber_and_walkway_follow_stage_and_walkway_key" classname="WalkGame.Shell.Tests.CanopyGroveArtTests" runstate="Runnable" seed="1114757113" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.001436" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="1276" name="RegionMapTests" fullname="WalkGame.Shell.Tests.RegionMapTests" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" testcasecount="7" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:55Z" duration="0.304949" total="7" passed="7" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1282" name="Pin_labels_keep_whole_words_and_wrap_helper_never_mid_breaks" fullname="WalkGame.Shell.Tests.RegionMapTests.Pin_labels_keep_whole_words_and_wrap_helper_never_mid_breaks" methodname="Pin_labels_keep_whole_words_and_wrap_helper_never_mid_breaks" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="973175160" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:54Z" duration="0.001305" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1277" name="Region_card_is_compact_and_place_actions_carry_full_a11y_labels" fullname="WalkGame.Shell.Tests.RegionMapTests.Region_card_is_compact_and_place_actions_carry_full_a11y_labels" methodname="Region_card_is_compact_and_place_actions_carry_full_a11y_labels" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="1362304235" result="Passed" start-time="2026-10-24 02:23:54Z" end-time="2026-10-24 02:23:55Z" duration="0.172189" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1278" name="Region_map_pins_match_authored_positions_and_draw_as_buttons_in_action_order" fullname="WalkGame.Shell.Tests.RegionMapTests.Region_map_pins_match_authored_positions_and_draw_as_buttons_in_action_order" methodname="Region_map_pins_match_authored_positions_and_draw_as_buttons_in_action_order" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="828311142" result="Passed" start-time="2026-10-24 02:23:55Z" end-time="2026-10-24 02:23:55Z" duration="0.088050" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1283" name="Region_pin_labels_do_not_overflow_or_overlap_at_1x_and_2x_text" fullname="WalkGame.Shell.Tests.RegionMapTests.Region_pin_labels_do_not_overflow_or_overlap_at_1x_and_2x_text" methodname="Region_pin_labels_do_not_overflow_or_overlap_at_1x_and_2x_text" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="410726955" result="Passed" start-time="2026-10-24 02:23:55Z" end-time="2026-10-24 02:23:55Z" duration="0.013823" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1281" name="Tapping_canopy_pin_requests_the_painted_world_once_unlocked" fullname="WalkGame.Shell.Tests.RegionMapTests.Tapping_canopy_pin_requests_the_painted_world_once_unlocked" methodname="Tapping_canopy_pin_requests_the_painted_world_once_unlocked" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="1522504847" result="Passed" start-time="2026-10-24 02:23:55Z" end-time="2026-10-24 02:23:55Z" duration="0.008738" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1279" name="Tapping_trailhead_pin_requests_the_painted_world" fullname="WalkGame.Shell.Tests.RegionMapTests.Tapping_trailhead_pin_requests_the_painted_world" methodname="Tapping_trailhead_pin_requests_the_painted_world" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="1561648739" result="Passed" start-time="2026-10-24 02:23:55Z" end-time="2026-10-24 02:23:55Z" duration="0.014568" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1280" name="Unpainted_pin_opens_a_short_focus_card_not_the_world" fullname="WalkGame.Shell.Tests.RegionMapTests.Unpainted_pin_opens_a_short_focus_card_not_the_world" methodname="Unpainted_pin_opens_a_short_focus_card_not_the_world" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="220065784" result="Passed" start-time="2026-10-24 02:23:55Z" end-time="2026-10-24 02:23:55Z" duration="0.003601" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /home/box/.config/unity3d/quantdale/Simple Walk Game/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

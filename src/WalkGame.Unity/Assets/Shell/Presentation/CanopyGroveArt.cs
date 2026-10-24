@@ -27,7 +27,7 @@ namespace WalkGame.Shell.Presentation
         public const float OrchidWorldScale = 0.28f;
         public const string RowanBody = "rowan_body";
         public const int RowanCanvasW = 436, RowanCanvasH = 1068;
-        /// <summary>Dialogue expressions map to the locked neutral bust until dedicated plates ship.</summary>
+        /// <summary>D-224: dedicated expression busts (face-ellipse onto locked ROWAN-FINISH-01).</summary>
         public static readonly string[] RowanExpressions = { "neutral", "wistful", "glad", "proud", "curious" };
         public static readonly (string name, int x, int y, int w, int h, int px, int py, int order)[] RowanParts =
         {
@@ -107,7 +107,7 @@ namespace WalkGame.Shell.Presentation
                 [RowanId] = RowanBody,
                 ["portrait." + RowanId] = "portrait_rowan_neutral",
             };
-            foreach (var e in RowanExpressions) d["portrait." + RowanId + "@" + e] = "portrait_rowan_neutral";
+            foreach (var e in RowanExpressions) d["portrait." + RowanId + "@" + e] = "portrait_rowan_" + e;
             return d;
         }
 

@@ -4164,3 +4164,13 @@ card collapses to a few summary lines; full landmark phrases ride on each place 
    pass; `ArtFringeTests` asserts `key_fringe_ratio ≤ 0.04` on Mira/Tavi/Rowan/millstone/orchids.
 
 **Evidence** (`docs/evidence/d223-pinfix/`, Unity editor, NOT a device).
+
+## D-224 — Rowan expression plates + live bone weights (2026-10-24)
+
+**Status:** Accepted (agent)
+
+**Decision.** Ship dedicated Rowan dialogue busts for neutral/wistful/glad/proud/curious (face-ellipse ECC onto locked ROWAN-FINISH-01, D-214/D-223 magenta/neon rim choke). Wire CanopyGroveArt.CatalogEntries so each expression resolves to portrait_rowan_<expr>. Author live SpriteSkin bone weights on rowan_rig.psb (hips/spine/head; spine+head neck blend). Runtime still prefers the cut-out idle (reliable silhouette); the weighted prefab is asserted in EditMode and ready for a follow-up once mesh settle is verified in captures. No Domain/Application/save-schema change.
+
+
+
+**Evidence** (`docs/evidence/d224-rowan-expr/`, Unity editor, NOT a device).

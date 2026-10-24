@@ -11,7 +11,7 @@ using UnityEngine.U2D;
 namespace WalkGame.Shell.Editor
 {
     /// <summary>
-    /// D-222: authors Rowan's 2D Animation skeleton into <c>Assets/Resources/Art/Canopy/Rig/rowan_rig.psb</c>
+    /// D-222/D-224: authors Rowan's 2D Animation skeleton into <c>Assets/Resources/Art/Canopy/Rig/rowan_rig.psb</c>
     /// (same method as Mira, D-212). Bones on the locked BODY-02 joints; distance-based skin weights.
     /// Batchmode: <c>-executeMethod WalkGame.Shell.Editor.RowanRigAuthoring.Author</c>.
     /// </summary>
@@ -29,11 +29,11 @@ namespace WalkGame.Shell.Editor
         };
         static readonly Dictionary<string, int[]> Influences = new Dictionary<string, int[]>
         {
-            ["body"] = new[] { 0, 1 }, ["head"] = new[] { 2 },
+            ["body"] = new[] { 0, 1 }, ["head"] = new[] { 1, 2 }, // spine+head blend at the neck
         };
         static Vector2 Doc(Vector2 img) => new Vector2(img.x, H - img.y);
 
-        [MenuItem("Walk Game/Art/Author Rowan rig (D-222)")]
+        [MenuItem("Walk Game/Art/Author Rowan rig (D-224)")]
         public static void Author()
         {
             var importer = (PSDImporter)AssetImporter.GetAtPath(Path);
@@ -90,7 +90,7 @@ namespace WalkGame.Shell.Editor
             dp.Apply();
             EditorUtility.SetDirty(importer);
             importer.SaveAndReimport();
-            Debug.Log("D222_ROWAN_RIG bones=" + cd.bones.Length + " parts=" + cd.parts.Length);
+            Debug.Log("D224_ROWAN_RIG bones=" + cd.bones.Length + " parts=" + cd.parts.Length);
         }
 
         static BoneWeight Weigh(Vector2 docPt, int[] bones, (Vector2 pos, float ang, float len)[] world)

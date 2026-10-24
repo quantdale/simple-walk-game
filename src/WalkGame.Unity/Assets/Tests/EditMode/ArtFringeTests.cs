@@ -19,6 +19,10 @@ namespace WalkGame.Shell.Tests
                 "Assets/Resources/Art/Canopy/rowan_part_body.png",
                 "Assets/Resources/Art/Canopy/rowan_part_head.png",
                 "Assets/Resources/Art/Canopy/portrait_rowan_neutral.png",
+                "Assets/Resources/Art/Canopy/portrait_rowan_glad.png",
+                "Assets/Resources/Art/Canopy/portrait_rowan_wistful.png",
+                "Assets/Resources/Art/Canopy/portrait_rowan_proud.png",
+                "Assets/Resources/Art/Canopy/portrait_rowan_curious.png",
                 "Assets/Resources/Art/Canopy/orchids.png",
             };
             foreach (var r in rel) AssertFringe(r);
