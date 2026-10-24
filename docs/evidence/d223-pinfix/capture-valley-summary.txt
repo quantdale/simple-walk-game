@@ -1,0 +1,67 @@
+WG_CAPTURE device=OpenGLCore renderer=llvmpipe (LLVM 19.1.7, 256 bits) shapes=31 path=/workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/docs/evidence/d223-pinfix
+Traceback (most recent call last):
+  File "/workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/tools/unity/rgba-to-png.py", line 12, in <module>
+    open(out, "wb").write(png)
+    ~~~~^^^^^^^^^^^
+IsADirectoryError: [Errno 21] Is a directory: '/workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/docs/evidence/d223-pinfix'
+total 78520
+-rw-r--r-- 1 box box  970836 Oct 24 09:14 canopy-dialogue-rowan-text2x.unity-editor-capture.png
+-rw-r--r-- 1 box box 1330394 Oct 24 09:14 canopy-dialogue-rowan.unity-editor-capture.png
+-rw-r--r-- 1 box box 1340184 Oct 24 09:14 canopy-orchids-find-card-text2x.unity-editor-capture.png
+-rw-r--r-- 1 box box 1758964 Oct 24 09:14 canopy-orchids-find-card.unity-editor-capture.png
+-rw-r--r-- 1 box box 2141013 Oct 24 09:14 canopy-orchids-glow.unity-editor-capture.png
+-rw-r--r-- 1 box box 1546989 Oct 24 09:14 canopy-s0-rowan.unity-editor-capture.png
+-rw-r--r-- 1 box box 1631913 Oct 24 09:14 canopy-s0-timber-keydriven.unity-editor-capture.png
+-rw-r--r-- 1 box box 2029583 Oct 24 09:14 canopy-s1-stabilized.unity-editor-capture.png
+-rw-r--r-- 1 box box 2146841 Oct 24 09:14 canopy-s2-functional.unity-editor-capture.png
+-rw-r--r-- 1 box box 1900134 Oct 24 09:14 canopy-s4-flourishing.unity-editor-capture.png
+-rw-r--r-- 1 box box   15296 Oct 24 09:14 capture-results.xml
+-rw-r--r-- 1 box box  139874 Oct 24 09:14 capture-run.log
+-rw-r--r-- 1 box box    1645 Oct 24 09:14 capture-trailhead-summary.txt
+-rw-r--r-- 1 box box     498 Oct 24 09:15 capture-valley-summary.txt
+-rw-r--r-- 1 box box     250 Oct 24 09:14 captures-canopy.txt
+-rw-r--r-- 1 box box     265 Oct 24 09:14 captures-intake.txt
+-rw-r--r-- 1 box box     368 Oct 24 09:14 captures.txt
+-rw-r--r-- 1 box box    1078 Oct 24 09:13 dotnet-full.log
+-rw-r--r-- 1 box box   53925 Oct 24 09:10 editmode-focus.log
+-rw-r--r-- 1 box box   25162 Oct 24 09:10 editmode-focus.xml
+-rw-r--r-- 1 box box  228169 Oct 24 09:11 editmode-full.log
+-rw-r--r-- 1 box box  327036 Oct 24 09:11 editmode-full.xml
+-rw-r--r-- 1 box box 1811664 Oct 24 09:14 home-help-restore-goal-card.unity-editor-capture.png
+-rw-r--r-- 1 box box 1909308 Oct 24 09:14 home-tap-bridge-inspect.unity-editor-capture.png
+-rw-r--r-- 1 box box 1859969 Oct 24 09:14 home-tap-mira-dialogue.unity-editor-capture.png
+-rw-r--r-- 1 box box 2163473 Oct 24 09:14 home-trailhead-open.unity-editor-capture.png
+-rw-r--r-- 1 box box  970981 Oct 24 09:14 intake-dialogue-tavi-text2x.unity-editor-capture.png
+-rw-r--r-- 1 box box 1355114 Oct 24 09:14 intake-dialogue-tavi.unity-editor-capture.png
+-rw-r--r-- 1 box box 1343006 Oct 24 09:14 intake-find-card-text2x.unity-editor-capture.png
+-rw-r--r-- 1 box box 1693465 Oct 24 09:14 intake-find-card.unity-editor-capture.png
+-rw-r--r-- 1 box box 1575650 Oct 24 09:14 intake-gate-rebuilding-g1.unity-editor-capture.png
+-rw-r--r-- 1 box box 1577613 Oct 24 09:14 intake-s0-gate-jammed-tavi.unity-editor-capture.png
+-rw-r--r-- 1 box box 2050769 Oct 24 09:14 intake-s1-gate-restored-plate-glow.unity-editor-capture.png
+-rw-r--r-- 1 box box 2134967 Oct 24 09:14 intake-s2-functional.unity-editor-capture.png
+-rw-r--r-- 1 box box 2127693 Oct 24 09:14 intake-s3-restored.unity-editor-capture.png
+-rw-r--r-- 1 box box 1905120 Oct 24 09:14 intake-s4-flourishing-keydriven.unity-editor-capture.png
+-rw-r--r-- 1 box box   50568 Oct 24 09:12 playmode-full.log
+-rw-r--r-- 1 box box   14089 Oct 24 09:12 playmode-full.xml
+-rw-r--r-- 1 box box 1317870 Oct 24 09:14 shell-first-launch.unity-editor-capture.png
+-rw-r--r-- 1 box box  731595 Oct 24 09:14 shell-home-visit-trailhead-text2x.unity-editor-capture.png
+-rw-r--r-- 1 box box  753848 Oct 24 09:14 shell-home-visit-trailhead.unity-editor-capture.png
+-rw-r--r-- 1 box box 1230178 Oct 24 09:14 shell-region-view.unity-editor-capture.png
+-rw-r--r-- 1 box box 1295748 Oct 24 09:14 shell-return-after-walking.unity-editor-capture.png
+-rw-r--r-- 1 box box 1506976 Oct 24 09:14 trailhead-dialogue-mira-text2x.unity-editor-capture.png
+-rw-r--r-- 1 box box 1932148 Oct 24 09:14 trailhead-dialogue-mira.unity-editor-capture.png
+-rw-r--r-- 1 box box 1285196 Oct 24 09:14 trailhead-millstone-find-card-text2x.unity-editor-capture.png
+-rw-r--r-- 1 box box 1747199 Oct 24 09:14 trailhead-millstone-find-card.unity-editor-capture.png
+-rw-r--r-- 1 box box 2233687 Oct 24 09:14 trailhead-millstone-glow.unity-editor-capture.png
+-rw-r--r-- 1 box box 2055195 Oct 24 09:14 trailhead-mira-reaction-help-restore.unity-editor-capture.png
+-rw-r--r-- 1 box box  616975 Oct 24 09:14 trailhead-motion.unity-editor-capture.gif
+-rw-r--r-- 1 box box 1807273 Oct 24 09:14 trailhead-s0-forgotten-bridge-ruined.unity-editor-capture.png
+-rw-r--r-- 1 box box 2226473 Oct 24 09:14 trailhead-s1-awakening-bridge-ruined.unity-editor-capture.png
+-rw-r--r-- 1 box box 2235989 Oct 24 09:14 trailhead-s1-bridge-build-0of3.unity-editor-capture.png
+-rw-r--r-- 1 box box 2191235 Oct 24 09:14 trailhead-s1-bridge-build-1of3.unity-editor-capture.png
+-rw-r--r-- 1 box box 2180246 Oct 24 09:14 trailhead-s1-bridge-build-2of3.unity-editor-capture.png
+-rw-r--r-- 1 box box 2183936 Oct 24 09:14 trailhead-s1-bridge-done.unity-editor-capture.png
+-rw-r--r-- 1 box box 2257076 Oct 24 09:14 trailhead-s2-functional.unity-editor-capture.png
+-rw-r--r-- 1 box box 2248663 Oct 24 09:14 trailhead-s3-restored.unity-editor-capture.png
+-rw-r--r-- 1 box box 2041981 Oct 24 09:14 trailhead-s4-flourishing-keydriven.unity-editor-capture.png
+-rw-r--r-- 1 box box 2053096 Oct 24 09:14 trailhead-s4-motion-on.unity-editor-capture.png

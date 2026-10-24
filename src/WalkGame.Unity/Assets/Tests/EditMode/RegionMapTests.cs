@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -101,6 +103,107 @@ namespace WalkGame.Shell.Tests
                 c.Invoke("region:clearFocus");
             }
             else Assert.AreEqual(CanopyGroveArt.LocationId, c.WorldRequested);
+        }
+
+        [Test] public void Pin_labels_keep_whole_words_and_wrap_helper_never_mid_breaks()
+        {
+            Assert.IsTrue(RegionArt.LinesKeepWholeWords("Ridge Observatory", RegionArt.WrapAtSpaces("Ridge Observatory", 8)));
+            Assert.AreEqual("Ridge\nObservatory", RegionArt.WrapAtSpaces("Ridge Observatory", 8));
+            Assert.AreEqual("Millbrook\nSettlement", RegionArt.WrapAtSpaces("Millbrook Settlement", 10));
+            Assert.AreEqual("Observatory", RegionArt.WrapAtSpaces("Observatory", 4), "single long word stays on one line (never mid-split)");
+            Assert.IsFalse(RegionArt.WrapAtSpaces("Observatory", 4).Contains("\n"), "no forced break inside a long word");
+            Assert.AreEqual("Settlement", RegionArt.LongestWord("Millbrook Settlement"));
+        }
+
+        [Test] public void Region_pin_labels_do_not_overflow_or_overlap_at_1x_and_2x_text()
+        {
+            foreach (float scale in new[] { 1f, 2f })
+            {
+                var c = Fresh();
+                c.Invoke("nav:Region");
+                var m = c.Render();
+                ShellView.Backdrop = Texture2D.whiteTexture;
+                var root = new VisualElement();
+                root.style.width = 720; root.style.height = 1280;
+                ShellView.Render(root, m, _ => { }, scale);
+                // Force a layout pass so worldBound is meaningful.
+                root.MarkDirtyRepaint();
+                var panel = root.panel; // may be null off-panel — use resolved geometry via manual layout
+                root.schedule.Execute(() => { }).ExecuteLater(0);
+                // Measure via style + authored geometry (panel-less EditMode): plates use WrapAtSpaces + minWidth ≥ longest word.
+                var map = root.Q("region-map");
+                Assert.IsNotNull(map);
+                var plates = map.Query<Label>(className: null).ToList().Where(l => l.name != null && l.name.StartsWith("pin-label-")).ToList();
+                Assert.AreEqual(m.Scene!.Landmarks.Count, plates.Count, "scale=" + scale);
+                var pinButtons = map.Query<Button>().ToList();
+                Assert.AreEqual(m.Scene!.Landmarks.Count, pinButtons.Count);
+                foreach (var b in pinButtons)
+                {
+                    Assert.GreaterOrEqual(b.style.minWidth.value.value, 48f * scale - 0.1f, b.name + " hit ≥ 48dp @ " + scale);
+                    Assert.GreaterOrEqual(b.style.minHeight.value.value, 48f * scale - 0.1f, b.name);
+                    Assert.AreEqual(b.text, b.tooltip, "D-147 @ " + scale);
+                    // Glyph-only: marker child present, text colour transparent.
+                    Assert.IsNotNull(b.Q<RegionMarkerElement>(), b.name);
+                }
+                foreach (var plate in plates)
+                {
+                    string id = plate.name.Substring("pin-label-".Length);
+                    string title = m.Actions.Single(a => RegionArt.PlaceIdOf(a.Id) == id).Label;
+                    Assert.IsTrue(RegionArt.LinesKeepWholeWords(title, plate.text), id + " mid-word @ " + scale + ": " + plate.text);
+                    Assert.AreEqual(WhiteSpace.Pre, plate.style.whiteSpace.value, id + " must use Pre (no UITK mid-wrap)");
+                    float expectW = RegionArt.PlateWidthDp(title, RegionArt.LabelFontDp * scale, scale);
+                    Assert.GreaterOrEqual(plate.style.minWidth.value.value, expectW - 1f, id + " plate fits longest line");
+                    Assert.GreaterOrEqual(plate.style.width.value.value, expectW - 1f, id);
+                    // Plate must be at least as wide as the longest word (never crush into mid-break).
+                    float minWord = RegionArt.LongestWord(title).Length * RegionArt.ApproxCharWidth(RegionArt.LabelFontDp * scale)
+                        + 2f * RegionArt.LabelPadX * scale;
+                    Assert.GreaterOrEqual(plate.style.width.value.value, minWord - 1f, id + " width ≥ longest word");
+                }
+                // Pairwise plate centres (authored) stay apart so plates do not stack on each other.
+                var centres = new System.Collections.Generic.List<Vector2>();
+                foreach (var lv in m.Scene!.Landmarks)
+                {
+                    Assert.IsTrue(RegionArt.TryLabelOffset(lv.LandmarkId, out float lx, out float ly));
+                    Assert.GreaterOrEqual(Mathf.Abs(lx) + Mathf.Abs(ly), 0.085f, lv.LandmarkId + " label clears pin");
+                    centres.Add(new Vector2(lv.X + lx, lv.Y + ly));
+                }
+                for (int i = 0; i < centres.Count; i++)
+                    for (int j = i + 1; j < centres.Count; j++)
+                        Assert.Greater(Vector2.Distance(centres[i], centres[j]), 0.10f,
+                            "label centres too close @ " + scale + ": " + m.Scene.Landmarks[i].LandmarkId + " vs " + m.Scene.Landmarks[j].LandmarkId);
+                // Estimated plate AABBs in art-space must not overlap (720× map band ≈ MapShare of 1280).
+                float mapH = 1280f * RegionArt.MapShare;
+                for (int i = 0; i < plates.Count; i++)
+                {
+                    for (int j = i + 1; j < plates.Count; j++)
+                    {
+                        var a = plates[i]; var b = plates[j];
+                        string idA = a.name.Substring("pin-label-".Length);
+                        string idB = b.name.Substring("pin-label-".Length);
+                        RegionArt.TryPin(idA, out float ax, out float ay); RegionArt.TryLabelOffset(idA, out float alx, out float aly);
+                        RegionArt.TryPin(idB, out float bx, out float by); RegionArt.TryLabelOffset(idB, out float blx, out float bly);
+                        int linesA = Math.Max(1, a.text.Split('\n').Length);
+                        int linesB = Math.Max(1, b.text.Split('\n').Length);
+                        float aw = a.style.width.value.value / 720f;
+                        float ah = (RegionArt.LabelFontDp * scale * (1.15f * linesA) + 6f * scale) / mapH;
+                        float bw = b.style.width.value.value / 720f;
+                        float bh = (RegionArt.LabelFontDp * scale * (1.15f * linesB) + 6f * scale) / mapH;
+                        float ax0 = ax + alx - aw * 0.5f, ay0 = ay + aly - ah * 0.5f;
+                        float bx0 = bx + blx - bw * 0.5f, by0 = by + bly - bh * 0.5f;
+                        bool overlap = ax0 < bx0 + bw && ax0 + aw > bx0 && ay0 < by0 + bh && ay0 + ah > by0;
+                        Assert.IsFalse(overlap, "plates overlap @ " + scale + ": " + idA + " vs " + idB);
+                    }
+                }
+                // Labels stay inside the map band (not over the card).
+                foreach (var lv in m.Scene!.Landmarks)
+                {
+                    RegionArt.TryLabelOffset(lv.LandmarkId, out float lx, out float ly);
+                    float lyAbs = lv.Y + ly;
+                    Assert.Greater(lyAbs, 0.02f, lv.LandmarkId);
+                    Assert.Less(lyAbs, 0.96f, lv.LandmarkId + " must stay above the card fold");
+                }
+                ShellView.Backdrop = null;
+            }
         }
     }
 }

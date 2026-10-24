@@ -23,14 +23,16 @@ namespace WalkGame.Shell.Presentation
         public const string TimberFallen = "canopy_timber_T0";
         public const string WalkwayRaised = "canopy_walkway_W3";
         public const string OrchidsSprite = "orchids";
+        /// <summary>D-223: humble understory scale in world units (fraction of the 7.2×12.8 view).</summary>
+        public const float OrchidWorldScale = 0.28f;
         public const string RowanBody = "rowan_body";
-        public const int RowanCanvasW = 440, RowanCanvasH = 1076;
+        public const int RowanCanvasW = 436, RowanCanvasH = 1068;
         /// <summary>Dialogue expressions map to the locked neutral bust until dedicated plates ship.</summary>
         public static readonly string[] RowanExpressions = { "neutral", "wistful", "glad", "proud", "curious" };
         public static readonly (string name, int x, int y, int w, int h, int px, int py, int order)[] RowanParts =
         {
-            ("rowan_part_body", 0, 0, 440, 1076, 220, 1076, 0),
-            ("rowan_part_head", 95, 0, 312, 411, 237, 322, 1),
+            ("rowan_part_body", 0, 0, 436, 1068, 218, 1068, 0),
+            ("rowan_part_head", 94, 0, 306, 408, 235, 320, 1),
         };
         public const string RowanRig = "Rig/rowan_rig";
         public static readonly string[] RowanBones = { "hips", "spine", "head" };

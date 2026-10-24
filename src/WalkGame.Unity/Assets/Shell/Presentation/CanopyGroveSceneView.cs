@@ -62,11 +62,11 @@ namespace WalkGame.Shell.Presentation
             BuildRowanRig();
             _glow.sprite = Sprite.Create(GlowRing(), new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
             _glow.transform.localPosition = new Vector3((CanopyGroveArt.OrchidsX - 0.5f) * 7.2f, (0.5f - CanopyGroveArt.OrchidsY) * 12.8f, 0f);
-            _glow.transform.localScale = new Vector3(0.55f, 0.55f, 1f);
+            _glow.transform.localScale = new Vector3(0.38f, 0.38f, 1f);
             _glow.enabled = false;
             _orchids.sprite = SpriteFor(CanopyGroveArt.OrchidsSprite, new Vector2(0.5f, 0.5f));
             _orchids.transform.localPosition = _glow.transform.localPosition;
-            float oScale = 0.9f;
+            float oScale = CanopyGroveArt.OrchidWorldScale;
             _orchids.transform.localScale = new Vector3(oScale, oScale, 1f);
             _orchids.enabled = false;
             SetRowan(false);
