@@ -50,6 +50,72 @@ namespace WalkGame.Shell.Tests
             finally { Object.DestroyImmediate(orch); }
         }
 
+        /// <summary>D-225: opaque chroma-key pockets (enclosed #00FF00 islands) escaped the semi-alpha fringe metric
+        /// and showed as a neon fragment at Rowan's hip. Zero tolerance across every sprite under Resources/Art.</summary>
+        [Test] public void No_sprite_under_Resources_Art_contains_saturated_key_green()
+        {
+            string root = Path.GetFullPath(Path.Combine(global::UnityEngine.Application.dataPath, ".."));
+            var files = Directory.GetFiles(Path.Combine(root, "Assets/Resources/Art"), "*.png", SearchOption.AllDirectories);
+            Assert.Greater(files.Length, 20, "art sweep found sprites");
+            var bad = new System.Collections.Generic.List<string>();
+            foreach (var f in files)
+            {
+                var tex = LoadPng(f.Substring(root.Length + 1));
+                try { int n = KeyGreenPixelCount(tex); if (n > 0) bad.Add(f.Substring(root.Length + 1) + "=" + n); }
+                finally { Object.DestroyImmediate(tex); }
+            }
+            Assert.IsEmpty(bad, "saturated key-green pixels: " + string.Join(", ", bad));
+        }
+
+        /// <summary>D-225: the cut-out idle Rowan (body + head composited per CanopyGroveArt.RowanParts) carries no key green.</summary>
+        [Test] public void Rowan_cutout_idle_composite_has_no_key_green()
+        {
+            int w = CanopyGroveArt.RowanCanvasW, h = CanopyGroveArt.RowanCanvasH;
+            var canvas = new Color32[w * h];
+            foreach (var p in CanopyGroveArt.RowanParts.OrderBy(p => p.order))
+            {
+                var tex = LoadPng("Assets/Resources/Art/Canopy/" + p.name + ".png");
+                try
+                {
+                    var src = tex.GetPixels32();
+                    for (int y = 0; y < Mathf.Min(p.h, tex.height); y++)
+                    for (int x = 0; x < Mathf.Min(p.w, tex.width); x++)
+                    {
+                        int cx = p.x + x, cyTop = p.y + y;           // top-left canvas coords
+                        if (cx < 0 || cx >= w || cyTop < 0 || cyTop >= h) continue;
+                        var s = src[(tex.height - 1 - y) * tex.width + x]; // texture rows are bottom-up
+                        if (s.a == 0) continue;
+                        int di = (h - 1 - cyTop) * w + cx;
+                        canvas[di] = s.a >= canvas[di].a ? s : Color32.Lerp(canvas[di], s, s.a / 255f);
+                    }
+                }
+                finally { Object.DestroyImmediate(tex); }
+            }
+            var comp = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            try
+            {
+                comp.SetPixels32(canvas);
+                Assert.Greater(canvas.Count(c => c.a > 12), w * h / 10, "composite has coverage");
+                Assert.AreEqual(0, KeyGreenPixelCount(comp), "cut-out idle composite key-green pixels");
+            }
+            finally { Object.DestroyImmediate(comp); }
+        }
+
+        /// <summary>Near-#00FF00: green dominant by &gt;70, bright, saturated. Painted foliage (olive/sage) stays well below.</summary>
+        public static int KeyGreenPixelCount(Texture2D tex)
+        {
+            var px = tex.GetPixels32(); int n = 0;
+            foreach (var c in px)
+            {
+                if (c.a <= 12) continue;
+                int r = c.r, g = c.g, b = c.b;
+                int max = Mathf.Max(r, Mathf.Max(g, b)), min = Mathf.Min(r, Mathf.Min(g, b));
+                float sat = max == 0 ? 0f : (max - min) / (float)max;
+                if (g >= 150 && g > r + 70 && g > b + 70 && sat >= 0.55f) n++;
+            }
+            return n;
+        }
+
         private static void AssertFringe(string relPath)
         {
             var tex = LoadPng(relPath);
