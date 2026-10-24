@@ -71,6 +71,10 @@ neon2 = (hsv2[...,0] > 35) & (hsv2[...,0] < 95) & (hsv2[...,1] > 100) & (hsv2[..
 mag = (rgb[...,0] > 160) & (rgb[...,2] > 160) & (rgb[...,1] < 110) & (hsv2[...,1] > 60)
 fring = edge_m & (neon2 | mag)
 ratio = float(fring.sum()) / max(1, int(edge_m.sum()))
+# D-225: kill enclosed key pockets the border flood-fill never reached (hue-symmetric for RGB/BGR order)
+import os, sys; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from key_pocket_clean import clean as _pocket_clean
+pad, _pocket_px = _pocket_clean(pad); print('key_pocket_px', _pocket_px)
 cv2.imwrite(out, cv2.cvtColor(pad, cv2.COLOR_RGBA2BGRA))
 print(f"wrote {out} size={pad.shape[:2]} key_fringe_ratio={ratio:.4f} edge_px={int(edge_m.sum())} fringe_px={int(fring.sum())}")
 sys.exit(2 if ratio > 0.04 else 0)

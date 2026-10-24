@@ -4174,3 +4174,17 @@ card collapses to a few summary lines; full landmark phrases ride on each place 
 
 
 **Evidence** (`docs/evidence/d224-rowan-expr/`, Unity editor, NOT a device).
+
+## D-225 — Opaque key-green pocket at Rowan's hip: root cause + zero-tolerance gate (2026-10-24)
+
+**Status:** Accepted (agent)
+
+**Root cause.** The green-key finish flood-fills the chroma background from the image border. The pocket between Rowan's right arm and her satchel is fully enclosed by the silhouette, so it was never reached and shipped as ~1,430 *opaque* #00FF00-ish pixels in `rowan_part_body.png`/`rowan_body.png` (and the `rowan_rig.psb` body layer). The D-223 `KeyFringeRatio` gate only counted semi-transparent rim pixels (12 < a < 220), so opaque pockets passed. It was not a sorting or rig-part problem: the cut-out idle drew the pocket faithfully. The same kind of pocket was in the orchid stem gap (98 px), at the bottom crop of all five Rowan portraits (156 px each), and a 2 px speck on Mira's body.
+
+**Decision.** Add `tools/art/key_pocket_clean.py`: it makes near-key pixels (HSV hue 40–80, sat/val ≥ 150) transparent, chokes the 2 px green halo and despills it. The pass is wired into `green_key_finish.py` so regenerated art stays clean. Apply it to all affected sprites, and rebuild the PSB body/head layers with identical geometry (layer names/bboxes unchanged, so the authored weights in the .meta stay valid). Extend `ArtFringeTests` with:
+- (a) a zero-tolerance sweep of every PNG under `Resources/Art` for saturated key green (g ≥ 150, g > r+70, g > b+70, sat ≥ 0.55; painted olive/sage foliage scores 0);
+- (b) a CPU composite of the cut-out idle (`CanopyGroveArt.RowanParts` in draw order) asserting 0 key pixels.
+
+Both fail on the pre-fix assets (1449 / 98 / 163 px). No Domain/Application/save-schema change.
+
+**Evidence** (`docs/evidence/d225-greenfix/`, Unity editor, NOT a device). `hip-crop-before-after.png`: D-224 capture on the left, D-225 on the right. Full-frame key-green pixels in canopy-s4-flourishing went from 94 to 0, canopy-s0-rowan from 88 to 0. Suites: EditMode 413/413, PlayMode Xvfb 9/9, nographics 4 passed + 5 skipped, .NET 1871/1871 (162 + 252 + 1457).
