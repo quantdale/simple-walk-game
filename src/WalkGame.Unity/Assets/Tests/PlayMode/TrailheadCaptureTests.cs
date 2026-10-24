@@ -101,6 +101,10 @@ namespace WalkGame.Shell.PlayModeTests
                 for (int i = 0; i < 80 && St("proj.clear-trailhead") != ProjectStatus.Completed; i++) WalkSteps(1500, 2);
                 c.Refresh();
                 yield return Shot("trailhead-s1-awakening-bridge-ruined", "canonical: trailhead cleared");
+                view.SetDiscovery(true, false);
+                view.Tick(1.2f);
+                yield return Shot("trailhead-millstone-glow", "canonical: Stabilized; optional millstone find glowing");
+                Assert.AreEqual(TrailheadTarget.Millstone, TrailheadArt.HitTest(TrailheadArt.MillstoneX, TrailheadArt.MillstoneY, true, true));
 
                 Assert.AreEqual(TapOutcome.Opened, c.TapCharacter(TrailheadArt.MiraId));
                 yield return Shot("trailhead-dialogue-mira", "canonical: tap Mira (skippable)");
@@ -301,6 +305,16 @@ namespace WalkGame.Shell.PlayModeTests
                 }
                 float aspect = (float)W / H;
                 yield return Shot("home-trailhead-open", "Home → Visit the Old Trailhead (canonical: trailhead cleared)");
+                Assert.IsTrue(host.View.MillstoneTappable, "clear-trailhead unlocks disc.old-millstone");
+                Assert.AreEqual(TrailheadTarget.Millstone, host.TapAt(new Vector2(TrailheadArt.MillstoneX, TrailheadArt.MillstoneY), aspect));
+                Assert.IsTrue(host.ShownCard != null && host.ShownCard.StartsWith("find:"));
+                yield return Shot("trailhead-millstone-find-card", "tap the old millstone → the find (in-engine text; marks it reviewed)");
+                host.CloseFind();
+                host.View.TextScale = 2f;
+                Assert.IsTrue(host.OpenFind());
+                yield return Shot("trailhead-millstone-find-card-text2x", "the millstone find at 2x text");
+                host.View.TextScale = 1f;
+                host.CloseFind();
                 Assert.AreEqual(TrailheadTarget.Mira, host.TapAt(new Vector2(0.75f, 0.8f), aspect));
                 Assert.IsNotNull(host.View.Dialogue);
                 yield return Shot("home-tap-mira-dialogue", "tap Mira");

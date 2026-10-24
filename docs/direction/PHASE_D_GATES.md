@@ -76,7 +76,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Interact with the world naturally? | Yes (editor) | Tap bridge/signpost/Mira; touch on a phone UNVERIFIED |
 | Walking produces meaningful visible change? | Yes | Steps → bridge build stages → stage plates (real-play captures) |
 | Follow progress without reading paragraphs? | Yes inside the world | Bridge stages + goal-progress line; the Region view is still text-heavy |
-| Worthwhile optional gameplay beyond dialogue? | **Yes (one find, editor)** | D-216: the brass intake plate (`disc.intake-plate-stamp`) is an optional in-world find with a honey glow ring (static under reduced motion), a ≥ 48 dp tap and a screen-reader button; card text is in-engine (`I/intake-find-card*`). Marks reviewed via the existing command; never gates progress. Further finds / expeditions still text-only |
+| Worthwhile optional gameplay beyond dialogue? | **Yes (two finds, editor)** | D-216 brass plate at the intake; D-220 old millstone at the trailhead (`disc.old-millstone`, glow + card in `docs/evidence/d220-millstone/`). Expeditions still text-only |
 | Leave without being penalised? | Yes | D-198: caps unchanged, calm welcome-back; nothing decays |
 
 ## Failures fixed
@@ -90,5 +90,5 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 ## Open (cannot be closed by a small PR)
 
 1. ~~Text shell in direction A~~ and ~~world-first boot~~ → D-215. ~~Painted Region map + lighter Home~~ → D-219.
-3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate at the intake). Residual: more finds, expeditions in-world.
+3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate) + D-220 (millstone). Residual: more finds, expeditions in-world.
 4. Device verification of everything above (KI-002).

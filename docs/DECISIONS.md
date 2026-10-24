@@ -4112,3 +4112,17 @@ Settings, and More; Story/Progress/Activity/Discoveries live on a new `ShellScre
 focus order = action order). Accessibility suite stays green. No Domain/Application/save-schema change.
 
 **Evidence** (`docs/evidence/d219-region-home/`, Unity editor, NOT a device).
+
+## D-220 — Trailhead optional find: the old millstone (2026-10-24)
+
+**Status:** Accepted (agent)
+
+**Decision.** Surface the existing catalog discovery `disc.old-millstone` (unlocked by `proj.clear-trailhead`) as an optional
+in-world find at the Old Trailhead: painted millstone prop, honey glow ring (static under reduced motion), ≥ 48 dp tap and a
+screen-reader button ("Look at the old millstone"). Card text is in-engine; marks reviewed via the existing
+`MarkDiscoveryReviewed` command; never gates progress. No Domain/Application/save-schema change — presentation only, same seam as D-216's brass plate.
+
+**Evidence** (`docs/evidence/d220-millstone/`, Unity editor, NOT a device).
+
+**Note.** Trailhead EditMode texture sum uses the editor DXT estimate (ceiling 22 MB); device ASTC budget stays ≤ 12 MB per PERFORMANCE_BUDGETS §9.
+
