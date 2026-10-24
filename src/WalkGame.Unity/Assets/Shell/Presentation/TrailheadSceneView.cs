@@ -19,7 +19,7 @@ namespace WalkGame.Shell.Presentation
         public const float PixelsPerUnit = 100f;
         private PresentationAssetResolver<string> _resolver = new PresentationAssetResolver<string>(new DictionaryAssetCatalog<string>());
         private readonly Dictionary<string, Sprite> _sprites = new Dictionary<string, Sprite>();
-        private SpriteRenderer _low = null!, _high = null!, _structure = null!, _mira = null!;
+        private SpriteRenderer _low = null!, _high = null!, _structure = null!, _mira = null!, _millstone = null!, _glow = null!;
         private float _highTarget, _highFrom, _fadeT = 1f, _fadeLen;
         private Vector3 _miraHome;
         private VisualElement? _dialogueRoot;
@@ -60,7 +60,30 @@ namespace WalkGame.Shell.Presentation
             _ripple.color = new Color(1f, 1f, 1f, 0.35f);
             _ripple.sortingOrder = 1; _high.sortingOrder = 1; _ripple.sortingOrder = 2; _structure.sortingOrder = 3;
             BuildParticles();
+            _millstone = Layer("find.millstone", 4);
+            _millstone.sprite = SpriteFor(TrailheadArt.MillstoneSprite, new Vector2(0.5f, 0.15f));
+            _millstone.transform.localPosition = new Vector3((TrailheadArt.MillstoneX - 0.5f) * 7.2f, (0.5f - TrailheadArt.MillstoneY) * 12.8f, 0f);
+            _millstone.transform.localScale = new Vector3(0.55f, 0.55f, 1f);
+            _millstone.enabled = false;
+            _glow = Layer("millstone_glow", 5);
+            _glow.sprite = Sprite.Create(GlowRing(), new Rect(0, 0, 64, 64), new Vector2(0.5f, 0.5f), 64f);
+            _glow.transform.localPosition = _millstone.transform.localPosition + new Vector3(0f, 0.35f, 0f);
+            _glow.transform.localScale = new Vector3(0.85f, 0.85f, 1f);
+            _glow.enabled = false;
             SetMiraVisible(false);
+        }
+
+        /// <summary>A soft honey ring (decoration colour, never text), drawn in code so it needs no art file.</summary>
+        private static Texture2D GlowRing()
+        {
+            var tex = new Texture2D(64, 64, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            for (int y = 0; y < 64; y++) for (int x = 0; x < 64; x++)
+            {
+                float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(32, 32)) / 32f;
+                float ring = Mathf.Exp(-Mathf.Pow((d - 0.72f) / 0.12f, 2f)), core = Mathf.Clamp01(1f - d) * 0.25f;
+                tex.SetPixel(x, y, new Color(0.898f, 0.729f, 0.412f, Mathf.Clamp01(ring + core)));
+            }
+            tex.Apply(); return tex;
         }
 
         private SpriteRenderer? _ripple;
@@ -160,6 +183,13 @@ namespace WalkGame.Shell.Presentation
             _miraOn = on;
         }
         private bool _miraOn;
+        private bool _discoveryUnlocked, _discoveryReviewed;
+        public SpriteRenderer Glow => _glow;
+        public SpriteRenderer Millstone => _millstone;
+        public bool MillstoneTappable => TrailheadArt.MillstoneTappable(_discoveryUnlocked);
+
+        /// <summary>The canonical state of the optional find (read by the host from the existing discoveries read model).</summary>
+        public void SetDiscovery(bool unlocked, bool reviewed) { _discoveryUnlocked = unlocked; _discoveryReviewed = reviewed; Tick(_clock); }
 
         /// <summary>Advances ambient motion to time <paramref name="t"/> (seconds). Reduced motion: everything at rest.</summary>
         public void Tick(float t)
@@ -186,6 +216,13 @@ namespace WalkGame.Shell.Presentation
                 float speed = TrailheadArt.RippleSpeed(Frame?.Stage ?? RestorationStage.Ruined, ReducedMotion);
                 _ripple.transform.localPosition = _rippleHome + new Vector3(0.06f * Mathf.Sin(t * 0.8f * speed), 0f, 0f);
                 var c = _ripple.color; c.a = (Frame?.Stage ?? RestorationStage.Ruined) == RestorationStage.Ruined ? 0.12f : 0.35f + 0.1f * Mathf.Sin(t * 1.7f * speed); _ripple.color = c;
+            }
+            if (_millstone != null)
+            {
+                _millstone.enabled = _discoveryUnlocked && _millstone.sprite != null;
+                bool glow = TrailheadArt.MillstoneGlows(_discoveryUnlocked, _discoveryReviewed);
+                _glow.enabled = glow;
+                if (glow) _glow.color = new Color(1f, 1f, 1f, TrailheadArt.GlowAlpha(t, ReducedMotion));
             }
         }
 

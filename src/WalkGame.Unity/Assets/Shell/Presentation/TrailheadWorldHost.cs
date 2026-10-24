@@ -84,29 +84,42 @@ namespace WalkGame.Shell.Presentation
             RefreshFind();
         }
 
-        /// <summary>The optional find's canonical state, read from the existing discoveries read model.</summary>
-        private WalkGame.Application.ReadModels.DiscoveriesReadModel.DiscoveryRow? FindRow()
+        /// <summary>The optional find for the painted place on screen (intake plate or trailhead millstone).</summary>
+        private string? ActiveDiscoveryId =>
+            Intake != null ? RiverIntakeArt.DiscoveryId : TrailheadArt.DiscoveryId;
+
+        private WalkGame.Application.ReadModels.DiscoveriesReadModel.DiscoveryRow? FindRow(string? id = null)
         {
-            foreach (var r in _session.GetDiscoveries().Discoveries) if (r.DiscoveryId == RiverIntakeArt.DiscoveryId) return r;
+            id ??= ActiveDiscoveryId;
+            if (id == null) return null;
+            foreach (var r in _session.GetDiscoveries().Discoveries) if (r.DiscoveryId == id) return r;
             return null;
         }
         private void RefreshFind()
         {
-            if (Intake == null) return;
-            var r = FindRow(); Intake.SetDiscovery(r != null && r.Unlocked, r != null && r.Reviewed);
-            if (_plateButton != null) _plateButton.style.display = Intake.PlateTappable ? DisplayStyle.Flex : DisplayStyle.None;
+            var r = FindRow();
+            bool unlocked = r != null && r.Unlocked, reviewed = r != null && r.Reviewed;
+            if (Intake != null) Intake.SetDiscovery(unlocked, reviewed);
+            else if (_place is TrailheadSceneView th) th.SetDiscovery(unlocked, reviewed);
+            if (_plateButton != null)
+            {
+                bool show = Intake != null ? Intake.PlateTappable : (_place is TrailheadSceneView v && v.MillstoneTappable);
+                _plateButton.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
+            }
         }
         private Button? _plateButton;
 
-        /// <summary>D-216: the optional find. Shows its card (in-engine text) and marks it reviewed through the existing
+        /// <summary>Optional find. Shows its card (in-engine text) and marks it reviewed through the existing
         /// command (GAME_SYSTEMS §7: presentation convenience, never gates progress). False when it is not offered.</summary>
         public bool OpenFind()
         {
-            if (Intake == null || !Intake.PlateTappable || _cards == null) return false;
+            if (_cards == null) return false;
+            bool offered = Intake != null ? Intake.PlateTappable : (_place is TrailheadSceneView v && v.MillstoneTappable);
+            if (!offered) return false;
             var r = FindRow(); if (r == null) return false;
             _cards.Clear(); ShownCard = "find:" + r.DiscoveryId;
             var c = Card();
-            var t = new Label(PlayerStrings.F("world.findHeading", WalkGame.Shell.PlayerCopy.Title(r.TitleKey))) { name = "find-title" }; Text(t, 20, true); c.Add(t);
+            var title = new Label(PlayerStrings.F("world.findHeading", WalkGame.Shell.PlayerCopy.Title(r.TitleKey))) { name = "find-title" }; Text(title, 20, true); c.Add(title);
             var body = _session.DiscoveryCopy(r.DiscoveryId, WalkGame.Application.Content.ContentText.Fields.Body, r.BodyKey);
             if (body != null) { var b = new Label(body) { name = "find-body" }; Text(b, 16, false); c.Add(b); }
             var origin = _session.DiscoveryCopy(r.DiscoveryId, WalkGame.Application.Content.ContentText.Fields.Provenance, r.ProvenanceKey);
@@ -151,10 +164,11 @@ namespace WalkGame.Shell.Presentation
                 root.Add(go);
             }
             _plateButton = null;
-            if (atIntake)
             {   // screen-reader / keyboard route to the same optional find (the glow ring is the sighted route)
-                _plateButton = new Button(() => OpenFind()) { text = PlayerStrings.T("world.plate"), name = "world-find" };
-                _plateButton.style.position = Position.Absolute; _plateButton.style.top = 132; _plateButton.style.right = 12; _plateButton.style.maxWidth = 300;
+                string key = atIntake ? "world.plate" : "world.millstone";
+                float top = atIntake ? 132f : (IntakeOpen() ? 132f : 72f);
+                _plateButton = new Button(() => OpenFind()) { text = PlayerStrings.T(key), name = "world-find" };
+                _plateButton.style.position = Position.Absolute; _plateButton.style.top = top; _plateButton.style.right = 12; _plateButton.style.maxWidth = 300;
                 Style(_plateButton, Canvas, Charcoal, 16 * Mathf.Max(1f, _place.TextScale)); _plateButton.style.whiteSpace = WhiteSpace.Normal;
                 root.Add(_plateButton);
             }
@@ -189,7 +203,8 @@ namespace WalkGame.Shell.Presentation
         {
             if (Intake != null) { TapIntakeAt(screen01, aspect); return TrailheadTarget.None; }
             var art = TrailheadArt.ScreenToArt(screen01.x, screen01.y, aspect);
-            var target = TrailheadArt.HitTest(art.x, art.y, View.MiraVisible);
+            var target = TrailheadArt.HitTest(art.x, art.y, View.MiraVisible, View.MillstoneTappable);
+            if (target == TrailheadTarget.Millstone) { OpenFind(); return target; }
             TrailheadArt.Route(target, Controller);
             return target;
         }

@@ -48,6 +48,13 @@ namespace WalkGame.Shell.Presentation
         public const string WaterRipple = "water_ripple";
         public const int RippleX = 0, RippleY = 476, RippleW = 720, RippleH = 350;
 
+        /// <summary>D-220: optional in-world find — the old millstone (catalog disc.old-millstone; unlocked by proj.clear-trailhead).</summary>
+        public const string DiscoveryId = "disc.old-millstone";
+        public const string MillstoneSprite = "millstone";
+        /// <summary>Art-space centre (0..1 of the 720×1280 view) and tap box (≥ 48 dp at 720×1280).</summary>
+        public const float MillstoneX = 0.195f, MillstoneY = 0.855f;
+
+
         /// <summary>D-208: idle pose at time t (seconds): degrees per part and body breath scale; all zero with reduced motion.</summary>
         public static (float head, float braid, float scarf, float breath) IdlePose(float t, bool reducedMotion)
         {
@@ -140,19 +147,26 @@ namespace WalkGame.Shell.Presentation
         public static readonly (TrailheadTarget target, float x0, float y0, float x1, float y1)[] TapRegions =
         {
             (TrailheadTarget.Mira, 0.66f, 0.69f, 0.84f, 0.93f),
+            (TrailheadTarget.Millstone, 0.12f, 0.78f, 0.28f, 0.94f), // ≥ 48 dp (≈115×205 px)
             (TrailheadTarget.Signpost, 0.00f, 0.36f, 0.20f, 0.62f),
             (TrailheadTarget.Bridge, 0.28f, 0.28f, 0.70f, 0.70f),
         };
+
+        public static bool MillstoneTappable(bool discoveryUnlocked) => discoveryUnlocked;
+        public static bool MillstoneGlows(bool discoveryUnlocked, bool reviewed) => discoveryUnlocked && !reviewed;
+        /// <summary>Glow ring pulse (alpha); static under reduced motion (still visible, never blinking).</summary>
+        public static float GlowAlpha(float t, bool reducedMotion) => reducedMotion ? 0.8f : 0.55f + 0.35f * (0.5f + 0.5f * (float)Math.Sin(2 * Math.PI * t / 2.4f));
 
         /// <summary>Screen (0..1 from top-left, aspect w/h) to art space; the camera fits the 9:16 art to the screen height.</summary>
         public static (float x, float y) ScreenToArt(float sx, float sy, float aspect) =>
             (0.5f + (sx - 0.5f) * aspect / (720f / 1280f), sy);
 
-        public static TrailheadTarget HitTest(float ax, float ay, bool miraPresent)
+        public static TrailheadTarget HitTest(float ax, float ay, bool miraPresent, bool millstoneTappable = false)
         {
             foreach (var r in TapRegions)
             {
                 if (r.target == TrailheadTarget.Mira && !miraPresent) continue;
+                if (r.target == TrailheadTarget.Millstone && !millstoneTappable) continue;
                 if (ax >= r.x0 && ax <= r.x1 && ay >= r.y0 && ay <= r.y1) return r.target;
             }
             return TrailheadTarget.None;
@@ -218,7 +232,7 @@ namespace WalkGame.Shell.Presentation
     }
 
     /// <summary>D-207: what a tap on the trailhead hit.</summary>
-    public enum TrailheadTarget { None = 0, Mira = 1, Signpost = 2, Bridge = 3 }
+    public enum TrailheadTarget { None = 0, Mira = 1, Signpost = 2, Bridge = 3, Millstone = 4 }
 
     /// <summary>One drawable state of the trailhead (resource names; null = draw nothing for that layer).</summary>
     public sealed class TrailheadFrame

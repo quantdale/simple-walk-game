@@ -262,6 +262,7 @@ namespace WalkGame.Shell
             ["world.goTrailhead"] = "Back to the Old Trailhead",
             ["world.findHeading"] = "A find: {0}",
             ["world.plate"] = "Look at the brass plate",
+            ["world.millstone"] = "Look at the old millstone",
             ["dialogue.action.inspect.bridge"] = "Inspect the bridge",
             ["dialogue.action.helpRestore.bridge"] = "Help restore it",
             ["shell.story.epilogue"] = "Story: Millbrook's story is complete. The valley stays restored, and every chapter is here to reread.",

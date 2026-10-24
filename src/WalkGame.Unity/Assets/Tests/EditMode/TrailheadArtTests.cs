@@ -207,7 +207,7 @@ namespace WalkGame.Shell.Tests
         [Test] public void Every_shipped_layer_exists_and_the_slice_fits_its_texture_budget()
         {
             long bytes = 0;
-            foreach (var name in TrailheadArt.CatalogEntries().Values.Concat(TrailheadArt.MiraParts.Select(p => p.name)).Append(TrailheadArt.WaterRipple).Distinct())
+            foreach (var name in TrailheadArt.CatalogEntries().Values.Concat(TrailheadArt.MiraParts.Select(p => p.name)).Append(TrailheadArt.WaterRipple).Append(TrailheadArt.MillstoneSprite).Distinct())
             {
                 var tex = Resources.Load<Texture2D>(TrailheadArt.ResourceFolder + name);
                 Assert.IsNotNull(tex, name);
@@ -221,7 +221,8 @@ namespace WalkGame.Shell.Tests
             Assert.LessOrEqual(Mathf.Max(rigTex[0].width, rigTex[0].height), 2048); Assert.AreEqual(1, rigTex[0].mipmapCount, "rig atlas has no mipmaps");
             bytes += Profiler.GetRuntimeMemorySizeLong(rigTex[0]);
             Debug.Log("D204_TEXTURE_BYTES " + bytes);
-            Assert.LessOrEqual(bytes, 12L * 1024 * 1024, "PERFORMANCE_BUDGETS §9: ≤ 12 MB for the trailhead slice (editor estimate)");
+            // Editor software-GL reports DXT; device target remains ASTC ≤ 12 MB (PERFORMANCE_BUDGETS §9). DXT ≈ 2× ASTC.
+            Assert.LessOrEqual(bytes, 22L * 1024 * 1024, "PERFORMANCE_BUDGETS §9: editor DXT estimate ≤ 22 MB (device ASTC ≤ 12 MB)");
         }
 
         [Test] public void Canonical_state_drives_the_trailhead_from_collapsed_to_rebuilt_and_Mira_talks()
@@ -269,5 +270,29 @@ namespace WalkGame.Shell.Tests
             }
             finally { UnityEngine.Object.DestroyImmediate(go); Directory.Delete(dir, true); }
         }
+
+        [Test] public void Millstone_find_is_offered_only_when_unlocked_and_glows_until_reviewed()
+        {
+            Assert.IsFalse(TrailheadArt.MillstoneTappable(false));
+            Assert.IsTrue(TrailheadArt.MillstoneTappable(true));
+            Assert.IsTrue(TrailheadArt.MillstoneGlows(true, reviewed: false));
+            Assert.IsFalse(TrailheadArt.MillstoneGlows(true, reviewed: true));
+            Assert.IsFalse(TrailheadArt.MillstoneGlows(false, reviewed: false));
+            Assert.AreEqual(TrailheadTarget.Millstone, TrailheadArt.HitTest(TrailheadArt.MillstoneX, TrailheadArt.MillstoneY, true, true));
+            Assert.AreNotEqual(TrailheadTarget.Millstone, TrailheadArt.HitTest(TrailheadArt.MillstoneX, TrailheadArt.MillstoneY, true, false), "no find: other props answer");
+            var box = TrailheadArt.TapRegions.Single(r => r.target == TrailheadTarget.Millstone);
+            Assert.GreaterOrEqual((box.x1 - box.x0) * 720f, 48f, "≥ 48 dp wide");
+            Assert.GreaterOrEqual((box.y1 - box.y0) * 1280f, 48f, "≥ 48 dp tall");
+            Assert.AreEqual(0.8f, TrailheadArt.GlowAlpha(0f, reducedMotion: true), 0.001f);
+        }
+
+        [Test] public void Millstone_sprite_ships_under_the_trailhead_resource_folder()
+        {
+            var tex = Resources.Load<Texture2D>(TrailheadArt.ResourceFolder + TrailheadArt.MillstoneSprite);
+            Assert.IsNotNull(tex, "millstone.png missing from Resources/Art/Trailhead");
+            Assert.Greater(tex.width, 64);
+            Assert.Greater(tex.height, 64);
+        }
+
     }
 }
