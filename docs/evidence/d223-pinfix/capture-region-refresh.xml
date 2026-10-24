@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-24 01:19:31Z" end-time="2026-10-24 01:19:34Z" duration="2.5998897">
+  <test-suite type="TestSuite" id="1022" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 01:19:31Z" end-time="2026-10-24 01:19:34Z" duration="2.599890" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1018" name="WalkGame.Shell.PlayModeTests.dll" fullname="/workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.PlayModeTests.dll" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 01:19:31Z" end-time="2026-10-24 01:19:34Z" duration="2.593003" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="332355" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1019" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 01:19:31Z" end-time="2026-10-24 01:19:34Z" duration="2.592359" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1020" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 01:19:31Z" end-time="2026-10-24 01:19:34Z" duration="2.592032" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1021" name="PlayModeTests" fullname="WalkGame.Shell.PlayModeTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 01:19:31Z" end-time="2026-10-24 01:19:34Z" duration="2.591747" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1009" name="TrailheadCaptureTests" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-24 01:19:31Z" end-time="2026-10-24 01:19:34Z" duration="2.590473" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1011" name="Capture_trailhead_opened_from_home_with_taps" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests.Capture_trailhead_opened_from_home_with_taps" methodname="Capture_trailhead_opened_from_home_with_taps" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" seed="1191943537" result="Passed" start-time="2026-10-24 01:19:31Z" end-time="2026-10-24 01:19:34Z" duration="2.581567" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_TRAILHEAD_CAPTURE shell-first-launch Unity editor capture (software GL, not a device) · text shell · first launch / onboarding
+WG_TRAILHEAD_CAPTURE shell-return-after-walking Unity editor capture (software GL, not a device) · text shell · return after a walk (While you were away)
+WG_CAPTURE_SCROLL_TO offset=114 max=114
+WG_TRAILHEAD_CAPTURE shell-home-visit-trailhead Unity editor capture (software GL, not a device) · text shell · Home (lighter menu) with Visit the Old Trailhead
+WG_CAPTURE_SCROLL_TO offset=854.6 max=935
+WG_TRAILHEAD_CAPTURE shell-home-visit-trailhead-text2x Unity editor capture (software GL, not a device) · text shell · Home at 2x text, scrolled to Visit the Old Trailhead
+WG_TRAILHEAD_CAPTURE shell-region-view Unity editor capture (software GL, not a device) · text shell · Region view (interactive map pins + compact card)
+WG_TRAILHEAD_CAPTURE home-trailhead-open Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · Home → Visit the Old Trailhead (canonical: trailhead cleared)
+WG_TRAILHEAD_CAPTURE trailhead-millstone-find-card Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · tap the old millstone → the find (in-engine text; marks it reviewed)
+WG_TRAILHEAD_CAPTURE trailhead-millstone-find-card-text2x Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · the millstone find at 2x text
+WG_TRAILHEAD_CAPTURE home-tap-mira-dialogue Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · tap Mira
+WG_TRAILHEAD_CAPTURE home-help-restore-goal-card Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · Help restore it → goal card (Start = existing EnqueueProject)
+WG_TRAILHEAD_CAPTURE home-tap-bridge-inspect Unity editor capture (software GL, not a device) · Phase D trailhead (world-first boot / from Home) · tap the bridge → inspect card
+Saving results to: /home/box/.config/unity3d/quantdale/Simple Walk Game/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

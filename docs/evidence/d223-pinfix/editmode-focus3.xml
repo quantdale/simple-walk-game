@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="7" result="Failed(Child)" total="7" passed="6" failed="1" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-24 01:21:27Z" end-time="2026-10-24 01:21:28Z" duration="0.3296486">
+  <test-suite type="TestSuite" id="1000" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="411" result="Failed" site="Child" start-time="2026-10-24 01:21:27Z" end-time="2026-10-24 01:21:28Z" duration="0.329649" total="7" passed="6" failed="1" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <failure>
+      <message><![CDATA[One or more child tests had errors]]></message>
+    </failure>
+    <test-suite type="Assembly" id="1486" name="WalkGame.Shell.Tests.dll" fullname="/workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.Tests.dll" runstate="Runnable" testcasecount="411" result="Failed" site="Child" start-time="2026-10-24 01:21:27Z" end-time="2026-10-24 01:21:28Z" duration="0.317343" total="7" passed="6" failed="1" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="333604" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <failure>
+        <message><![CDATA[One or more child tests had errors]]></message>
+      </failure>
+      <test-suite type="TestSuite" id="1487" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="411" result="Failed" site="Child" start-time="2026-10-24 01:21:27Z" end-time="2026-10-24 01:21:28Z" duration="0.304468" total="7" passed="6" failed="1" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <failure>
+          <message><![CDATA[One or more child tests had errors]]></message>
+        </failure>
+        <test-suite type="TestSuite" id="1488" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="411" result="Failed" site="Child" start-time="2026-10-24 01:21:27Z" end-time="2026-10-24 01:21:28Z" duration="0.302080" total="7" passed="6" failed="1" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <failure>
+            <message><![CDATA[One or more child tests had errors]]></message>
+          </failure>
+          <test-suite type="TestSuite" id="1489" name="Tests" fullname="WalkGame.Shell.Tests" runstate="Runnable" testcasecount="411" result="Failed" site="Child" start-time="2026-10-24 01:21:27Z" end-time="2026-10-24 01:21:28Z" duration="0.299820" total="7" passed="6" failed="1" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <failure>
+              <message><![CDATA[One or more child tests had errors]]></message>
+            </failure>
+            <test-suite type="TestFixture" id="1276" name="RegionMapTests" fullname="WalkGame.Shell.Tests.RegionMapTests" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" testcasecount="7" result="Failed" site="Child" start-time="2026-10-24 01:21:27Z" end-time="2026-10-24 01:21:28Z" duration="0.292384" total="7" passed="6" failed="1" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <failure>
+                <message><![CDATA[One or more child tests had errors]]></message>
+              </failure>
+              <test-case id="1282" name="Pin_labels_keep_whole_words_and_wrap_helper_never_mid_breaks" fullname="WalkGame.Shell.Tests.RegionMapTests.Pin_labels_keep_whole_words_and_wrap_helper_never_mid_breaks" methodname="Pin_labels_keep_whole_words_and_wrap_helper_never_mid_breaks" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="1710830144" result="Passed" start-time="2026-10-24 01:21:27Z" end-time="2026-10-24 01:21:27Z" duration="0.011307" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1277" name="Region_card_is_compact_and_place_actions_carry_full_a11y_labels" fullname="WalkGame.Shell.Tests.RegionMapTests.Region_card_is_compact_and_place_actions_carry_full_a11y_labels" methodname="Region_card_is_compact_and_place_actions_carry_full_a11y_labels" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="1252991900" result="Passed" start-time="2026-10-24 01:21:27Z" end-time="2026-10-24 01:21:28Z" duration="0.157921" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1278" name="Region_map_pins_match_authored_positions_and_draw_as_buttons_in_action_order" fullname="WalkGame.Shell.Tests.RegionMapTests.Region_map_pins_match_authored_positions_and_draw_as_buttons_in_action_order" methodname="Region_map_pins_match_authored_positions_and_draw_as_buttons_in_action_order" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="715645230" result="Passed" start-time="2026-10-24 01:21:28Z" end-time="2026-10-24 01:21:28Z" duration="0.086304" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1283" name="Region_pin_labels_do_not_overflow_or_overlap_at_1x_and_2x_text" fullname="WalkGame.Shell.Tests.RegionMapTests.Region_pin_labels_do_not_overflow_or_overlap_at_1x_and_2x_text" methodname="Region_pin_labels_do_not_overflow_or_overlap_at_1x_and_2x_text" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="1305756648" result="Failed" start-time="2026-10-24 01:21:28Z" end-time="2026-10-24 01:21:28Z" duration="0.016128" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <failure>
+                  <message><![CDATA[  plates overlap @ 2: lm.settlement vs lm.observatory
+  Expected: False
+  But was:  True
+]]></message>
+                  <stack-trace><![CDATA[at WalkGame.Shell.Tests.RegionMapTests.Region_pin_labels_do_not_overflow_or_overlap_at_1x_and_2x_text () [0x00759] in /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Assets/Tests/EditMode/RegionMapTests.cs:191
+]]></stack-trace>
+                </failure>
+              </test-case>
+              <test-case id="1281" name="Tapping_canopy_pin_requests_the_painted_world_once_unlocked" fullname="WalkGame.Shell.Tests.RegionMapTests.Tapping_canopy_pin_requests_the_painted_world_once_unlocked" methodname="Tapping_canopy_pin_requests_the_painted_world_once_unlocked" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="707038056" result="Passed" start-time="2026-10-24 01:21:28Z" end-time="2026-10-24 01:21:28Z" duration="0.006606" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1279" name="Tapping_trailhead_pin_requests_the_painted_world" fullname="WalkGame.Shell.Tests.RegionMapTests.Tapping_trailhead_pin_requests_the_painted_world" methodname="Tapping_trailhead_pin_requests_the_painted_world" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="1738665083" result="Passed" start-time="2026-10-24 01:21:28Z" end-time="2026-10-24 01:21:28Z" duration="0.001942" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="1280" name="Unpainted_pin_opens_a_short_focus_card_not_the_world" fullname="WalkGame.Shell.Tests.RegionMapTests.Unpainted_pin_opens_a_short_focus_card_not_the_world" methodname="Unpainted_pin_opens_a_short_focus_card_not_the_world" classname="WalkGame.Shell.Tests.RegionMapTests" runstate="Runnable" seed="1173389356" result="Passed" start-time="2026-10-24 01:21:28Z" end-time="2026-10-24 01:21:28Z" duration="0.001565" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[Saving results to: /home/box/.config/unity3d/quantdale/Simple Walk Game/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

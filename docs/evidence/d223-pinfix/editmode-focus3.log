@@ -1,0 +1,673 @@
+Unity Editor version:    6000.3.26f1 (de8167e7440c)
+Branch:                  6000.3/staging
+Build type:              Release
+Batch mode:              YES
+System name:             Linux
+Distro version:          #1 SMP PREEMPT_DYNAMIC Mon Oct 19 19:23:48 UTC 2026
+Kernel version:          6.12.94+
+Architecture:            x86_64
+Available memory:        16002 MB
+Date:                    2026-10-24T01:21:14Z
+VBCSCompilerServerWatchdog: watching VBCSCompiler (PID 333614)
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Initialize udev device monitor.
+[Licensing::IpcConnector] Channel LicenseClient-box doesn't exist
+[Licensing::Module] Successfully launched the LicensingClient (PId: 333617)
+
+COMMAND LINE ARGUMENTS:
+/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Unity
+-batchmode
+-nographics
+-projectPath
+/workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity
+-runTests
+-testPlatform
+EditMode
+-testFilter
+RegionMapTests
+-testResults
+/workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/docs/evidence/d223-pinfix/editmode-focus3.xml
+-logFile
+/workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/docs/evidence/d223-pinfix/editmode-focus3.log
+Successfully changed project path to: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity
+/workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-remapper-allocator-initial-capacity=32768"
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-gfx=262144"
+Player connection [139911778970496]  Target information:
+
+Player connection [139911778970496]  * "[IP] 172.30.0.2 [Port] 55504 [Flags] 2 [Guid] 633299126 [EditorId] 633299126 [Version] 1048832 [Id] LinuxEditor(16,172.30.0.2) [Debug] 1 [PackageName] LinuxEditor [ProjectName] Editor" 
+
+Player connection [139911778970496]  * "[IP] 172.17.0.1 [Port] 55504 [Flags] 2 [Guid] 633299126 [EditorId] 633299126 [Version] 1048832 [Id] LinuxEditor(16,172.30.0.2) [Debug] 1 [PackageName] LinuxEditor [ProjectName] Editor" 
+
+Player connection [139911778970496] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [139911778970496] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-333604" after 0.2 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-box" at "2026-10-24T01:21:15.144794Z"
+[SignatureVerifier] Application signature verification not supported on this platform.
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.3+d7ffd15
+  Session Id:              f64f501f4b634bac8cdfca1147c33d4d
+  Correlation Id:          e51e2de65f4f3b01a12c8f55a4fe1fcc
+  External correlation Id: 8125182374124402967
+  Machine Id:              ZmSOvmCLY+D1Iw+3QeeVQzbB//w=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-box" (connect: 0.38s, validation: 0.04s, handshake: 0.00s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-box-notifications" at "2026-10-24T01:21:15.180463Z"
+[Licensing::Module] Connected to LicensingClient (PId: 333617, launch time: 0.00, total connection time: 0.41s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 18968522338257-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.01
+[Licensing::Module] Licensing Background thread has ended after 0.43s
+[Licensing::Module] Licensing is initialized (took 0.22s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM default
+FMOD failed to initialize the output device.: "Error initializing output device. " (60)
+Forced to initialize FMOD to to the device driver's system output rate 48000, this may impact performance and/or give inconsistent experiences compared to selected sample rate 48000
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5205:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5728:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2722:(snd_pcm_open_noupdate) Unknown PCM default
+FMOD failed to initialize the output device.: "Error initializing output device. " (60)
+FMOD initialized on nosound output
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+Refreshing native plugins compatible for Editor in 0.20 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.26f1 (de8167e7440c)
+[Subsystems] Discovering subsystems at path /home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Assets
+Forcing GfxDevice: Null
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+NullGfxDevice:
+    Version:  NULL 1.0 [1.0]
+    Renderer: Null Device
+    Vendor:   Unity Technologies
+Initialize mono
+Mono path[0] = '/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/Managed'
+Mono path[1] = '/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-linux'
+Mono config path = '/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56604
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+[Licensing::Client] Successfully resolved entitlement details
+Register platform support module: /home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll
+[Licensing::Client] Successfully resolved entitlement details
+Register platform support module: /home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/PlaybackEngines/iOSSupport/UnityEditor.iOS.Extensions.dll
+Register platform support module: /home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/PlaybackEngines/LinuxStandaloneSupport/UnityEditor.LinuxStandalone.Extensions.dll
+Registered in 0.003668 seconds.
+- Loaded All Assemblies, in  0.335 seconds
+Native extension for LinuxStandalone target not found
+[usbmuxd] Start listen thread
+[usbmuxd] Listen thread started
+Native extension for iOS target not found
+Native extension for Android target not found
+Package Manager log level set to [2]
+[Licensing::Client] Successfully resolved entitlement details
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:False
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  6.224 seconds
+Domain Reload Profiling: 6560ms
+	BeginReloadAssembly (94ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (11ms)
+	RebuildCommonClasses (33ms)
+	RebuildNativeTypeToScriptingClass (7ms)
+	initialDomainReloadingComplete (47ms)
+	LoadAllAssembliesAndSetupDomain (154ms)
+		LoadAssemblies (84ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (151ms)
+			TypeCache.Refresh (150ms)
+				TypeCache.ScanAssembly (134ms)
+			BuildScriptInfoCaches (0ms)
+			ResolveRequiredComponents (0ms)
+	FinalizeReload (6225ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (6192ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (52ms)
+			SetLoadedEditorAssemblies (5ms)
+			BeforeProcessingInitializeOnLoad (70ms)
+			ProcessInitializeOnLoadAttributes (111ms)
+			ProcessInitializeOnLoadMethodAttributes (5954ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 26 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.2d.animation@13.0.6 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.2d.animation@cd6c3841e39a)
+    com.unity.2d.psdimporter@12.0.2 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.2d.psdimporter@f207d91d598d)
+    com.unity.2d.common@12.0.4 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.2d.common@3e42aeccb30d)
+    com.unity.collections@2.6.8 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.collections@84e8eb3fc12e)
+    com.unity.burst@1.8.30 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.burst@2f3d916873ea)
+    com.unity.mathematics@1.3.3 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.mathematics@19a9377c4ffa)
+    com.unity.nuget.mono-cecil@1.11.6 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.nuget.mono-cecil@ecb9724e46ff)
+    com.unity.test-framework.performance@3.5.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.test-framework.performance@8b56083ec0f0)
+  Built-in packages:
+    com.unity.2d.sprite@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.2d.sprite@20065058c97a)
+    com.unity.modules.accessibility@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.accessibility)
+    com.unity.modules.androidjni@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.animation)
+    com.unity.modules.audio@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.audio)
+    com.unity.modules.imgui@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.particlesystem)
+    com.unity.modules.ui@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.uielements)
+    com.unity.test-framework@1.6.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.test-framework@0bd5c5194236)
+    com.unity.ext.nunit@2.0.5 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.ext.nunit@ec2d0043d6fc)
+    com.unity.modules.hierarchycore@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.hierarchycore)
+    com.unity.modules.physics@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.physics)
+    com.unity.2d.tilemap@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.2d.tilemap@864b4c0610f1)
+    com.unity.modules.tilemap@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.tilemap)
+    com.unity.modules.imageconversion@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.imageconversion)
+    com.unity.modules.physics2d@1.0.0 (location: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/Library/PackageCache/com.unity.modules.physics2d)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.00 seconds
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://unix:/tmp/ilpp.sock-a88614dccd7e3087d1897d1b94e25415
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Content root path: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity/
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 35.3367ms
+Starting: /home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/Tools/BuildPipeline/bee_backend --ipc --defer-dag-verification --dagfile="Library/Bee/2400b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/src/WalkGame.Unity
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+DisplayProgressbar: Compiling Scripts
+[40m[1m[33mwarn[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.runtime.interopservices.windowsruntime has duplicate hint path. Ignoring "/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/UnityReferenceAssemblies/unity-4.8-api/Facades/System.Runtime.InteropServices.WindowsRuntime.dll" in favor of "/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/NetStandard/Extensions/2.0.0/System.Runtime.InteropServices.WindowsRuntime.dll"
+[40m[1m[33mwarn[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Assembly system.componentmodel.composition has duplicate hint path. Ignoring "/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/UnityReferenceAssemblies/unity-4.8-api/System.ComponentModel.Composition.dll" in favor of "/home/box/Unity/Hub/Editor/6000.3.26f1/Editor/Data/NetStandard/compat/2.1.0/shims/netfx/System.ComponentModel.Composition.dll"
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Unity.Burst.Cecil, Version=0.11.6.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library/PackageCache/com.unity.burst@2f3d916873ea/Unity.Burst.CodeGen/Unity.Burst.Cecil.dll
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      Resolved Mono.Cecil, Version=0.11.5.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e with Library/PackageCache/com.unity.nuget.mono-cecil@ecb9724e46ff/Mono.Cecil.dll
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/ConfigurePostProcessors'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/ConfigurePostProcessors application/grpc - - 200 - application/grpc 34.5461ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.dll, with 131 defines and 251 references
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.PlayModeTests.dll, with 131 defines and 242 references
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.Editor.dll, with 129 defines and 289 references
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 15.1787ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 15.2299ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 14.4526ms
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc -
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      Processing assembly Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.Tests.dll, with 129 defines and 278 references
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running Unity.Jobs.CodeGen.JobsILPostProcessor
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingPipeline[0]
+      running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/PostProcessAssembly'
+[40m[32minfo[39m[22m[49m: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/PostProcessAssembly application/grpc - - 200 - application/grpc 1.6436ms
+ExitCode: 0 Duration: 1s612ms
+[353/436    0s] ILPP-Configuration Library/ilpp-configuration.nevergeneratedoutput
+[420/436    1s] Csc Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.dll (+2 others)
+Assets/Shell/PlayerCopy.cs(56,33): warning CS8603: Possible null reference return.
+Assets/Shell/Presentation/RegionArt.cs(121,46): warning CS8602: Dereference of a possibly null reference.
+Assets/Shell/ShellBootstrap.cs(146,29): warning CS8618: Non-nullable field '_audio' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(147,31): warning CS8600: Converting null literal or possible null value to non-nullable type.
+Assets/Shell/ShellView.cs(200,42): warning CS8600: Converting null literal or possible null value to non-nullable type.
+Assets/Shell/ShellView.cs(300,34): warning CS8618: Non-nullable field 'Actions' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(301,42): warning CS8618: Non-nullable field 'OnAction' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(309,22): warning CS8618: Non-nullable property 'ActionId' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+Assets/Shell/ShellView.cs(26,33): warning CS8618: Non-nullable field 'Backdrop' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(30,29): warning CS8618: Non-nullable field '_display' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(30,39): warning CS8618: Non-nullable field '_body' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(30,46): warning CS8618: Non-nullable field '_bodyBold' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellController.cs(929,49): warning CS8602: Dereference of a possibly null reference.
+Assets/Shell/ShellController.cs(1082,54): warning CS8604: Possible null reference argument for parameter 'args' in 'string PlayerStrings.F(string key, params object[] args)'.
+Assets/Shell/ShellController.cs(1113,35): warning CS8603: Possible null reference return.
+[423/436    0s] ILPostProcess Library/Bee/artifacts/2400b0aE.dag/post-processed/WalkGame.Shell.PlayModeTests.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.PlayModeTests.dll, with 131 defines and 242 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[424/436    0s] ILPostProcess Library/Bee/artifacts/2400b0aE.dag/post-processed/WalkGame.Shell.Editor.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.Editor.dll, with 129 defines and 289 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[425/436    0s] ILPostProcess Library/Bee/artifacts/2400b0aE.dag/post-processed/WalkGame.Shell.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.dll, with 131 defines and 251 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[430/436    0s] CopyFiles Library/ScriptAssemblies/WalkGame.Shell.pdb
+[431/436    0s] CopyFiles Library/ScriptAssemblies/WalkGame.Shell.dll
+[432/436    0s] Csc Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.Tests.dll (+2 others)
+Assets/Tests/EditMode/DiscoveriesLocaleRenderTests.cs(41,61): warning CS8604: Possible null reference argument for parameter 'en' in 'void Add(string id, string field, string en)'.
+Assets/Tests/EditMode/DiscoveriesLocaleRenderTests.cs(42,67): warning CS8604: Possible null reference argument for parameter 'en' in 'void Add(string id, string field, string en)'.
+Assets/Tests/EditMode/DiscoveriesScreenTests.cs(130,75): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/PlayerStringsLocaleTests.cs(30,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/PlayerStringsLocaleTests.cs(73,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/ProjectCompletionMomentTests.cs(14,24): warning CS8618: Non-nullable field '_dir' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Tests/EditMode/RegionMapTests.cs(64,34): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/RegionCelebrationTests.cs(156,58): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/RegionCelebrationTests.cs(156,73): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/ProgressScreenTests.cs(14,24): warning CS8618: Non-nullable field '_dir' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Tests/EditMode/RegionMapTests.cs(202,38): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/SummaryAndLabelLocaleTests.cs(77,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/ShellPerformanceTests.cs(160,71): warning CS0184: The given expression is never of the provided ('Button') type
+Assets/Tests/EditMode/TitleTypingShellTests.cs(22,77): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/TrailheadArtTests.cs(140,23): warning CS8321: The local function 'Off' is declared but never used
+[433/436    0s] ILPostProcess Library/Bee/artifacts/2400b0aE.dag/post-processed/WalkGame.Shell.Tests.dll (+pdb)
+Processing assembly Library/Bee/artifacts/2400b0aE.dag/WalkGame.Shell.Tests.dll, with 129 defines and 278 references
+processors: Unity.Jobs.CodeGen.JobsILPostProcessor, zzzUnity.Burst.CodeGen.BurstILPostProcessor
+running Unity.Jobs.CodeGen.JobsILPostProcessor
+running zzzUnity.Burst.CodeGen.BurstILPostProcessor
+[434/436    0s] CopyFiles Library/ScriptAssemblies/WalkGame.Shell.Tests.pdb
+[435/436    0s] CopyFiles Library/ScriptAssemblies/WalkGame.Shell.Tests.dll
+*** Tundra build success (1.59 seconds), 11 items updated, 436 evaluated
+Assets/Shell/PlayerCopy.cs(56,33): warning CS8603: Possible null reference return.
+Assets/Shell/Presentation/RegionArt.cs(121,46): warning CS8602: Dereference of a possibly null reference.
+Assets/Shell/ShellBootstrap.cs(146,29): warning CS8618: Non-nullable field '_audio' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(147,31): warning CS8600: Converting null literal or possible null value to non-nullable type.
+Assets/Shell/ShellView.cs(200,42): warning CS8600: Converting null literal or possible null value to non-nullable type.
+Assets/Shell/ShellView.cs(300,34): warning CS8618: Non-nullable field 'Actions' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(301,42): warning CS8618: Non-nullable field 'OnAction' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(309,22): warning CS8618: Non-nullable property 'ActionId' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+Assets/Shell/ShellView.cs(26,33): warning CS8618: Non-nullable field 'Backdrop' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(30,29): warning CS8618: Non-nullable field '_display' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(30,39): warning CS8618: Non-nullable field '_body' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(30,46): warning CS8618: Non-nullable field '_bodyBold' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellController.cs(929,49): warning CS8602: Dereference of a possibly null reference.
+Assets/Shell/ShellController.cs(1082,54): warning CS8604: Possible null reference argument for parameter 'args' in 'string PlayerStrings.F(string key, params object[] args)'.
+Assets/Shell/ShellController.cs(1113,35): warning CS8603: Possible null reference return.
+Assets/Shell/ShellView.cs(147,31): warning CS8600: Converting null literal or possible null value to non-nullable type.
+Assets/Shell/ShellView.cs(200,42): warning CS8600: Converting null literal or possible null value to non-nullable type.
+Assets/Shell/ShellView.cs(300,34): warning CS8618: Non-nullable field 'Actions' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(301,42): warning CS8618: Non-nullable field 'OnAction' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(309,22): warning CS8618: Non-nullable property 'ActionId' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+Assets/Shell/ShellView.cs(26,33): warning CS8618: Non-nullable field 'Backdrop' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(30,29): warning CS8618: Non-nullable field '_display' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(30,39): warning CS8618: Non-nullable field '_body' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellView.cs(30,46): warning CS8618: Non-nullable field '_bodyBold' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Shell/ShellController.cs(929,49): warning CS8602: Dereference of a possibly null reference.
+Assets/Shell/ShellController.cs(1082,54): warning CS8604: Possible null reference argument for parameter 'args' in 'string PlayerStrings.F(string key, params object[] args)'.
+Assets/Shell/ShellController.cs(1113,35): warning CS8603: Possible null reference return.
+Assets/Tests/EditMode/DiscoveriesLocaleRenderTests.cs(41,61): warning CS8604: Possible null reference argument for parameter 'en' in 'void Add(string id, string field, string en)'.
+Assets/Tests/EditMode/DiscoveriesLocaleRenderTests.cs(42,67): warning CS8604: Possible null reference argument for parameter 'en' in 'void Add(string id, string field, string en)'.
+Assets/Tests/EditMode/DiscoveriesScreenTests.cs(130,75): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/PlayerStringsLocaleTests.cs(30,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/PlayerStringsLocaleTests.cs(73,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/ProjectCompletionMomentTests.cs(14,24): warning CS8618: Non-nullable field '_dir' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Tests/EditMode/RegionMapTests.cs(64,34): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/RegionCelebrationTests.cs(156,58): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/RegionCelebrationTests.cs(156,73): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/ProgressScreenTests.cs(14,24): warning CS8618: Non-nullable field '_dir' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Tests/EditMode/RegionMapTests.cs(202,38): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/SummaryAndLabelLocaleTests.cs(77,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/ShellPerformanceTests.cs(160,71): warning CS0184: The given expression is never of the provided ('Button') type
+Assets/Tests/EditMode/TitleTypingShellTests.cs(22,77): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/TrailheadArtTests.cs(140,23): warning CS8321: The local function 'Off' is declared but never used
+Assets/Tests/EditMode/DiscoveriesScreenTests.cs(130,75): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/PlayerStringsLocaleTests.cs(30,36): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/PlayerStringsLocaleTests.cs(73,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/ProjectCompletionMomentTests.cs(14,24): warning CS8618: Non-nullable field '_dir' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Tests/EditMode/RegionMapTests.cs(64,34): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/RegionCelebrationTests.cs(156,58): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/RegionCelebrationTests.cs(156,73): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/ProgressScreenTests.cs(14,24): warning CS8618: Non-nullable field '_dir' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+Assets/Tests/EditMode/RegionMapTests.cs(202,38): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/SummaryAndLabelLocaleTests.cs(77,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/ShellPerformanceTests.cs(160,71): warning CS0184: The given expression is never of the provided ('Button') type
+Assets/Tests/EditMode/TitleTypingShellTests.cs(22,77): warning CS8625: Cannot convert null literal to non-nullable reference type.
+Assets/Tests/EditMode/TrailheadArtTests.cs(140,23): warning CS8321: The local function 'Off' is declared but never used
+AssetDatabase: script compilation time: 1.991179s
+Total cache size 208625806
+Begin MonoManager ReloadAssembly
+Total cache size after purge 208625806, took 00:00:00.0501044
+- Loaded All Assemblies, in  0.431 seconds
+Refreshing native plugins compatible for Editor in 0.28 ms, found 1 plugins.
+Native extension for LinuxStandalone target not found
+Native extension for iOS target not found
+Native extension for Android target not found
+Refreshing native plugins compatible for Editor in 0.38 ms, found 1 plugins.
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:False
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  1.706 seconds
+Domain Reload Profiling: 2137ms
+	BeginReloadAssembly (162ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (13ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (55ms)
+	RebuildCommonClasses (32ms)
+	RebuildNativeTypeToScriptingClass (7ms)
+	initialDomainReloadingComplete (24ms)
+	LoadAllAssembliesAndSetupDomain (205ms)
+		LoadAssemblies (194ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (74ms)
+			TypeCache.Refresh (62ms)
+				TypeCache.ScanAssembly (49ms)
+			BuildScriptInfoCaches (10ms)
+			ResolveRequiredComponents (1ms)
+	FinalizeReload (1706ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (1611ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (29ms)
+			SetLoadedEditorAssemblies (4ms)
+			BeforeProcessingInitializeOnLoad (117ms)
+			ProcessInitializeOnLoadAttributes (1362ms)
+			ProcessInitializeOnLoadMethodAttributes (96ms)
+			AfterProcessingInitializeOnLoad (3ms)
+			EditorAssembliesLoaded (0ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (13ms)
+Refreshing native plugins compatible for Editor in 0.32 ms, found 1 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=85614728f2e93994698fc5ff2c77fde9): Total: 4.656 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=0 (actual=0, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=2108 ms
+		Asset DB Callback time: managed=84 ms, native=17 ms
+		Scripting: domain reloads=1, domain reload time=431 ms, compile time=1993 ms, other=21 ms
+		Project Asset Count: scripts=356, non-scripts=900
+		Asset File Changes: new=0, changed=2, moved=0, deleted=0
+		Scan Filter Count: 1
+	InvokeCustomDependenciesCallbacks: 0.004ms
+	InvokePackagesCallback: 3.842ms
+	ApplyChangesToAssetFolders: 0.270ms
+	Scan: 253.677ms
+	OnSourceAssetsModified: 0.607ms
+	CategorizeAssetsWithTransientArtifact: 8.914ms
+	ProcessAssetsWithTransientArtifactChanges: 21.267ms
+	CategorizeAssets: 13.289ms
+	ImportOutOfDateAssets: 1711.008ms (-283.827ms without children)
+		CompileScripts: 1992.699ms
+		ReloadNativeAssets: 0.001ms
+		UnloadImportedAssets: 1.698ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.156ms
+		InitializingProgressBar: 0.000ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.000ms
+		OnDemandSchedulerStart: 0.281ms
+	PostProcessAllAssets: 97.141ms
+	Hotreload: 0.925ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.001ms
+	UnloadStreamsBegin: 1.159ms
+	PersistCurrentRevisions: 0.039ms
+	UnloadStreamsEnd: 0.001ms
+	GenerateScriptTypeHashes: 2.505ms
+	Untracked: 2543.734ms
+
+Application.AssetDatabase Initial Refresh End
+Scanning for USB devices : 0.065ms
+Initializing Unity extensions:
+UpdateMenuTitleForLanguage: 10
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Simple Walk Game
+Unloading 3 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 1595 unused Assets / (1.0 MB). Loaded Objects now: 2222.
+Memory consumption went from 98.4 MB to 97.3 MB.
+Total: 8.473974 ms (FindLiveObjects: 0.164882 ms CreateObjectMapping: 0.043963 ms MarkObjects: 7.402765 ms  DeleteObjects: 0.861252 ms)
+
+
+(process:333604): Gtk-CRITICAL **: 09:21:27.019: gtk_widget_hide: assertion 'GTK_IS_WIDGET (widget)' failed
+
+(process:333604): Gtk-CRITICAL **: 09:21:27.019: gtk_widget_destroy: assertion 'GTK_IS_WIDGET (widget)' failed
+
+(process:333604): GLib-GObject-CRITICAL **: 09:21:27.020: g_object_unref: assertion 'G_IS_OBJECT (object)' failed
+[Project] Loading completed in 12.263 seconds
+	Project init time: 				11.934 seconds
+		Template init time: 		0.000 seconds
+		Package Manager init time: 		0.382 seconds
+		Asset Database init time: 		0.036 seconds
+		Global illumination init time: 	0.003 seconds
+		Assemblies load time: 			6.572 seconds
+		Unity extensions init time: 	0.002 seconds
+		Asset Database refresh time: 	4.656 seconds
+	Scene opening time: 			0.316 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1792804887020,"processId":333604,"projectLoad":12.262979292999999,"projectInit":11.934179471,"templateInit":0.0,"packageManagerInit":0.381935274,"assetDatabaseInit":0.035857945,"globalIlluminationInit":0.002818352,"assembliesLoad":6.572323216,"unityExtensionsInit":0.001861905,"assetDatabaseRefresh":4.655935486,"sceneOpening":0.31572593}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1792804887020,"processId":333604,"editorVersion":"6000.3.26f1 (de8167e7440c)","branch":"6000.3/staging","buildType":"Release","platform":"Linux"}
+Asset Pipeline Refresh (id=b9eb4ca3ebfd35a69913dc17a25f1e03): Total: 0.098 seconds - Initiated by RefreshV2(ForceSynchronousImport)
+[Licensing::Client] Successfully resolved entitlement details
+Running tests for ExecutionSettings with details:
+targetPlatform = 
+playerHeartbeatTimeout = 600
+filters[0] = 
+   Filter with settings:
+   testMode = EditMode
+   targetPlatform = 
+   testNames = null
+   groupNames = RegionMapTests
+   categoryNames = null
+   assemblyNames = null
+ignoreTests = {}
+featureFlags = null
+
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /home/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:InitializeAndExecuteRun (string[]) (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/CommandLineTest/Executer.cs:53)
+UnityEditor.TestTools.TestRunner.CommandLineTest.TestStarter:InitializeAndExecuteRun () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/CommandLineTest/TestStarter.cs:64)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /home/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:392)
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 53)
+
+[UnityConnectServicesConfig] config is NOT valid, switching to default
+Created GICache directory at /home/box/.cache/unity3d/GiCache. Took: 0.001s, timestamps: [12.266 - 12.266]
+Unloading 1 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 1 unused Assets / (43.9 KB). Loaded Objects now: 2245.
+Memory consumption went from 96.8 MB to 96.8 MB.
+Total: 8.464762 ms (FindLiveObjects: 0.118343 ms CreateObjectMapping: 0.032844 ms MarkObjects: 8.286320 ms  DeleteObjects: 0.026021 ms)
+
+Executing IPrebuildSetup for: Unity.PerformanceTesting.Editor.TestRunBuilder.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /home/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1/<ExecuteMethods>d__8<UnityEngine.TestTools.IPrebuildSetup>:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:48)
+UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1/<Execute>d__7<UnityEngine.TestTools.IPrebuildSetup>:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:34)
+UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner:ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)
+UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner:ExecuteCallback () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:108)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /home/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:392)
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs Line: 48)
+
+Saving results to: /home/box/.config/unity3d/quantdale/Simple Walk Game/TestResults.xml
+Saving results to: /workspace/simple-walk-game-wt-phase-pinfix-grok1024phg/docs/evidence/d223-pinfix/editmode-focus3.xml
+Executing IPostBuildCleanup for: Unity.PerformanceTesting.Editor.TestRunBuilder.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /home/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1/<ExecuteMethods>d__8<UnityEngine.TestTools.IPostBuildCleanup>:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:48)
+UnityEditor.TestTools.TestRunner.TestRun.Tasks.BuildActionTaskBase`1/<Execute>d__7<UnityEngine.TestTools.IPostBuildCleanup>:MoveNext () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs:34)
+UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner:ExecuteStep () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:173)
+UnityEditor.TestTools.TestRunner.TestRun.TestJobRunner:ExecuteCallback () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/TestJobRunner.cs:108)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /home/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:392)
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/TestRun/Tasks/BuildActionTaskBase.cs Line: 48)
+
+Unloading 3 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 0 unused Assets / (6.6 KB). Loaded Objects now: 2251.
+Memory consumption went from 138.1 MB to 138.1 MB.
+Total: 9.280968 ms (FindLiveObjects: 0.110797 ms CreateObjectMapping: 0.033192 ms MarkObjects: 9.126509 ms  DeleteObjects: 0.009657 ms)
+
+DisplayProgressbar: Undo
+Test run completed. Exiting with code 2 (Failed). One or more tests failed.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace () (at /home/bokken/build/output/unity/unity/Runtime/Export/Scripting/StackTrace.cs:35)
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:ExitApplication (UnityEditor.TestTools.TestRunner.CommandLineTest.Executer/ReturnCodes,string) (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/CommandLineTest/Executer.cs:81)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:ExitIfRunIsCompleted () (at ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/CommandLineTest/Executer.cs:74)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions () (at /home/bokken/build/output/unity/unity/Editor/Mono/EditorApplication.cs:392)
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@0bd5c5194236/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 81)
+
+Request timed out while processing request "https://public-cdn.cloud.unity3d.com/config/production", HTTP error code 0
+.[UnityConnect] Request timed out.
+An error occurred while processing request "https://public-cdn.cloud.unity3d.com/config/production", HTTP error code 299
+.[UnityConnect] An error occurred.
+Killing ADB server in 0.040043 seconds.
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-box-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-box channel disconnected successfully.
+AcceleratorClientConnectionCallback - disconnected - :0
+[40m[32minfo[39m[22m[49m: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...
+[40m[32minfo[39m[22m[49m: Unity.ILPP.Runner.PostProcessingAssemblyLoadContext[0]
+      ALC ILPP context 1 is unloading
+Cleanup mono
+debugger-agent: Unable to listen on 39
+[usbmuxd] Stop listen thread
+[usbmuxd] Listen thread exiting
+[Package Manager] Server process was shutdown
+Checking for leaked weakptr:
+  Found no leaked weakptrs.
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1792804897755,"processId":333604,"allocatedMemory":7926786,"memoryLabels":[{"Default":14105},{"Permanent":15960},{"Thread":1084616},{"Manager":24493},{"VertexData":8},{"Geometry":408},{"Texture":296},{"Shader":79876},{"Material":24},{"GfxDevice":36040},{"Animation":456},{"Audio":3032},{"FreeType":8},{"FontEngine":736},{"Physics":1970},{"Physics2D":16},{"Serialization":360},{"Input":26888},{"JobScheduler":33024},{"TextLib":280},{"Mono":32},{"ScriptingNativeRuntime":155096},{"BaseObject":1623048},{"Resource":1064},{"Renderer":3000},{"Transform":4717},{"File":3745},{"WebCam":80},{"Culling":32},{"Terrain":11298},{"Wind":24},{"String":10872},{"DynamicArray":93256},{"HashMap":71379},{"Utility":2660352},{"Curl":1664},{"PoolAlloc":1904},{"AI":80},{"TypeTree":17213},{"ScriptManager":512},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":112},{"GI":7384},{"Director":8208},{"CloudService":288},{"WebRequest":552},{"VR":47754},{"SceneManager":536},{"Video":64},{"LazyScriptCache":32},{"Camera":17},{"Secure":2377},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57552},{"StaticSafetyDebugInfo":278528},{"Analytics":336},{"Hierarchy":1416},{"CoreStats":13112},{"Identifiers":6480},{"Gui":128},{"EditorUtility":76507},{"VersionControl":4},{"Undo":979},{"AssetDatabase":1385150},{"EditorGi":328},{"UnityConnect":29432},{"Upm":1744},{"AssetCompliance":64},{"DrivenProperties":72},{"LocalIPC":146},{"ProfilerEditor":9746},{"CoreBusinessMetrics":2390},{"Licensing":1128},{"AssetReference":32},{"IPCStream":32}]}

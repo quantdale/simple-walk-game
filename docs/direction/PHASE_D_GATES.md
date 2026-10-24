@@ -45,7 +45,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Completed restoration | PASS | `E/trailhead-s1-bridge-done`, `E/trailhead-s3-restored`; S4 is key-driven (labelled) |
 | Return-after-walking | PASS | `F/shell-return-after-walking` (D-215) |
 | Home | PASS | `F/shell-home-visit-trailhead`, `…-text2x` (scrolled; D-210/D-215) |
-| Region view | PASS (editor) | `docs/evidence/d221-region-map/shell-region-view` — interactive structural pins + compact card (D-221) |
+| Region view | PASS (editor) | D-223: glyph pins + label plates (no mid-word wrap); `docs/evidence/d223-pinfix/shell-region-view` |
 | Short gameplay/animation capture | PASS (editor, simulated time) | `E/trailhead-motion.unity-editor-capture.gif` (D-211/D-212) |
 | Labelling concept vs editor vs device | PASS | Every capture carries an in-image caption; no device claims |
 

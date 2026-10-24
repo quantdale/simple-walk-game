@@ -4149,3 +4149,18 @@ card collapses to a few summary lines; full landmark phrases ride on each place 
 **Evidence** (`docs/evidence/d222-canopy/`, Unity editor, NOT a device).
 
 **Note.** Landmark Stabilized still comes from WetlandDrainage in catalog content; timber visibility therefore follows the clear-fallen project, not Stabilized. Rowan ships cut-out body+head idle (reduced motion stills); `rowan_rig.psb` is authored for later bone weights. Dialogue expressions alias to the locked neutral bust until dedicated plates ship. Editor DXT ~6.5 MB (ceiling 22 MB; device ASTC ≤ 12 MB).
+
+
+## D-223 — Region pin label plates + canopy orchid/fringe fix (2026-10-24)
+
+**Status:** Accepted (agent)
+
+**Decision.**
+1. Region map pins are glyph-only circles; the place name sits on a separate parchment label plate
+   (authored offset per pin) wrapped at spaces only — never mid-word. Plates stay inside the map band,
+   ≥ 48 dp pin hits, D-147 text/tooltip sync kept (button text transparent, plate carries the visible title).
+2. `disc.understory-orchids` is a small gouache understory clump (`OrchidWorldScale` 0.28) with a subtle glow.
+3. Neon-green / magenta key fringe on character and find-prop layers is choked with the D-214 decontaminate
+   pass; `ArtFringeTests` asserts `key_fringe_ratio ≤ 0.04` on Mira/Tavi/Rowan/millstone/orchids.
+
+**Evidence** (`docs/evidence/d223-pinfix/`, Unity editor, NOT a device).

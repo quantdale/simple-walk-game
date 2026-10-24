@@ -179,7 +179,8 @@ namespace WalkGame.Shell
             scroll.Add(actions);
             actions.Clear();
 
-            // D-221: place actions become map markers (first in Actions → first in button Query); chrome stays in the card.
+            // D-221/D-223: place actions become map pins (glyph) + separate label plates; chrome stays in the card.
+            // Button Query order = place actions then card actions (= Actions order). Labels are not Buttons.
             int markerCount = 0;
             if (regionMap)
             {
@@ -187,8 +188,11 @@ namespace WalkGame.Shell
                 map.style.position = Position.Absolute;
                 map.style.left = 0; map.style.right = 0; map.style.top = 0;
                 map.style.height = new Length(mapShare * 100f, LengthUnit.Percent);
-                // Insert before the card so Query order = markers then card buttons (= Actions order).
+                map.style.overflow = Overflow.Visible;
                 root.Insert(0, map);
+                float pinDp = RegionArt.PinDp * k;
+                float labelFont = RegionArt.LabelFontDp * k;
+                float labelMax = RegionArt.LabelMaxWidthDp * k;
                 foreach (var a in model.Actions)
                 {
                     if (!RegionArt.IsPlaceAction(a.Id)) continue;
@@ -196,24 +200,53 @@ namespace WalkGame.Shell
                     LandmarkVisual pin = null;
                     foreach (var lv in model.Scene!.Landmarks) if (lv.LandmarkId == id) { pin = lv; break; }
                     if (pin == null) continue;
+                    RegionArt.TryLabelOffset(id, out float lx, out float ly);
                     ActionButton b = MakeButton(state, markerCount);
                     markerCount++;
+                    // D-147: accessible name (== tooltip) must equal the visible place title; text is drawn on the plate,
+                    // so the button's own glyphs stay transparent while .text/.tooltip stay in sync.
                     b.ActionId = a.Id; b.name = a.Id; b.tooltip = a.AccessibleLabel; b.text = a.Label;
-                    b.style.fontSize = 11 * k; b.style.unityTextAlign = TextAnchor.LowerCenter;
+                    b.style.fontSize = 1f; b.style.color = new Color(0, 0, 0, 0);
+                    b.style.unityTextAlign = TextAnchor.MiddleCenter;
                     b.style.position = Position.Absolute;
                     b.style.left = new Length(pin.X * 100f, LengthUnit.Percent);
                     b.style.top = new Length(pin.Y * 100f, LengthUnit.Percent);
                     b.style.translate = new Translate(new Length(-50, LengthUnit.Percent), new Length(-50, LengthUnit.Percent));
                     b.style.minWidth = 48 * k; b.style.minHeight = 48 * k;
-                    b.style.width = 56 * k; b.style.height = 56 * k;
-                    b.style.backgroundColor = new Color(0.961f, 0.922f, 0.867f, 0.82f);
-                    b.style.color = Ink;
+                    b.style.width = pinDp; b.style.height = pinDp;
+                    b.style.backgroundColor = new Color(0.961f, 0.922f, 0.867f, 0.92f);
                     b.style.borderTopWidth = b.style.borderBottomWidth = b.style.borderLeftWidth = b.style.borderRightWidth = 2;
                     b.style.borderTopColor = b.style.borderBottomColor = b.style.borderLeftColor = b.style.borderRightColor = InkBrown;
-                    b.style.borderTopLeftRadius = b.style.borderTopRightRadius = b.style.borderBottomLeftRadius = b.style.borderBottomRightRadius = 28;
-                    b.style.marginBottom = 0; b.style.paddingTop = b.style.paddingBottom = b.style.paddingLeft = b.style.paddingRight = 4;
+                    b.style.borderTopLeftRadius = b.style.borderTopRightRadius = b.style.borderBottomLeftRadius = b.style.borderBottomRightRadius = pinDp * 0.5f;
+                    b.style.marginBottom = 0; b.style.paddingTop = b.style.paddingBottom = b.style.paddingLeft = b.style.paddingRight = 2;
+                    b.style.overflow = Overflow.Hidden;
                     b.Clear(); b.Add(new RegionMarkerElement(pin));
                     map.Add(b);
+
+                    int maxChars = RegionArt.MaxCharsForWidth(labelMax, labelFont);
+                    string wrapped = RegionArt.WrapAtSpaces(a.Label, maxChars);
+                    var plate = new Label(wrapped) { name = "pin-label-" + id, pickingMode = PickingMode.Ignore };
+                    plate.style.position = Position.Absolute;
+                    plate.style.left = new Length((pin.X + lx) * 100f, LengthUnit.Percent);
+                    plate.style.top = new Length((pin.Y + ly) * 100f, LengthUnit.Percent);
+                    plate.style.translate = new Translate(new Length(-50, LengthUnit.Percent), new Length(-50, LengthUnit.Percent));
+                    plate.style.fontSize = labelFont;
+                    plate.style.color = Ink;
+                    plate.style.backgroundColor = new Color(0.961f, 0.922f, 0.867f, 0.94f);
+                    plate.style.unityTextAlign = TextAnchor.MiddleCenter;
+                    // Pre: honour WrapAtSpaces newlines; never let UITK mid-break a word at maxWidth.
+                    plate.style.whiteSpace = WhiteSpace.Pre;
+                    float plateW = RegionArt.PlateWidthDp(a.Label, labelFont, k);
+                    plate.style.width = plateW;
+                    plate.style.minWidth = plateW;
+                    plate.style.maxWidth = Mathf.Max(plateW, labelMax);
+                    plate.style.paddingLeft = plate.style.paddingRight = RegionArt.LabelPadX * k;
+                    plate.style.paddingTop = plate.style.paddingBottom = 3f * k;
+                    plate.style.borderTopWidth = plate.style.borderBottomWidth = plate.style.borderLeftWidth = plate.style.borderRightWidth = 1.5f;
+                    plate.style.borderTopColor = plate.style.borderBottomColor = plate.style.borderLeftColor = plate.style.borderRightColor = InkBrown;
+                    plate.style.borderTopLeftRadius = plate.style.borderTopRightRadius = plate.style.borderBottomLeftRadius = plate.style.borderBottomRightRadius = 8;
+                    if (ButtonFont != null) { plate.style.unityFont = ButtonFont; plate.style.unityFontDefinition = FontDefinition.FromFont(ButtonFont); }
+                    map.Add(plate);
                 }
             }
 
