@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using WalkGame.Application.ReadModels;
 using WalkGame.Domain.Regions;
+using WalkGame.Shell.Presentation;
 
 namespace WalkGame.Shell
 {
@@ -11,9 +12,11 @@ namespace WalkGame.Shell
     /// <summary>One landmark as drawn in the valley picture.</summary>
     public sealed class LandmarkVisual
     {
-        public LandmarkVisual(string label, RestorationStage stage, float x, float y, bool changed = false, LandmarkKind kind = LandmarkKind.Generic)
-        { Label = label; Stage = stage; X = x; Y = y; Changed = changed; Kind = kind; }
+        public LandmarkVisual(string landmarkId, string label, RestorationStage stage, float x, float y, bool changed = false, LandmarkKind kind = LandmarkKind.Generic)
+        { LandmarkId = landmarkId; Label = label; Stage = stage; X = x; Y = y; Changed = changed; Kind = kind; }
         public LandmarkKind Kind { get; }
+        /// <summary>Catalog landmark id (e.g. lm.trailhead).</summary>
+        public string LandmarkId { get; }
         /// <summary>Restoration moment: this landmark changed while the player was away (UX_DESIGN §4/§19).</summary>
         public bool Changed { get; }
         public string Label { get; }
@@ -110,15 +113,19 @@ namespace WalkGame.Shell
             for (int i = 0; i < n; i++)
             {
                 var l = region.Landmarks[i];
-                // Deterministic layout: spread along the valley floor, alternating near/far rows.
-                float x = (i + 0.5f) / n;
-                float y = 0.62f + (i % 2 == 0 ? 0.08f : -0.04f);
+                // D-221: painted-map pins when authored; else the legacy valley-floor spread.
+                float x, y;
+                if (!RegionArt.TryPin(l.LandmarkId, out x, out y))
+                {
+                    x = (i + 0.5f) / n;
+                    y = 0.62f + (i % 2 == 0 ? 0.08f : -0.04f);
+                }
                 string title = PlayerCopy.Title(l.TitleKey);
                 bool changed = false;
                 if (changedTexts != null && title != GlancePhrases.UntitledProject)
                     foreach (var t in changedTexts)
                         if (t != null && t.IndexOf(title, StringComparison.Ordinal) >= 0) { changed = true; break; }
-                list.Add(new LandmarkVisual(title, l.Stage, x, y, changed, KindOf(l.LandmarkId)));
+                list.Add(new LandmarkVisual(l.LandmarkId, title, l.Stage, x, y, changed, KindOf(l.LandmarkId)));
             }
             float green = region.TotalProjects <= 0 ? 0f : Clamp01((float)region.CompletedProjects / region.TotalProjects);
             if (region.RegionCompleted) green = 1f;

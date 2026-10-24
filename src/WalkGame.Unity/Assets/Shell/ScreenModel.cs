@@ -9,9 +9,13 @@ namespace WalkGame.Shell
 
     public sealed class ShellAction
     {
-        public ShellAction(string id, string label) { Id = id; Label = label; }
+        public ShellAction(string id, string label, string? accessibleLabel = null)
+        { Id = id; Label = label; AccessibleLabel = string.IsNullOrWhiteSpace(accessibleLabel) ? label : accessibleLabel!; }
         public string Id { get; }
+        /// <summary>Short on-screen label.</summary>
         public string Label { get; }
+        /// <summary>D-221: full detail for the screen reader when the visible label is compact.</summary>
+        public string AccessibleLabel { get; }
     }
 
     /// <summary>

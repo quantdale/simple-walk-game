@@ -12,7 +12,7 @@ namespace WalkGame.Shell.Tests
         private static List<LandmarkVisual> Row(params RestorationStage[] stages)
         {
             var l = new List<LandmarkVisual>();
-            for (int i = 0; i < stages.Length; i++) l.Add(new LandmarkVisual("L" + i, stages[i], (i + 0.5f) / stages.Length, 0.6f));
+            for (int i = 0; i < stages.Length; i++) l.Add(new LandmarkVisual("lm.test-" + i, "L" + i, stages[i], (i + 0.5f) / stages.Length, 0.6f));
             return l;
         }
 

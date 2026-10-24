@@ -4126,3 +4126,15 @@ screen-reader button ("Look at the old millstone"). Card text is in-engine; mark
 
 **Note.** Trailhead EditMode texture sum uses the editor DXT estimate (ceiling 22 MB); device ASTC budget stays ≤ 12 MB per PERFORMANCE_BUDGETS §9.
 
+## D-221 — Interactive Region 1 map (structural pins + compact card) (2026-10-24)
+
+**Status:** Accepted (agent)
+
+**Decision.** The Region screen is map-first: each landmark has a painted-map pin whose silhouette
+changes with restoration stage (structure first, colour second). Tapping a painted, unlocked place
+(Old Trailhead / River Intake) opens that world; other pins show a short focus card. The parchment
+card collapses to a few summary lines; full landmark phrases ride on each place action's
+`AccessibleLabel` so TalkBack keeps the detail. No Domain/Application/save-schema change.
+
+**Evidence** (`docs/evidence/d221-region-map/`, Unity editor, NOT a device).
+
