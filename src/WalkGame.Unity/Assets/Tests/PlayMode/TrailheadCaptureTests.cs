@@ -478,6 +478,124 @@ namespace WalkGame.Shell.PlayModeTests
             }
         }
 
+
+        /// <summary>D-222: Canopy Grove with Rowan and the understory-orchids find, reached after woodland unlocks.</summary>
+        [UnityTest] public IEnumerator Capture_canopy_grove_with_rowan_and_orchids()
+        {
+            string outDir = Environment.GetEnvironmentVariable("WG_TRAILHEAD_CAPTURE_DIR");
+            if (string.IsNullOrEmpty(outDir)) { Assert.Ignore("WG_TRAILHEAD_CAPTURE_DIR not set"); yield break; }
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) { Assert.Ignore("no graphics device"); yield break; }
+            Directory.CreateDirectory(outDir);
+            var dir = Path.Combine(UnityEngine.Application.temporaryCachePath, "wg-cg-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(dir);
+            var worldRt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
+            var uiRt = new RenderTexture(W, H, 24, RenderTextureFormat.ARGB32);
+            var go = new GameObject("canopy-world");
+            try
+            {
+                var clock = new ManualClock(new DateTimeOffset(2026, 3, 2, 9, 0, 0, TimeSpan.Zero));
+                var s = ShellBootstrap.CreateSession(dir, new ShellConnectionPort(true), clock);
+                Assert.AreEqual(StartStatus.NewGameCreated, s.StartNewGame(42UL, overwriteExisting: false).Status);
+                int walk = 0;
+                void Walk(long steps, double hours)
+                {
+                    clock.Advance(TimeSpan.FromHours(hours));
+                    s.IngestActivityBatch(new[] { new NormalizedActivityRecord("capture", "c" + (++walk), ActivityCategory.Walking, ActivityUnits.Steps, steps, clock.UtcNow.AddMinutes(-30), clock.UtcNow) });
+                    if (s.GetPendingReturnSummary() != null) s.AcknowledgeReturnSummary();
+                }
+                ProjectStatus St(string id) => s.GetProjects().Projects.Single(p => p.ProjectId == id).Status;
+                // Unlock canopy path: clear trailhead → clear fallen timber (Rowan appears).
+                Assert.IsTrue(s.EnqueueProject("proj.clear-trailhead").IsSuccess);
+                for (int i = 0; i < 80 && St("proj.clear-trailhead") != ProjectStatus.Completed; i++) Walk(1500, 2);
+                Assert.IsTrue(s.EnqueueProject(CanopyGroveArt.ClearTimberId).IsSuccess);
+                for (int i = 0; i < 80 && St(CanopyGroveArt.ClearTimberId) != ProjectStatus.Completed; i++) Walk(1500, 2);
+
+                var panel = ScriptableObject.CreateInstance<PanelSettings>();
+                panel.themeStyleSheet = Resources.Load<ThemeStyleSheet>("ShellTheme");
+                panel.targetTexture = uiRt; panel.scaleMode = PanelScaleMode.ConstantPixelSize; panel.scale = 1f;
+                panel.clearColor = true; panel.colorClearValue = new Color(0, 0, 0, 0);
+                var host = go.AddComponent<TrailheadWorldHost>();
+                host.Open(s, new InMemoryPresentationMemory(), NullOsMotionPreference.Instance, 1f, () => { }, panel, worldRt, CanopyGroveArt.LocationId);
+                host.Place.ReducedMotion = true;
+                Assert.IsNotNull(host.Canopy);
+                var caption = new Label { name = "capture-caption" }; caption.style.position = Position.Absolute; caption.style.top = 8; caption.style.left = 8; caption.style.right = 110;
+                caption.style.backgroundColor = new Color(0.24f, 0.25f, 0.22f, 0.8f); caption.style.color = Color.white; caption.style.fontSize = 15; caption.style.whiteSpace = WhiteSpace.Normal;
+                caption.pickingMode = PickingMode.Ignore;
+                var cam = go.GetComponentInChildren<Camera>();
+                var shots = new List<string>();
+                IEnumerator Shot(string name, string note)
+                {
+                    if (caption.parent != host.Overlay) host.Overlay!.Add(caption);
+                    var f = host.Canopy!.Frame!;
+                    caption.text = "Unity editor capture (software GL, not a device) · Phase D Canopy Grove · " + f.Stage.ToString().ToLowerInvariant() + " · " + (f.WalkwayKey ?? "no walkway key") + " · " + note;
+                    host.Place.Settle();
+                    for (int i = 0; i < 6; i++) yield return null;
+                    cam.Render();
+                    Dump(worldRt, Path.Combine(outDir, name + ".world")); Dump(uiRt, Path.Combine(outDir, name + ".ui"));
+                    shots.Add(name);
+                    Debug.Log("WG_TRAILHEAD_CAPTURE " + name + " " + caption.text);
+                }
+                float aspect = (float)W / H;
+                Assert.IsTrue(host.Canopy!.RowanVisible, "Rowan waits at the grove after clear-fallen-timber");
+                Assert.IsNull(host.Canopy.Frame!.Timber, "clear-fallen-timber removes the timber layer");
+                yield return Shot("canopy-s0-rowan", "canonical: clear-fallen-timber done; Rowan on; path open");
+                // Key-driven ruined+timber plate (content keeps landmark Ruined until WetlandDrainage).
+                host.Canopy.Show(new LandmarkPresentation(CanopyGroveArt.LocationId, "Canopy Grove", CanopyGroveArt.LocationId + "@ruined", null, true, true, false,
+                    new[] { CanopyGroveArt.RowanId }, System.Array.Empty<WalkGame.Application.ReadModels.WorldViewReadModel.ProjectVisual>()));
+                Assert.IsNotNull(host.Canopy.Frame!.Timber);
+                yield return Shot("canopy-s0-timber-keydriven", "KEY-DRIVEN timber layer (before clear-fallen)");
+                host.Controller.Resume();
+                Assert.AreEqual(CanopyTarget.Rowan, host.TapCanopyAt(new Vector2(0.18f, 0.80f), aspect));
+                Assert.IsNotNull(host.Place.Dialogue);
+                yield return Shot("canopy-dialogue-rowan", "tap Rowan (skippable)");
+                host.Place.TextScale = 2f; host.Canopy.RedrawDialogue();
+                yield return Shot("canopy-dialogue-rowan-text2x", "same dialogue at 2x text");
+                host.Place.TextScale = 1f; host.Controller.SkipDialogue();
+                host.Controller.CloseLocation();
+                // Walk to Functional (understory) for orchids, then Flourishing (walkway).
+                var stagesShot = new HashSet<string>();
+                for (int day = 0; day < 600 && !stagesShot.Contains("flourishing"); day++)
+                {
+                    if (!s.GetProjects().Projects.Any(p => p.Status == ProjectStatus.Queued || p.Status == ProjectStatus.Active))
+                    {
+                        var open = s.GetProjects().Projects.FirstOrDefault(p => p.Status == ProjectStatus.Available);
+                        if (open != null) s.EnqueueProject(open.ProjectId);
+                    }
+                    Walk(20000, 24);
+                    host.Controller.Resume();
+                    if (host.Canopy == null) { host.GoTo(CanopyGroveArt.LocationId); host.Place.ReducedMotion = true; }
+                    string st = host.Canopy!.Frame!.Stage.ToString().ToLowerInvariant();
+                    if ((st == "stabilized" || st == "functional" || st == "flourishing") && stagesShot.Add(st))
+                    {
+                        host.Place.ReducedMotion = true;
+                        yield return Shot("canopy-s" + (int)host.Canopy.Frame.Stage + "-" + st,
+                            "canonical: day " + (day + 1) + (st == "flourishing" ? " (walkway on)" : ""));
+                    }
+                    if (st == "functional" && host.Canopy.OrchidsTappable && !shots.Contains("canopy-orchids-glow"))
+                    {
+                        Assert.IsTrue(host.Canopy.Glow.enabled);
+                        yield return Shot("canopy-orchids-glow", "canonical: Functional; understory orchids glowing");
+                        Assert.AreEqual(CanopyTarget.Orchids, host.TapCanopyAt(new Vector2(CanopyGroveArt.OrchidsX, CanopyGroveArt.OrchidsY), aspect));
+                        Assert.AreEqual("find:" + CanopyGroveArt.DiscoveryId, host.ShownCard);
+                        yield return Shot("canopy-orchids-find-card", "tap orchids → the find (in-engine text)");
+                        host.Place.TextScale = 2f; host.OpenFind();
+                        yield return Shot("canopy-orchids-find-card-text2x", "orchids find at 2x text");
+                        host.Place.TextScale = 1f; host.CloseFind();
+                    }
+                }
+                Assert.IsTrue(stagesShot.Contains("functional"), "Functional ← PlantWoodlandUnderstory in real play");
+                Assert.IsTrue(stagesShot.Contains("flourishing"), "Flourishing ← CanopyWalkway in real play");
+                Assert.IsNotNull(host.Canopy!.Frame!.Walkway, "walkway layer at Flourishing");
+                File.WriteAllText(Path.Combine(outDir, "captures-canopy.txt"), string.Join("\n", shots) + "\nmissing keys: " + string.Join(", ", host.Canopy.MissingKeys) + "\n");
+            }
+            finally
+            {
+                if (go != null) UnityEngine.Object.DestroyImmediate(go);
+                worldRt.Release(); uiRt.Release();
+                try { Directory.Delete(dir, true); } catch (IOException) { }
+            }
+        }
+
         private static void Dump(RenderTexture rt, string path)
         {
             var prev = RenderTexture.active;

@@ -26,7 +26,7 @@ namespace WalkGame.Shell.Presentation
 
         /// <summary>Painted places the Region map can open in the world host today.</summary>
         public static bool IsPaintedPlace(string landmarkId) =>
-            landmarkId == TrailheadArt.LocationId || landmarkId == RiverIntakeArt.LocationId;
+            landmarkId == TrailheadArt.LocationId || landmarkId == RiverIntakeArt.LocationId || landmarkId == CanopyGroveArt.LocationId;
 
         /// <summary>Authored map pins for Region 1 (tuned to region1_map.png).</summary>
         public static readonly (string id, float x, float y)[] Pins =

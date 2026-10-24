@@ -1,0 +1,15 @@
+D-222 Canopy Grove — Unity editor captures (software GL, NOT a device). KI-002.
+
+EditMode: CanopyGroveArtTests + AccessibilityAuditTests + RegionMapTests = 25/25 Passed.
+PlayMode: Capture_canopy_grove_with_rowan_and_orchids = 1/1 Passed (full TrailheadCaptureTests suite 4/4 earlier).
+Texture budget (editor DXT): D222_TEXTURE_BYTES ~6.5 MB.
+
+Best canopy shots:
+  canopy-s0-rowan — clear-fallen-timber done; Rowan on; path open
+  canopy-s0-timber-keydriven — KEY-DRIVEN timber layer
+  canopy-dialogue-rowan (+ text2x)
+  canopy-s1-stabilized — WetlandDrainage (real play)
+  canopy-s2-functional — PlantWoodlandUnderstory (real play)
+  canopy-orchids-glow / canopy-orchids-find-card (+ text2x)
+  canopy-s4-flourishing — CanopyWalkway (real play; walkway layer)
+  shell-region-view — Region map (canopy now a painted place)

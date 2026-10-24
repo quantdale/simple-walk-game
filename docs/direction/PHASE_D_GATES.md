@@ -1,6 +1,6 @@
 # Phase D trailhead slice — Creative Bible §45–48 gate audit (2026-10-24)
 
-Scope: the painted Region-1 places (Old Trailhead D-204…D-215, River Intake D-216) on main. Statuses: **PASS** (evidence shown),
+Scope: the painted Region-1 places (Old Trailhead D-204…D-215, River Intake D-216…D-218, Canopy Grove D-222) on main. Statuses: **PASS** (evidence shown),
 **FAIL** (not met), **PARTIAL** (met inside the trailhead view, not across the app), **UNVERIFIED** (needs a device or real players).
 All captures are **Unity editor captures (software GL), NOT device-tested** (KI-002). `E/` = `docs/evidence/d212-bone-rig/`
 (the latest full capture set) unless noted; `F/` = `docs/evidence/d215-shell-a/`; `I/` = `docs/evidence/d216-intake/`; D-214 refreshed the trailhead set in `docs/evidence/d214-fringe/`.
@@ -72,11 +72,11 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 |---|---|---|
 | Recognisable as a cozy illustrated indie game? | Yes inside the trailhead; no on the text screens | See §46 UI rows |
 | Charm and personality? | Yes (trailhead) | Painted plates, garlands/bench on completion, Mira's idle and reaction |
-| Characters memorable and expressive? | Partly | Mira (5 expr + reaction) and Tavi (BODY-02, 4 expr + bone idle). Rowan/Eli not yet drawn |
+| Characters memorable and expressive? | Partly | Mira, Tavi, Rowan (D-222 locked body + bone idle, neutral portrait). Eli not yet drawn |
 | Interact with the world naturally? | Yes (editor) | Tap bridge/signpost/Mira; touch on a phone UNVERIFIED |
 | Walking produces meaningful visible change? | Yes | Steps → bridge build stages → stage plates (real-play captures) |
 | Follow progress without reading paragraphs? | Yes inside the world | Bridge stages + goal-progress line; Region map pins show stage by structure (D-221) |
-| Worthwhile optional gameplay beyond dialogue? | **Yes (two finds, editor)** | D-216 brass plate at the intake; D-220 old millstone at the trailhead (`disc.old-millstone`, glow + card in `docs/evidence/d220-millstone/`). Expeditions still text-only |
+| Worthwhile optional gameplay beyond dialogue? | **Yes (three finds, editor)** | D-216 brass plate; D-220 millstone; D-222 understory orchids at Canopy Grove (`disc.understory-orchids`, `docs/evidence/d222-canopy/`). Expeditions still text-only |
 | Leave without being penalised? | Yes | D-198: caps unchanged, calm welcome-back; nothing decays |
 
 ## Failures fixed
@@ -90,5 +90,6 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 ## Open (cannot be closed by a small PR)
 
 1. ~~Text shell in direction A~~ and ~~world-first boot~~ → D-215. ~~Painted Region map + lighter Home~~ → D-219.
-3. ~~Optional in-world play beyond dialogue~~ → D-216 (brass plate) + D-220 (millstone). Residual: more finds, expeditions in-world.
+3. ~~Optional in-world play beyond dialogue~~ → D-216 + D-220 + D-222 (orchids). Residual: more finds, expeditions in-world.
+4. ~~Third painted place (Canopy Grove / Rowan)~~ → D-222. Residual: East Wetland / Eli, Settlement, Observatory.
 4. Device verification of everything above (KI-002).

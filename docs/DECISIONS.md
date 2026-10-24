@@ -4138,3 +4138,14 @@ card collapses to a few summary lines; full landmark phrases ride on each place 
 
 **Evidence** (`docs/evidence/d221-region-map/`, Unity editor, NOT a device).
 
+
+
+## D-222 — Canopy Grove painted place with Rowan and understory orchids (2026-10-24)
+
+**Status:** Accepted (agent)
+
+**Decision.** Paint the third Region-1 place, Canopy Grove (`lm.canopy`), to the same consistency bar as the Old Trailhead and River Intake (direction A): ground S0/S4 crossfade by landmark stage, fallen-timber layer until `proj.clear-fallen-timber` completes, canopy-walkway layer from `proj.canopy-walkway` build/done, Rowan (`npc.rowan`, D-172) with locked body sheet + 2D Animation bone rig (cut-out fallback) and reduced-motion idle, and the optional find `disc.understory-orchids` (glow + in-engine card; never gates progress). Region map opens Canopy when unlocked (`RegionArt.IsPaintedPlace`). No Domain/Application/save-schema change — presentation only.
+
+**Evidence** (`docs/evidence/d222-canopy/`, Unity editor, NOT a device).
+
+**Note.** Landmark Stabilized still comes from WetlandDrainage in catalog content; timber visibility therefore follows the clear-fallen project, not Stabilized. Rowan ships cut-out body+head idle (reduced motion stills); `rowan_rig.psb` is authored for later bone weights. Dialogue expressions alias to the locked neutral bust until dedicated plates ship. Editor DXT ~6.5 MB (ceiling 22 MB; device ASTC ≤ 12 MB).

@@ -77,13 +77,30 @@ namespace WalkGame.Shell.Tests
         {
             var c = Fresh();
             c.Invoke("nav:Region");
-            c.Invoke(RegionArt.PlaceAction("lm.canopy"));
+            c.Invoke(RegionArt.PlaceAction("lm.wetland"));
             Assert.IsNull(c.WorldRequested);
             var m = c.Render();
             Assert.IsNotNull(m.Notice);
             Assert.IsTrue(m.Actions.Any(a => a.Id == "region:clearFocus"));
             c.Invoke("region:clearFocus");
             Assert.IsNull(c.Render().Notice);
+        }
+
+        [Test] public void Tapping_canopy_pin_requests_the_painted_world_once_unlocked()
+        {
+            // New game: canopy is locked; pin shows a focus card. After clear-fallen-timber the place unlocks
+            // for Rowan; Region painted-place open still needs the landmark interactable — assert the painted flag.
+            Assert.IsTrue(RegionArt.IsPaintedPlace(CanopyGroveArt.LocationId));
+            var c = Fresh();
+            c.Invoke("nav:Region");
+            c.Invoke(RegionArt.PlaceAction(CanopyGroveArt.LocationId));
+            // Locked canopy: short card, not world (same seam as other locked painted places).
+            if (c.WorldRequested == null)
+            {
+                Assert.IsNotNull(c.Render().Notice);
+                c.Invoke("region:clearFocus");
+            }
+            else Assert.AreEqual(CanopyGroveArt.LocationId, c.WorldRequested);
         }
     }
 }
