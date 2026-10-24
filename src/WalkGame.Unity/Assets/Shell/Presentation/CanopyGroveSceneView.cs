@@ -103,7 +103,8 @@ namespace WalkGame.Shell.Presentation
 
         private void BuildRowanRig()
         {
-            // Cut-out parts first (reliable idle); bone rig is authored for later when mesh weights settle.
+            // D-224: cut-out idle (reliable silhouette). Live SpriteSkin weights are authored on
+            // rowan_rig.psb (hips/spine/head, spine+head neck blend) for a follow-up once mesh settles.
             foreach (var p in CanopyGroveArt.RowanParts)
             {
                 var go = new GameObject(p.name); go.transform.SetParent(_rowan.transform, false);

@@ -94,14 +94,38 @@ namespace WalkGame.Shell.Tests
             Assert.LessOrEqual(bytes, 22L * 1024 * 1024, "editor DXT estimate ≤ 22 MB (device ASTC ≤ 12 MB)");
         }
 
-        [Test] public void Rowan_idle_uses_cut_out_parts_with_reduced_motion_path()
+        [Test] public void Rowan_has_expression_plates_authored_bone_weights_and_cut_out_idle()
         {
-            var go = new GameObject("rowan-rig-test");
+            foreach (var e in CanopyGroveArt.RowanExpressions)
+            {
+                var tex = Resources.Load<Texture2D>(CanopyGroveArt.ResourceFolder + "portrait_rowan_" + e);
+                Assert.IsNotNull(tex, "portrait_rowan_" + e);
+            }
+            var keys = CanopyGroveArt.CatalogEntries();
+            foreach (var e in CanopyGroveArt.RowanExpressions)
+                Assert.AreEqual("portrait_rowan_" + e, keys["portrait." + CanopyGroveArt.RowanId + "@" + e]);
+
+            // Live weights are authored on the PSB prefab (not yet preferred at runtime — silhouette gate).
+            var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Art/Canopy/" + CanopyGroveArt.RowanRig + ".psb");
+            Assert.IsNotNull(prefab, "rowan_rig.psb prefab");
+            var probe = Object.Instantiate(prefab);
+            try
+            {
+                var skins = probe.GetComponentsInChildren<UnityEngine.U2D.Animation.SpriteSkin>(true);
+                Assert.GreaterOrEqual(skins.Length, 2, "body + head SpriteSkin");
+                foreach (var sk in skins)
+                {
+                    Assert.Greater(sk.boneTransforms.Length, 0, sk.name + " weighted bones");
+                    Assert.Greater(UnityEngine.U2D.SpriteDataAccessExtensions.GetBindPoses(sk.GetComponent<SpriteRenderer>().sprite).Length, 0, sk.name + " bind poses");
+                }
+            }
+            finally { Object.DestroyImmediate(probe); }
+
+            var go = new GameObject("rowan-idle-test");
             try
             {
                 var v = go.AddComponent<CanopyGroveSceneView>(); v.Build();
                 Assert.GreaterOrEqual(v.RowanPartsList.Count, 2, "cut-out parts (body+head)");
-                Assert.IsTrue(UnityEditor.AssetDatabase.LoadAllAssetsAtPath("Assets/Resources/Art/Canopy/" + CanopyGroveArt.RowanRig + ".psb").OfType<Texture2D>().Any(), "PSB atlas shipped for later bone weights");
                 var head = v.RowanPartsList.Single(p => p.name.EndsWith("head")).t;
                 var r0 = head.localEulerAngles.z;
                 v.ReducedMotion = false; v.Tick(1.1f);

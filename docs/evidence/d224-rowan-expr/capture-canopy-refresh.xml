@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="1" result="Passed" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-10-24 02:20:21Z" end-time="2026-10-24 02:20:25Z" duration="3.2149297">
+  <test-suite type="TestSuite" id="1022" name="Simple Walk Game" fullname="Simple Walk Game" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 02:20:21Z" end-time="2026-10-24 02:20:25Z" duration="3.214930" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="PlayMode" />
+    </properties>
+    <test-suite type="Assembly" id="1018" name="WalkGame.Shell.PlayModeTests.dll" fullname="/workspace/simple-walk-game-wt-phase-rowan-expr-grok1024phg/src/WalkGame.Unity/Library/ScriptAssemblies/WalkGame.Shell.PlayModeTests.dll" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 02:20:21Z" end-time="2026-10-24 02:20:25Z" duration="3.207779" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="368640" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="PlayMode" />
+        <property name="EditorOnly" value="False" />
+      </properties>
+      <test-suite type="TestSuite" id="1019" name="WalkGame" fullname="WalkGame" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 02:20:21Z" end-time="2026-10-24 02:20:25Z" duration="3.207171" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1020" name="Shell" fullname="WalkGame.Shell" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 02:20:21Z" end-time="2026-10-24 02:20:25Z" duration="3.206843" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1021" name="PlayModeTests" fullname="WalkGame.Shell.PlayModeTests" runstate="Runnable" testcasecount="9" result="Passed" start-time="2026-10-24 02:20:21Z" end-time="2026-10-24 02:20:25Z" duration="3.206551" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1009" name="TrailheadCaptureTests" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-10-24 02:20:21Z" end-time="2026-10-24 02:20:25Z" duration="3.205263" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1013" name="Capture_canopy_grove_with_rowan_and_orchids" fullname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests.Capture_canopy_grove_with_rowan_and_orchids" methodname="Capture_canopy_grove_with_rowan_and_orchids" classname="WalkGame.Shell.PlayModeTests.TrailheadCaptureTests" runstate="Runnable" seed="900577208" result="Passed" start-time="2026-10-24 02:20:21Z" end-time="2026-10-24 02:20:25Z" duration="3.195582" asserts="0">
+                <properties>
+                  <property name="_JOINTYPE" value="UnityCombinatorial" />
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[WG_TRAILHEAD_CAPTURE canopy-s0-rowan Unity editor capture (software GL, not a device) · Phase D Canopy Grove · ruined · proj.canopy-walkway@ruined · canonical: clear-fallen-timber done; Rowan on; path open
+WG_TRAILHEAD_CAPTURE canopy-s0-timber-keydriven Unity editor capture (software GL, not a device) · Phase D Canopy Grove · ruined · no walkway key · KEY-DRIVEN timber layer (before clear-fallen)
+WG_TRAILHEAD_CAPTURE canopy-dialogue-rowan Unity editor capture (software GL, not a device) · Phase D Canopy Grove · ruined · proj.canopy-walkway@ruined · tap Rowan (skippable)
+WG_TRAILHEAD_CAPTURE canopy-dialogue-rowan-text2x Unity editor capture (software GL, not a device) · Phase D Canopy Grove · ruined · proj.canopy-walkway@ruined · same dialogue at 2x text
+WG_TRAILHEAD_CAPTURE canopy-s1-stabilized Unity editor capture (software GL, not a device) · Phase D Canopy Grove · stabilized · proj.canopy-walkway@ruined · canonical: day 38
+WG_TRAILHEAD_CAPTURE canopy-s2-functional Unity editor capture (software GL, not a device) · Phase D Canopy Grove · functional · proj.canopy-walkway@ruined · canonical: day 46
+WG_TRAILHEAD_CAPTURE canopy-orchids-glow Unity editor capture (software GL, not a device) · Phase D Canopy Grove · functional · proj.canopy-walkway@ruined · canonical: Functional; understory orchids glowing
+WG_TRAILHEAD_CAPTURE canopy-orchids-find-card Unity editor capture (software GL, not a device) · Phase D Canopy Grove · functional · proj.canopy-walkway@ruined · tap orchids → the find (in-engine text)
+WG_TRAILHEAD_CAPTURE canopy-orchids-find-card-text2x Unity editor capture (software GL, not a device) · Phase D Canopy Grove · functional · proj.canopy-walkway@ruined · orchids find at 2x text
+WG_TRAILHEAD_CAPTURE canopy-s4-flourishing Unity editor capture (software GL, not a device) · Phase D Canopy Grove · flourishing · proj.canopy-walkway@done · canonical: day 66 (walkway on)
+Saving results to: /home/box/.config/unity3d/quantdale/Simple Walk Game/TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

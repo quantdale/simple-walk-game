@@ -46,6 +46,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 | Return-after-walking | PASS | `F/shell-return-after-walking` (D-215) |
 | Home | PASS | `F/shell-home-visit-trailhead`, `…-text2x` (scrolled; D-210/D-215) |
 | Region view | PASS (editor) | D-223: glyph pins + label plates (no mid-word wrap); `docs/evidence/d223-pinfix/shell-region-view` |
+| Canopy Grove / Rowan | PASS (editor) | D-224: expression plates + authored SpriteSkin weights (cut-out idle); `docs/evidence/d224-rowan-expr/` |
 | Short gameplay/animation capture | PASS (editor, simulated time) | `E/trailhead-motion.unity-editor-capture.gif` (D-211/D-212) |
 | Labelling concept vs editor vs device | PASS | Every capture carries an in-image caption; no device claims |
 
@@ -72,7 +73,7 @@ All captures are **Unity editor captures (software GL), NOT device-tested** (KI-
 |---|---|---|
 | Recognisable as a cozy illustrated indie game? | Yes inside the trailhead; no on the text screens | See §46 UI rows |
 | Charm and personality? | Yes (trailhead) | Painted plates, garlands/bench on completion, Mira's idle and reaction |
-| Characters memorable and expressive? | Partly | Mira, Tavi, Rowan (D-222 locked body + bone idle, neutral portrait). Eli not yet drawn |
+| Characters memorable and expressive? | Partly | Mira, Tavi, Rowan (D-224 expression plates + live SpriteSkin). Eli not yet drawn |
 | Interact with the world naturally? | Yes (editor) | Tap bridge/signpost/Mira; touch on a phone UNVERIFIED |
 | Walking produces meaningful visible change? | Yes | Steps → bridge build stages → stage plates (real-play captures) |
 | Follow progress without reading paragraphs? | Yes inside the world | Bridge stages + goal-progress line; Region map pins show stage by structure (D-221) |
