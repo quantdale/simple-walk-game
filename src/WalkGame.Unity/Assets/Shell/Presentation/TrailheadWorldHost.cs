@@ -25,8 +25,10 @@ namespace WalkGame.Shell.Presentation
         public IPaintedPlaceView Place => _place;
         /// <summary>The trailhead view, or null while the River Intake is shown.</summary>
         public TrailheadSceneView View => (_place as TrailheadSceneView)!;
-        /// <summary>D-216: the River Intake view, or null while the trailhead is shown.</summary>
+        /// <summary>D-216: the River Intake view, or null while another place is shown.</summary>
         public RiverIntakeSceneView? Intake => _place as RiverIntakeSceneView;
+        /// <summary>D-222: the Canopy Grove view, or null while another place is shown.</summary>
+        public CanopyGroveSceneView? Canopy => _place as CanopyGroveSceneView;
         public string LocationId => _place.LocationId;
         private GameSession _session = null!; private IPresentationMemory _memory = null!; private IOsMotionPreference _os = null!;
         private float _textScale; private PanelSettings? _panelOverride; private RenderTexture? _target;
@@ -64,8 +66,12 @@ namespace WalkGame.Shell.Presentation
         private GameObject? _viewGo;
         private void BuildPlace(string? locationId)
         {
-            _viewGo = new GameObject(locationId == RiverIntakeArt.LocationId ? "intake-view" : "trailhead-view"); _viewGo.transform.SetParent(transform, false);
-            _place = locationId == RiverIntakeArt.LocationId ? _viewGo.AddComponent<RiverIntakeSceneView>() : (IPaintedPlaceView)_viewGo.AddComponent<TrailheadSceneView>();
+            string name = locationId == RiverIntakeArt.LocationId ? "intake-view"
+                : locationId == CanopyGroveArt.LocationId ? "canopy-view" : "trailhead-view";
+            _viewGo = new GameObject(name); _viewGo.transform.SetParent(transform, false);
+            if (locationId == RiverIntakeArt.LocationId) _place = _viewGo.AddComponent<RiverIntakeSceneView>();
+            else if (locationId == CanopyGroveArt.LocationId) _place = _viewGo.AddComponent<CanopyGroveSceneView>();
+            else _place = _viewGo.AddComponent<TrailheadSceneView>();
             _place.Build();
             _place.ReducedMotion = MotionPreference.Effective(_session.GetSettings().ReducedMotion, _os);
             _place.TextScale = _textScale;
@@ -84,9 +90,11 @@ namespace WalkGame.Shell.Presentation
             RefreshFind();
         }
 
-        /// <summary>The optional find for the painted place on screen (intake plate or trailhead millstone).</summary>
+        /// <summary>The optional find for the painted place on screen (plate / millstone / orchids).</summary>
         private string? ActiveDiscoveryId =>
-            Intake != null ? RiverIntakeArt.DiscoveryId : TrailheadArt.DiscoveryId;
+            Canopy != null ? CanopyGroveArt.DiscoveryId
+            : Intake != null ? RiverIntakeArt.DiscoveryId
+            : TrailheadArt.DiscoveryId;
 
         private WalkGame.Application.ReadModels.DiscoveriesReadModel.DiscoveryRow? FindRow(string? id = null)
         {
@@ -99,11 +107,14 @@ namespace WalkGame.Shell.Presentation
         {
             var r = FindRow();
             bool unlocked = r != null && r.Unlocked, reviewed = r != null && r.Reviewed;
-            if (Intake != null) Intake.SetDiscovery(unlocked, reviewed);
+            if (Canopy != null) Canopy.SetDiscovery(unlocked, reviewed);
+            else if (Intake != null) Intake.SetDiscovery(unlocked, reviewed);
             else if (_place is TrailheadSceneView th) th.SetDiscovery(unlocked, reviewed);
             if (_plateButton != null)
             {
-                bool show = Intake != null ? Intake.PlateTappable : (_place is TrailheadSceneView v && v.MillstoneTappable);
+                bool show = Canopy != null ? Canopy.OrchidsTappable
+                    : Intake != null ? Intake.PlateTappable
+                    : (_place is TrailheadSceneView v && v.MillstoneTappable);
                 _plateButton.style.display = show ? DisplayStyle.Flex : DisplayStyle.None;
             }
         }
@@ -114,7 +125,9 @@ namespace WalkGame.Shell.Presentation
         public bool OpenFind()
         {
             if (_cards == null) return false;
-            bool offered = Intake != null ? Intake.PlateTappable : (_place is TrailheadSceneView v && v.MillstoneTappable);
+            bool offered = Canopy != null ? Canopy.OrchidsTappable
+                : Intake != null ? Intake.PlateTappable
+                : (_place is TrailheadSceneView v && v.MillstoneTappable);
             if (!offered) return false;
             var r = FindRow(); if (r == null) return false;
             _cards.Clear(); ShownCard = "find:" + r.DiscoveryId;
@@ -153,22 +166,26 @@ namespace WalkGame.Shell.Presentation
             home.style.position = Position.Absolute; home.style.top = 12; home.style.right = 12; home.style.minHeight = 48;
             Style(home, Canvas, Charcoal, 18 * Mathf.Max(1f, _place.TextScale));
             root.Add(home);
-            // D-216: the path between the two painted places (only once the intake is open to the player).
-            bool atIntake = Intake != null;
-            if (atIntake || IntakeOpen())
+            // D-216/D-222: travel among painted places that are open to the player.
+            float travelTop = 72f;
+            bool firstTravel = true;
+            foreach (var (id, key) in TravelTargets())
             {
-                var go = new Button(() => GoTo(atIntake ? TrailheadArt.LocationId : RiverIntakeArt.LocationId))
-                    { text = PlayerStrings.T(atIntake ? "world.goTrailhead" : "world.goIntake"), name = "world-travel" };
-                go.style.position = Position.Absolute; go.style.top = 72; go.style.right = 12; go.style.maxWidth = 300;
+                var dest = id;
+                // First travel button keeps name "world-travel" for D-216 capture/tests; others are id-suffixed.
+                var go = new Button(() => GoTo(dest))
+                    { text = PlayerStrings.T(key), name = firstTravel ? "world-travel" : ("world-travel-" + id.Replace('.', '-')) };
+                firstTravel = false;
+                go.style.position = Position.Absolute; go.style.top = travelTop; go.style.right = 12; go.style.maxWidth = 300;
                 Style(go, Canvas, Charcoal, 18 * Mathf.Max(1f, _place.TextScale)); go.style.whiteSpace = WhiteSpace.Normal;
                 root.Add(go);
+                travelTop += 60f;
             }
             _plateButton = null;
             {   // screen-reader / keyboard route to the same optional find (the glow ring is the sighted route)
-                string key = atIntake ? "world.plate" : "world.millstone";
-                float top = atIntake ? 132f : (IntakeOpen() ? 132f : 72f);
+                string key = Canopy != null ? "world.orchids" : Intake != null ? "world.plate" : "world.millstone";
                 _plateButton = new Button(() => OpenFind()) { text = PlayerStrings.T(key), name = "world-find" };
-                _plateButton.style.position = Position.Absolute; _plateButton.style.top = top; _plateButton.style.right = 12; _plateButton.style.maxWidth = 300;
+                _plateButton.style.position = Position.Absolute; _plateButton.style.top = travelTop; _plateButton.style.right = 12; _plateButton.style.maxWidth = 300;
                 Style(_plateButton, Canvas, Charcoal, 16 * Mathf.Max(1f, _place.TextScale)); _plateButton.style.whiteSpace = WhiteSpace.Normal;
                 root.Add(_plateButton);
             }
@@ -176,10 +193,22 @@ namespace WalkGame.Shell.Presentation
         }
 
         /// <summary>A tap at normalized screen coordinates (0..1 from top-left) on a screen of the given aspect (w/h).</summary>
-        private bool IntakeOpen()
+        private bool PlaceOpen(string locationId)
         {
-            foreach (var l in _session.GetWorldView().Locations) if (l.LocationId == RiverIntakeArt.LocationId) return l.IsUnlocked;
+            foreach (var l in _session.GetWorldView().Locations) if (l.LocationId == locationId) return l.IsUnlocked;
             return false;
+        }
+        private bool IntakeOpen() => PlaceOpen(RiverIntakeArt.LocationId);
+        private bool CanopyOpen() => PlaceOpen(CanopyGroveArt.LocationId);
+
+        private System.Collections.Generic.List<(string id, string key)> TravelTargets()
+        {
+            var list = new System.Collections.Generic.List<(string, string)>();
+            string here = _place.LocationId;
+            if (here != TrailheadArt.LocationId) list.Add((TrailheadArt.LocationId, "world.goTrailhead"));
+            if (here != RiverIntakeArt.LocationId && IntakeOpen()) list.Add((RiverIntakeArt.LocationId, "world.goIntake"));
+            if (here != CanopyGroveArt.LocationId && CanopyOpen()) list.Add((CanopyGroveArt.LocationId, "world.goCanopy"));
+            return list;
         }
 
         /// <summary>D-216: a tap on the River Intake (Tavi talks, the plate opens the find, the gate opens its card or the place).</summary>
@@ -199,8 +228,29 @@ namespace WalkGame.Shell.Presentation
             return target;
         }
 
+        /// <summary>D-222: a tap on the Canopy Grove (Rowan talks, orchids open the find, walkway/timber open cards).</summary>
+        public CanopyTarget TapCanopyAt(Vector2 screen01, float aspect)
+        {
+            if (Canopy == null) return CanopyTarget.None;
+            var art = TrailheadArt.ScreenToArt(screen01.x, screen01.y, aspect);
+            var target = CanopyGroveArt.HitTest(art.x, art.y, Canopy.RowanVisible, Canopy.OrchidsTappable, Canopy.TimberVisible, Canopy.WalkwayVisible);
+            switch (target)
+            {
+                case CanopyTarget.Rowan: Controller.TapCharacter(CanopyGroveArt.RowanId); break;
+                case CanopyTarget.Orchids: OpenFind(); break;
+                case CanopyTarget.Walkway:
+                    if (Controller.TapProp(CanopyGroveArt.WalkwayId) != TapOutcome.Opened) Controller.TapLandmark(CanopyGroveArt.LocationId);
+                    break;
+                case CanopyTarget.Timber:
+                    Controller.TapLandmark(CanopyGroveArt.LocationId);
+                    break;
+            }
+            return target;
+        }
+
         public TrailheadTarget TapAt(Vector2 screen01, float aspect)
         {
+            if (Canopy != null) { TapCanopyAt(screen01, aspect); return TrailheadTarget.None; }
             if (Intake != null) { TapIntakeAt(screen01, aspect); return TrailheadTarget.None; }
             var art = TrailheadArt.ScreenToArt(screen01.x, screen01.y, aspect);
             var target = TrailheadArt.HitTest(art.x, art.y, View.MiraVisible, View.MillstoneTappable);

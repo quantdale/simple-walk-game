@@ -12,10 +12,12 @@ namespace WalkGame.Shell.Editor
         /// <summary>D-216: the River Intake art follows the same rules.</summary>
         public const string IntakeFolder = "Assets/Resources/Art/Intake/";
         public const string RegionFolder = "Assets/Resources/Art/Region/";
+        /// <summary>D-222: the Canopy Grove art follows the same rules.</summary>
+        public const string CanopyFolder = "Assets/Resources/Art/Canopy/";
 
         private void OnPreprocessTexture()
         {
-            if (!assetPath.StartsWith(Folder) && !assetPath.StartsWith(IntakeFolder) && !assetPath.StartsWith(RegionFolder)) return;
+            if (!assetPath.StartsWith(Folder) && !assetPath.StartsWith(IntakeFolder) && !assetPath.StartsWith(RegionFolder) && !assetPath.StartsWith(CanopyFolder)) return;
             var t = (TextureImporter)assetImporter;
             t.textureType = TextureImporterType.Default;
             t.mipmapEnabled = false;
