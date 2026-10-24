@@ -783,7 +783,9 @@ namespace WalkGame.Shell
                 if (l.Stage == WalkGame.Domain.Regions.RestorationStage.Ruined) recovering++;
                 else safe++;
             }
-            m.Lines.Add(PlayerStrings.F("shell.region.mapSummary", safe, recovering));
+            string well = safe == 1 ? PlayerStrings.F("shell.region.place.one", safe) : PlayerStrings.F("shell.region.place.many", safe);
+            string hurt = recovering == 1 ? PlayerStrings.F("shell.region.damaged.one", recovering) : PlayerStrings.F("shell.region.damaged.many", recovering);
+            m.Lines.Add(PlayerStrings.F("shell.region.mapSummary", well, hurt));
             m.Lines.Add(r.DiscoveriesUnlocked == 0
                 ? PlayerStrings.T("shell.noDiscoveriesYetWalks")
                 : PlayerStrings.F(r.DiscoveriesUnlocked == 1 ? "shell.region.discoveries.one" : "shell.region.discoveries.many", r.DiscoveriesUnlocked));
