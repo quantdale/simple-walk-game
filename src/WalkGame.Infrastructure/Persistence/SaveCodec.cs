@@ -16,6 +16,7 @@ namespace WalkGame.Infrastructure.Persistence
     public sealed class SaveCodec : ISaveCodec
     {
         public const int CurrentSchemaVersion = SchemaVersions.Current;
+        public const int MaxEnvelopeBytes = 64 * 1024 * 1024; // 64 MiB DoS envelope ceiling
         private const int MinimumSupportedVersion = SchemaVersions.MinimumSupported;
 
         private readonly MigrationRunner _migrations;
@@ -48,6 +49,8 @@ namespace WalkGame.Infrastructure.Persistence
         {
             if (envelopeBytes == null || envelopeBytes.Length == 0)
                 return new DecodeResult(CodecStatus.MalformedEnvelope, null, 0, detail: "Empty save payload.");
+            if (envelopeBytes.Length > MaxEnvelopeBytes)
+                return new DecodeResult(CodecStatus.MalformedEnvelope, null, 0, detail: "Save envelope exceeds maximum allowed size.");
 
             SaveEnvelopeDto? envelope;
             try

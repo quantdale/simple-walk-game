@@ -81,15 +81,18 @@ namespace WalkGame.Domain.Randomness
         {
             if (maxExclusive <= minInclusive)
                 throw new ArgumentOutOfRangeException(nameof(maxExclusive), "Range must be non-empty.");
-            ulong range = (ulong)(maxExclusive - minInclusive);
-            ulong limit = ulong.MaxValue - ulong.MaxValue % range;
+            ulong range = (ulong)maxExclusive - (ulong)minInclusive;
+            if (range == 1UL)
+                return minInclusive;
+
+            ulong limit = ulong.MaxValue - (ulong.MaxValue % range);
             ulong r;
             do
             {
                 r = NextUInt64();
             }
             while (r >= limit);
-            return minInclusive + (long)(r % range);
+            return (long)((ulong)minInclusive + (r % range));
         }
 
         /// <summary>Uniform double in [0, 1).</summary>

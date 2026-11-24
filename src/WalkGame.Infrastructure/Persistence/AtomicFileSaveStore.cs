@@ -125,7 +125,7 @@ namespace WalkGame.Infrastructure.Persistence
         private static void CopyToDurableFile(string sourcePath, string destinationPath)
         {
             using (var source = new FileStream(
-                sourcePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+                sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
             using (var destination = new FileStream(
                 destinationPath, FileMode.Create, FileAccess.Write, FileShare.None,
                 bufferSize: 4096))
@@ -153,10 +153,29 @@ namespace WalkGame.Infrastructure.Persistence
 
             try
             {
-                var bytes = File.ReadAllBytes(path);
-                if (bytes.Length == 0)
-                    return SaveReadResult.Fail(SaveReadOutcome.IoFailure, $"File '{path}' is empty.");
-                return SaveReadResult.Ok(bytes);
+                var fileInfo = new FileInfo(path);
+                if (fileInfo.Length > SaveCodec.MaxEnvelopeBytes)
+                    return SaveReadResult.Fail(SaveReadOutcome.IoFailure, $"File '{path}' exceeds maximum size of {SaveCodec.MaxEnvelopeBytes} bytes.");
+
+                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                {
+                    if (stream.Length == 0)
+                        return SaveReadResult.Fail(SaveReadOutcome.IoFailure, $"File '{path}' is empty.");
+                    if (stream.Length > SaveCodec.MaxEnvelopeBytes)
+                        return SaveReadResult.Fail(SaveReadOutcome.IoFailure, $"File '{path}' exceeds maximum size of {SaveCodec.MaxEnvelopeBytes} bytes.");
+
+                    var bytes = new byte[stream.Length];
+                    int totalRead = 0;
+                    while (totalRead < bytes.Length)
+                    {
+                        int read = stream.Read(bytes, totalRead, bytes.Length - totalRead);
+                        if (read == 0) break;
+                        totalRead += read;
+                    }
+                    if (totalRead != bytes.Length)
+                        return SaveReadResult.Fail(SaveReadOutcome.IoFailure, $"Premature end of file reading '{path}'.");
+                    return SaveReadResult.Ok(bytes);
+                }
             }
             catch (IOException ex)
             {

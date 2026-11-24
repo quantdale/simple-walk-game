@@ -28,7 +28,7 @@ namespace WalkGame.Infrastructure.Persistence
 
         public static SaveExportResult ToReadableJson(byte[]? envelopeBytes)
         {
-            if (envelopeBytes == null || envelopeBytes.Length == 0) return Fail(SaveExportStatus.Malformed);
+            if (envelopeBytes == null || envelopeBytes.Length == 0 || envelopeBytes.Length > SaveCodec.MaxEnvelopeBytes) return Fail(SaveExportStatus.Malformed);
             SaveEnvelopeDto? env;
             try { env = JsonSerializer.Deserialize<SaveEnvelopeDto>(envelopeBytes, SaveJson.Options); }
             catch (Exception ex) when (ex is JsonException || ex is NotSupportedException || ex is InvalidOperationException) { return Fail(SaveExportStatus.Malformed); }

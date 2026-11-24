@@ -53,5 +53,13 @@ namespace WalkGame.Domain.Common
         public static bool operator ==(Id<TKind> left, Id<TKind> right) => left.Equals(right);
 
         public static bool operator !=(Id<TKind> left, Id<TKind> right) => !left.Equals(right);
+
+        public static bool operator <(Id<TKind> left, Id<TKind> right) => left.CompareTo(right) < 0;
+
+        public static bool operator <=(Id<TKind> left, Id<TKind> right) => left.CompareTo(right) <= 0;
+
+        public static bool operator >(Id<TKind> left, Id<TKind> right) => left.CompareTo(right) > 0;
+
+        public static bool operator >=(Id<TKind> left, Id<TKind> right) => left.CompareTo(right) >= 0;
     }
 }

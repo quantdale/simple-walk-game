@@ -1,5 +1,8 @@
 using System;
 
+Console.Out.NewLine = "\n";
+Console.Error.NewLine = "\n";
+
 try
 {
     if (args.Length == 0)

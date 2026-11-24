@@ -87,11 +87,11 @@ namespace WalkGame.Application.ReadModels
         // word and is deliberately NOT matched: the check is the enum spelling as a whole word.
         private static readonly Regex StageIdentifier = new Regex(
             @"\b(Ruined|Stabilized|Functional|Restored|Flourishing)\b",
-            RegexOptions.CultureInvariant);
+            RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         private static readonly Regex LegacyStageLine = new Regex(
             @"^(?<title>.+?) has reached (?<stage>Ruined|Stabilized|Functional|Restored|Flourishing)\.$",
-            RegexOptions.CultureInvariant);
+            RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         /// <summary>True when text would echo a stage identifier to the player.</summary>
         public static bool ContainsStageIdentifier(string? text) =>

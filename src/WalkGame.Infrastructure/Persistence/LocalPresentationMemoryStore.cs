@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using WalkGame.Application.Presentation;
 
 namespace WalkGame.Infrastructure.Persistence
@@ -45,15 +46,36 @@ namespace WalkGame.Infrastructure.Persistence
         public PresentationMemoryLoadResult Load()
         {
             byte[] bytes;
-            try
+            for (int attempt = 0; ; attempt++)
             {
-                if (!File.Exists(_path)) return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.NotFound);
-                if (new FileInfo(_path).Length > MaxFileBytes)
-                    return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.Malformed, detail: "Presentation memory file is too large.");
-                bytes = File.ReadAllBytes(_path);
+                try
+                {
+                    bytes = ReadAllBytesWithShare(_path);
+                    break;
+                }
+                catch (FileNotFoundException)
+                {
+                    if (attempt < 30)
+                    {
+                        Thread.Sleep(2);
+                        continue;
+                    }
+                    return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.NotFound);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.NotFound);
+                }
+                catch (IOException) when (attempt < 30)
+                {
+                    Thread.Sleep(2);
+                }
+                catch (IOException ex) { return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.IoFailure, detail: ex.GetType().Name); }
+                catch (UnauthorizedAccessException ex) { return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.IoFailure, detail: ex.GetType().Name); }
             }
-            catch (IOException ex) { return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.IoFailure, detail: ex.GetType().Name); }
-            catch (UnauthorizedAccessException ex) { return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.IoFailure, detail: ex.GetType().Name); }
+
+            if (bytes.Length > MaxFileBytes)
+                return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.Malformed, detail: "Presentation memory file is too large.");
 
             if (bytes.Length == 0) return new PresentationMemoryLoadResult(PresentationMemoryLoadOutcome.Malformed, detail: "Presentation memory file is empty.");
 
@@ -97,8 +119,36 @@ namespace WalkGame.Infrastructure.Persistence
             }
             // D-179: one atomic rename over the existing file (no moment without a committed file);
             // the very first write has nothing to replace.
-            if (File.Exists(_path)) File.Replace(_tempPath, _path, destinationBackupFileName: null);
-            else File.Move(_tempPath, _path);
+            ReplaceFile(_tempPath, _path);
+        }
+
+        private static void ReplaceFile(string sourcePath, string destinationPath)
+        {
+            for (int attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    if (File.Exists(destinationPath))
+                        File.Replace(sourcePath, destinationPath, destinationBackupFileName: null);
+                    else
+                        File.Move(sourcePath, destinationPath);
+                    return;
+                }
+                catch (IOException) when (attempt < 15)
+                {
+                    Thread.Sleep(5);
+                }
+            }
+        }
+
+        private static byte[] ReadAllBytesWithShare(string path)
+        {
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            using (var ms = new MemoryStream((int)stream.Length))
+            {
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
         }
 
         internal sealed class MemoryDto
