@@ -375,6 +375,18 @@ public sealed class SaveCodecRoundtripTests
         }
     }
 
+    [Fact]
+    public void Decode_OversizedEnvelope_ReturnsMalformedEnvelope()
+    {
+        var codec = NewCodec();
+        var oversized = new byte[SaveCodec.MaxEnvelopeBytes + 1];
+
+        var result = codec.Decode(oversized);
+
+        Assert.Equal(CodecStatus.MalformedEnvelope, result.Status);
+        Assert.Contains("maximum allowed size", result.Detail);
+    }
+
     private static JsonObject EnvelopeOf(byte[] encoded) => JsonNode.Parse(encoded)!.AsObject();
 
     private static byte[] Serialize(JsonObject envelope) => JsonSerializer.SerializeToUtf8Bytes(envelope);

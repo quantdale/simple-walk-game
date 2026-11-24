@@ -452,8 +452,14 @@ namespace WalkGame.Domain.Validation
                 violations.Add("Retirement count is negative.");
             if (processed.RetiredCount != processed.RetiredIdentities.Count)
                 violations.Add($"Retired-identity set size {processed.RetiredIdentities.Count} does not match retired count {processed.RetiredCount}.");
+            var seenRetired = new HashSet<string>(StringComparer.Ordinal);
             foreach (var retired in processed.RetiredIdentities)
             {
+                if (!seenRetired.Add(retired))
+                {
+                    violations.Add($"Retired-identity list contains duplicate identity '{retired}'.");
+                    break;
+                }
                 if (processed.Entries.ContainsKey(retired))
                 {
                     violations.Add($"Processed-record '{retired}' is both retained and retired.");

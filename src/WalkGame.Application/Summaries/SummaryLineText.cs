@@ -59,7 +59,7 @@ namespace WalkGame.Application.Summaries
         /// <summary>D-141: overlay id for a resource name shown in a summary line ("resource.Materials#title").</summary>
         public static string ResourceId(string resourceType) => "resource." + resourceType;
 
-        private static Regex R(string p) => new Regex(p, RegexOptions.CultureInvariant);
+        private static Regex R(string p) => new Regex(p, RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
         /// <summary>The overlay this instance renders with.</summary>
         public ContentText Locale => _text;

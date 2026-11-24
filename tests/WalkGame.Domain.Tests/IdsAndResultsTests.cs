@@ -42,6 +42,23 @@ public class IdsAndResultsTests
     }
 
     [Fact]
+    public void Id_ComparisonOperatorsReflectCompareTo()
+    {
+        var a = new ProjectId("a");
+        var b = new ProjectId("b");
+        var a2 = new ProjectId("a");
+
+        Assert.True(a < b);
+        Assert.True(a <= b);
+        Assert.True(a <= a2);
+        Assert.False(a > b);
+        Assert.False(b < a);
+        Assert.True(b > a);
+        Assert.True(b >= a);
+        Assert.True(a >= a2);
+    }
+
+    [Fact]
     public void Id_IsValidReflectsPresenceOfValue()
     {
         Assert.True(new ProjectId("valid").IsValid);

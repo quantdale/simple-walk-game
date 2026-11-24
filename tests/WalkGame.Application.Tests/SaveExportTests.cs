@@ -89,4 +89,11 @@ public sealed class SaveExportTests : IDisposable
 
     [Fact]
     public void NullBytes_AreMalformed() => Assert.Equal(SaveExportStatus.Malformed, SaveExport.ToReadableJson(null).Status);
+
+    [Fact]
+    public void OversizedBytes_AreMalformed()
+    {
+        var oversized = new byte[SaveCodec.MaxEnvelopeBytes + 1];
+        Assert.Equal(SaveExportStatus.Malformed, SaveExport.ToReadableJson(oversized).Status);
+    }
 }

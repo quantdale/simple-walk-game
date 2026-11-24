@@ -121,6 +121,22 @@ public sealed class AtomicFileSaveStoreTests
         Assert.Empty(Directory.GetFiles(temp.Path, "*.tmp"));
     }
 
+    [Fact]
+    public void OversizedFile_IsReportedAsIoFailure()
+    {
+        using var temp = new TempDirectory();
+        var store = new AtomicFileSaveStore(temp.Path);
+
+        using (var fs = new FileStream(temp.FilePath("save.json"), FileMode.Create, FileAccess.Write))
+        {
+            fs.SetLength((long)SaveCodec.MaxEnvelopeBytes + 1);
+        }
+
+        var read = store.ReadPrimary();
+        Assert.Equal(SaveReadOutcome.IoFailure, read.Outcome);
+        Assert.Contains("exceeds maximum size", read.Detail);
+    }
+
     private static byte[] SampleBytes(int length) =>
         Enumerable.Range(0, length).Select(i => (byte)((i * 37 + 11) % 256)).ToArray();
 }

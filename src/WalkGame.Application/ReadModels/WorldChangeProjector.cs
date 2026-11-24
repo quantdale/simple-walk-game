@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using WalkGame.Application.Content;
 using WalkGame.Domain;
 using WalkGame.Domain.Projects;
@@ -74,10 +75,10 @@ namespace WalkGame.Application.ReadModels
 
                 int eco = ArcAfter(content.EcologyProgression, region.EcologyStage, x);
                 if (eco > region.EcologyStage)
-                    consequences.Add(new Consequence(ConsequenceKind.EcologyAdvances, null, null, region.EcologyStage.ToString(), eco.ToString(), eco));
+                    consequences.Add(new Consequence(ConsequenceKind.EcologyAdvances, null, null, region.EcologyStage.ToString(CultureInfo.InvariantCulture), eco.ToString(CultureInfo.InvariantCulture), eco));
                 int set = ArcAfter(content.SettlementProgression, region.SettlementStage, x);
                 if (set > region.SettlementStage)
-                    consequences.Add(new Consequence(ConsequenceKind.SettlementAdvances, null, null, region.SettlementStage.ToString(), set.ToString(), set));
+                    consequences.Add(new Consequence(ConsequenceKind.SettlementAdvances, null, null, region.SettlementStage.ToString(CultureInfo.InvariantCulture), set.ToString(CultureInfo.InvariantCulture), set));
 
                 foreach (var d in content.Discoveries)
                     if (d.UnlockedByProjectId == x && !region.Discoveries.ContainsKey(d.Id.Value))
@@ -201,9 +202,9 @@ namespace WalkGame.Application.ReadModels
                 }
 
                 int e2 = ArcAfter(content.EcologyProgression, eco, x);
-                if (e2 > eco) { batch.Add((VisualChangeKind.EcologyAdvanced, null, x, eco.ToString(), e2.ToString())); eco = e2; }
+                if (e2 > eco) { batch.Add((VisualChangeKind.EcologyAdvanced, null, x, eco.ToString(CultureInfo.InvariantCulture), e2.ToString(CultureInfo.InvariantCulture))); eco = e2; }
                 int s2 = ArcAfter(content.SettlementProgression, set, x);
-                if (s2 > set) { batch.Add((VisualChangeKind.SettlementAdvanced, null, x, set.ToString(), s2.ToString())); set = s2; }
+                if (s2 > set) { batch.Add((VisualChangeKind.SettlementAdvanced, null, x, set.ToString(CultureInfo.InvariantCulture), s2.ToString(CultureInfo.InvariantCulture))); set = s2; }
 
                 foreach (var b in batch)
                     if (at != null) Emit(events, ref seq, sinceUtc, at, b.kind, b.loc, b.subject, b.from, b.to, x);
@@ -373,9 +374,9 @@ namespace WalkGame.Application.ReadModels
             }
 
             if (after.EcologyStage > before.EcologyStage)
-                Add(VisualChangeKind.EcologyAdvanced, null, null, before.EcologyStage.ToString(), after.EcologyStage.ToString());
+                Add(VisualChangeKind.EcologyAdvanced, null, null, before.EcologyStage.ToString(CultureInfo.InvariantCulture), after.EcologyStage.ToString(CultureInfo.InvariantCulture));
             if (after.SettlementStage > before.SettlementStage)
-                Add(VisualChangeKind.SettlementAdvanced, null, null, before.SettlementStage.ToString(), after.SettlementStage.ToString());
+                Add(VisualChangeKind.SettlementAdvanced, null, null, before.SettlementStage.ToString(CultureInfo.InvariantCulture), after.SettlementStage.ToString(CultureInfo.InvariantCulture));
             if (after.RegionCompleted && !before.RegionCompleted) Add(VisualChangeKind.RegionCompleted, null, null, null, null);
             return events;
         }

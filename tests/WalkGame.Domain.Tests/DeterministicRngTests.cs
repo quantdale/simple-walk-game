@@ -95,6 +95,33 @@ public class DeterministicRngTests
     }
 
     [Fact]
+    public void NextInt64_WideIntervalExceedingSignedLong_GeneratesValuesStrictlyWithinBounds()
+    {
+        var rng = new DeterministicRng(123456789UL);
+
+        // Interval with span greater than long.MaxValue: -10 to long.MaxValue
+        for (int i = 0; i < 1000; i++)
+        {
+            long val = rng.NextInt64(-10L, long.MaxValue);
+            Assert.True(val >= -10L && val < long.MaxValue, $"Value {val} was outside [-10, long.MaxValue)");
+        }
+
+        // Full span from long.MinValue to long.MaxValue
+        for (int i = 0; i < 1000; i++)
+        {
+            long val = rng.NextInt64(long.MinValue, long.MaxValue);
+            Assert.True(val >= long.MinValue && val < long.MaxValue, $"Value {val} was outside [long.MinValue, long.MaxValue)");
+        }
+
+        // Negative-only interval
+        for (int i = 0; i < 1000; i++)
+        {
+            long val = rng.NextInt64(-100L, -10L);
+            Assert.True(val >= -100L && val < -10L, $"Value {val} was outside [-100, -10)");
+        }
+    }
+
+    [Fact]
     public void NextDouble_AlwaysWithinHalfOpenUnitInterval_Over1000Draws()
     {
         var rng = new DeterministicRng(31337UL);

@@ -153,6 +153,20 @@ public class GameStateValidationTests
     }
 
     [Fact]
+    public void DuplicateRetiredIdentities_IsFlagged()
+    {
+        var game = NewTamperedGame(out var content);
+        game.ProcessedRecords.RetiredIdentities.Add("rec1|provider|0|dup");
+        game.ProcessedRecords.RetiredIdentities.Add("rec1|provider|0|dup");
+        game.ProcessedRecords.RetiredCount = 2;
+
+        var violations = GameStateValidator.Validate(game, content);
+
+        Assert.NotEmpty(violations);
+        Assert.Contains(violations, v => v.Contains("contains duplicate identity"));
+    }
+
+    [Fact]
     public void LockedProducerWithProducedOutput_IsFlagged()
     {
         var game = NewTamperedGame(out var content);

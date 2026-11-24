@@ -182,6 +182,18 @@ public sealed class LocalPreferencesStoreTests : IDisposable
     }
 
     [Fact]
+    public void Load_FileExceedingMaxSize_ReturnsMalformed()
+    {
+        var oversized = new byte[LocalPreferencesStore.MaxFileBytes + 1];
+        File.WriteAllBytes(Path.Combine(_temp.Path, "ux-preferences.json"), oversized);
+
+        var result = NewStore().Load();
+
+        Assert.Equal(UxPreferencesLoadOutcome.Malformed, result.Outcome);
+        Assert.Contains("too large", result.Detail);
+    }
+
+    [Fact]
     public void Payload_DoesNotContainCanonicalGameStateFields()
     {
         var store = NewStore();

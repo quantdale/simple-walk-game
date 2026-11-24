@@ -421,6 +421,7 @@ namespace WalkGame.Domain.Activity
         public long? MaintainedVitalityCredited { get; set; }
 
         private HashSet<string>? _retiredIndex;
+        private int _retiredIndexSyncedCount;
 
         public bool HasProcessed(string identityKey) =>
             identityKey != null && Entries.ContainsKey(identityKey);
@@ -585,6 +586,7 @@ namespace WalkGame.Domain.Activity
                 Entries.Remove(entry.IdentityKey);
                 RetiredIdentities.Add(entry.IdentityKey);
                 _retiredIndex!.Add(entry.IdentityKey);
+                _retiredIndexSyncedCount++;
                 RetiredVitalityCredited = checked(RetiredVitalityCredited + entry.VitalityCredited);
                 if (entry.LocalDay is int rd && (RetiredThroughLocalDay == null || rd > RetiredThroughLocalDay.Value))
                     RetiredThroughLocalDay = rd;
@@ -637,8 +639,9 @@ namespace WalkGame.Domain.Activity
 
         private void EnsureRetiredIndex()
         {
-            if (_retiredIndex != null && _retiredIndex.Count == RetiredIdentities.Count) return;
+            if (_retiredIndex != null && _retiredIndexSyncedCount == RetiredIdentities.Count) return;
             _retiredIndex = new HashSet<string>(RetiredIdentities, StringComparer.Ordinal);
+            _retiredIndexSyncedCount = RetiredIdentities.Count;
         }
     }
 
@@ -679,11 +682,14 @@ namespace WalkGame.Domain.Activity
 
         private static Guid Derive(string canonical)
         {
-            byte[] hash = Sha256Pool.Rent().ComputeHash(System.Text.Encoding.UTF8.GetBytes(canonical));
+            int maxBytes = System.Text.Encoding.UTF8.GetByteCount(canonical);
+            Span<byte> utf8 = maxBytes <= 256 ? stackalloc byte[maxBytes] : new byte[maxBytes];
+            System.Text.Encoding.UTF8.GetBytes(canonical.AsSpan(), utf8);
 
-            var guidBytes = new byte[16];
-            Array.Copy(hash, guidBytes, 16);
-            return new Guid(guidBytes);
+            Span<byte> hash = stackalloc byte[32];
+            Sha256Pool.Rent().TryComputeHash(utf8, hash, out _);
+
+            return new Guid(hash.Slice(0, 16));
         }
     }
 }

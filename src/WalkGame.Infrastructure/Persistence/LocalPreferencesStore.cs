@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using WalkGame.Application.Ux;
 
 namespace WalkGame.Infrastructure.Persistence
@@ -27,6 +28,8 @@ namespace WalkGame.Infrastructure.Persistence
     /// </summary>
     public sealed class LocalPreferencesStore : IUxPreferencesStore, WalkGame.Application.Persistence.ILocalDataEraser
     {
+        public const int MaxFileBytes = 64 * 1024; // 64 KiB
+
         private readonly string _path;
         private readonly string _tempPath;
 
@@ -52,24 +55,44 @@ namespace WalkGame.Infrastructure.Persistence
         public UxPreferencesLoadResult Load()
         {
             byte[] bytes;
-            try
+            for (int attempt = 0; ; attempt++)
             {
-                if (!File.Exists(_path))
+                try
+                {
+                    bytes = ReadAllBytesWithShare(_path);
+                    break;
+                }
+                catch (FileNotFoundException)
+                {
+                    if (attempt < 30)
+                    {
+                        Thread.Sleep(2);
+                        continue;
+                    }
                     return new UxPreferencesLoadResult(UxPreferencesLoadOutcome.NotFound);
-
-                bytes = File.ReadAllBytes(_path);
-            }
-            catch (IOException ex)
-            {
-                return new UxPreferencesLoadResult(UxPreferencesLoadOutcome.IoFailure, detail: ex.Message);
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return new UxPreferencesLoadResult(UxPreferencesLoadOutcome.IoFailure, detail: ex.Message);
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    return new UxPreferencesLoadResult(UxPreferencesLoadOutcome.NotFound);
+                }
+                catch (IOException) when (attempt < 30)
+                {
+                    Thread.Sleep(2);
+                }
+                catch (IOException ex)
+                {
+                    return new UxPreferencesLoadResult(UxPreferencesLoadOutcome.IoFailure, detail: ex.Message);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    return new UxPreferencesLoadResult(UxPreferencesLoadOutcome.IoFailure, detail: ex.Message);
+                }
             }
 
             if (bytes.Length == 0)
                 return new UxPreferencesLoadResult(UxPreferencesLoadOutcome.Malformed, detail: "Preferences file is empty.");
+            if (bytes.Length > MaxFileBytes)
+                return new UxPreferencesLoadResult(UxPreferencesLoadOutcome.Malformed, detail: "Preferences file is too large.");
 
             PreferencesDto? dto;
             try
@@ -118,10 +141,31 @@ namespace WalkGame.Infrastructure.Persistence
         /// </summary>
         private static void ReplaceFile(string sourcePath, string destinationPath)
         {
-            if (File.Exists(destinationPath))
-                File.Replace(sourcePath, destinationPath, destinationBackupFileName: null);
-            else
-                File.Move(sourcePath, destinationPath);
+            for (int attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    if (File.Exists(destinationPath))
+                        File.Replace(sourcePath, destinationPath, destinationBackupFileName: null);
+                    else
+                        File.Move(sourcePath, destinationPath);
+                    return;
+                }
+                catch (IOException) when (attempt < 15)
+                {
+                    Thread.Sleep(5);
+                }
+            }
+        }
+
+        private static byte[] ReadAllBytesWithShare(string path)
+        {
+            using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+            using (var ms = new MemoryStream((int)stream.Length))
+            {
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
         }
 
         private static void WriteDurable(string path, byte[] bytes)

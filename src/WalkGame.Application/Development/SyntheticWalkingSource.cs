@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using WalkGame.Domain.Activity;
 
 namespace WalkGame.Application.Development
@@ -54,6 +55,6 @@ namespace WalkGame.Application.Development
 
         /// <summary>Stable logical identity: one walking record per UTC calendar day.</summary>
         public static string SourceRecordIdFor(DateTimeOffset dayStartUtc) =>
-            "walk." + dayStartUtc.UtcDateTime.ToString("yyyyMMdd");
+            "walk." + dayStartUtc.UtcDateTime.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
     }
 }
